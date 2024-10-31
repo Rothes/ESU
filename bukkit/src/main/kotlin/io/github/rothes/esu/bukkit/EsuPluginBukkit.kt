@@ -1,0 +1,145 @@
+package io.github.rothes.esu.bukkit
+
+import cc.carm.lib.easysql.hikari.HikariDataSource
+import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.bukkit.module.DeathMessageColorModule
+import io.github.rothes.esu.bukkit.module.UtilCommandsModule
+import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule
+import io.github.rothes.esu.bukkit.user.BukkitUser
+import io.github.rothes.esu.bukkit.user.BukkitUserManager
+import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.user.GenericUser
+import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.command.parser.ModuleParser
+import io.github.rothes.esu.core.module.Module
+import io.github.rothes.esu.core.module.ModuleManager
+import io.github.rothes.esu.core.storage.StorageManager
+import org.bukkit.Bukkit
+import org.bukkit.command.ConsoleCommandSender
+import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.Listener
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent
+import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.plugin.java.JavaPlugin
+import org.incendo.cloud.SenderMapper
+import org.incendo.cloud.bukkit.BukkitCommandManager
+import org.incendo.cloud.bukkit.BukkitDefaultCaptionsProvider
+import org.incendo.cloud.description.Description
+import org.incendo.cloud.execution.ExecutionCoordinator
+import org.incendo.cloud.paper.LegacyPaperCommandManager
+import org.incendo.cloud.setting.ManagerSetting
+import java.nio.file.Path
+import java.util.logging.Level
+
+class EsuPluginBukkit: JavaPlugin(), EsuCore {
+
+    override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
+        LegacyPaperCommandManager(this, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
+            when (it) {
+                is ConsoleCommandSender -> ConsoleUser
+                is Player               -> it.user
+                else                    -> GenericUser(it)
+            }
+        }, { it.commandSender })).apply {
+            settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
+            captionRegistry().registerProvider { caption, recipient ->
+                recipient.localedOrNull(EsuLocale.get()) {
+                    commandCaptions[caption.key()]
+                }
+            }
+        }
+    }
+    override fun onEnable() {
+        EsuCore.instance = this
+        EsuLocale // Load global locale
+        EsuConfig // Load global config
+        StorageManager // Load database
+
+        ModuleManager.addModule(ChatAntiSpamModule)
+        ModuleManager.addModule(DeathMessageColorModule)
+        ModuleManager.addModule(UtilCommandsModule)
+
+        // Register commands
+        with(commandManager) {
+            val esu = commandBuilder("esu", Description.of("ESU commands")).permission("esu.command.admin")
+            command(
+                esu.literal("reload")
+                    .handler { context ->
+                        EsuLocale.reloadConfig()
+                        EsuConfig.reloadConfig()
+                        ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
+                        context.sender().message("§aReloaded global & module configs.")
+                    }
+            )
+            val moduleCmd = esu.literal("module")
+            command(
+                moduleCmd.literal("enable")
+                    .required("module", ModuleParser.parser(), ModuleParser())
+                    .handler { context ->
+                        val module = context.get<Module<*, *>>("module")
+                        if (module.enabled) {
+                            context.sender().message("§2Module ${module.name} is already enabled.")
+                        } else if (ModuleManager.enableModule(module)) {
+                            context.sender().message("§aModule ${module.name} is enabled.")
+                        } else {
+                            context.sender().message("§cFailed to enable module ${module.name}.")
+                        }
+                    }
+            )
+            command(
+                moduleCmd.literal("disable")
+                    .required("module", ModuleParser.parser(), ModuleParser())
+                    .handler { context ->
+                        val module = context.get<Module<*, *>>("module")
+                        if (!module.enabled) {
+                            context.sender().message("§4Module ${module.name} is already disabled.")
+                        } else if (ModuleManager.disableModule(module)) {
+                            context.sender().message("§cModule ${module.name} is disabled.")
+                        } else {
+                            context.sender().message("§cFailed to disable module ${module.name}.")
+                        }
+                    }
+            )
+        }
+
+        Bukkit.getOnlinePlayers().forEach { it.user }
+        Bukkit.getPluginManager().registerEvents(object : Listener {
+
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun onLogin(event: AsyncPlayerPreLoginEvent) {
+                if (event.loginResult == AsyncPlayerPreLoginEvent.Result.ALLOWED)
+                    BukkitUserManager[event.uniqueId]
+                else
+                    BukkitUserManager.unload(event.uniqueId)
+            }
+
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun onQuit(event: PlayerQuitEvent) {
+                BukkitUserManager.getCache(event.player.uniqueId)?.let {
+                    StorageManager.updateUserNameAsync(it)
+                    BukkitUserManager.unload(it)
+                }
+            }
+        }, this)
+    }
+
+    override fun onDisable() {
+        ModuleManager.registeredModules().filter { it.enabled }.forEach { ModuleManager.disableModule(it) }
+        (StorageManager.sqlManager.dataSource as HikariDataSource).close()
+    }
+
+    override fun err(message: String) {
+        logger.log(Level.SEVERE, message)
+    }
+
+    override fun err(message: String, throwable: Throwable) {
+        logger.log(Level.SEVERE, message, throwable)
+    }
+
+    override fun baseConfigPath(): Path {
+        return dataFolder.toPath()
+    }
+
+}

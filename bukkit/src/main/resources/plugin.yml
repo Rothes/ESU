@@ -1,0 +1,11 @@
+name: ESU
+main: io.github.rothes.esu.bukkit.EsuPluginBukkit
+version: @versionName@
+api-version: 1.21
+author: Rothes
+folia-supported: true
+#permissions:
+#  'esu.chatantispam.bypass':
+#    default: op
+#  'esu.chatantispam.notify':
+#    default: op
