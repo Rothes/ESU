@@ -1,7 +1,11 @@
 package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.configuration.serializer.ComponentSerializer
+import io.github.rothes.esu.core.configuration.serializer.DurationSerializer
 import io.github.rothes.esu.core.configuration.serializer.EnumValueSerializer
+import io.github.rothes.esu.core.configuration.serializer.JavaDurationSerializer
+import io.github.rothes.esu.core.configuration.serializer.LocalDateSerializer
+import io.github.rothes.esu.core.configuration.serializer.LocalTimeSerializer
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer
 import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
@@ -60,41 +64,59 @@ object ConfigLoader {
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
-        val loader = builder.invoke(
-            YamlConfigurationLoader.builder()
-                .indent(2)
-                .nodeStyle(NodeStyle.BLOCK)
-                .headerMode(HeaderMode.PRESERVE)
-                .path(path)
-                .defaultOptions { options ->
-                    val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder().build()
-                    options.mapFactory(MapFactories.insertionOrdered())
-                        .serializers {
-                            it.register(
-                                    { type ->
-                                        GenericTypeReflector.erase(type).let { clazz ->
-                                            ConfigurationPart::class.java.isAssignableFrom(clazz)
-//                                                    || try {
-//                                                        clazz.kotlin.isData
-//                                                    } catch (e: Throwable) {
-//                                                        false
-//                                                    }
-                                        }
-                                    },
-                                    factory.asTypeSerializer())
-                                .registerAnnotatedObjects(factory)
-                                .register(TypeToken.get(Map::class.java), MapSerializer)
-                                .register(EnumValueSerializer)
-                                .register(ComponentSerializer)
-                                .register(TextColorSerializer)
-                        }
-                }
-        ).build()
+        val loader = createBuilder().path(path).let(builder).build()
         val node = loader.load() ?: CommentedConfigurationNode.root(loader.defaultOptions())
         val t = modifier.invoke(node.require(clazz))
         node.set(clazz, t)
         loader.save(node)
         return t
+    }
+
+    inline fun save(path: Path, obj: Any,
+                        builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }) {
+        if (path.isDirectory()) {
+            throw IllegalArgumentException("Path '$path' is a directory")
+        }
+        val loader = createBuilder().path(path).let(builder).build()
+        val node = loader.load() ?: CommentedConfigurationNode.root(loader.defaultOptions())
+        node.set(obj.javaClass, obj)
+        loader.save(node)
+    }
+
+    fun createBuilder(): YamlConfigurationLoader.Builder {
+        return YamlConfigurationLoader.builder()
+            .indent(2)
+            .nodeStyle(NodeStyle.BLOCK)
+            .headerMode(HeaderMode.PRESERVE)
+            .lineLength(150)
+            .commentsEnabled(true)
+            .defaultOptions { options ->
+                val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder().build()
+                options.mapFactory(MapFactories.insertionOrdered())
+                    .serializers {
+                        it.register(
+                            { type ->
+                                GenericTypeReflector.erase(type).let { clazz ->
+                                    ConfigurationPart::class.java.isAssignableFrom(clazz)
+//                                                    || try {
+//                                                        clazz.kotlin.isData
+//                                                    } catch (e: Throwable) {
+//                                                        false
+//                                                    }
+                                }
+                            },
+                            factory.asTypeSerializer())
+                            .registerAnnotatedObjects(factory)
+                            .register(TypeToken.get(Map::class.java), MapSerializer)
+                            .register(ComponentSerializer)
+                            .register(DurationSerializer)
+                            .register(EnumValueSerializer)
+                            .register(JavaDurationSerializer)
+                            .register(LocalDateSerializer)
+                            .register(LocalTimeSerializer)
+                            .register(TextColorSerializer)
+                    }
+            }
     }
 
 }

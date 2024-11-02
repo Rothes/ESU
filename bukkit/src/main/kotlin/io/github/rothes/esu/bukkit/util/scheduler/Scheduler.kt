@@ -6,6 +6,10 @@ import java.util.concurrent.TimeUnit
 
 object Scheduler {
 
+    fun global(func: () -> Unit): ScheduledTask {
+        return FoliaTask(Bukkit.getGlobalRegionScheduler().run(plugin) { func.invoke() })
+    }
+
     fun async(delay: Long, period: Long, func: () -> Unit): ScheduledTask {
         return FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
             delay * 50, period * 50, TimeUnit.MILLISECONDS))

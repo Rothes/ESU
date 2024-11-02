@@ -18,11 +18,11 @@ interface User {
 
     fun hasPermission(permission: String): Boolean
 
-    fun <T: ConfigurationPart> localedOrNull(locales: MultiLocaleConfiguration<T>, block: T.() -> String?): String? {
+    fun <T: ConfigurationPart, R> localedOrNull(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R? {
         return locales.get(clientLocale, block)
     }
 
-    fun <T: ConfigurationPart> localed(locales: MultiLocaleConfiguration<T>, block: T.() -> String?): String {
+    fun <T: ConfigurationPart, R> localed(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R {
         return localedOrNull(locales, block) ?: throw NullPointerException()
     }
 
@@ -36,5 +36,7 @@ interface User {
         message(LegacyComponentSerializer.legacySection().deserialize(message))
     }
     fun message(message: Component)
+
+    fun <T: ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
 
 }

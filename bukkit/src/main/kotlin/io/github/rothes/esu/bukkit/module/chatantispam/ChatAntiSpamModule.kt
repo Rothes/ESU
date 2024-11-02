@@ -211,12 +211,12 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
             data class SpamScore(
                 val calculateSize: Int = 6,
                 val muteOnAverageScore: Double = 0.5625,
-                @Comment("Make sure the player get muted can be scored in this range after unmute")
+                @field:Comment("Make sure the player get muted can be scored in this range after unmute")
                 val safeScoreOnMute: Double = 0.3,
             ): ConfigurationPart
 
             data class MuteDurationMultiplier(
-                @Comment("Last Mute must within this interval to trigger a multiplier")
+                @field:Comment("Last Mute must within this interval to trigger a multiplier")
                 val maxMuteInterval: Long = 15 * MINUTE,
                 val multiplier: Double = 2.0,
             ): ConfigurationPart
@@ -224,7 +224,7 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
 
         data class SpamCheck(
             val notifyFiltered: Boolean = true,
-            @Comment("Efficient to \"Spam\" module with a fixed send rate")
+            @field:Comment("Efficient to \"Spam\" module with a fixed send rate")
             val fixedRequestMute: FixedRequestMute = FixedRequestMute(),
             val frequency: Frequency = Frequency(),
             val illegalCharacters: IllegalCharacters = IllegalCharacters(),

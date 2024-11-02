@@ -1,6 +1,9 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import java.util.*
 
@@ -14,5 +17,9 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
         get() = name
     override val clientLocale: String
         get() = EsuConfig.get().locale
+
+    override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+        throw UnsupportedOperationException("Cannot kick a GenericUser")
+    }
 
 }

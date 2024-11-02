@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.storage
 
 import cc.carm.lib.easysql.EasySQL
 import cc.carm.lib.easysql.api.SQLTable
+import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
@@ -15,7 +16,7 @@ object StorageManager {
             .addColumn("name", "VARCHAR(16) UNIQUE KEY")
     }
 
-    val sqlManager = try {
+    val sqlManager: SQLManagerImpl = try {
         EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)

@@ -1,7 +1,9 @@
 package io.github.rothes.esu.bukkit
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
+import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.DeathMessageColorModule
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule
@@ -21,11 +23,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
+import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.BukkitCommandManager
-import org.incendo.cloud.bukkit.BukkitDefaultCaptionsProvider
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
@@ -57,6 +59,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         EsuConfig // Load global config
         StorageManager // Load database
 
+        ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(ChatAntiSpamModule)
         ModuleManager.addModule(DeathMessageColorModule)
         ModuleManager.addModule(UtilCommandsModule)
@@ -128,6 +131,10 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     override fun onDisable() {
         ModuleManager.registeredModules().filter { it.enabled }.forEach { ModuleManager.disableModule(it) }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
+    }
+
+    override fun warn(message: String) {
+        logger.log(Level.WARNING, message)
     }
 
     override fun err(message: String) {

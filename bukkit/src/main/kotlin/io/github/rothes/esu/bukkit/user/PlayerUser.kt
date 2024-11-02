@@ -1,6 +1,10 @@
 package io.github.rothes.esu.bukkit.user
 
+import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
+import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -23,6 +27,10 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         get() = playerCache?.name
     override val clientLocale: String
         get() = with(player.locale()) { language + '_' + country.lowercase() }
+
+    override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+        player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params))
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

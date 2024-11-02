@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
@@ -25,6 +26,11 @@ object UtilCommandsModule: CommonModule<BaseModuleConfiguration, UtilCommandsMod
                 user.message(locale, { pingCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("ping", player.ping.toString()))
+            })
+            command(playerOptionalCmd("clientLocale") { _, user, player ->
+                user.message(locale, { clientLocaleCommand },
+                    Placeholder.unparsed("name", player.name),
+                    Placeholder.unparsed("locale", player.user.clientLocale))
             })
             command(playerOptionalCmd("ip") { _, user, player ->
                 user.message(locale, { ipCommand },
@@ -71,6 +77,7 @@ object UtilCommandsModule: CommonModule<BaseModuleConfiguration, UtilCommandsMod
 
     data class ModuleLocale(
         val pingCommand: String = "<green><name>'s ping is <dark_aqua><ping>ms",
+        val clientLocaleCommand: String = "<green><name>'s client locale is <dark_aqua><locale>",
         val ipCommand: String = "<green><name>'s ip is <dark_aqua><address>",
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
     ): ConfigurationPart {
