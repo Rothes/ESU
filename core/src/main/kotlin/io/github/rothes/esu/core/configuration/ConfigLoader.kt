@@ -1,5 +1,7 @@
 package io.github.rothes.esu.core.configuration
 
+import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.serializer.ComponentSerializer
 import io.github.rothes.esu.core.configuration.serializer.DurationSerializer
 import io.github.rothes.esu.core.configuration.serializer.EnumValueSerializer
@@ -7,6 +9,8 @@ import io.github.rothes.esu.core.configuration.serializer.JavaDurationSerializer
 import io.github.rothes.esu.core.configuration.serializer.LocalDateSerializer
 import io.github.rothes.esu.core.configuration.serializer.LocalTimeSerializer
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer
+import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
+import io.github.rothes.esu.core.configuration.serializer.PathSerializer
 import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
@@ -17,10 +21,15 @@ import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.util.MapFactories
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
+import kotlin.io.path.createDirectories
 import kotlin.io.path.forEachDirectoryEntry
 import kotlin.io.path.isDirectory
 import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.notExists
+import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
 
@@ -35,6 +44,20 @@ object ConfigLoader {
             loadMulti(path: Path, clazz: Class<D>, vararg forceLoad: String,
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
                       modifier: (D) -> D = { it }): T {
+        if (clazz.isInstance(EmptyConfiguration)) {
+            return T::class.java.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
+        }
+        if (MultiLocaleConfiguration::class.java.isAssignableFrom(T::class.java) && path.notExists()) {
+            EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
+                val relativize = EsuCore.instance.baseConfigPath().relativize(path)
+                val source = linkTo.resolve(relativize)
+                if (!source.isDirectory()) {
+                    source.createDirectories()
+                }
+                Files.createSymbolicLink(path, source)
+                EsuCore.instance.info("Created symbolic link: [$source] -> [$path]")
+            }
+        }
         return T::class.java.getConstructor(Map::class.java).newInstance(
             buildMap {
                 if (path.isDirectory()) {
@@ -108,12 +131,14 @@ object ConfigLoader {
                             factory.asTypeSerializer())
                             .registerAnnotatedObjects(factory)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
+                            .register(TypeToken.get(Optional::class.java), OptionalSerializer)
                             .register(ComponentSerializer)
                             .register(DurationSerializer)
                             .register(EnumValueSerializer)
                             .register(JavaDurationSerializer)
                             .register(LocalDateSerializer)
                             .register(LocalTimeSerializer)
+                            .register(PathSerializer)
                             .register(TextColorSerializer)
                     }
             }

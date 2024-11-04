@@ -139,7 +139,7 @@ object CasListeners: Listener {
                 val max = spamScoreConfig.muteOnAverageScore * spamScoreConfig.calculateSize
                 if (sum >= max) {
                     val safeCheck = scores.drop(1)
-                    var toRemove = safeCheck.sumOf { it.score } - (max + spamScoreConfig.safeScoreOnMute)
+                    var toRemove = safeCheck.sumOf { it.score } - (max - spamScoreConfig.safeScoreOnMute)
                     var i = 0
                     while (toRemove > 0 && i < safeCheck.size) {
                         val score = safeCheck[i]

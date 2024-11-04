@@ -17,7 +17,7 @@ object TextColorSerializer: ScalarSerializer<TextColor>(TextColor::class.java) {
         return (
                 if (string.startsWith("#")) TextColor.fromHexString(string)
                 else NamedTextColor.NAMES.value(string) ?: aliases[string]
-                ) ?: throw SerializationException("Unable to parse a color from '$string'. Please use named colours or hex (#RRGGBB) colors.")
+                ) ?: throw SerializationException("Unable to parse a color from '$string'. Please use named colors or hex (#RRGGBB) colors.")
     }
 
     override fun serialize(textColor: TextColor, typeSupported: Predicate<Class<*>>): String {

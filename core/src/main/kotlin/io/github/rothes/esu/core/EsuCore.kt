@@ -9,6 +9,7 @@ interface EsuCore {
 
     val commandManager: CommandManager<out User>
 
+    fun info(message: String)
     fun warn(message: String)
     fun err(message: String)
     fun err(message: String, throwable: Throwable)

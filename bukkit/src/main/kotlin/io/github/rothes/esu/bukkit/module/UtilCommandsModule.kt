@@ -86,7 +86,7 @@ object UtilCommandsModule: CommonModule<BaseModuleConfiguration, UtilCommandsMod
             val noSameIp: String = "<green>There's no players on same ip",
             val entry: String = "<green><address>: <players>",
             val playerPrefix: String = "<dark_aqua>",
-            val playerSeparator: String = "<grey>, <dark_aqua>",
+            val playerSeparator: String = "<gray>, <dark_aqua>",
         ): ConfigurationPart
     }
 }

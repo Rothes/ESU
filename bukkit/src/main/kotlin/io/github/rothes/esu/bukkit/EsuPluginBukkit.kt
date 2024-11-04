@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
-import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.DeathMessageColorModule
@@ -23,7 +22,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.SenderMapper
@@ -55,8 +53,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
     override fun onEnable() {
         EsuCore.instance = this
-        EsuLocale // Load global locale
         EsuConfig // Load global config
+        EsuLocale // Load global locale
         StorageManager // Load database
 
         ModuleManager.addModule(AutoRestartModule)
@@ -70,8 +68,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             command(
                 esu.literal("reload")
                     .handler { context ->
-                        EsuLocale.reloadConfig()
                         EsuConfig.reloadConfig()
+                        EsuLocale.reloadConfig()
                         ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
                         context.sender().message("§aReloaded global & module configs.")
                     }
@@ -131,6 +129,10 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     override fun onDisable() {
         ModuleManager.registeredModules().filter { it.enabled }.forEach { ModuleManager.disableModule(it) }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
+    }
+
+    override fun info(message: String) {
+        logger.log(Level.INFO, message)
     }
 
     override fun warn(message: String) {

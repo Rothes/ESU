@@ -34,10 +34,10 @@ import kotlin.time.toJavaDuration
 
 object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestartModule.ModuleLocale>(ConfigData::class.java, ModuleLocale::class.java) {
 
-    private var task: ScheduledTask? = null
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
+    private var task: ScheduledTask? = null
     private var pausing: Boolean = false
     private var restartOnOverride: Long? = null
     private var restartOn: Long? = null
@@ -57,10 +57,10 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
             val cmd = commandBuilder("autorestart", "ar")
             command(cmd.literal("check").handler { context ->
                 val user = context.sender()
+                val restartOn = restartOn
                 if (restartOn == null) {
                     user.message(locale, { noTask })
                 } else {
-                    val restartOn = restartOn!!
                     user.messageTimeParsed((restartOn - System.currentTimeMillis()).milliseconds) { notify }
                 }
             })
@@ -72,7 +72,7 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
             })
             command(admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
                 val duration = context.get<Duration>("duration")
-                restartOnOverride = System.currentTimeMillis() + duration.toMillis()
+                restartOnOverride = System.currentTimeMillis() + duration.toMillis() + 500 // Add some delay for notify
                 scheduleTask()
                 context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
             })
@@ -105,6 +105,7 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
         task = null
     }
 
+    @Synchronized
     private fun scheduleTask() {
         task?.cancel()
         task = null
@@ -114,7 +115,7 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
         }
         val now = System.currentTimeMillis()
         if (restartOnOverride != null && restartOnOverride!! < now) {
-            Logger.getLogger(name).warn("Resetting override restart time due to it's behind the current time.")
+            Logger.getLogger(name).warn("Resetting override restart time due to behind the current time.")
             restartOnOverride = null
         }
         val restartOn = (if (restartOnOverride == null) {
@@ -138,10 +139,12 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
             if (find == null) {
                 data.lastAutoRestartTime = LocalDate.now()
                 ConfigLoader.save(dataPath, data)
-                Scheduler.global {
-                    Bukkit.getOnlinePlayers().map { it.user }.forEach { user ->
-                        user.kick(locale, { kickMessage })
-                    }
+
+                Bukkit.getOnlinePlayers().map { it.user }.forEach { user ->
+                    user.kick(locale, { kickMessage })
+                }
+                // Make sure all players are disconnected on their region thread
+                Scheduler.global(2) {
                     config.commands.forEach {
                         Bukkit.dispatchCommand(ConsoleUser.commandSender, it)
                     }
@@ -169,7 +172,7 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
 
     data class ConfigData(
         val commands: List<String> = listOf("stop"),
-        val notifyRestartAt: List<KDuration> = listOf(KDuration.parse("10m"), KDuration.parse("5m"), KDuration.parse("1m"), KDuration.parse("5s")),
+        val notifyRestartAt: List<KDuration> = listOf(KDuration.parse("10m"), KDuration.parse("5m"), KDuration.parse("1m"), KDuration.parse("30s"), KDuration.parse("5s")),
         val restartAt: LocalTime = LocalTime.parse("05:00:00"),
         val restartInterval: Duration = KDuration.parse("3d").toJavaDuration(),
     ): BaseModuleConfiguration()
@@ -178,8 +181,8 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
         val timeFormatter: String = "MM/dd HH:mm:ss",
         val couldNotParseTime: String = "<red>The time you provided could not be parsed: <message>",
         val noTask: String = "<gold>This server has no scheduled restart!",
-        val notify: String = "<gold>This server is going to be restarted in <interval> at <time> !",
-        val overridesTo: String = "<gold>Overrides restart time in <interval> at <time> !",
+        val notify: String = "<gold>This server is restarting in <interval> at <time> !",
+        val overridesTo: String = "<gold>Overrides restart time to <interval> at <time> !",
         val overridesReset: String = "<gold>Reset restart time overrides. Now it's using the configured values.",
         val toggledPausing: String = "<gold>Toggled pausing to <state>",
         val kickMessage: String = "<gold>Server restarting, please wait a minute."

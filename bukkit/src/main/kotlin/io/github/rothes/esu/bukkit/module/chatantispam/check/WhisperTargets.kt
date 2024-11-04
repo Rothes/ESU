@@ -20,7 +20,7 @@ object WhisperTargets: Check() {
         if (index != -1) {
             if (config.whisperTargets.safeTargets > index) {
                 spamData.whisperTargets[index].lastTime = time
-                return CheckResult(endChecks = true)
+                return CheckResult(endChecks = true, score = -1.0)
             } else if (spamData.muteUntil <= time) {
                 // Not muted
                 spamData.whisperTargets[index].lastTime = time
@@ -28,7 +28,7 @@ object WhisperTargets: Check() {
         } else {
             if (config.whisperTargets.safeTargets > spamData.whisperTargets.size + 1) {
                 spamData.whisperTargets.sizedAdd(config.expireSize.whisperTarget, SpamData.WhisperTarget(receiver, time))
-                return CheckResult(endChecks = true)
+                return CheckResult(endChecks = true, score = -1.0)
             } else if (spamData.muteUntil <= time) {
                 spamData.whisperTargets.sizedAdd(config.expireSize.whisperTarget, SpamData.WhisperTarget(receiver, time))
                 if (spamData.whisperTargets.size >= config.whisperTargets.maxTargets) {

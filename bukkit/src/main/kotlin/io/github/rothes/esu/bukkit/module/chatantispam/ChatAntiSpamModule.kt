@@ -104,7 +104,7 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
             purgeCache(false)
         } catch (e: NoClassDefFoundError) {
             // Ehh.. Plugin Jar got deleted?
-            plugin.err("Failed to purge Cache on disabling module $name", e)
+            plugin.err("Failed to purge cache while disabling module $name", e)
         }
         Bukkit.getOnlinePlayers().forEach { CasDataManager.saveSpamData(it.user) }
     }
@@ -167,14 +167,12 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
         data class ExpireTime(
             val chatRequest: Long = (6 * MINUTE).toLong(),
             val filtered: Long = (4.5 * MINUTE).toLong(),
+            @field:Comment("Using base value(hard) plus quadratic function to check expired with a rate.\n" +
+                    "Default: 60 + 840 seconds(15m in total) to fully expire")
             val messageRecord: ExpireCurve = ExpireCurve(),
             val whisperTarget: Long = (4 * MINUTE).toLong(),
             val score: Long = -1,
         ): ConfigurationPart {
-            /**
-             * Using base value(hard) plus quadratic function to check expired with a rate.
-             * Default: 60 + 840 seconds(15m) to fully expire
-             */
             data class ExpireCurve(
                 val hardExpireTime: Long = 60 * SECOND,
                 val quadraticDividerOffset: Double = 60.0 * SECOND,
@@ -271,7 +269,7 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
 
             data class SimilarityCheck(
                 val blockOnDisallowCount: LinkedHashMap<Int, Int> = LinkedHashMap<Int, Int>().apply {
-                    put(6, 3)
+                    put(6, 5)
                     put(14, 2)
                     put(32767, 1)
                 },
