@@ -1,8 +1,7 @@
 package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import com.google.gson.annotations.SerializedName
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.config
-import kotlin.math.max
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 
 data class SpamData(
     @SerializedName("t", alternate = ["muteUntil"])

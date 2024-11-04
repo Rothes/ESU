@@ -5,7 +5,7 @@ import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.DeathMessageColorModule
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser

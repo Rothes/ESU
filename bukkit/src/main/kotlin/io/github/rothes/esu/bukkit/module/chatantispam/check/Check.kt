@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module.chatantispam.check
 
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 
 abstract class Check {

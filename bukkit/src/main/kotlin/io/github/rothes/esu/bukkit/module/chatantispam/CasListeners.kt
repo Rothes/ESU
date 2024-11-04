@@ -1,9 +1,9 @@
 package io.github.rothes.esu.bukkit.module.chatantispam
 
 import io.github.rothes.esu.bukkit.legacy
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.hasPerm
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.config
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.spamData
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.chatantispam.check.FixedRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.check.Frequency
 import io.github.rothes.esu.bukkit.module.chatantispam.check.IllegalCharacters

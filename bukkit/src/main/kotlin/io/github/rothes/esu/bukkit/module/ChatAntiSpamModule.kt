@@ -1,6 +1,7 @@
-package io.github.rothes.esu.bukkit.module.chatantispam
+package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
+import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.notifyUsers
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager

@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 import cc.carm.lib.easysql.api.SQLQuery
 import cc.carm.lib.easysql.api.SQLTable
 import cc.carm.lib.easysql.api.action.PreparedSQLUpdateAction
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.addr
-import io.github.rothes.esu.bukkit.module.chatantispam.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.addr
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.DataSerializer.decode
