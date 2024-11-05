@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import net.kyori.adventure.text.format.TextColor
@@ -12,7 +11,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 
-object DeathMessageColorModule: CommonModule<DeathMessageColorModule.ConfigData, EmptyConfiguration>(
+object DeathMessageColorModule: BukkitModule<DeathMessageColorModule.ConfigData, EmptyConfiguration>(
     ConfigData::class.java, EmptyConfiguration::class.java
 ) {
 
@@ -21,6 +20,7 @@ object DeathMessageColorModule: CommonModule<DeathMessageColorModule.ConfigData,
     }
 
     override fun disable() {
+        super.disable()
         HandlerList.unregisterAll(Listeners)
     }
 

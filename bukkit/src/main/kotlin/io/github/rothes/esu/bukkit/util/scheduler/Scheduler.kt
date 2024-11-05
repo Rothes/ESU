@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.util.scheduler
 
 import io.github.rothes.esu.bukkit.plugin
 import org.bukkit.Bukkit
+import org.bukkit.entity.Entity
 import java.util.concurrent.TimeUnit
 
 object Scheduler {
@@ -12,6 +13,14 @@ object Scheduler {
 
     fun global(func: () -> Unit): ScheduledTask {
         return FoliaTask(Bukkit.getGlobalRegionScheduler().run(plugin) { func.invoke() })
+    }
+
+    fun schedule(entity: Entity, delayTicks: Long, func: () -> Unit): ScheduledTask {
+        return FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks)!!)
+    }
+
+    fun schedule(entity: Entity, func: () -> Unit): ScheduledTask {
+        return FoliaTask(entity.scheduler.run(plugin, { func.invoke() }, null)!!)
     }
 
     fun async(delayTicks: Long, periodTicks: Long, func: () -> Unit): ScheduledTask {

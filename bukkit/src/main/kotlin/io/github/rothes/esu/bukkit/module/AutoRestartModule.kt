@@ -8,7 +8,6 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
@@ -27,12 +26,14 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
-import kotlin.time.Duration as KDuration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
+import kotlin.time.Duration as KDuration
 
-object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestartModule.ModuleLocale>(ConfigData::class.java, ModuleLocale::class.java) {
+object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestartModule.ModuleLocale>(
+    ConfigData::class.java, ModuleLocale::class.java
+) {
 
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
@@ -53,9 +54,10 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
     override fun enable() {
         scheduleTask()
 
-        with(plugin.commandManager) {
-            val cmd = commandBuilder("autorestart", "ar")
-            command(cmd.literal("check").handler { context ->
+        val cmd = plugin.commandManager.commandBuilder("autorestart", "ar")
+        val admin = cmd.permission(perm("command.admin"))
+        regCmd {
+            cmd.literal("check").handler { context ->
                 val user = context.sender()
                 val restartOn = restartOn
                 if (restartOn == null) {
@@ -63,20 +65,25 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
                 } else {
                     user.messageTimeParsed((restartOn - System.currentTimeMillis()).milliseconds) { notify }
                 }
-            })
-            val admin = cmd.permission(perm("command.admin"))
-            command(admin.literal("reset").handler { context ->
+            }
+        }
+        regCmd {
+            admin.literal("reset").handler { context ->
                 restartOnOverride = null
                 context.sender().message(locale, { overridesReset })
                 scheduleTask()
-            })
-            command(admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
+            }
+        }
+        regCmd {
+            admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
                 val duration = context.get<Duration>("duration")
                 restartOnOverride = System.currentTimeMillis() + duration.toMillis() + 500 // Add some delay for notify
                 scheduleTask()
                 context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
-            })
-            command(admin.literal("schedule").required("dateTime", StringParser.greedyStringParser(),
+            }
+        }
+        regCmd {
+            admin.literal("schedule").required("dateTime", StringParser.greedyStringParser(),
                 SuggestionProvider.blockingStrings { context, _ ->
                     listOf(context.sender().localed(locale) { timeFormatter })
                 }).handler { context ->
@@ -91,16 +98,19 @@ object AutoRestartModule: CommonModule<AutoRestartModule.ConfigData, AutoRestart
                 restartOnOverride = localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 scheduleTask()
                 context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
-            })
-            command(admin.literal("pause").handler { context ->
+            }
+        }
+        regCmd {
+            admin.literal("pause").handler { context ->
                 pausing = !pausing
                 scheduleTask()
                 context.sender().message(locale, { toggledPausing }, Placeholder.unparsed("state", pausing.toString()))
-            })
+            }
         }
     }
 
     override fun disable() {
+        super.disable()
         task?.cancel()
         task = null
     }

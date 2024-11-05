@@ -1,11 +1,9 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -16,28 +14,34 @@ import org.incendo.cloud.bukkit.parser.PlayerParser
 import org.incendo.cloud.component.DefaultValue
 import org.incendo.cloud.context.CommandContext
 
-object UtilCommandsModule: CommonModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
+object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
     BaseModuleConfiguration::class.java, ModuleLocale::class.java
 ) {
 
     override fun enable() {
-        with(plugin.commandManager) {
-            command(playerOptionalCmd("ping") { _, user, player ->
+        regCmd {
+            playerOptionalCmd("ping") { _, user, player ->
                 user.message(locale, { pingCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("ping", player.ping.toString()))
-            })
-            command(playerOptionalCmd("clientLocale") { _, user, player ->
+            }
+        }
+        regCmd {
+            playerOptionalCmd("clientLocale") { _, user, player ->
                 user.message(locale, { clientLocaleCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("locale", player.user.clientLocale))
-            })
-            command(playerOptionalCmd("ip") { _, user, player ->
+            }
+        }
+        regCmd {
+            playerOptionalCmd("ip") { _, user, player ->
                 user.message(locale, { ipCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("address", player.address.hostString))
-            })
-            command(cmd("ipGroup").handler { context ->
+            }
+        }
+        regCmd {
+            cmd("ipGroup").handler { context ->
                 val user = context.sender()
                 val list = Bukkit.getOnlinePlayers()
                     .groupBy { it.address.hostString }
@@ -57,11 +61,12 @@ object UtilCommandsModule: CommonModule<BaseModuleConfiguration, UtilCommandsMod
                 } else {
                     user.message(locale, { ipGroupCommand.noSameIp } )
                 }
-            })
+            }
         }
     }
 
     override fun disable() {
+        super.reloadConfig()
     }
 
     private fun <C> CommandBuilderSource<C>.cmd(root: String) =

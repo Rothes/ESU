@@ -15,7 +15,6 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedEnumMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -27,7 +26,7 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
-object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConfiguration>(
+object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConfiguration>(
     ConfigData::class.java, EmptyConfiguration::class.java
 ) {
 
@@ -41,55 +40,59 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
             if (it.hasPerm("notify"))
                 notifyUsers.add(it)
         }
-        with(plugin.commandManager) {
-            val cmd = commandBuilder("antispam", Description.of("Esu $name commands"), "as").permission(perm("command.admin"))
-            command(
-                cmd.literal("notify")
-                    .handler { context ->
-                        val user = context.sender()
-                        if (notifyUsers.contains(user)) {
-                            notifyUsers.remove(user)
-                            user.message("§cRejecting spam notify")
-                        } else {
-                            notifyUsers.add(user)
-                            user.message("§aReceiving spam notify")
-                        }
-                    }
-            ).command(
-                cmd.literal("reset")
-                    .optional("player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser())
-                    .handler { context ->
-                        val playerUser = context.get<PlayerUser>("player")
-                        CasDataManager.deleteAsync(playerUser.dbId)
-                        CasDataManager.cacheById.remove(playerUser.dbId)
-                        CasDataManager.cacheByIp.remove(playerUser.addr)
-                        context.sender().message("§aReset for player ${playerUser.name}")
-                    }
-            ).command(
-                cmd.literal("data")
-                    .optional("player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser())
-                    .handler { context ->
-                        val playerUser = context.get<PlayerUser>("player")
-                        context.sender().message(CasDataManager.cacheByIp[playerUser.player.address.hostString]?.let { spamData ->
-                            """§aData of player ${playerUser.name} :
+        val cmd = plugin.commandManager.commandBuilder("antispam", Description.of("Esu $name commands"), "as").permission(perm("command.admin"))
+        regCmd {
+            cmd.literal("notify").handler { context ->
+                val user = context.sender()
+                if (notifyUsers.contains(user)) {
+                    notifyUsers.remove(user)
+                    user.message("§cRejecting spam notify")
+                } else {
+                    notifyUsers.add(user)
+                    user.message("§aReceiving spam notify")
+                }
+            }
+        }
+        regCmd {
+            cmd.literal("reset").optional(
+                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+            ).handler { context ->
+                val playerUser = context.get<PlayerUser>("player")
+                CasDataManager.deleteAsync(playerUser.dbId)
+                CasDataManager.cacheById.remove(playerUser.dbId)
+                CasDataManager.cacheByIp.remove(playerUser.addr)
+                context.sender().message("§aReset for player ${playerUser.name}")
+            }
+        }
+        regCmd {
+            cmd.literal("data").optional(
+                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+            ).handler { context ->
+                val playerUser = context.get<PlayerUser>("player")
+                context.sender()
+                    .message(CasDataManager.cacheByIp[playerUser.player.address.hostString]?.let { spamData ->
+                        """§aData of player ${playerUser.name} :
                             |  §3$spamData
                             |  §aFilters: ${spamData.filtered.size}
                             |  §2Requests: ${spamData.requests.size}
-                            |  §aScore: ${spamData.scores.takeLast(config.muteHandler.spamScore.calculateSize).sumOf { it.score } / config.muteHandler.spamScore.calculateSize}
+                            |  §aScore: ${
+                            spamData.scores.takeLast(config.muteHandler.spamScore.calculateSize)
+                                .sumOf { it.score } / config.muteHandler.spamScore.calculateSize
+                        }
                             |  §2Mute duration: ${if (spamData.muteUntil > System.currentTimeMillis()) (spamData.muteUntil - System.currentTimeMillis()).milliseconds else "Not muted"}
                             """.trimMargin("|  ")
-                        } ?: "§aPlayer ${playerUser.name} has no chat data")
-                    }
-            ).command(
-                cmd.literal("mute")
-                    .optional("player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser())
-                    .handler { context ->
-                        val playerUser = context.get<PlayerUser>("player")
-                        val duration = playerUser.spamData.mute()
-                        context.sender().message("§aMuted ${playerUser.name} for ${duration.milliseconds}")
-                        CasDataManager.saveSpamDataAsync(playerUser)
-                    }
-            )
+                    } ?: "§aPlayer ${playerUser.name} has no chat data")
+            }
+        }
+        regCmd {
+            cmd.literal("mute").optional(
+                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+            ).handler { context ->
+                val playerUser = context.get<PlayerUser>("player")
+                val duration = playerUser.spamData.mute()
+                context.sender().message("§aMuted ${playerUser.name} for ${duration.milliseconds}")
+                CasDataManager.saveSpamDataAsync(playerUser)
+            }
         }
         // Try save one data
         Bukkit.getOnlinePlayers().firstOrNull()?.let {
@@ -98,6 +101,7 @@ object ChatAntiSpamModule: CommonModule<ChatAntiSpamModule.ConfigData, EmptyConf
     }
 
     override fun disable() {
+        super.disable()
         purgeTask?.cancel()
         purgeTask = null
         HandlerList.unregisterAll(CasListeners)
