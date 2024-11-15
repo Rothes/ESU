@@ -146,7 +146,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
             restartOn - now > it.inWholeMilliseconds
         }
         val delayMillis = find?.let { (restartOn - now - it.inWholeMilliseconds) } ?: (restartOn - now)
-        task = Scheduler.async(delayMillis / 50) {
+        task = Scheduler.async(delayMillis / 50 + 1) { // Wait 1 more tick so message won't repeat
             Logger.getLogger(name).info("Running task")
             if (find == null) {
                 data.lastAutoRestartTime = LocalDate.now()

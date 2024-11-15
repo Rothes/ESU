@@ -37,7 +37,6 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
         @EventHandler
         fun onCommand(event: ServerCommandEvent) {
             event.isCancelled = blocked(ConsoleUser, event.command)
-            println(event.command)
         }
 
         private fun blocked(user: BukkitUser, rawCommand: String): Boolean {
