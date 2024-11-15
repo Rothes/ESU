@@ -63,7 +63,7 @@ object ConfigLoader {
                     source.createDirectories()
                 }
                 Files.createSymbolicLink(path, source)
-                EsuCore.instance.info("Created symbolic link: [$source] -> [$path]")
+                EsuCore.instance.info("Created symbolic link: [$path] -> [$source]")
             }
         }
         return T::class.java.getConstructor(Map::class.java).newInstance(
