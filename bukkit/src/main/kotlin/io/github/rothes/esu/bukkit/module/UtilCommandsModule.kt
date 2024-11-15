@@ -19,28 +19,28 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
 ) {
 
     override fun enable() {
-        regCmd {
+        registerCommand {
             playerOptionalCmd("ping") { _, user, player ->
                 user.message(locale, { pingCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("ping", player.ping.toString()))
             }
         }
-        regCmd {
+        registerCommand {
             playerOptionalCmd("clientLocale") { _, user, player ->
                 user.message(locale, { clientLocaleCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("locale", player.user.clientLocale))
             }
         }
-        regCmd {
+        registerCommand {
             playerOptionalCmd("ip") { _, user, player ->
                 user.message(locale, { ipCommand },
                     Placeholder.unparsed("name", player.name),
                     Placeholder.unparsed("address", player.address.hostString))
             }
         }
-        regCmd {
+        registerCommand {
             cmd("ipGroup").handler { context ->
                 val user = context.sender()
                 val list = Bukkit.getOnlinePlayers()

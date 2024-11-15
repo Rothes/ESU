@@ -57,7 +57,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
 
         val cmd = plugin.commandManager.commandBuilder("autorestart", "ar")
         val admin = cmd.permission(perm("command.admin"))
-        regCmd {
+        registerCommand {
             cmd.literal("check").handler { context ->
                 val user = context.sender()
                 val restartOn = restartOn
@@ -68,14 +68,14 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                 }
             }
         }
-        regCmd {
+        registerCommand {
             admin.literal("reset").handler { context ->
                 restartOnOverride = null
                 context.sender().message(locale, { overridesReset })
                 scheduleTask()
             }
         }
-        regCmd {
+        registerCommand {
             admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
                 val duration = context.get<Duration>("duration")
                 restartOnOverride = System.currentTimeMillis() + duration.toMillis() + 500 // Add some delay for notify
@@ -83,7 +83,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                 context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
             }
         }
-        regCmd {
+        registerCommand {
             admin.literal("schedule").required("dateTime", StringParser.greedyStringParser(),
                 SuggestionProvider.blockingStrings { context, _ ->
                     listOf(context.sender().localed(locale) { timeFormatter })
@@ -101,7 +101,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                 context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
             }
         }
-        regCmd {
+        registerCommand {
             admin.literal("pause").handler { context ->
                 pausing = !pausing
                 scheduleTask()

@@ -41,7 +41,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
                 notifyUsers.add(it)
         }
         val cmd = plugin.commandManager.commandBuilder("antispam", Description.of("Esu $name commands"), "as").permission(perm("command.admin"))
-        regCmd {
+        registerCommand {
             cmd.literal("notify").handler { context ->
                 val user = context.sender()
                 if (notifyUsers.contains(user)) {
@@ -53,7 +53,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
                 }
             }
         }
-        regCmd {
+        registerCommand {
             cmd.literal("reset").optional(
                 "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
             ).handler { context ->
@@ -64,7 +64,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
                 context.sender().message("§aReset for player ${playerUser.name}")
             }
         }
-        regCmd {
+        registerCommand {
             cmd.literal("data").optional(
                 "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
             ).handler { context ->
@@ -84,7 +84,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
                     } ?: "§aPlayer ${playerUser.name} has no chat data")
             }
         }
-        regCmd {
+        registerCommand {
             cmd.literal("mute").optional(
                 "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
             ).handler { context ->
@@ -227,7 +227,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
 
         data class SpamCheck(
             val notifyFiltered: Boolean = true,
-            @field:Comment("Efficient to \"Spam\" module with a fixed send rate")
+            @field:Comment("""Efficient to "Spam" module with a fixed send rate""")
             val fixedRequestMute: FixedRequestMute = FixedRequestMute(),
             val frequency: Frequency = Frequency(),
             val illegalCharacters: IllegalCharacters = IllegalCharacters(),

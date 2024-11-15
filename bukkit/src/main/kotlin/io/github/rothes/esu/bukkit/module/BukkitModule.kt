@@ -13,20 +13,28 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
 
     private val registeredCommands = LinkedHashSet<Command<BukkitUser>>()
 
+    @Deprecated("Use registerCommand instead")
     protected fun regCmd(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {
+        registerCommand(block)
+    }
+
+    protected fun registerCommand(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {
         with(plugin.commandManager) {
             val command = block.invoke(this).build()
             command(command)
             registeredCommands.add(command)
         }
     }
-
-    override fun disable() {
+    protected fun unregisterCommands() {
         with(plugin.commandManager) {
             registeredCommands.forEach {
                 deleteRootCommand(it.rootComponent().name())
             }
             registeredCommands.clear()
         }
+    }
+
+    override fun disable() {
+        unregisterCommands()
     }
 }
