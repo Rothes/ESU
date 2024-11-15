@@ -251,9 +251,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
             }
 
             data class Frequency(
-                val maxMessages: Int = 10,
+                val maxMessages: Int = 8,
                 val maxMessagesPer: Long = 25 * SECOND,
-                val minimalInterval: Long = 2 * SECOND,
+                val minimalInterval: Long = (1.5 * SECOND).toLong(),
             ): ConfigurationPart
 
             data class IllegalCharacters(
@@ -265,7 +265,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
             ): ConfigurationPart
 
             data class LongMessage(
-                val maxMessageSize: Int = 56
+                val maxMessageSize: Int = 72
             ): ConfigurationPart
 
             data class RandomCharacters(
@@ -274,8 +274,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
 
             data class SimilarityCheck(
                 val blockOnDisallowCount: LinkedHashMap<Int, Int> = LinkedHashMap<Int, Int>().apply {
-                    put(6, 5)
-                    put(14, 2)
+                    put(6, 6)
+                    put(14, 4)
+                    put(36, 2)
                     put(32767, 1)
                 },
                 val allowRateReducePerRecord: Double = 0.015,
