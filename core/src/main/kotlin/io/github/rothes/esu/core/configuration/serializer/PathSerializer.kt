@@ -11,7 +11,7 @@ object PathSerializer: ScalarSerializer<Path>(Path::class.java) {
 
     override fun deserialize(type: Type, obj: Any): Path {
         val string = obj.toString()
-        return Paths.get(string.replaceFirst("^~".toRegex(), Matcher.quoteReplacement(System.getProperty("user.home"))))
+        return Paths.get(string.replaceFirst("^~/?".toRegex(), Matcher.quoteReplacement(System.getProperty("user.home") + '/')))
     }
 
     override fun serialize(path: Path, typeSupported: Predicate<Class<*>>): String {

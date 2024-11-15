@@ -13,6 +13,7 @@ repositories {
 }
 
 dependencies {
+//    api(kotlin("reflect"))
     api("cc.carm.lib:easysql-hikaricp:0.4.7")
     api("org.incendo:cloud-core:2.0.0")
     api("org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT")

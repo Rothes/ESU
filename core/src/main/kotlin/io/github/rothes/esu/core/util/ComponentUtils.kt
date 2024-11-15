@@ -2,16 +2,26 @@ package io.github.rothes.esu.core.util
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 
 object ComponentUtils {
+
+    fun fromLegacy(legacyText: String): Component {
+        return LegacyComponentSerializer.legacySection().deserialize(legacyText)
+    }
 
     fun fromMiniMessage(miniMessage: String): Component {
         return MiniMessage.miniMessage().deserialize(miniMessage)
     }
 
-    fun fromLegacy(legacyText: String): Component {
-        return LegacyComponentSerializer.legacySection().deserialize(legacyText)
+    fun unparsed(key: String, value: Any): TagResolver.Single {
+        return Placeholder.unparsed(key, value.toString())
+    }
+
+    fun parsed(key: String, value: Any): TagResolver.Single {
+        return Placeholder.parsed(key, value.toString())
     }
 
 //    fun Component.set(vararg objects: Any): Component {

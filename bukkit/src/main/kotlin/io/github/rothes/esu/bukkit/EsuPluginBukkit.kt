@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit
 import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
-import io.github.rothes.esu.bukkit.module.DeathMessageColorModule
+import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.user.BukkitUser
@@ -59,7 +59,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(ChatAntiSpamModule)
-        ModuleManager.addModule(DeathMessageColorModule)
+        ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(UtilCommandsModule)
 
         // Register commands

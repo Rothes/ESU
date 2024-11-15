@@ -9,12 +9,12 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.incendo.cloud.parser.standard.DurationParser
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.suggestion.SuggestionProvider
-import org.yaml.snakeyaml.internal.Logger
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
+import java.util.logging.Logger
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
@@ -125,7 +126,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
         }
         val now = System.currentTimeMillis()
         if (restartOnOverride != null && restartOnOverride!! < now) {
-            Logger.getLogger(name).warn("Resetting override restart time due to behind the current time.")
+            Logger.getLogger(name).warning("Resetting override restart time due to behind the current time.")
             restartOnOverride = null
         }
         val restartOn = (if (restartOnOverride == null) {
@@ -146,6 +147,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
         }
         val delayMillis = find?.let { (restartOn - now - it.inWholeMilliseconds) } ?: (restartOn - now)
         task = Scheduler.async(delayMillis / 50) {
+            Logger.getLogger(name).info("Running task")
             if (find == null) {
                 data.lastAutoRestartTime = LocalDate.now()
                 ConfigLoader.save(dataPath, data)
@@ -153,8 +155,8 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                 Bukkit.getOnlinePlayers().map { it.user }.forEach { user ->
                     user.kick(locale, { kickMessage })
                 }
-                // Make sure all players are disconnected on their region thread
-                Scheduler.global(2) {
+
+                Scheduler.global(1) { // Make sure all players are disconnected on their region thread
                     config.commands.forEach {
                         Bukkit.dispatchCommand(ConsoleUser.commandSender, it)
                     }
@@ -171,9 +173,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
     private fun BukkitUser.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> String?) {
         val instant = Instant.ofEpochMilli(restartOn!!).atZone(ZoneId.systemDefault())
         val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(locale) { timeFormatterP })
-        message(locale, block,
-            Placeholder.unparsed("interval", duration.toString()),
-            Placeholder.unparsed("time", time.toString()))
+        message(locale, block, unparsed("interval", duration), unparsed("time", time))
     }
 
     data class ModuleData(

@@ -10,7 +10,7 @@ import java.util.*
 
 object OptionalSerializer: TypeSerializer<Optional<*>> {
 
-    private const val DISABLED = "disabled"
+    const val DISABLED = "disabled"
 
     override fun deserialize(type: Type, node: ConfigurationNode): Optional<*> {
         if (type !is ParameterizedType) {

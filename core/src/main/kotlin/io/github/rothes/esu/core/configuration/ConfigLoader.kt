@@ -15,18 +15,26 @@ import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
+import org.checkerframework.checker.units.qual.t
+import org.spongepowered.configurate.BasicConfigurationNode
 import org.spongepowered.configurate.CommentedConfigurationNode
+import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.loader.HeaderMode
 import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.util.MapFactories
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.lang.reflect.Type
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.exists
 import kotlin.io.path.forEachDirectoryEntry
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.notExists
 import kotlin.jvm.optionals.getOrNull
@@ -60,12 +68,15 @@ object ConfigLoader {
         }
         return T::class.java.getConstructor(Map::class.java).newInstance(
             buildMap {
+                val files = forceLoad.map { path.resolve(it) }.toMutableSet()
                 if (path.isDirectory()) {
-                    path.forEachDirectoryEntry { file ->
-                        put(file.nameWithoutExtension, load(file, clazz, builder, modifier))
+                    path.forEachDirectoryEntry {
+                        if (it.isRegularFile() && !files.contains(it)) {
+                            files.add(it)
+                        }
                     }
                 }
-                forceLoad.filter { !containsKey(it) }.map { path.resolve(it) }.forEach { file ->
+                files.forEach { file ->
                     put(file.nameWithoutExtension, load(file, clazz, builder, modifier))
                 }
             }
@@ -88,11 +99,18 @@ object ConfigLoader {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
         val loader = createBuilder().path(path).let(builder).build()
-        val node = loader.load() ?: CommentedConfigurationNode.root(loader.defaultOptions())
+        val node = loader.load()
         val t = modifier.invoke(node.require(clazz))
         node.set(clazz, t)
         loader.save(node)
         return t
+    }
+
+    private fun debugNodeSerialization(node: ConfigurationNode, clazz: Type) {
+        val serial = node.options().serializers().get(clazz)!!
+        println(serial)
+        println(serial.emptyValue(clazz, node.options()))
+        println((serial as ObjectMapper.Factory).get(clazz).load(BasicConfigurationNode.root(node.options().shouldCopyDefaults(false))))
     }
 
     inline fun save(path: Path, obj: Any,
@@ -121,14 +139,18 @@ object ConfigLoader {
                             { type ->
                                 GenericTypeReflector.erase(type).let { clazz ->
                                     ConfigurationPart::class.java.isAssignableFrom(clazz)
-//                                                    || try {
-//                                                        clazz.kotlin.isData
-//                                                    } catch (e: Throwable) {
-//                                                        false
-//                                                    }
+//                                            || try {
+//                                                clazz.kotlin.isData
+//                                            } catch (_: KotlinReflectionNotSupportedError) {
+//                                                false
+//                                            } catch (e: Throwable) {
+//                                                if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
+//                                                    e.printStackTrace()
+//                                                }
+//                                                false
+//                                            }
                                 }
-                            },
-                            factory.asTypeSerializer())
+                            }, factory.asTypeSerializer())
                             .registerAnnotatedObjects(factory)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)

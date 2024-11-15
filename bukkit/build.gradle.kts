@@ -25,6 +25,8 @@ dependencies {
     implementation("info.debatty:java-string-similarity:2.0.0")
 }
 
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
