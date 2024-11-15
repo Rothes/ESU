@@ -56,7 +56,8 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
                 } != null
             }
             if (matched != null) {
-                user.minimessage(user.localedOrNull(locale) { blockMessage[matched.blockedMessage] } ?: matched.blockedMessage)
+                val key = matched.blockedMessage
+                user.minimessage(user.localedOrNull(locale) { blockedMessage[key] } ?: key)
                 return true
             }
             return false
@@ -78,7 +79,7 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
     }
 
     data class ModuleLocale(
-        val blockMessage: Map<String, String> = linkedMapOf(
+        val blockedMessage: Map<String, String> = linkedMapOf(
             Pair("no-suicide", "<gold>Do not kill yourself! We still love you...")
         ),
     ): ConfigurationPart
