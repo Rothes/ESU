@@ -15,14 +15,12 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.papermc.paper.configuration.GlobalConfiguration
-import io.papermc.paper.event.packet.PlayerChunkLoadEvent
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
-import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.CommandBuilderSource
 import org.incendo.cloud.bukkit.parser.PlayerParser
 import org.incendo.cloud.bukkit.parser.WorldParser
@@ -129,16 +127,16 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     }.filter { entry ->
                         val value = entry.value
                         value != null && value > 0
-                    }.toList().sortedWith(compareBy { it.second }).asReversed()
-                    if (map.isNotEmpty()) {
+                    }.toList().sortedByDescending { it.second }
+                    if (map.isEmpty()) {
+                        context.sender().message(locale, { baseLocale().noData })
+                    } else {
                         context.sender().message(locale, { baseLocale().header })
                         map.forEach { (p, v) ->
                             context.sender().message(
                                 locale, { baseLocale().entry }, component("player", p.displayName()), parsed("rate", v)
                             )
                         }
-                    } else {
-                        context.sender().message(locale, { baseLocale().noData })
                     }
                 }
             }
