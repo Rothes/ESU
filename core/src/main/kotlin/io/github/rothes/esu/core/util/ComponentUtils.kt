@@ -1,6 +1,7 @@
 package io.github.rothes.esu.core.util
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -16,12 +17,16 @@ object ComponentUtils {
         return MiniMessage.miniMessage().deserialize(miniMessage)
     }
 
-    fun unparsed(key: String, value: Any): TagResolver.Single {
+    fun unparsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.unparsed(key, value.toString())
     }
 
-    fun parsed(key: String, value: Any): TagResolver.Single {
+    fun parsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.parsed(key, value.toString())
+    }
+
+    fun component(key: String, component: ComponentLike): TagResolver.Single {
+        return Placeholder.component(key, component)
     }
 
 //    fun Component.set(vararg objects: Any): Component {
