@@ -1,8 +1,12 @@
 package io.github.rothes.esu.bukkit.module
 
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
+import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
+import io.github.rothes.esu.bukkit.module.UtilCommandsModule.ModuleLocale.ChunkRateTop
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -24,6 +28,8 @@ import org.incendo.cloud.bukkit.parser.location.Location2D
 import org.incendo.cloud.bukkit.parser.location.Location2DParser
 import org.incendo.cloud.component.DefaultValue
 import org.incendo.cloud.context.CommandContext
+import org.incendo.cloud.execution.CommandExecutionHandler
+import java.lang.reflect.Field
 
 object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
     BaseModuleConfiguration::class.java, ModuleLocale::class.java
@@ -106,40 +112,49 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     }
                 }
         }
-        registerCommand {
-            cmd("genRateTop")
-                .handler { context ->
-                    val map = Bukkit.getOnlinePlayers()
-                        .associateWith { player ->
-                            (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
-                        }
-                        .mapValues { entry ->
-                            val loaderData = entry.value ?: return@mapValues null
-                            val field = loaderData.javaClass.getDeclaredField("chunkGenerateTicketLimiter").also {
-                                it.isAccessible = true
-                            }
-                            val limiter = field[loaderData] as AllocatingRateLimiter
-                            val maxRate = GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate
-                            maxRate - limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
-                        }
-                        .filter { entry ->
-                            val value = entry.value
-                            value != null && value > 0
-                        }
-                        .toList()
-                        .sortedWith(compareBy { it.second })
-                        .asReversed()
+        try {
+            val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
+            val handlerCreator: (Field, () -> Double, ModuleLocale.() -> ChunkRateTop)
+                    -> CommandExecutionHandler<BukkitUser> = { field, maxRateGetter, baseLocale ->
+                CommandExecutionHandler<BukkitUser> { context ->
+                    val maxRate = maxRateGetter()
+                    val map = Bukkit.getOnlinePlayers().associateWith { player ->
+                        (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
+                    }.mapValues { entry ->
+                        val loaderData = entry.value ?: return@mapValues null
+                        val limiter = field[loaderData] as AllocatingRateLimiter
+                        maxRate - limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
+                    }.filter { entry ->
+                        val value = entry.value
+                        value != null && value > 0
+                    }.toList().sortedWith(compareBy { it.second }).asReversed()
                     if (map.isNotEmpty()) {
-                        context.sender().message(locale, { genRateTop.header })
+                        context.sender().message(locale, { baseLocale().header })
                         map.forEach { (p, v) ->
-                            context.sender().message(locale, { genRateTop.entry },
-                                component("player", p.displayName()),
-                                parsed("gen-rate", v))
+                            context.sender().message(
+                                locale, { baseLocale().entry }, component("player", p.displayName()), parsed("rate", v)
+                            )
                         }
                     } else {
-                        context.sender().message(locale, { genRateTop.noData })
+                        context.sender().message(locale, { baseLocale().noData })
                     }
                 }
+            }
+            registerCommand {
+                cmd("genRateTop").handler(handlerCreator(
+                    clazz.getDeclaredField("chunkGenerateTicketLimiter").also {
+                        it.isAccessible = true
+                    }, { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate }) { genRateTop })
+            }
+            registerCommand {
+                cmd("loadRateTop").handler(handlerCreator(
+                    clazz.getDeclaredField("chunkLoadTicketLimiter").also {
+                        it.isAccessible = true
+                    }, { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate }) { loadRateTop })
+            }
+            // We don't add sendRate command as it doesn't have the logic for this.
+        } catch (e: Exception) {
+            plugin.warn("Cannot register chunk rate commands: $e")
         }
     }
 
@@ -164,7 +179,14 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
         val ipCommand: String = "<green><name>'s ip is <dark_aqua><address>",
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
         val tpChunkTeleporting: String = "<yellow>Teleporting <player>...",
-        val genRateTop: GenRateTop = GenRateTop(),
+        val genRateTop: ChunkRateTop = ChunkRateTop(
+            "<green>There's no chunk generate at this moment.",
+            "<dark_green>[player]<gray>: <aqua>[chunk generate tickets/sec]",
+        ),
+        val loadRateTop: ChunkRateTop = ChunkRateTop(
+            "<green>There's no chunk load at this moment.",
+            "<dark_green>[player]<gray>: <aqua>[chunk load tickets/sec]",
+        ),
     ): ConfigurationPart {
 
         data class IpGroupCommand(
@@ -174,10 +196,12 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             val playerSeparator: String = "<gray>, <dark_aqua>",
         ): ConfigurationPart
 
-        data class GenRateTop(
-            val noData: String = "<green>There's no chunk generation at this moment.",
-            val header: String = "<dark_green>[player]<gray>: <aqua>[chunk generations/sec]",
-            val entry: String = "<green><player><gray>: <dark_aqua><gen-rate>",
+        data class ChunkRateTop(
+            val noData: String = "",
+            val header: String = "",
+            val entry: String = "<green><player><gray>: <dark_aqua><rate>",
         ): ConfigurationPart
+
+
     }
 }
