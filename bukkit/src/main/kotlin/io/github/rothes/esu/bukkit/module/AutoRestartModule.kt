@@ -41,7 +41,6 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
 
     private var task: ScheduledTask? = null
     private var pausing: Boolean = false
-    private var restartOnOverride: Long? = null
     private var restartOn: Long? = null
 
     override fun reloadConfig() {
@@ -70,17 +69,19 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
         }
         registerCommand {
             admin.literal("reset").handler { context ->
-                restartOnOverride = null
-                context.sender().message(locale, { overridesReset })
+                data.restartOnOverride = null
                 scheduleTask()
+                context.sender().message(locale, { overridesReset })
+                ConfigLoader.save(dataPath, data)
             }
         }
         registerCommand {
             admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
                 val duration = context.get<Duration>("duration")
-                restartOnOverride = System.currentTimeMillis() + duration.toMillis() + 500 // Add some delay for notify
+                data.restartOnOverride = System.currentTimeMillis() + duration.toMillis() + 500 // Add some delay for notify
                 scheduleTask()
-                context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
+                context.sender().messageTimeParsed((data.restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
+                ConfigLoader.save(dataPath, data)
             }
         }
         registerCommand {
@@ -96,9 +97,10 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                 } catch (e: DateTimeParseException) {
                     return@handler context.sender().message(locale, { couldNotParseTime }, Placeholder.unparsed("message", e.message ?: ""))
                 }
-                restartOnOverride = localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                data.restartOnOverride = localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 scheduleTask()
-                context.sender().messageTimeParsed((restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
+                context.sender().messageTimeParsed((data.restartOnOverride!! - System.currentTimeMillis()).milliseconds) { overridesTo }
+                ConfigLoader.save(dataPath, data)
             }
         }
         registerCommand {
@@ -125,11 +127,11 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
             return
         }
         val now = System.currentTimeMillis()
-        if (restartOnOverride != null && restartOnOverride!! < now) {
+        if (data.restartOnOverride != null && data.restartOnOverride!! < now) {
             Logger.getLogger(name).warning("Resetting override restart time due to behind the current time.")
-            restartOnOverride = null
+            data.restartOnOverride = null
         }
-        val restartOn = (if (restartOnOverride == null) {
+        val restartOn = (if (data.restartOnOverride == null) {
             val localDateTime = config.restartAt.atDate(data.lastAutoRestartTime)
                 .plus(config.restartInterval.toMillis(), ChronoUnit.MILLIS)
             var epoch = config.restartAt.atDate(localDateTime.toLocalDate()).atZone(ZoneId.systemDefault()).toInstant()
@@ -139,7 +141,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
             }
             epoch
         } else {
-            restartOnOverride!!
+            data.restartOnOverride!!
         }).also { this.restartOn = it }
 
         val find = config.notifyRestartAt.find {
@@ -178,6 +180,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
 
     data class ModuleData(
         var lastAutoRestartTime: LocalDate = LocalDate.now().minusDays(1),
+        var restartOnOverride: Long? = null,
     ): ConfigurationPart
 
     data class ConfigData(
