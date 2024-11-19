@@ -15,12 +15,14 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.papermc.paper.configuration.GlobalConfiguration
+import io.papermc.paper.event.packet.PlayerChunkLoadEvent
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
+import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.CommandBuilderSource
 import org.incendo.cloud.bukkit.parser.PlayerParser
 import org.incendo.cloud.bukkit.parser.WorldParser
@@ -141,16 +143,20 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                 }
             }
             registerCommand {
-                cmd("genRateTop").handler(handlerCreator(
-                    clazz.getDeclaredField("chunkGenerateTicketLimiter").also {
-                        it.isAccessible = true
-                    }, { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate }) { genRateTop })
+                cmd("genRateTop").handler(
+                    handlerCreator(
+                        clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true },
+                        { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate },
+                    ) { genRateTop }
+                )
             }
             registerCommand {
-                cmd("loadRateTop").handler(handlerCreator(
-                    clazz.getDeclaredField("chunkLoadTicketLimiter").also {
-                        it.isAccessible = true
-                    }, { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate }) { loadRateTop })
+                cmd("loadRateTop").handler(
+                    handlerCreator(
+                        clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true },
+                        { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate },
+                    ) { loadRateTop }
+                )
             }
             // We don't add sendRate command as it doesn't have the logic for this.
         } catch (e: Exception) {
