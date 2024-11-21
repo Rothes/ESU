@@ -15,15 +15,13 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     override val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder
         get() = {
-            it.apply {
-                it.defaultOptions {
-                    it.header("""
-                        |This module will automatically reload the plugins that depend
-                        |on ESU when ESU is reloaded with a plugin management plugin.
-                        |PlugMan/PlugManX is required to enable this.
-                        """.trimIndent().trimMargin()
-                    )
-                }
+            it.defaultOptions {
+                it.header("""
+                    |This module will automatically reload the plugins that depend
+                    |on ESU when ESU is reloaded with a plugin management plugin.
+                    |PlugMan/PlugManX is required to enable this.
+                    """.trimIndent().trimMargin()
+                )
             }
         }
 
