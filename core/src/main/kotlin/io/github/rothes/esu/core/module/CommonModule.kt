@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Path
 import kotlin.reflect.KClass
 
@@ -21,6 +22,8 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
         protected set
     override lateinit var locale: MultiLocaleConfiguration<L>
         protected set
+    protected open val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
+    protected open val localeLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
 
     override val moduleFolder: Path by lazy {
         EsuCore.instance.baseConfigPath().resolve("modules").resolve(name)
@@ -38,8 +41,8 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
     }
 
     override fun reloadConfig() {
-        config = ConfigLoader.load(configPath, dataClass)
-        locale = ConfigLoader.loadMulti(localePath, localeClass, "en_us.yml")
+        config = ConfigLoader.load(configPath, dataClass, builder = configLoader)
+        locale = ConfigLoader.loadMulti(localePath, localeClass, "en_us.yml", builder = localeLoader)
     }
 
     fun User.hasPerm(shortPerm: String): Boolean {

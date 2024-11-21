@@ -7,6 +7,7 @@ import java.nio.file.Path
 
 interface EsuCore {
 
+    val initialized: Boolean
     val commandManager: CommandManager<out User>
 
     fun info(message: String)

@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
 import io.github.rothes.esu.bukkit.module.BlockedCommandsModule
@@ -11,6 +12,7 @@ import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.module.Module
@@ -36,6 +38,9 @@ import java.util.logging.Level
 
 class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
+    override var initialized: Boolean = false
+        private set
+
     override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
         LegacyPaperCommandManager(this, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
@@ -58,6 +63,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         EsuLocale // Load global locale
         StorageManager // Load database
 
+        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(BlockedCommandsModule)
@@ -126,6 +132,10 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 }
             }
         }, this)
+
+        Scheduler.global {
+            initialized = true
+        }
     }
 
     override fun onDisable() {
