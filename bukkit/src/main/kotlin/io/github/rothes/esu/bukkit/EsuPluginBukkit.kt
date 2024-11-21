@@ -129,7 +129,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
 
     override fun onDisable() {
-        ModuleManager.registeredModules().filter { it.enabled }.forEach { ModuleManager.disableModule(it) }
+        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
     }
 
