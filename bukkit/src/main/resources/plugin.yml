@@ -4,6 +4,8 @@ version: @versionName@
 api-version: 1.21
 author: Rothes
 folia-supported: true
+softdepend:
+  - PlugMan
 permissions:
   'esu.chatantispam.bypass':
     default: op
