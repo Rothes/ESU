@@ -34,7 +34,8 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         val esuName = plugin.description.name
         val plugins = Bukkit.getPluginManager().plugins.filter {
                 val description = it.description
-                it.isEnabled && description.depend.contains(esuName) || description.softDepend.contains(esuName)
+                it.isEnabled && !config.pluginBlacklist.contains(description.name)
+                        && description.depend.contains(esuName) || description.softDepend.contains(esuName)
             }.sortedWith { a, b ->
                 val da = a.description
                 val db = b.description
