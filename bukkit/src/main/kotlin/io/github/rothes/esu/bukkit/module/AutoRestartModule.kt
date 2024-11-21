@@ -130,6 +130,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
         if (data.restartOnOverride != null && data.restartOnOverride!! < now) {
             Logger.getLogger(name).warning("Resetting override restart time due to behind the current time.")
             data.restartOnOverride = null
+            ConfigLoader.save(dataPath, data)
         }
         val restartOn = (if (data.restartOnOverride == null) {
             val localDateTime = config.restartAt.atDate(data.lastAutoRestartTime)
@@ -152,6 +153,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
             Logger.getLogger(name).info("Running task")
             if (find == null) {
                 data.lastAutoRestartTime = LocalDate.now()
+                data.restartOnOverride = null
                 ConfigLoader.save(dataPath, data)
 
                 Bukkit.getOnlinePlayers().map { it.user }.forEach { user ->
