@@ -1,8 +1,8 @@
 package io.github.rothes.esu.bukkit.module.chatantispam
 
-import io.github.rothes.esu.bukkit.legacy
-import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.chatantispam.check.FixedRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.check.Frequency
@@ -20,7 +20,9 @@ import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
@@ -170,8 +172,12 @@ object CasListeners: Listener {
 
     private fun handleFiltered(player: Player, message: String, messageMeta: MessageMeta, checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
         if (notify) {
-            val msg = "§c§lAS §7» §c${player.name}§7: §e$message §7已过滤(§c$checkType $messageMeta§7)".legacy
-            notifyUsers.forEach { it.message(msg) }
+            notifyUsers.forEach {
+                it.message(locale, { this.notify.filtered },
+                    player(player), unparsed("message", message), unparsed("check-type", checkType),
+                    unparsed("chat-type", messageMeta)
+                )
+            }
         }
         if (!addFilter) {
             return true
@@ -187,8 +193,12 @@ object CasListeners: Listener {
 
     private fun handleMuted(player: Player, spamData: SpamData) {
         val duration = spamData.mute()
-        val muted = "§c§lAS §7» §c${player.name} §7has been muted §7(§c${duration.milliseconds}, ${String.format("%.1fx", spamData.muteMultiplier)}§7)".legacy
-        notifyUsers.forEach { it.message(muted) }
+        notifyUsers.forEach {
+            it.message(locale, { this.notify.muted },
+                player(player), unparsed("duration", duration.milliseconds),
+                unparsed("multiplier", String.format("%.1fx", spamData.muteMultiplier)),
+            )
+        }
         CasDataManager.saveSpamDataAsync(player.user)
     }
 

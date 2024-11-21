@@ -194,7 +194,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
     ): ConfigurationPart {
 
         data class IpGroupCommand(
-            val noSameIp: String = "<green>There's no players on same ip",
+            val noSameIp: String = "<green>There's no players on same ip.",
             val entry: String = "<green><address>: <players>",
             val playerPrefix: String = "<dark_aqua>",
             val playerSeparator: String = "<gray>, <dark_aqua>",

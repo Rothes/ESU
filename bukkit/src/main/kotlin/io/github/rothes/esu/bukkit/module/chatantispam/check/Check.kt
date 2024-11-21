@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 
 abstract class Check {
 
-    protected val config: ChatAntiSpamModule.ConfigData
+    protected val config: ChatAntiSpamModule.ModuleConfig
         get() = ChatAntiSpamModule.config
 
     abstract fun check(request: MessageRequest): CheckResult

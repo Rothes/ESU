@@ -10,24 +10,26 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedEnumMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.util.ComponentUtils.component
+import io.github.rothes.esu.core.util.ComponentUtils.parsed
+import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.incendo.cloud.component.DefaultValue
-import org.incendo.cloud.description.Description
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
-object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConfiguration>(
-    ConfigData::class.java, EmptyConfiguration::class.java
+object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAntiSpamModule.ModuleLocale>(
+    ModuleConfig::class.java, ModuleLocale::class.java
 ) {
 
     private var purgeTask: ScheduledTask? = null
@@ -40,17 +42,56 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
             if (it.hasPerm("notify"))
                 notifyUsers.add(it)
         }
-        val cmd = plugin.commandManager.commandBuilder("antispam", Description.of("Esu $name commands"), "as").permission(perm("command.admin"))
+        val cmd = plugin.commandManager.commandBuilder("antispam", "as").permission(perm("command.admin"))
+        registerCommand {
+            cmd.literal("data").optional(
+                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+            ).handler { context ->
+                val sender = context.sender()
+                val playerUser = context.get<PlayerUser>("player")
+                val spamData = CasDataManager.cacheByIp[playerUser.player.address.hostString]
+                if (spamData == null) {
+                    sender.message(locale, { command.data.noData }, user(playerUser))
+                } else {
+                    sender.message(locale, { command.data.data },
+                        user(playerUser), unparsed("debug-data", spamData),
+                        unparsed("filtered-size", spamData.filtered.size),
+                        unparsed("requested-size", spamData.requests.size),
+                        unparsed("requested-size", spamData.requests.size),
+                        unparsed("spam-score", spamData.scores.takeLast(config.muteHandler.spamScore.calculateSize)
+                            .sumOf { it.score } / config.muteHandler.spamScore.calculateSize),
+                        parsed("mute-duration",
+                            if (spamData.muteUntil > System.currentTimeMillis())
+                                (spamData.muteUntil - System.currentTimeMillis()).milliseconds
+                            else
+                                sender.localed(locale) { command.data.notMuted }
+                        )
+                    )
+                }
+            }
+        }
         registerCommand {
             cmd.literal("notify").handler { context ->
                 val user = context.sender()
                 if (notifyUsers.contains(user)) {
                     notifyUsers.remove(user)
-                    user.message("§cRejecting spam notify")
+                    user.message(locale, { command.notify.disabled })
                 } else {
                     notifyUsers.add(user)
-                    user.message("§aReceiving spam notify")
+                    user.message(locale, { command.notify.enabled })
                 }
+            }
+        }
+        registerCommand {
+            cmd.literal("mute").optional(
+                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+            ).handler { context ->
+                val playerUser = context.get<PlayerUser>("player")
+                val duration = playerUser.spamData.mute()
+                context.sender().message(locale, { command.mute.mutedPlayer },
+                    user(playerUser), unparsed("duration", duration.milliseconds)
+                )
+                CasDataManager.saveSpamDataAsync(playerUser)
             }
         }
         registerCommand {
@@ -61,37 +102,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
                 CasDataManager.deleteAsync(playerUser.dbId)
                 CasDataManager.cacheById.remove(playerUser.dbId)
                 CasDataManager.cacheByIp.remove(playerUser.addr)
-                context.sender().message("§aReset for player ${playerUser.name}")
-            }
-        }
-        registerCommand {
-            cmd.literal("data").optional(
-                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
-            ).handler { context ->
-                val playerUser = context.get<PlayerUser>("player")
-                context.sender()
-                    .message(CasDataManager.cacheByIp[playerUser.player.address.hostString]?.let { spamData ->
-                        """§aData of player ${playerUser.name} :
-                            |  §3$spamData
-                            |  §aFilters: ${spamData.filtered.size}
-                            |  §2Requests: ${spamData.requests.size}
-                            |  §aScore: ${
-                            spamData.scores.takeLast(config.muteHandler.spamScore.calculateSize)
-                                .sumOf { it.score } / config.muteHandler.spamScore.calculateSize
-                        }
-                            |  §2Mute duration: ${if (spamData.muteUntil > System.currentTimeMillis()) (spamData.muteUntil - System.currentTimeMillis()).milliseconds else "Not muted"}
-                            """.trimMargin("|  ")
-                    } ?: "§aPlayer ${playerUser.name} has no chat data")
-            }
-        }
-        registerCommand {
-            cmd.literal("mute").optional(
-                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
-            ).handler { context ->
-                val playerUser = context.get<PlayerUser>("player")
-                val duration = playerUser.spamData.mute()
-                context.sender().message("§aMuted ${playerUser.name} for ${duration.milliseconds}")
-                CasDataManager.saveSpamDataAsync(playerUser)
+                context.sender().message(locale, { command.reset.resetPlayer },
+                    component("player", playerUser.player.displayName())
+                )
             }
         }
         // Try save one data
@@ -147,7 +160,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
     private const val SECOND: Long = 1000
     private const val MINUTE: Long = 60 * SECOND
 
-    data class ConfigData(
+    data class ModuleConfig(
         val notifyConsole: Boolean = true,
         val userDataExpiresAfter: Long = 20 * MINUTE,
         val baseMuteDuration: Long = 10 * MINUTE,
@@ -295,6 +308,55 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ConfigData, EmptyConf
             val maxTargets: Int = 10,
             val safeTargets: Int = 2,
         ): ConfigurationPart
+    }
+
+    data class ModuleLocale(
+        val notify: Notify = Notify(),
+        val command: Command = Command(),
+    ): ConfigurationPart {
+
+        data class Notify(
+            val filtered: String = "<red><b>AS </b><grey>» <red><player><grey>: <yellow><message> <grey>filtered " +
+                    "(<red><check-type> <chat-type><grey>)",
+            val muted: String = "<red><b>AS </b><grey>» <red><player> <grey>has been muted " +
+                    "(<red><duration>, <multiplier><grey>)"
+        ): ConfigurationPart
+
+        data class Command(
+            val data: Data = Data(),
+            val notify: Notify = Notify(),
+            val mute: Mute = Mute(),
+            val reset: Reset = Reset(),
+        ): ConfigurationPart {
+
+            data class Data(
+                val noData: String = "<green>Player <player> has no chat data.",
+                val data: String = """
+                    |<green>Data of player <player> :
+                    |<dark_aqua><debug-data>
+                    |<green>Filters: <filtered-size>
+                    |<dark_green>Requests: <requested-size>
+                    |<green>Score: <spam-score>
+                    |<dark_green>Mute duration: <mute-duration>
+                """.trimMargin(),
+                val notMuted: String = "Not muted",
+            ): ConfigurationPart
+
+            data class Notify(
+                val enabled: String = "<green>Receiving spam notify now.",
+                val disabled: String = "<red>Rejecting spam notify now.",
+            ): ConfigurationPart
+
+            data class Mute(
+                val mutedPlayer: String = "<green>Muted <player> for <duration>."
+            ): ConfigurationPart
+
+            data class Reset(
+                val resetPlayer: String = "<green>Reset data for player <player>.",
+            ): ConfigurationPart
+
+        }
+
     }
 
 }
