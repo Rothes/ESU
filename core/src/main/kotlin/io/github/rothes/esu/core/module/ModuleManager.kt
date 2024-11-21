@@ -4,7 +4,7 @@ import io.github.rothes.esu.core.EsuCore
 
 object ModuleManager {
 
-    private val modules = HashMap<String, Module<*, *>>()
+    private val modules = LinkedHashMap<String, Module<*, *>>()
 
     fun registeredModules() = modules.values
 
