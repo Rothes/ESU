@@ -159,7 +159,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
                     user.kick(locale, { kickMessage })
                 }
 
-                Scheduler.global(1) { // Make sure all players are disconnected on their region thread
+                Scheduler.global(2) { // Make sure all players are disconnected on their region thread
                     config.commands.forEach {
                         Bukkit.dispatchCommand(ConsoleUser.commandSender, it)
                     }
