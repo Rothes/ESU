@@ -48,7 +48,7 @@ object CasListeners: Listener {
         val split = message.split(' ', limit = 3)
         val command = split[0].substring(1).split(':').last().lowercase()
         if (command == "me") {
-            if (checkBlocked(event.player, split.drop(1).joinToString(separator = " "), Emote)) {
+            if (split.size >= 2 && checkBlocked(event.player, split.drop(1).joinToString(separator = " "), Emote)) {
                 event.isCancelled = true
             }
         } else if (command == "whisper" || command == "w" || command == "tell" || command == "msg" || command == "m") {
