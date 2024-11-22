@@ -58,7 +58,7 @@ object Scheduler {
             FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
                 delayTicks * 50, TimeUnit.MILLISECONDS))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskAsynchronously(plugin, func))
+            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func, delayTicks))
     }
 
 }
