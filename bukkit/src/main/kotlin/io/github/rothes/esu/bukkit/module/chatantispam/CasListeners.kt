@@ -43,7 +43,7 @@ object CasListeners: Listener {
     val notifyUsers = hashSetOf<User>()
 
     @EventHandler
-    fun onEmote(event: PlayerCommandPreprocessEvent) {
+    fun onChatCommand(event: PlayerCommandPreprocessEvent) {
         val message = event.message
         val split = message.split(' ', limit = 3)
         val command = split[0].substring(1).split(':').last().lowercase()
@@ -51,7 +51,7 @@ object CasListeners: Listener {
             if (checkBlocked(event.player, split.drop(1).joinToString(separator = " "), Emote)) {
                 event.isCancelled = true
             }
-        } else if (command == "whisper" || command == "w" || command == "tell" || command == "msg") {
+        } else if (command == "whisper" || command == "w" || command == "tell" || command == "msg" || command == "m") {
             if (split.size >= 3 && checkBlocked(event.player, split[2], Whisper(split[1]))) {
                 event.isCancelled = true
             }
