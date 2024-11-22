@@ -62,12 +62,12 @@ object CasDataManager {
 
                 cacheById[id] = spamData
                 cacheByIp[ip] = spamData
-                Bukkit.getOnlinePlayers().filter { it.address.hostString == ip }.forEach { cacheById[it.user.dbId] = spamData }
+                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == ip }.forEach { cacheById[it.user.dbId] = spamData }
             }
             spamData?.let {
                 cacheById[dbId] = spamData
                 cacheByIp[addr] = spamData
-                Bukkit.getOnlinePlayers().filter { it.address.hostString == addr }.forEach { cacheById[it.user.dbId] = spamData }
+                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == addr }.forEach { cacheById[it.user.dbId] = spamData }
             }
         }
         if (async) {

@@ -2,7 +2,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id("com.gradleup.shadow") version "8.3.4"
-    id("io.papermc.paperweight.userdev") version "1.7.1"
+    id("io.papermc.paperweight.userdev") version "1.7.5"
 }
 
 val serverVer = rootProject.property("targetMinecraftVersion").toString()
@@ -23,7 +23,7 @@ repositories {
 
 
 dependencies {
-    paperweight.foliaDevBundle("$serverVer-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
     implementation("info.debatty:java-string-similarity:2.0.0")

@@ -55,14 +55,14 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             playerOptionalCmd("ip") { _, user, player ->
                 user.message(locale, { ipCommand },
                     Placeholder.unparsed("name", player.name),
-                    Placeholder.unparsed("address", player.address.hostString))
+                    Placeholder.unparsed("address", player.address!!.hostString))
             }
         }
         registerCommand {
             cmd("ipGroup").handler { context ->
                 val user = context.sender()
                 val list = Bukkit.getOnlinePlayers()
-                    .groupBy { it.address.hostString }
+                    .groupBy { it.address!!.hostString }
                     .filter { it.value.size > 1 }
                     .mapValues { v -> v.value.map { it.name } }
                     .entries.sortedWith(compareBy({ it.value.size }, { it.key }))

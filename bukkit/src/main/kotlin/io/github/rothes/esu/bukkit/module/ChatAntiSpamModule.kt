@@ -49,7 +49,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ).handler { context ->
                 val sender = context.sender()
                 val playerUser = context.get<PlayerUser>("player")
-                val spamData = CasDataManager.cacheByIp[playerUser.player.address.hostString]
+                val spamData = CasDataManager.cacheByIp[playerUser.addr]
                 if (spamData == null) {
                     sender.message(locale, { command.data.noData }, user(playerUser))
                 } else {
@@ -155,7 +155,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         get() = CasDataManager[this].also { it.lastAccess = max(it.lastAccess, System.currentTimeMillis()) }
 
     val PlayerUser.addr: String
-        get() = player.address.hostString
+        get() = player.address!!.hostString
 
     private const val SECOND: Long = 1000
     private const val MINUTE: Long = 60 * SECOND
