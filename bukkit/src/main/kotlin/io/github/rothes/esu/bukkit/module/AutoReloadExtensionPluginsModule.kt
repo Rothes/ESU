@@ -33,15 +33,15 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     override fun enable() {
         val esuName = plugin.description.name
         val plugins = Bukkit.getPluginManager().plugins.filter {
-                val description = it.description
-                it.isEnabled && !config.pluginBlacklist.contains(description.name)
-                        && description.depend.contains(esuName) || description.softDepend.contains(esuName)
-            }.sortedWith { a, b ->
-                val da = a.description
-                val db = b.description
-                val otherName = db.name
-                if (da.depend.contains(otherName) || da.softDepend.contains(otherName)) -1 else 1
-            }
+            val description = it.description
+            it.isEnabled && !config.pluginBlacklist.contains(description.name)
+                    && description.depend.contains(esuName) || description.softDepend.contains(esuName)
+        }.sortedWith { a, b ->
+            val da = a.description
+            val db = b.description
+            val otherName = db.name
+            if (da.depend.contains(otherName) || da.softDepend.contains(otherName)) -1 else 1
+        }
         plugins.reversed().forEach {
             PlugMan.getInstance().pluginUtil.unload(it)
         }
