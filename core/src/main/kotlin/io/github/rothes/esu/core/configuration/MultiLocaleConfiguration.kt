@@ -14,7 +14,7 @@ class MultiLocaleConfiguration<T : ConfigurationPart>(configs: Map<String, T>) :
             ?: configs[EsuConfig.get().locale]?.let(block)
             // Use the default value.
             ?: configs["en_us"]?.let(block)
-            // May it doesn't provide en_us locale...?
+            // Maybe it doesn't provide en_us locale...?
             } ?: configs.values.firstNotNullOfOrNull { block(it) }
     }
 
