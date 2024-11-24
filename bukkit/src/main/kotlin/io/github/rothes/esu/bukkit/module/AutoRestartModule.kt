@@ -193,7 +193,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
 
     data class ModuleLocale(
         val timeFormatter: String = "MM/dd HH:mm:ss",
-        val couldNotParseTime: String = "<rc>The time you provided could not be parsed: <rdc><message>",
+        val couldNotParseTime: String = "<ec>The time you provided could not be parsed: <edc><message>",
         val noTask: String = "<pc>This server has no scheduled restart!",
         val notify: String = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> <pc>!",
         val overridesTo: String = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> <pc>!",
