@@ -179,7 +179,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             }
 
     data class ModuleLocale(
-        val pingCommand: String = "<pdc><name><pc>'s ping is <sdc><ping><sd>ms",
+        val pingCommand: String = "<pdc><name><pc>'s ping is <sdc><ping><sc>ms",
         val clientLocaleCommand: String = "<pdc><name><pc>'s client locale is <sdc><locale>",
         val ipCommand: String = "<pdc><name><pc>'s ip is <sdc><address>",
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
