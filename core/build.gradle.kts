@@ -2,9 +2,6 @@ plugins {
     id("com.gradleup.shadow") version "8.3.4"
 }
 
-group = "io.github.rothes.esu"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenLocal()
     mavenCentral()
