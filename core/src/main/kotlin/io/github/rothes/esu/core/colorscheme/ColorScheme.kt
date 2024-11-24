@@ -11,11 +11,11 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
  */
 data class ColorScheme(
     val primary: TextColor = hex("#c8b3fd"),
-    val primaryDim: TextColor = hex("#ac98ff"),
+    val primaryDim: TextColor = hex("#af92f6"),
     val secondary: TextColor = hex("#cfa0f3"),
-    val secondaryDim: TextColor = hex("#b385ff"),
+    val secondaryDim: TextColor = hex("#bc83e7"),
     val tertiary: TextColor = hex("#fecbe6"),
-    val tertiaryDim: TextColor = hex("#e2b0ff"),
+    val tertiaryDim: TextColor = hex("#f9aad4"),
     val error: TextColor = hex("#ff6666"),
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
