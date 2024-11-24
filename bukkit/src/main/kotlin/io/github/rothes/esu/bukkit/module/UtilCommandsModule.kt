@@ -179,32 +179,32 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             }
 
     data class ModuleLocale(
-        val pingCommand: String = "<green><name>'s ping is <dark_aqua><ping>ms",
-        val clientLocaleCommand: String = "<green><name>'s client locale is <dark_aqua><locale>",
-        val ipCommand: String = "<green><name>'s ip is <dark_aqua><address>",
+        val pingCommand: String = "<pdc><name><pc>'s ping is <sdc><ping><sd>ms",
+        val clientLocaleCommand: String = "<pdc><name><pc>'s client locale is <sdc><locale>",
+        val ipCommand: String = "<pdc><name><pc>'s ip is <sdc><address>",
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
-        val tpChunkTeleporting: String = "<yellow>Teleporting <player>...",
+        val tpChunkTeleporting: String = "<tc>Teleporting <tdc><player><tc>...",
         val genRateTop: ChunkRateTop = ChunkRateTop(
-            "<green>There's no chunk generate at this moment.",
-            "<dark_green>[player]<gray>: <aqua>[chunk generate tickets/sec]",
+            "<pc>There's no chunk generate at this moment.",
+            "<pdc>[player]<pc>: <sc>[chunk generate tickets/sec]",
         ),
         val loadRateTop: ChunkRateTop = ChunkRateTop(
-            "<green>There's no chunk load at this moment.",
-            "<dark_green>[player]<gray>: <aqua>[chunk load tickets/sec]",
+            "<pc>There's no chunk load at this moment.",
+            "<pdc>[player]<pc>: <sc>[chunk load tickets/sec]",
         ),
     ): ConfigurationPart {
 
         data class IpGroupCommand(
-            val noSameIp: String = "<green>There's no players on same ip.",
-            val entry: String = "<green><address>: <players>",
-            val playerPrefix: String = "<dark_aqua>",
-            val playerSeparator: String = "<gray>, <dark_aqua>",
+            val noSameIp: String = "<pc>There's no players on same ip.",
+            val entry: String = "<tdc><address><tc>: <players>",
+            val playerPrefix: String = "<sdc>",
+            val playerSeparator: String = "<pc>, <sdc>",
         ): ConfigurationPart
 
         data class ChunkRateTop(
             val noData: String = "",
             val header: String = "",
-            val entry: String = "<green><player><gray>: <dark_aqua><rate>",
+            val entry: String = "<tdc><player><tc>: <sdc><rate>",
         ): ConfigurationPart
 
 

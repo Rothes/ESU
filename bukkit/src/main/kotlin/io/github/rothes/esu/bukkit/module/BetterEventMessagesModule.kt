@@ -21,8 +21,8 @@ import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.*
 import kotlin.jvm.java
 
-object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ConfigData, EmptyConfiguration>(
-    ConfigData::class.java, EmptyConfiguration::class.java
+object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>(
+    ModuleConfig::class.java, EmptyConfiguration::class.java
 ) {
 
     override fun enable() {
@@ -60,7 +60,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ConfigD
             event.message(handle(message, config.message.doneAdvancement))
         }
 
-        private fun handle(message: Component, options: ConfigData.Message.MessageOptions): Component? {
+        private fun handle(message: Component, options: ModuleConfig.Message.MessageOptions): Component? {
             var ret = message
             val color = options.color
             if (color.isPresent) {
@@ -77,7 +77,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ConfigD
 
     }
 
-    data class ConfigData(
+    data class ModuleConfig(
         @field:Comment("""
 Customize the message behaviours.
 Set 'color' to '${OptionalSerializer.DISABLED}' or a color to change the default color of the message.

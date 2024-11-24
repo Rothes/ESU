@@ -32,8 +32,8 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KDuration
 
-object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestartModule.ModuleLocale>(
-    ConfigData::class.java, ModuleLocale::class.java
+object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoRestartModule.ModuleLocale>(
+    ModuleConfig::class.java, ModuleLocale::class.java
 ) {
 
     private lateinit var data: ModuleData
@@ -184,7 +184,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
         var restartOnOverride: Long? = null,
     ): ConfigurationPart
 
-    data class ConfigData(
+    data class ModuleConfig(
         val commands: List<String> = listOf("stop"),
         val notifyRestartAt: List<KDuration> = listOf(KDuration.parse("10m"), KDuration.parse("5m"), KDuration.parse("1m"), KDuration.parse("30s"), KDuration.parse("5s")),
         val restartAt: LocalTime = LocalTime.parse("05:00:00"),
@@ -193,13 +193,13 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ConfigData, AutoRestart
 
     data class ModuleLocale(
         val timeFormatter: String = "MM/dd HH:mm:ss",
-        val couldNotParseTime: String = "<red>The time you provided could not be parsed: <message>",
-        val noTask: String = "<gold>This server has no scheduled restart!",
-        val notify: String = "<gold>This server is restarting in <interval> at <time> !",
-        val overridesTo: String = "<gold>Overrides restart time to <interval> at <time> !",
-        val overridesReset: String = "<gold>Reset restart time overrides. Now it's using the configured values.",
-        val toggledPausing: String = "<gold>Toggled pausing to <state>",
-        val kickMessage: String = "<gold>Server restarting, please wait a minute."
+        val couldNotParseTime: String = "<rc>The time you provided could not be parsed: <rdc><message>",
+        val noTask: String = "<pc>This server has no scheduled restart!",
+        val notify: String = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> !",
+        val overridesTo: String = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> !",
+        val overridesReset: String = "<pc>Reset restart time overrides. Now it's using the configured values.",
+        val toggledPausing: String = "<pc>Toggled pausing to <pdc><state>",
+        val kickMessage: String = "<pc>Server restarting, please wait a minute."
     ): ConfigurationPart {
         @Transient
         val timeFormatterP = DateTimeFormatter.ofPattern(timeFormatter)!!
