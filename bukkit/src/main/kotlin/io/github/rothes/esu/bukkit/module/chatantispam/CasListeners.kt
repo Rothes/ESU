@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.chatantispam.check.FixedRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.check.Frequency
@@ -22,6 +23,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -174,8 +176,8 @@ object CasListeners: Listener {
         if (notify) {
             notifyUsers.forEach {
                 it.message(locale, { this.notify.filtered },
-                    player(player), unparsed("message", message), unparsed("check-type", checkType),
-                    unparsed("chat-type", messageMeta)
+                    player(player), it.msgPrefix,
+                    unparsed("message", message), unparsed("check-type", checkType), unparsed("chat-type", messageMeta)
                 )
             }
         }
@@ -195,7 +197,8 @@ object CasListeners: Listener {
         val duration = spamData.mute()
         notifyUsers.forEach {
             it.message(locale, { this.notify.muted },
-                player(player), unparsed("duration", duration.milliseconds),
+                player(player), it.msgPrefix,
+                unparsed("duration", duration.milliseconds),
                 unparsed("multiplier", String.format("%.1fx", spamData.muteMultiplier)),
             )
         }

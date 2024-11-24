@@ -16,9 +16,11 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedEnumMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.incendo.cloud.component.DefaultValue
@@ -51,10 +53,11 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val playerUser = context.get<PlayerUser>("player")
                 val spamData = CasDataManager.cacheByIp[playerUser.addr]
                 if (spamData == null) {
-                    sender.message(locale, { command.data.noData }, user(playerUser))
+                    sender.message(locale, { command.data.noData }, user(playerUser), sender.msgPrefix)
                 } else {
                     sender.message(locale, { command.data.data },
                         user(playerUser), unparsed("debug-data", spamData),
+                        sender.msgPrefix,
                         unparsed("filtered-size", spamData.filtered.size),
                         unparsed("requested-size", spamData.requests.size),
                         unparsed("requested-size", spamData.requests.size),
@@ -75,10 +78,10 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val user = context.sender()
                 if (notifyUsers.contains(user)) {
                     notifyUsers.remove(user)
-                    user.message(locale, { command.notify.disabled })
+                    user.message(locale, { command.notify.disabled }, user.msgPrefix)
                 } else {
                     notifyUsers.add(user)
-                    user.message(locale, { command.notify.enabled })
+                    user.message(locale, { command.notify.enabled }, user.msgPrefix)
                 }
             }
         }
@@ -89,6 +92,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val playerUser = context.get<PlayerUser>("player")
                 val duration = playerUser.spamData.mute()
                 context.sender().message(locale, { command.mute.mutedPlayer },
+                    context.sender().msgPrefix,
                     user(playerUser), unparsed("duration", duration.milliseconds)
                 )
                 CasDataManager.saveSpamDataAsync(playerUser)
@@ -103,6 +107,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 CasDataManager.cacheById.remove(playerUser.dbId)
                 CasDataManager.cacheByIp.remove(playerUser.addr)
                 context.sender().message(locale, { command.reset.resetPlayer },
+                    context.sender().msgPrefix,
                     component("player", playerUser.player.displayName())
                 )
             }
@@ -156,6 +161,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
     val PlayerUser.addr: String
         get() = player.address!!.hostString
+
+    val User.msgPrefix: TagResolver
+        get() = parsed("prefix", localed(locale) { this.prefix })
 
     private const val SECOND: Long = 1000
     private const val MINUTE: Long = 60 * SECOND
@@ -311,15 +319,16 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     }
 
     data class ModuleLocale(
+        val prefix: String = "<ec><b>AS </b><pc>» ",
         val notify: Notify = Notify(),
         val command: Command = Command(),
     ): ConfigurationPart {
 
         data class Notify(
-            val filtered: String = "<red><b>AS </b><grey>» <red><player><grey>: <yellow><message> <grey>filtered " +
-                    "(<red><check-type> <chat-type><grey>)",
-            val muted: String = "<red><b>AS </b><grey>» <red><player> <grey>has been muted " +
-                    "(<red><duration>, <multiplier><grey>)"
+            val filtered: String = "<prefix><edc><player><tc>: <sdc><message> <tc>filtered " +
+                    "(<edc><check-type> <chat-type><tc>)",
+            val muted: String = "<prefix><edc><player> <tc>has been muted " +
+                    "(<edc><duration>, <multiplier><tc>)"
         ): ConfigurationPart
 
         data class Command(
@@ -330,29 +339,29 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         ): ConfigurationPart {
 
             data class Data(
-                val noData: String = "<green>Player <player> has no chat data.",
+                val noData: String = "<prefix><pc>Player <pdc><player> <pc>has no chat data.",
                 val data: String = """
-                    |<green>Data of player <player> :
-                    |<dark_aqua><debug-data>
-                    |<green>Filters: <filtered-size>
-                    |<dark_green>Requests: <requested-size>
-                    |<green>Score: <spam-score>
-                    |<dark_green>Mute duration: <mute-duration>
+                    |<pc>Data of player <pdc><player> :
+                    |<tdc><debug-data>
+                    |<sc>Filters: <sdc><filtered-size>
+                    |<pc>Requests: <pdc><requested-size>
+                    |<sc>Score: <sdc><spam-score>
+                    |<pc>Mute duration: <pdc><mute-duration>
                 """.trimMargin(),
                 val notMuted: String = "Not muted",
             ): ConfigurationPart
 
             data class Notify(
-                val enabled: String = "<green>Receiving spam notify now.",
-                val disabled: String = "<red>Rejecting spam notify now.",
+                val enabled: String = "<prefix><pc>Receiving spam notify now.",
+                val disabled: String = "<prefix><ec>Rejecting spam notify now.",
             ): ConfigurationPart
 
             data class Mute(
-                val mutedPlayer: String = "<green>Muted <player> for <duration>."
+                val mutedPlayer: String = "<prefix><pc>Muted <pdc><player> <pc>for <pdc><duration><pc>."
             ): ConfigurationPart
 
             data class Reset(
-                val resetPlayer: String = "<green>Reset data for player <player>.",
+                val resetPlayer: String = "<prefix><pc>Reset data for player <pdc><player><pc>.",
             ): ConfigurationPart
 
         }
