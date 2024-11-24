@@ -13,7 +13,7 @@ object ColorSchemes {
     }
 
     private fun load(): MultiColorSchemeConfiguration {
-        return ConfigLoader.loadMulti(EsuCore.instance.baseConfigPath().resolve("color_schemes"), "amethyst")
+        return ConfigLoader.loadMulti(EsuCore.instance.baseConfigPath().resolve("color_schemes"), "amethyst.yml")
     }
 
 }
