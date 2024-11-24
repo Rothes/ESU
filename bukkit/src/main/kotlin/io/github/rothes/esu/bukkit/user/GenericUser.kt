@@ -18,6 +18,9 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
     override val clientLocale: String
         get() = EsuConfig.get().locale
 
+    override var languageUnsafe: String? = null
+    override var colorSchemeUnsafe: String? = null
+
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a GenericUser")
     }

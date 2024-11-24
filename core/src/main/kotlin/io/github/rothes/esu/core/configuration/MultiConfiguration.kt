@@ -10,4 +10,5 @@ open class MultiConfiguration<T: ConfigurationPart>(
     override fun toString(): String {
         return "MultiConfiguration(configs=$configs)"
     }
+
 }

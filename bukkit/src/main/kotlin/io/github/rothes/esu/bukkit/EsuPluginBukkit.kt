@@ -6,14 +6,15 @@ import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
 import io.github.rothes.esu.bukkit.module.BlockedCommandsModule
-import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
+import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
@@ -62,6 +63,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         EsuConfig // Load global config
         EsuLocale // Load global locale
         StorageManager // Load database
+        ColorSchemes // Load color schemes
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
@@ -78,6 +80,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     .handler { context ->
                         EsuConfig.reloadConfig()
                         EsuLocale.reloadConfig()
+                        ColorSchemes.reload()
                         ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
                         context.sender().message("§aReloaded global & module configs.")
                     }

@@ -6,7 +6,7 @@ import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
-import java.util.UUID
+import java.util.*
 
 object StorageManager {
 
@@ -14,6 +14,8 @@ object StorageManager {
         it.addAutoIncrementColumn("id")
             .addColumn("uuid", "VARCHAR(36) NOT NULL UNIQUE KEY")
             .addColumn("name", "VARCHAR(16) UNIQUE KEY")
+            .addColumn("language", "VARCHAR(12) KEY")
+            .addColumn("color_scheme", "VARCHAR(32) KEY")
     }
 
     val sqlManager: SQLManagerImpl = try {
@@ -30,19 +32,34 @@ object StorageManager {
             .execute()
     }
 
-    fun getUserId(uuid: UUID): Int {
+    fun getUserData(uuid: UUID): UserData {
         userTable.createQuery(sqlManager)
-            .selectColumns("id")
+            .selectColumns("id", "language", "color_scheme")
             .addCondition("uuid", uuid)
             .build().execute().use { sqlQuery ->
                 val resultSet = sqlQuery.resultSet
-                if (resultSet.next()) {
-                    return resultSet.getInt("id")
+                return if (resultSet.next()) {
+                    UserData(resultSet.getInt("id"),
+                        uuid, resultSet.getString("language"), resultSet.getString("color_scheme"))
                 } else {
-                    return userTable.createInsert(sqlManager)
-                        .setColumnNames("uuid").setParams(uuid)
+                    val id = userTable.createInsert(sqlManager)
+                        .setColumnNames("uuid")
+                        .setParams(uuid)
                         .returnGeneratedKey().execute()
+                    UserData(id, uuid, null, null)
                 }
+            }
+    }
+
+    fun getConsoleUserData(): UserData {
+        userTable.createQuery(sqlManager)
+            .selectColumns("language", "color_scheme")
+            .addCondition("id", ConsoleConst.DATABASE_ID)
+            .build().execute().use { sqlQuery ->
+                val resultSet = sqlQuery.resultSet
+                resultSet.next()
+                return UserData(ConsoleConst.DATABASE_ID, ConsoleConst.UUID,
+                        resultSet.getString("language"), resultSet.getString("color_scheme"))
             }
     }
 
@@ -51,8 +68,16 @@ object StorageManager {
         val nameUnsafe = user.nameUnsafe
         if (nameUnsafe != null)
             userTable.createReplace(sqlManager)
-                .setColumnNames("id", "uuid", "name").setParams(id, user.uuid, nameUnsafe)
+                .setColumnNames("id", "uuid", "name", "language", "color_schema")
+                .setParams(id, user.uuid, nameUnsafe, user.languageUnsafe, user.colorSchemeUnsafe)
                 .executeAsync()
     }
+
+    data class UserData(
+        val dbId: Int,
+        val uuid: UUID,
+        val language: String?,
+        val colorScheme: String?,
+    )
 
 }

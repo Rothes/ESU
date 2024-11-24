@@ -26,6 +26,7 @@ object EsuConfig {
                 "Example: /home/user/server/plugins/ESU")
         val localeSoftLinkPath: Optional<Path> = Optional.empty(),
         val database: Database = Database(),
+        val defaultColorScheme: String = "amethyst",
     ): ConfigurationPart {
 
         data class Database(

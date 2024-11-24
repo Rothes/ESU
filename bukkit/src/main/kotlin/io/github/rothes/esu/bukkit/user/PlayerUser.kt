@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.user
 
+import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
@@ -22,14 +23,25 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         get() = playerCache!!
     override val commandSender: CommandSender
         get() = player
-    override val dbId: Int = StorageManager.getUserId(uuid)
+    override val dbId: Int
     override val nameUnsafe: String?
         get() = playerCache?.name
     override val clientLocale: String
         get() = with(player.locale()) { language + '_' + country.lowercase() }
 
+    override var languageUnsafe: String?
+    override var colorSchemeUnsafe: String?
+
+    init {
+        val userData = StorageManager.getUserData(uuid)
+        dbId = userData.dbId
+        languageUnsafe = userData.language
+        colorSchemeUnsafe = userData.colorScheme
+    }
+
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params))
+        player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
+            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!))
     }
 
     override fun equals(other: Any?): Boolean {
