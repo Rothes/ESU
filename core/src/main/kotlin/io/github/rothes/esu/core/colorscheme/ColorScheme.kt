@@ -11,7 +11,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
  */
 data class ColorScheme(
     val primary: TextColor = hex("#c8b3fd"),
-    val primaryDim: TextColor = hex("#ac98e0"),
+    val primaryDim: TextColor = hex("#ac98ff"),
     val secondary: TextColor = hex("#cfa0f3"),
     val secondaryDim: TextColor = hex("#b385ff"),
     val tertiary: TextColor = hex("#fecbe6"),
