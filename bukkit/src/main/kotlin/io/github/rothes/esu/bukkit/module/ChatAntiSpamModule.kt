@@ -319,7 +319,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     }
 
     data class ModuleLocale(
-        val prefix: String = "<ec><b>AS </b><pc>» ",
+        val prefix: String = "<sdc><b>AS </b><pdc>» ",
         val notify: Notify = Notify(),
         val command: Command = Command(),
     ): ConfigurationPart {
@@ -341,7 +341,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             data class Data(
                 val noData: String = "<prefix><pc>Player <pdc><player> <pc>has no chat data.",
                 val data: String = """
-                    |<pc>Data of player <pdc><player> :
+                    |<prefix><pc>Data of player <pdc><player> :
                     |<tdc><debug-data>
                     |<sc>Filters: <sdc><filtered-size>
                     |<pc>Requests: <pdc><requested-size>
