@@ -10,25 +10,25 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
  * A Color Scheme holds the colors for the color tags.
  */
 data class ColorScheme(
-    val primary: TextColor = hex("#cfa0f3"),
-    val primaryVariant: TextColor = hex("#8d6acc"),
-    val secondary: TextColor = hex("#6f4fab"),
-    val secondaryVariant: TextColor = hex("#54398a"),
+    val primary: TextColor = hex("#c8b3fd"),
+    val primaryDim: TextColor = hex("#ac98e0"),
+    val secondary: TextColor = hex("#cfa0f3"),
+    val secondaryDim: TextColor = hex("#b385ff"),
     val tertiary: TextColor = hex("#fecbe6"),
-    val tertiaryVariant: TextColor = hex("#c09aae"),
+    val tertiaryDim: TextColor = hex("#e2b0ff"),
     val error: TextColor = hex("#ff6666"),
-    val errorVariant: TextColor = hex("#ff3333"),
+    val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
     @Transient val tagResolver: TagResolver = TagResolver.builder()
         .styling(primary, "primary_color", "pc")
-        .styling(primaryVariant, "primary_variant_color", "pvc")
+        .styling(primaryDim, "primary_dim_color", "pdc")
         .styling(secondary, "secondary_color", "sc")
-        .styling(secondaryVariant, "secondary_variant_color", "svc")
+        .styling(secondaryDim, "secondary_dim_color", "sdc")
         .styling(tertiary, "tertiary_color", "tc")
-        .styling(tertiaryVariant, "tertiary_variant_color", "tvc")
+        .styling(tertiaryDim, "tertiary_dim_color", "tdc")
         .styling(error, "error_color", "ec")
-        .styling(error, "error_variant_color", "evc")
+        .styling(errorDim, "error_dim_color", "edc")
         .build()
 
     private fun TagResolver.Builder.styling(style: StyleBuilderApplicable, vararg keys: String): TagResolver.Builder {
