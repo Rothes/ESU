@@ -195,8 +195,8 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
         val timeFormatter: String = "MM/dd HH:mm:ss",
         val couldNotParseTime: String = "<rc>The time you provided could not be parsed: <rdc><message>",
         val noTask: String = "<pc>This server has no scheduled restart!",
-        val notify: String = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> !",
-        val overridesTo: String = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> !",
+        val notify: String = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> <pc>!",
+        val overridesTo: String = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> <pc>!",
         val overridesReset: String = "<pc>Reset restart time overrides. Now it's using the configured values.",
         val toggledPausing: String = "<pc>Toggled pausing to <pdc><state>",
         val kickMessage: String = "<pc>Server restarting, please wait a minute."
