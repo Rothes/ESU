@@ -68,7 +68,7 @@ object StorageManager {
         val nameUnsafe = user.nameUnsafe
         if (nameUnsafe != null)
             userTable.createReplace(sqlManager)
-                .setColumnNames("id", "uuid", "name", "language", "color_schema")
+                .setColumnNames("id", "uuid", "name", "language", "color_scheme")
                 .setParams(id, user.uuid, nameUnsafe, user.languageUnsafe, user.colorSchemeUnsafe)
                 .executeAsync()
     }
