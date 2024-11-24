@@ -20,16 +20,19 @@ data class ColorScheme(
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
-    @Transient val tagResolver: TagResolver = TagResolver.builder()
-        .styling(primary, "primary_color", "pc")
-        .styling(primaryDim, "primary_dim_color", "pdc")
-        .styling(secondary, "secondary_color", "sc")
-        .styling(secondaryDim, "secondary_dim_color", "sdc")
-        .styling(tertiary, "tertiary_color", "tc")
-        .styling(tertiaryDim, "tertiary_dim_color", "tdc")
-        .styling(error, "error_color", "ec")
-        .styling(errorDim, "error_dim_color", "edc")
-        .build()
+    @delegate:Transient
+    val tagResolver: TagResolver by lazy {
+        TagResolver.builder()
+            .styling(primary, "primary_color", "pc")
+            .styling(primaryDim, "primary_dim_color", "pdc")
+            .styling(secondary, "secondary_color", "sc")
+            .styling(secondaryDim, "secondary_dim_color", "sdc")
+            .styling(tertiary, "tertiary_color", "tc")
+            .styling(tertiaryDim, "tertiary_dim_color", "tdc")
+            .styling(error, "error_color", "ec")
+            .styling(errorDim, "error_dim_color", "edc")
+            .build()
+    }
 
     private fun TagResolver.Builder.styling(style: StyleBuilderApplicable, vararg keys: String): TagResolver.Builder {
         keys.forEach { key ->
