@@ -319,16 +319,16 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     }
 
     data class ModuleLocale(
-        val prefix: String = "<sdc><b>AS </b><pdc>» ",
+        val prefix: String = "<sc><b>AS </b><pdc>» ",
         val notify: Notify = Notify(),
         val command: Command = Command(),
     ): ConfigurationPart {
 
         data class Notify(
-            val filtered: String = "<prefix><edc><player><tc>: <sdc><message> <tc>filtered " +
-                    "(<edc><check-type> <chat-type><tc>)",
-            val muted: String = "<prefix><edc><player> <tc>has been muted " +
-                    "(<edc><duration>, <multiplier><tc>)"
+            val filtered: String = "<prefix><pc><player><tc>: <sdc><message> <tc>filtered " +
+                    "(<pdc><check-type> <chat-type><tc>)",
+            val muted: String = "<prefix><pc><player> <tc>has been muted " +
+                    "(<pdc><duration>, <multiplier><tc>)"
         ): ConfigurationPart
 
         data class Command(
