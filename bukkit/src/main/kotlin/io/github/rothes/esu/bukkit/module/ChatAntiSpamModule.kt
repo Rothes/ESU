@@ -185,7 +185,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         data class ExpireSize(
             val chatRequest: Int = 10,
             val filtered: Int = -1,
-            val messageRecord: Int = -1,
+            val messageRecord: Int = 30,
             val whisperTarget: Int = -1,
             val score: Int = 10,
         ): ConfigurationPart
@@ -301,8 +301,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                     put(32767, 1)
                 },
                 val allowRateReducePerRecord: Double = 0.015,
-                val baseAllowRate: Double = 0.60,
-                val lowestAllowRate: Double = 0.40,
+                val baseAllowRate: Double = 0.80,
+                val lowestAllowRate: Double = 0.55,
             ): ConfigurationPart
 
             data class Spaces(
