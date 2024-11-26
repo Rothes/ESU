@@ -14,8 +14,8 @@ data class ColorScheme(
     val primaryDim: TextColor = hex("#af92f6"),
     val secondary: TextColor = hex("#cfa0f3"),
     val secondaryDim: TextColor = hex("#bc83e7"),
-    val tertiary: TextColor = hex("#fecbe6"),
-    val tertiaryDim: TextColor = hex("#f9aad4"),
+    val tertiary: TextColor = hex("#c0b4cf"),
+    val tertiaryDim: TextColor = hex("#ada5b8"),
     val error: TextColor = hex("#ff6666"),
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
