@@ -108,12 +108,12 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
             }
             val keyNode = BasicConfigurationNode.root(node.options())
             for ((key1, value1) in obj) {
-                if (!serialize(key, keySerializer, key1!!, "key", keyNode, node.path())) {
+                if (!serialize(key, keySerializer, key1, "key", keyNode, node.path())) {
                     continue
                 }
                 val keyObj = Objects.requireNonNull(keyNode.raw(), "Key must not be null!")
                 val child = node.node(keyObj)
-                serialize(value, valueSerializer, value1!!, "value", child, child.path())
+                serialize(value, valueSerializer, value1, "value", child, child.path())
 
                 if (obj is Defaulted<*>) {
                     cleanSameValueChildrenNodes(child, defNode)
