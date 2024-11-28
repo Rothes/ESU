@@ -34,12 +34,21 @@ interface User {
     }
 
     fun <T: ConfigurationPart> message(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        minimessage(localed(locales, block), params = params)
+        message(buildMinimessage(locales, block, params = params))
     }
     fun minimessage(message: String, vararg params: TagResolver) {
-        message(MiniMessage.miniMessage().deserialize(message, *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!))
+        message(buildMinimessage(message, params = params))
     }
+
+    fun <T: ConfigurationPart> buildMinimessage(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
+        return buildMinimessage(localed(locales, block), params = params)
+    }
+    fun buildMinimessage(message: String, vararg params: TagResolver): Component {
+        return MiniMessage.miniMessage().deserialize(message, *params,
+            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!
+        )
+    }
+
     fun message(message: String) {
         message(LegacyComponentSerializer.legacySection().deserialize(message))
     }
