@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.OptionalUtils.applyTo
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
@@ -21,6 +22,7 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import java.util.*
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java
@@ -66,7 +68,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                 user.message(
                     Component.text()
                         .append(user.buildMinimessage(modifier.head))
-                        .append(modifier.color?.let { message.color(it) } ?: message)
+                        .append(modifier.color.applyTo(message) { message.color(it) })
                         .append(user.buildMinimessage(modifier.foot))
                         .build()
                 )
@@ -86,6 +88,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
         @field:Comment("""
 Customize the message behaviours.
 Set 'color' to '${OptionalSerializer.DISABLED}' or a color to change the default color of the message.
+Set 'head' and 'foot' the prefix and suffix to be added to the original message.
 If 'show-in-console' is false, only the online players can see the message.""")
         val message: Message = Message(),
     ): BaseModuleConfiguration() {
@@ -98,11 +101,13 @@ If 'show-in-console' is false, only the online players can see the message.""")
         ): ConfigurationPart {
 
             data class MessageModifier(
-                val color: TextColor? = null,
+                val color: Optional<TextColor> = Optional.empty(),
                 val head: String = "",
                 val foot: String = "",
-                val showInConsole: Boolean = true
-            ): ConfigurationPart
+                val showInConsole: Boolean = true,
+            ): ConfigurationPart {
+                constructor(color: TextColor?, head: String = ""): this(Optional.ofNullable(color), head)
+            }
 
         }
 
