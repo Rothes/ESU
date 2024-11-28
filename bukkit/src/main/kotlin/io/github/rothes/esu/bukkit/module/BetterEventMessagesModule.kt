@@ -93,8 +93,8 @@ If 'show-in-console' is false, only the online players can see the message.""")
         data class Message(
             val death: MessageModifier = MessageModifier(TextColor.fromHexString("#dd9090")),
             val doneAdvancement: MessageModifier = MessageModifier(TextColor.fromHexString("#edde0e")),
-            val playerJoin: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<pc>[<pdc>+<pc>] "),
-            val playerQuit: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<pc>[<pdc>-<pc>] "),
+            val playerJoin: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<tc>[<pc>+<tc>] "),
+            val playerQuit: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<tc>[<pc>-<tc>] "),
         ): ConfigurationPart {
 
             data class MessageModifier(
