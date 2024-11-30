@@ -15,7 +15,6 @@ import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
-import org.checkerframework.checker.units.qual.t
 import org.spongepowered.configurate.BasicConfigurationNode
 import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.ConfigurationNode
@@ -29,9 +28,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
-import kotlin.io.path.createParentDirectories
-import kotlin.io.path.exists
 import kotlin.io.path.forEachDirectoryEntry
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
