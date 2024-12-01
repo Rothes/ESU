@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.storage
 
 import cc.carm.lib.easysql.EasySQL
 import cc.carm.lib.easysql.api.SQLTable
+import cc.carm.lib.easysql.api.enums.IndexType
 import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.core.user.ConsoleConst
@@ -12,14 +13,20 @@ object StorageManager {
 
     private val userTable = SQLTable.of("users") {
         it.addAutoIncrementColumn("id")
-            .addColumn("uuid", "VARCHAR(36) NOT NULL UNIQUE KEY")
-            .addColumn("name", "VARCHAR(16) UNIQUE KEY")
-            .addColumn("language", "VARCHAR(12) KEY")
-            .addColumn("color_scheme", "VARCHAR(32) KEY")
+            .addColumn("uuid", "VARCHAR(36) NOT NULL")
+            .addColumn("name", "VARCHAR(16)")
+            .addColumn("language", "VARCHAR(12)")
+            .addColumn("color_scheme", "VARCHAR(32)")
+            .setIndex("uuid", IndexType.INDEX)
+            .setIndex("name", IndexType.INDEX)
     }
 
     val sqlManager: SQLManagerImpl = try {
-        EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!
+        EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!.apply {
+            if (EsuConfig.get().database.jdbcUrl.startsWith("jdbc:h2:")) {
+                executeSQL("SET MODE=MYSQL")
+            }
+        }
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)
     }

@@ -1,4 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.kotlin.dsl.implementation
 
 plugins {
     id("com.gradleup.shadow") version "8.3.4"
@@ -28,6 +29,7 @@ dependencies {
     api("org.incendo:cloud-paper:2.0.0-beta.10")
     implementation("info.debatty:java-string-similarity:2.0.0")
     compileOnly("com.rylinaux:PlugManX:2.4.1")
+    implementation("com.h2database:h2:2.3.232")
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
@@ -41,6 +43,7 @@ tasks.shadowJar {
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
     relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
+    relocate("org.h2", "io.github.rothes.esu.lib.org.h2")
 
 //    exclude("com.google.errorprone")
 }
