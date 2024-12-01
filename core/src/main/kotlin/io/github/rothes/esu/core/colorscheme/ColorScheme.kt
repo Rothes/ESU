@@ -3,7 +3,7 @@ package io.github.rothes.esu.core.colorscheme
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import net.kyori.adventure.text.format.StyleBuilderApplicable
 import net.kyori.adventure.text.format.TextColor
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 /**
@@ -36,7 +36,7 @@ data class ColorScheme(
 
     private fun TagResolver.Builder.styling(style: StyleBuilderApplicable, vararg keys: String): TagResolver.Builder {
         keys.forEach { key ->
-            resolver(Placeholder.styling(key, style))
+            resolver(TagResolver.resolver(key, Tag.styling(style)))
         }
         return this
     }
