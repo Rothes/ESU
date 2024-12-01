@@ -1,5 +1,4 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.kotlin.dsl.implementation
 
 plugins {
     id("com.gradleup.shadow") version "8.3.4"
@@ -28,8 +27,8 @@ dependencies {
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
     implementation("info.debatty:java-string-similarity:2.0.0")
-    compileOnly("com.rylinaux:PlugManX:2.4.1")
     implementation("com.h2database:h2:2.3.232")
+    compileOnly("com.rylinaux:PlugManX:2.4.1")
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
