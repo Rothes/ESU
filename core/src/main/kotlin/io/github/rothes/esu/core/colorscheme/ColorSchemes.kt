@@ -1,5 +1,6 @@
 package io.github.rothes.esu.core.colorscheme
 
+import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 
@@ -13,7 +14,9 @@ object ColorSchemes {
     }
 
     private fun load(): MultiColorSchemeConfiguration {
-        return ConfigLoader.loadMulti(EsuCore.instance.baseConfigPath().resolve("color_schemes"), "amethyst.yml",
+        return ConfigLoader.loadMulti(
+            EsuCore.instance.baseConfigPath().resolve("color_schemes"),
+            "${EsuConfig.get().defaultColorScheme}.yml",
             builder = {
                 it.defaultOptions {
                     it.header("""
