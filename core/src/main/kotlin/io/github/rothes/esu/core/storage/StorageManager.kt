@@ -17,8 +17,8 @@ object StorageManager {
             .addColumn("name", "VARCHAR(16)")
             .addColumn("language", "VARCHAR(12)")
             .addColumn("color_scheme", "VARCHAR(32)")
-            .setIndex("uuid", IndexType.INDEX)
-            .setIndex("name", IndexType.INDEX)
+            .setIndex("uuid", IndexType.UNIQUE_KEY)
+            .setIndex("name", IndexType.UNIQUE_KEY)
     }
 
     val sqlManager: SQLManagerImpl = try {

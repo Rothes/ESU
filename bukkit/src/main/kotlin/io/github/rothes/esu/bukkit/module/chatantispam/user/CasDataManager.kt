@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 import cc.carm.lib.easysql.api.SQLQuery
 import cc.carm.lib.easysql.api.SQLTable
 import cc.carm.lib.easysql.api.action.PreparedSQLUpdateAction
+import cc.carm.lib.easysql.api.enums.IndexType
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.addr
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.user
@@ -17,8 +18,12 @@ import java.sql.Timestamp
 object CasDataManager {
 
     val TABLE = SQLTable.of("chat_spam_data") {
-        it.addColumn("user INT UNSIGNED NOT NULL UNIQUE KEY").addColumn("ip VARCHAR(45) NOT NULL UNIQUE KEY")
-            .addColumn("lastAccess DATETIME NOT NULL").addColumn("data BLOB NOT NULL")
+        it.addColumn("user INT UNSIGNED NOT NULL")
+            .addColumn("ip VARCHAR(45) NOT NULL")
+            .addColumn("lastAccess DATETIME NOT NULL")
+            .addColumn("data BLOB NOT NULL")
+            .setIndex("user", IndexType.UNIQUE_KEY)
+            .setIndex("ip", IndexType.UNIQUE_KEY)
 //                .addForeignKey("user", "users", "id")
     }
     val cacheById = hashMapOf<Int, SpamData>()
