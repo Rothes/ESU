@@ -16,10 +16,15 @@ data class ColorScheme(
     val secondaryDim: TextColor = hex("#bc83e7"),
     val tertiary: TextColor = hex("#c0b4cf"),
     val tertiaryDim: TextColor = hex("#ada5b8"),
+    val valuePositive: TextColor = hex("#36c450"),
+    val valuePositiveDim: TextColor = hex("#379a49"),
+    val valueNegative: TextColor = hex("#ff6e4e"),
+    val valueNegativeDim: TextColor = hex("#f4532f"),
     val error: TextColor = hex("#ff6666"),
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
+    @Suppress("SpellCheckingInspection")
     @delegate:Transient
     val tagResolver: TagResolver by lazy {
         TagResolver.builder()
@@ -29,6 +34,10 @@ data class ColorScheme(
             .styling(secondaryDim, "secondary_dim_color", "sdc")
             .styling(tertiary, "tertiary_color", "tc")
             .styling(tertiaryDim, "tertiary_dim_color", "tdc")
+            .styling(valuePositive, "value_positive_color", "vpc")
+            .styling(valuePositiveDim, "value_positive_dim_color", "vpdc")
+            .styling(valueNegative, "value_negative_color", "vnc")
+            .styling(valueNegativeDim, "value_negative_dim_color", "vndc")
             .styling(error, "error_color", "ec")
             .styling(errorDim, "error_dim_color", "edc")
             .build()
