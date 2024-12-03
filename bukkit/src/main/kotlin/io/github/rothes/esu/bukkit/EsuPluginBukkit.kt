@@ -15,6 +15,7 @@ import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
+import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
@@ -52,16 +53,17 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }, { it.commandSender })).apply {
             settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
             captionRegistry().registerProvider { caption, recipient ->
-                recipient.localedOrNull(EsuLocale.get()) {
-                    commandCaptions[caption.key()]
+                recipient.localedOrNull(BukkitEsuLocale.get()) {
+                    commandCaptions[caption]
                 }
             }
+            EsuExceptionHandlers(exceptionController()).register()
         }
     }
     override fun onEnable() {
         EsuCore.instance = this
         EsuConfig // Load global config
-        EsuLocale // Load global locale
+        BukkitEsuLocale // Load global locale
         StorageManager // Load database
         ColorSchemes // Load color schemes
 
@@ -79,7 +81,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 esu.literal("reload")
                     .handler { context ->
                         EsuConfig.reloadConfig()
-                        EsuLocale.reloadConfig()
+                        BukkitEsuLocale.reloadConfig()
                         ColorSchemes.reload()
                         ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
                         context.sender().message("§aReloaded global & module configs.")

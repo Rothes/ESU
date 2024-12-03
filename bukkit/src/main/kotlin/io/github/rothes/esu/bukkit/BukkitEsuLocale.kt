@@ -1,8 +1,9 @@
 package io.github.rothes.esu.bukkit
 
+import io.github.rothes.esu.EsuLocale
+import io.github.rothes.esu.bukkit.BukkitEsuLocale.BukkitLocaleData
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import org.incendo.cloud.bukkit.BukkitDefaultCaptionsProvider
 import org.incendo.cloud.caption.ConstantCaptionProvider
@@ -10,23 +11,17 @@ import org.incendo.cloud.caption.DelegatingCaptionProvider
 import org.incendo.cloud.caption.StandardCaptionsProvider
 import org.spongepowered.configurate.objectmapping.meta.PostProcess
 
-object EsuLocale {
+object BukkitEsuLocale: EsuLocale<BukkitLocaleData>() {
 
-    private var data: MultiLocaleConfiguration<LocaleData> = load()
-
-    fun get() = data
-
-    fun reloadConfig() {
-        data = load()
+    init {
+        instance = this
     }
 
-    private fun load(): MultiLocaleConfiguration<LocaleData> = ConfigLoader.loadMulti(
+    override fun load(): MultiLocaleConfiguration<BukkitLocaleData> = ConfigLoader.loadMulti(
         EsuCore.instance.baseConfigPath().resolve("locale"), "en_us.yml"
     )
 
-    data class LocaleData(
-        val commandCaptions: LinkedHashMap<String, String> = LinkedHashMap()
-    ): ConfigurationPart {
+    class BukkitLocaleData: BaseEsuLocaleData() {
 
         @PostProcess
         fun fillCaptions() {
@@ -40,7 +35,7 @@ object EsuLocale {
 
         companion object {
             private val DelegatingCaptionProvider<*>.keyMap
-                get() = (delegate() as ConstantCaptionProvider).captions().mapKeys { it.key.key() }
+                get() = (delegate() as ConstantCaptionProvider).captions().mapKeys { it.key }
         }
     }
 

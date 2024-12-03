@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.EsuConfig
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.configuration.serializer.CaptionSerializer
 import io.github.rothes.esu.core.configuration.serializer.ComponentSerializer
 import io.github.rothes.esu.core.configuration.serializer.DurationSerializer
 import io.github.rothes.esu.core.configuration.serializer.EnumValueSerializer
@@ -150,6 +151,7 @@ object ConfigLoader {
                             .registerAnnotatedObjects(factory)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
+                            .register(CaptionSerializer)
                             .register(ComponentSerializer)
                             .register(DurationSerializer)
                             .register(EnumValueSerializer)
