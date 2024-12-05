@@ -352,8 +352,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ): ConfigurationPart
 
             data class Notify(
-                val enabled: String = "<prefix><pc>Receiving spam notify now.",
-                val disabled: String = "<prefix><ec>Rejecting spam notify now.",
+                val enabled: String = "<prefix><vpc>Receiving spam notify now.",
+                val disabled: String = "<prefix><vnc>Rejecting spam notify now.",
             ): ConfigurationPart
 
             data class Mute(
