@@ -1,4 +1,4 @@
-package io.github.rothes.esu
+package io.github.rothes.esu.core.config
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader

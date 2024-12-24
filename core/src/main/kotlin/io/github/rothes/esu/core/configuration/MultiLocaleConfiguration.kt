@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.configuration
 
-import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.config.EsuConfig
 
 class MultiLocaleConfiguration<T : ConfigurationPart>(configs: Map<String, T>) : MultiConfiguration<T>(configs) {
 

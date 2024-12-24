@@ -4,7 +4,7 @@ import cc.carm.lib.easysql.EasySQL
 import cc.carm.lib.easysql.api.SQLTable
 import cc.carm.lib.easysql.api.enums.IndexType
 import cc.carm.lib.easysql.manager.SQLManagerImpl
-import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
 import java.util.*

@@ -1,7 +1,8 @@
 package io.github.rothes.esu.bukkit
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
-import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.config.EsuConfig
+import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule

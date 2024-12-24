@@ -19,6 +19,9 @@ repositories {
         name = "PlugManX"
         url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
     }
+
+    maven("https://jitpack.io")
+    maven("https://mvn.lumine.io/repository/maven-public")
 }
 
 
@@ -29,6 +32,10 @@ dependencies {
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("com.h2database:h2:2.3.232")
     compileOnly("com.rylinaux:PlugManX:2.4.1")
+
+    compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
+    compileOnly("io.lumine:MythicLib-dist:1.5.2-SNAPSHOT")
+    compileOnly("io.lumine:Mythic-Dist:5.6.1")
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION

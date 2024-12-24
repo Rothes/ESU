@@ -1,6 +1,6 @@
-package io.github.rothes.esu
+package io.github.rothes.esu.core.config
 
-import io.github.rothes.esu.EsuLocale.BaseEsuLocaleData
+import io.github.rothes.esu.core.config.EsuLocale.BaseEsuLocaleData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.util.InitOnce

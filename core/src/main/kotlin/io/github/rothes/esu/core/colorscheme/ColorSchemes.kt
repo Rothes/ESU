@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.colorscheme
 
-import io.github.rothes.esu.EsuConfig
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 
