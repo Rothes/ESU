@@ -34,7 +34,6 @@ dependencies {
     compileOnly("com.rylinaux:PlugManX:2.4.1")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
-    compileOnly("io.lumine:MythicLib-dist:1.5.2-SNAPSHOT")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
 }
 
