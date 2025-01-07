@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit
 import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.module.AntiCommandSpamModule
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
 import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
@@ -68,6 +69,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         StorageManager // Load database
         ColorSchemes // Load color schemes
 
+        ModuleManager.addModule(AntiCommandSpamModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
