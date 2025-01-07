@@ -28,9 +28,6 @@ data class ItemData(
         if (material == null && itemsAdderId == null && mythicMobsItemId == null && itemStack.type != Material.AIR) {
             return false
         }
-        material?.let {
-            return if (itemStack.type != material) false else checkProp(itemStack)
-        }
         itemsAdderId?.let {
             val ia = CustomStack.byItemStack(itemStack) ?: return false
             return if (ia.id != itemsAdderId) false else checkProp(itemStack)
@@ -38,6 +35,9 @@ data class ItemData(
         mythicMobsItemId?.let {
             val mm = MythicBukkit.inst().volatileCodeHandler.itemHandler.getNBTData(itemStack).getString("MMOITEMS_ITEM_ID")
             return if (mm != mythicMobsItemId) false else checkProp(itemStack)
+        }
+        material?.let {
+            return if (itemStack.type != material) false else checkProp(itemStack)
         }
         return true
     }
