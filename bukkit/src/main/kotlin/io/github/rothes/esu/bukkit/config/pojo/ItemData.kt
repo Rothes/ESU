@@ -19,10 +19,8 @@ data class ItemData(
     val amount: Int = 1,
 ): ConfigurationPart {
 
-    @Transient
-    val displayNameComponent: Component? = displayName?.let(ComponentUtils::fromMiniMessage)
-    @Transient
-    val loreComponent: List<Component>? = lore?.map(ComponentUtils::fromMiniMessage)
+    val displayNameComponent: Component? by lazy { displayName?.let(ComponentUtils::fromMiniMessage) }
+    val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
 
     fun matches(itemStack: ItemStack): Boolean {
         if (material == null && itemsAdderId == null && mythicMobsItemId == null && itemStack.type != Material.AIR) {
