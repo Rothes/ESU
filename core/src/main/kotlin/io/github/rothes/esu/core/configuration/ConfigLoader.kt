@@ -21,6 +21,7 @@ import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.loader.HeaderMode
 import org.spongepowered.configurate.objectmapping.ObjectMapper
+import org.spongepowered.configurate.objectmapping.meta.NodeResolver
 import org.spongepowered.configurate.util.MapFactories
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
@@ -129,7 +130,12 @@ object ConfigLoader {
             .lineLength(150)
             .commentsEnabled(true)
             .defaultOptions { options ->
-                val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder().build()
+                val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder().addNodeResolver { name, elem ->
+                    // Skip kotlin delegate(e.g. lazy) properties
+                    if (name.endsWith("\$delegate")) {
+                        NodeResolver.SKIP_FIELD
+                    } else null
+                }.build()
                 options.mapFactory(MapFactories.insertionOrdered())
                     .serializers {
                         it.register(
