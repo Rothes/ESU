@@ -1,11 +1,15 @@
 package io.github.rothes.esu.core.util
 
+import io.github.rothes.esu.core.config.EsuLocale
+import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import kotlin.math.floor
+import kotlin.time.Duration
 
 object ComponentUtils {
 
@@ -27,6 +31,28 @@ object ComponentUtils {
 
     fun component(key: String, component: ComponentLike): TagResolver.Single {
         return Placeholder.component(key, component)
+    }
+
+    fun duration(duration: Duration, user: User, key: String = "duration"): TagResolver.Single {
+        return Placeholder.parsed(key, duration.toComponents { d, h, m, s, ns ->
+            buildString {
+                val separator = user.localed(EsuLocale.get()) { format.duration.separator }
+                val append = fun(block: EsuLocale.BaseEsuLocaleData.() -> String?, v: Number) {
+                    if (v.toLong() > 0) {
+                        append(user.localed(EsuLocale.get(), block).replace("<value>", v.toString()))
+                        append(separator)
+                    }
+                }
+                if (d > 0) append({ format.duration.day }, d)
+                if (h > 0) append({ format.duration.hour }, h)
+                if (m > 0) append({ format.duration.minute }, m)
+                if (s > 0) append({ format.duration.second }, s + floor(ns / 1_000_000_000.0).toLong())
+                if (isEmpty()) append({ format.duration.millis }, ns / 1_000_000)
+                for (i in 0 ..< separator.length) {
+                    deleteAt(length - 1)
+                }
+            }
+        })
     }
 
 //    fun Component.set(vararg objects: Any): Component {

@@ -19,8 +19,23 @@ abstract class EsuLocale<T: BaseEsuLocaleData> {
     protected abstract fun load(): MultiLocaleConfiguration<T>
 
     open class BaseEsuLocaleData(
+        val format: Format = Format(),
         val commandCaptions: LinkedHashMap<Caption, String> = LinkedHashMap()
-    ): ConfigurationPart
+    ): ConfigurationPart {
+
+        data class Format(
+            val duration: Duration = Duration(),
+        ): ConfigurationPart {
+            data class Duration(
+                val day: String = "<value>d",
+                val hour: String = "<value>h",
+                val minute: String = "<value>m",
+                val second: String = "<value>s",
+                val millis: String = "<value>ms",
+                val separator: String = " ",
+            ): ConfigurationPart
+        }
+    }
 
     companion object {
         var instance: EsuLocale<out BaseEsuLocaleData> by InitOnce()
