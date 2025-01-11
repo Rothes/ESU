@@ -38,10 +38,8 @@ object ComponentUtils {
             buildString {
                 val separator = user.localed(EsuLocale.get()) { format.duration.separator }
                 val append = fun(block: EsuLocale.BaseEsuLocaleData.() -> String?, v: Number) {
-                    if (v.toLong() > 0) {
-                        append(user.localed(EsuLocale.get(), block).replace("<value>", v.toString()))
-                        append(separator)
-                    }
+                    append(user.localed(EsuLocale.get(), block).replace("<value>", v.toString()))
+                    append(separator)
                 }
                 if (d > 0) append({ format.duration.day }, d)
                 if (h > 0) append({ format.duration.hour }, h)
