@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
+import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.notifyUsers
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
@@ -47,7 +47,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         val cmd = plugin.commandManager.commandBuilder("antispam", "as").permission(perm("command.admin"))
         registerCommand {
             cmd.literal("data").optional(
-                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+                "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
                 val sender = context.sender()
                 val playerUser = context.get<PlayerUser>("player")
@@ -87,7 +87,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         }
         registerCommand {
             cmd.literal("mute").optional(
-                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+                "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
                 val duration = playerUser.spamData.mute()
@@ -100,7 +100,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         }
         registerCommand {
             cmd.literal("reset").optional(
-                "player", PlayerUserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, PlayerUserParser()
+                "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
                 CasDataManager.deleteAsync(playerUser.dbId)

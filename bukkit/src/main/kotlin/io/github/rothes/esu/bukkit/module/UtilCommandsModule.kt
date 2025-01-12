@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module
 
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
-import io.github.rothes.esu.bukkit.command.parser.PlayerUserParser
+import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule.ModuleLocale.ChunkRateTop
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
@@ -85,7 +85,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             cmd("tpChunk")
                 .required("chunk", Location2DParser.location2DComponent())
                 .optional("world", WorldParser.worldParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player.location.world })
-                .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, PlayerUserParser())
+                .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, UserParser())
                 .handler { context ->
                     val location2D = context.get<Location2D>("chunk")
                     val sender = context.sender()
@@ -172,7 +172,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
 
     private fun <C> CommandBuilderSource<C>.playerOptionalCmd(root: String, handler: (CommandContext<C>, User, Player) -> Unit) =
         cmd(root)
-            .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, PlayerUserParser())
+            .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, UserParser())
             .handler { context ->
                 val player = context.get<Player>("player")
                 handler(context, context.sender() as User, player)

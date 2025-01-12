@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.command.parser
 
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.core.user.User
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -15,11 +15,11 @@ import org.incendo.cloud.parser.ParserDescriptor
 import org.incendo.cloud.suggestion.BlockingSuggestionProvider
 import org.incendo.cloud.suggestion.Suggestion
 
-class PlayerUserParser<C>: ArgumentParser<C, PlayerUser>, BlockingSuggestionProvider<C> {
+class UserParser<C>: ArgumentParser<C, User>, BlockingSuggestionProvider<C> {
 
     override fun parse(
         commandContext: CommandContext<C & Any>, commandInput: CommandInput
-    ): ArgumentParseResult<PlayerUser> {
+    ): ArgumentParseResult<User> {
         val input = commandInput.readString()
 
         val player = Bukkit.getPlayer(input)
@@ -37,8 +37,8 @@ class PlayerUserParser<C>: ArgumentParser<C, PlayerUser>, BlockingSuggestionProv
 
     companion object {
 
-        inline fun <reified C> parser(): ParserDescriptor<C, PlayerUser> {
-            return ParserDescriptor.of(PlayerUserParser(), PlayerUser::class.java)
+        inline fun <reified C> parser(): ParserDescriptor<C, User> {
+            return ParserDescriptor.of(UserParser(), User::class.java)
         }
 
     }
