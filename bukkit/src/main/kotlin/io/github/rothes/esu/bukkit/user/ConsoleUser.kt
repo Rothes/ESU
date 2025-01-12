@@ -23,6 +23,8 @@ object ConsoleUser: BukkitUser() {
     override var languageUnsafe: String?
     override var colorSchemeUnsafe: String?
 
+    override val isOnline: Boolean = true
+
     init {
         val userData = StorageManager.getConsoleUserData()
         dbId = userData.dbId

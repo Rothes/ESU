@@ -84,6 +84,13 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     )
                     return
                 }
+                if (!last.isOnline) {
+                    sender.message(
+                        locale, { directMessage.receiverOffline },
+                        component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                    )
+                    return
+                }
                 whisper(sender, last, message)
             }
         }
@@ -245,7 +252,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val prefix: String = "<sc>[<sdc>DM<sc>] ",
             val formatIncoming: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <reset><message>",
             val formatOutgoing: String = "<prefix><sc>-> <pc>[<pdc><player_display:receiver><pc>] <reset><message>",
-            val replyNoLastTarget: String = "<ec>There's no last direct message target."
+            val replyNoLastTarget: String = "<ec>There's no last direct message target.",
+            val receiverOffline: String = "<ec>The receiver is not online.",
         ): ConfigurationPart
 
         data class Ignore(

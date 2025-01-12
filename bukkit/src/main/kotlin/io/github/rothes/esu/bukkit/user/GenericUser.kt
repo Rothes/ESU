@@ -21,6 +21,8 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
     override var languageUnsafe: String? = null
     override var colorSchemeUnsafe: String? = null
 
+    override val isOnline: Boolean = false
+
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a GenericUser")
     }

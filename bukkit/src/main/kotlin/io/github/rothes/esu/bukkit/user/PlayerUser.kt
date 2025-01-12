@@ -32,6 +32,9 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     override var languageUnsafe: String?
     override var colorSchemeUnsafe: String?
 
+    override val isOnline: Boolean
+        get() = playerCache?.isOnline == true
+
     init {
         val userData = StorageManager.getUserData(uuid)
         dbId = userData.dbId

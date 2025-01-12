@@ -23,6 +23,8 @@ interface User {
     var languageUnsafe: String?
     var colorSchemeUnsafe: String?
 
+    val isOnline: Boolean
+
     fun hasPermission(permission: String): Boolean
 
     fun <T: ConfigurationPart, R> localedOrNull(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R? {
