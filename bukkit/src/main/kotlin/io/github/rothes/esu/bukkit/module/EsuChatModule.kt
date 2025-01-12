@@ -1,8 +1,11 @@
 package io.github.rothes.esu.bukkit.module
 
+import com.google.common.cache.CacheBuilder
+import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
@@ -13,25 +16,104 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
+import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLocale>(
     ModuleConfig::class.java, ModuleLocale::class.java
 ) {
 
+    private const val WHISPER_COMMANDS = "message|msg|m|whisper|w|tell|dm|pm"
+    private const val REPLY_COMMANDS = "reply|r|last|l"
+    private const val EMOTE_COMMANDS = "emote|me"
+
     override fun enable() {
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        if (config.directMessage.enabled)
+            registerCommands(ChatHandler.Whisper)
+        if (config.emote.enabled)
+            registerCommands(ChatHandler.Emote)
     }
 
     override fun disable() {
         super.disable()
         HandlerList.unregisterAll(Listeners)
+    }
+
+    object ChatHandler {
+
+        object Whisper {
+
+            private val last = CacheBuilder.newBuilder()
+                .expireAfterAccess(Duration.parse("8h").toJavaDuration())
+                .build<User, User>()
+
+            @Command("$WHISPER_COMMANDS <receiver> <message>")
+            fun whisper(sender: User, receiver: User, message: String) {
+                val msg = parseMessage(sender, message, config.directMessage.prefixedMessageModifiers)
+                sender.message(
+                    locale, { directMessage.formatOutgoing },
+                    playerDisplay(sender, mapOf("sender" to sender, "receiver" to receiver)),
+                    component("message", msg),
+                    component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                )
+                receiver.message(
+                    locale, { directMessage.formatIncoming },
+                    playerDisplay(receiver, mapOf("sender" to sender, "receiver" to receiver)),
+                    component("message", msg),
+                    component("prefix", receiver.buildMinimessage(locale, { directMessage.prefix }))
+                )
+                last.put(sender, receiver)
+                last.put(receiver, sender)
+            }
+
+            @Command("$REPLY_COMMANDS <message>")
+            fun reply(sender: User, message: String) {
+                val last = last.getIfPresent(sender)
+                if (last == null) {
+                    sender.message(
+                        locale, { directMessage.replyNoLastTarget },
+                        component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                    )
+                    return
+                }
+                whisper(sender, last, message)
+            }
+        }
+
+        object Emote {
+            @Command("$EMOTE_COMMANDS <message>")
+            fun emote(sender: User, message: String) {
+                val msg = parseMessage(sender, message, config.emote.prefixedMessageModifiers)
+
+                for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
+                    user.message(locale, { emote.format }, playerDisplay(user, "sender", sender), component("message", msg))
+                }
+            }
+        }
+
+        object Chat {
+
+            fun chat(sender: User, message: String) {
+                val msg = parseMessage(sender, message, config.chat.prefixedMessageModifiers)
+
+                for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
+                    user.message(
+                        locale,
+                        { chat.format },
+                        playerDisplay(user, "sender", sender),
+                        component("message", msg)
+                    )
+                }
+            }
+        }
     }
 
     object Listeners: Listener {
@@ -41,54 +123,60 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             if (!config.chat.enableChatFormatting)
                 return
 
-            val player = event.player
-            val raw = event.message
-
-            val modifier = config.chat.prefixedMessageModifiers.find {
-                val perm = it.permission
-                (!it.removePrefix || raw.length > it.messagePrefix.length) // No blank message, thanks
-                        && raw.startsWith(it.messagePrefix)
-                        && (perm == null || perm.isEmpty() || player.hasPermission(perm))
-            }
-
-            val message = MiniMessage.miniMessage().deserialize("<head><message><foot>",
-                TagResolver.resolver("message", Tag.inserting(Component.text(
-                    if (modifier != null && modifier.removePrefix) {
-                        raw.drop(modifier.messagePrefix.length)
-                    } else {
-                        raw
-                    }
-                ))),
-                parsed("head", modifier?.head ?: ""),
-                parsed("foot", modifier?.foot ?: ""),
-            )
-
-            for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
-                user.message(locale, { chat.format }, playerDisplay(user, "sender", player), component("message", message))
-            }
+            ChatHandler.Chat.chat(event.player.user, event.message)
 
             event.isCancelled = true
         }
 
     }
 
-    fun playerDisplay(viewer: User, key: String, player: Player): TagResolver {
+    fun parseMessage(sender: User, raw: String, modifiers: List<PrefixedMessageModifier>): Component {
+        val modifier = modifiers.find {
+            val perm = it.permission
+            (!it.removePrefix || raw.length > it.messagePrefix.length) // No blank message, thanks
+                    && raw.startsWith(it.messagePrefix)
+                    && (perm == null || perm.isEmpty() || sender.hasPermission(perm))
+        }
+
+        return MiniMessage.miniMessage().deserialize("<head><message><foot>",
+            TagResolver.resolver("message", Tag.inserting(Component.text(
+                if (modifier != null && modifier.removePrefix) {
+                    raw.drop(modifier.messagePrefix.length)
+                } else {
+                    raw
+                }
+            ))),
+            parsed("head", modifier?.head ?: ""),
+            parsed("foot", modifier?.foot ?: ""),
+        )
+    }
+
+    fun playerDisplay(viewer: User, key: String, user: User): TagResolver {
+        return playerDisplay(viewer, mapOf(key to user))
+    }
+
+    fun playerDisplay(viewer: User, map: Map<String, User>): TagResolver {
         return TagResolver.resolver("player_display") { arg, context ->
             val pop = arg.pop()
-            if (pop.value() == key)
+            val user = map[pop.value()]
+            if (user != null)
                 Tag.selfClosingInserting(
                     viewer.buildMinimessage(locale, { playerDisplay },
-                        component("player_key", player.displayName()),
-                        parsed("player_key_name", MiniMessage.miniMessage().escapeTags(player.name)))
+                        if (user is PlayerUser)
+                            component("player_key", user.player.displayName())
+                        else
+                            parsed("player_key", MiniMessage.miniMessage().escapeTags(user.name)),
+                        parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)))
                 )
-            else error("Unknown argument: $pop")
+            else
+                error("Unknown argument: $pop")
         }
     }
 
     data class ModuleConfig(
         val chat: Chat = Chat(),
-        val emote: Emote = Emote(),
         val directMessage: DirectMessage = DirectMessage(),
+        val emote: Emote = Emote(),
     ): BaseModuleConfiguration() {
 
         data class Chat(
@@ -99,7 +187,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
                 PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
-            )
+            ),
         ): ConfigurationPart
 
         data class Emote(
@@ -107,6 +195,10 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val enabled: Boolean = true,
             @field:Comment("Enabling this will redirect all emote commands to esu one, to avoid mixing usage.")
             val interceptNamespaces: Boolean = true,
+            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
+                PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
+                PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
+            ),
         ): ConfigurationPart
 
         data class DirectMessage(
@@ -114,6 +206,10 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val enabled: Boolean = true,
             @field:Comment("Enabling this will redirect all whisper commands to esu one, to avoid mixing usage.")
             val interceptNamespaces: Boolean = true,
+            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
+                PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
+                PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
+            ),
         ): ConfigurationPart
 
         data class PrefixedMessageModifier(
@@ -131,6 +227,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
                 "<click:suggest_command:/m <player_key_name> ><player_key></hover>",
         val chat: Chat = Chat(),
         val directMessage: DirectMessage = DirectMessage(),
+        val emote: Emote = Emote(),
         val ignore: Ignore = Ignore(),
     ): ConfigurationPart {
 
@@ -146,7 +243,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
         data class DirectMessage(
             val prefix: String = "<sc>[<sdc>DM<sc>] ",
-            val formatIncoming: String = "<prefix><pc>[<pdc><player_display:receiver><pc>] <sc>-> <reset><message>",
+            val formatIncoming: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <reset><message>",
             val formatOutgoing: String = "<prefix><sc>-> <pc>[<pdc><player_display:receiver><pc>] <reset><message>",
             val replyNoLastTarget: String = "<ec>There's no last direct message target."
         ): ConfigurationPart
