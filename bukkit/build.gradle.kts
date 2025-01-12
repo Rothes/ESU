@@ -22,6 +22,11 @@ repositories {
 
     maven("https://jitpack.io")
     maven("https://mvn.lumine.io/repository/maven-public")
+
+    maven {
+        name = "MMOItems"
+        url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    }
 }
 
 
@@ -36,6 +41,8 @@ dependencies {
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
+    compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
+    compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
 }
 
 kotlin {

@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.util.ComponentUtils
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
+import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -15,6 +16,8 @@ data class ItemData(
     val itemsAdderId: String? = null,
     val mythicMobsItemId: String? = null,
     val displayName: String? = null,
+    val mmoItemsItemType: String? = null,
+    val mmoItemsItemId: String? = null,
     val lore: List<String>? = null,
     val amount: Int = 1,
 ): ConfigurationPart {
@@ -33,6 +36,11 @@ data class ItemData(
         mythicMobsItemId?.let {
             val mm = MythicBukkit.inst().volatileCodeHandler.itemHandler.getNBTData(itemStack).getString("MMOITEMS_ITEM_ID")
             return if (mm != mythicMobsItemId) false else checkProp(itemStack)
+        }
+        mmoItemsItemId?.let {
+            return MMOItems.getTypeName(itemStack) == mmoItemsItemType
+                    && MMOItems.getID(itemStack) == mmoItemsItemId
+                    && checkProp(itemStack)
         }
         material?.let {
             return if (itemStack.type != material) false else checkProp(itemStack)
@@ -56,6 +64,9 @@ data class ItemData(
                 BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
                     .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
                     .generateItemStack(DropMetadataImpl(null, null), amount))
+            } ?: mmoItemsItemId?.let {
+                MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
+                    ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
             }
             ?: ItemStack(material ?: Material.AIR, amount)
 
