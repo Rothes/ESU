@@ -38,6 +38,9 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         fun onPlayerChat(event: AsyncPlayerChatEvent) {
+            if (!config.chat.enableChatFormatting)
+                return
+
             val player = event.player
             val raw = event.message
 
