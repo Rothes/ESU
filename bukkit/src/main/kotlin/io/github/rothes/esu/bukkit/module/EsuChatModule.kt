@@ -46,7 +46,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             val modifier = config.chat.prefixedMessageModifiers.find {
                 val perm = it.permission
-                raw.length > it.messagePrefix.length // No blank message, thanks
+                (!it.removePrefix || raw.length > it.messagePrefix.length) // No blank message, thanks
                         && raw.startsWith(it.messagePrefix)
                         && (perm == null || perm.isEmpty() || player.hasPermission(perm))
             }
