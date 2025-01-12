@@ -30,9 +30,9 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     ModuleConfig::class.java, ModuleLocale::class.java
 ) {
 
-    private const val WHISPER_COMMANDS = "message|msg|m|whisper|w|tell|dm|pm"
-    private const val REPLY_COMMANDS = "reply|r|last|l"
-    private const val EMOTE_COMMANDS = "emote|me"
+    const val WHISPER_COMMANDS = "message|msg|m|whisper|w|tell|dm|pm"
+    const val REPLY_COMMANDS = "reply|r|last|l"
+    const val EMOTE_COMMANDS = "emote|me"
 
     override fun enable() {
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)

@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
+import io.github.rothes.esu.bukkit.module.EsuChatModule
 import io.github.rothes.esu.bukkit.module.chatantispam.check.FixedRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.check.Frequency
 import io.github.rothes.esu.bukkit.module.chatantispam.check.IllegalCharacters
@@ -44,16 +45,19 @@ object CasListeners: Listener {
         SpacesFilter, LetterCaseFilter, RandomCharactersFilter, Similarity)
     val notifyUsers = hashSetOf<User>()
 
+    private val emoteCommands = EsuChatModule.EMOTE_COMMANDS.split('|').toSet()
+    private val whisperCommands = EsuChatModule.WHISPER_COMMANDS.split('|').toSet()
+
     @EventHandler
     fun onChatCommand(event: PlayerCommandPreprocessEvent) {
         val message = event.message
         val split = message.split(' ', limit = 3)
         val command = split[0].substring(1).split(':').last().lowercase()
-        if (command == "me") {
+        if (emoteCommands.contains(command)) {
             if (split.size >= 2 && checkBlocked(event.player, split.drop(1).joinToString(separator = " "), Emote)) {
                 event.isCancelled = true
             }
-        } else if (command == "whisper" || command == "w" || command == "tell" || command == "msg" || command == "m") {
+        } else if (whisperCommands.contains(command)) {
             if (split.size >= 3 && checkBlocked(event.player, split[2], Whisper(split[1]))) {
                 event.isCancelled = true
             }
