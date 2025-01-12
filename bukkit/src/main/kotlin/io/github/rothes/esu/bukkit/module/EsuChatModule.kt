@@ -111,14 +111,18 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             fun chat(sender: User, message: String) {
                 val msg = parseMessage(sender, message, config.chat.prefixedMessageModifiers)
 
-                for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
+                for (user in Bukkit.getOnlinePlayers().map { it.user }) {
                     user.message(
-                        locale,
-                        { chat.format },
+                        locale, { chat.format },
                         playerDisplay(user, "sender", sender),
                         component("message", msg)
                     )
                 }
+                ConsoleUser.message(
+                    locale, { chat.consoleFormat },
+                    playerDisplay(ConsoleUser, "sender", sender),
+                    component("message", msg)
+                )
             }
         }
     }
@@ -239,7 +243,9 @@ the 'head' and 'foot' will be appended to the chat message.""")
     ): ConfigurationPart {
 
         data class Chat(
-            val format: String = "\\<<player_display:sender><reset>> <message>",
+            val format: String = "\\<<player_display:sender>> <message>",
+            @field:Comment("The format used for console logs.")
+            val consoleFormat: String = "<#48c0c0>\\<<player_display:sender>> <message>"
         ): ConfigurationPart
 
         data class Emote(
