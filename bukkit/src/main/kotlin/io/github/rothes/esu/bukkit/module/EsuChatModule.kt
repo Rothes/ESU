@@ -215,7 +215,6 @@ the 'head' and 'foot' will be appended to the chat message.""")
         data class DirectMessage(
             @field:Comment("Enable esu direct message(a.k.a whisper) commands.")
             val enabled: Boolean = true,
-            @field:Comment("Enabling this will redirect all whisper commands to esu one, to avoid mixing usage.")
             val interceptNamespaces: Boolean = true,
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
