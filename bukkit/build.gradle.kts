@@ -29,12 +29,19 @@ dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
+    api("org.incendo:cloud-annotations:2.0.0")
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("com.h2database:h2:2.3.232")
     compileOnly("com.rylinaux:PlugManX:2.4.1")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-java-parameters") // Fix cloud-annotations
+    }
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION

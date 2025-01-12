@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
 import org.incendo.cloud.Command
+import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
 
 abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
@@ -25,6 +26,13 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
             registeredCommands.add(command)
         }
     }
+    protected fun registerCommands(obj: Any) {
+        with(plugin.commandManager) {
+            val commands = AnnotationParser(this, BukkitUser::class.java).parse(obj)
+            registeredCommands.addAll(commands)
+        }
+    }
+
     protected fun unregisterCommands() {
         with(plugin.commandManager) {
             registeredCommands.forEach {
