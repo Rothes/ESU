@@ -38,6 +38,7 @@ import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
+import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
 import java.nio.file.Path
 import java.util.logging.Level
@@ -62,6 +63,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 }
             }
             parserRegistry().registerParser(UserParser.parser())
+            parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
             EsuExceptionHandlers(exceptionController()).register()
         }
     }

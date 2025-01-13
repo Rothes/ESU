@@ -21,7 +21,10 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
+import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
+import org.incendo.cloud.annotations.parser.Parser
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -56,7 +59,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 .build<User, User>()
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
-            fun whisper(sender: User, receiver: User, message: String) {
+            fun whisper(sender: User, receiver: User, @Argument(parserName = "greedyString") message: String) {
                 val msg = parseMessage(sender, message, config.directMessage.prefixedMessageModifiers)
                 sender.message(
                     locale, { directMessage.formatOutgoing },
@@ -75,7 +78,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             }
 
             @Command("$REPLY_COMMANDS <message>")
-            fun reply(sender: User, message: String) {
+            fun reply(sender: User, @Argument(parserName = "greedyString") message: String) {
                 val last = last.getIfPresent(sender)
                 if (last == null) {
                     sender.message(
@@ -97,7 +100,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
         object Emote {
             @Command("$EMOTE_COMMANDS <message>")
-            fun emote(sender: User, message: String) {
+            fun emote(sender: User, @Argument(parserName = "greedyString") message: String) {
                 val msg = parseMessage(sender, message, config.emote.prefixedMessageModifiers)
 
                 for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
