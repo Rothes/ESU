@@ -250,7 +250,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
         data class Emote(
             val format: String = "<pc>* " +
-                    "<player_display:sender>" +
+                    "<pdc><player_display:sender>" +
                     "<reset> <message>",
         ): ConfigurationPart
 
