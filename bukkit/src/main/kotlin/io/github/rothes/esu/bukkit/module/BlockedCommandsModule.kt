@@ -39,19 +39,14 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
             event.isCancelled = blocked(ConsoleUser, event.command)
         }
 
-        private fun blocked(user: BukkitUser, rawCommand: String): Boolean {
-            val command = rawCommand.split(' ', limit = 2)[0]
-            val pure = command.split(':').last()
+        private fun blocked(user: BukkitUser, command: String): Boolean {
             val matched = config.blockingCommands.find { group ->
                 if (group.consoleUserExcluded && user is ConsoleUser) {
                     return@find false
                 }
 
                 group.commands.find { cmd ->
-                    if (cmd.contains(':'))
-                        command == cmd
-                    else
-                        pure == cmd
+                    command.matches(cmd)
                 } != null
             }
             if (matched != null) {
@@ -65,13 +60,14 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
 
     data class ModuleConfig(
-        val blockingCommands: List<BlockingGroup> = arrayListOf(BlockingGroup("no-suicide", listOf("suicide", "kill"))),
+        val blockingCommands: List<BlockingGroup> = arrayListOf(BlockingGroup("no-suicide", listOf("^(.+:)?suicide$".toRegex(), "^(.+:)?kill$".toRegex()))),
     ): BaseModuleConfiguration() {
 
         data class BlockingGroup(
             @field:Comment("The message key to send to users. You need to set the message in locale configs.")
             val blockedMessage: String = "",
-            val commands: List<String> = arrayListOf(),
+            @field:Comment("The commands to block. Using regex.")
+            val commands: List<Regex> = arrayListOf(),
             val consoleUserExcluded: Boolean = true,
         ): ConfigurationPart
 
