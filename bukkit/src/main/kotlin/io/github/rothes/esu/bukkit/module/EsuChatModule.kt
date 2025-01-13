@@ -151,7 +151,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             event.isCancelled = true
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         fun onChatCommand(event: PlayerCommandPreprocessEvent) {
             val message = event.message
             val split = message.split(' ', limit = 3)
