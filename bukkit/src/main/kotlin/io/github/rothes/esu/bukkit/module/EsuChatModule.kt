@@ -185,13 +185,13 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         return MiniMessage.miniMessage().deserialize("<head><message><foot>",
-            TagResolver.resolver("message", Tag.inserting(Component.text(
+            component("message", Component.text(
                 if (modifier != null && modifier.removePrefix) {
                     raw.drop(modifier.messagePrefix.length)
                 } else {
                     raw
                 }
-            ))),
+            )),
             parsed("head", modifier?.head ?: ""),
             parsed("foot", modifier?.foot ?: ""),
         )
