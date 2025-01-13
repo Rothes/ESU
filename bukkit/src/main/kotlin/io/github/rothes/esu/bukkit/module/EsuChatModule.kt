@@ -298,7 +298,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
             data class Spy(
                 val prefix: String = "<sc>[<sdc>SPY<sc>] ",
-                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <pc>[<pdc><player_display:receiver><pc>] <message>",
+                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender> <sc>-> <pdc><player_display:receiver><pc>] <message>",
             ): ConfigurationPart
         }
 
