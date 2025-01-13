@@ -24,7 +24,6 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer

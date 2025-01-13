@@ -21,10 +21,9 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
+import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.annotations.Flag
-import org.incendo.cloud.annotations.parser.Parser
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -57,6 +56,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             private val last = CacheBuilder.newBuilder()
                 .expireAfterAccess(Duration.parse("8h").toJavaDuration())
                 .build<User, User>()
+            private val spying = hashSetOf<User>(ConsoleUser)
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
             fun whisper(sender: User, receiver: User, @Argument(parserName = "greedyString") message: String) {
@@ -75,6 +75,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 )
                 last.put(sender, receiver)
                 last.put(receiver, sender)
+                for (user in spying) {
+                    if (user.isOnline && user != sender && user != receiver)
+                        user.message(
+                            locale, { directMessage.spy.dmFormat },
+                            playerDisplay(user, mapOf("sender" to sender, "receiver" to receiver)),
+                            component("message", msg),
+                            component("prefix", user.buildMinimessage(locale, { directMessage.spy.prefix }))
+                        )
+                }
             }
 
             @Command("$REPLY_COMMANDS <message>")
@@ -140,6 +149,29 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             ChatHandler.Chat.chat(event.player.user, event.message)
 
             event.isCancelled = true
+        }
+
+        @EventHandler
+        fun onChatCommand(event: PlayerCommandPreprocessEvent) {
+            val message = event.message
+            val split = message.split(' ', limit = 3)
+            val command = split[0].substring(1).split(':').last().lowercase()
+            if (EMOTE_COMMANDS.split('|').contains(command)) {
+                if (config.emote.interceptNamespaces && split.size >= 2) {
+                    ChatHandler.Emote.emote(event.player.user, split.drop(1).joinToString(separator = " "))
+                    event.isCancelled = true
+                }
+            } else if (WHISPER_COMMANDS.split('|').contains(command)) {
+                if (config.directMessage.interceptNamespaces && split.size >= 3) {
+                    ChatHandler.Whisper.whisper(event.player.user, Bukkit.getPlayer(split[1])?.user ?: return , split[2])
+                    event.isCancelled = true
+                }
+            } else if (REPLY_COMMANDS.split('|').contains(command)) {
+                if (config.directMessage.interceptNamespaces && split.size >= 2) {
+                    ChatHandler.Whisper.reply(event.player.user, split.drop(1).joinToString(separator = " "))
+                    event.isCancelled = true
+                }
+            }
         }
 
     }
@@ -252,18 +284,23 @@ the 'head' and 'foot' will be appended to the chat message.""")
         ): ConfigurationPart
 
         data class Emote(
-            val format: String = "<pc>* " +
-                    "<pdc><player_display:sender>" +
-                    "<reset> <message>",
+            val format: String = "<pc>* <pdc><player_display:sender> <message>",
         ): ConfigurationPart
 
         data class DirectMessage(
             val prefix: String = "<sc>[<sdc>DM<sc>] ",
-            val formatIncoming: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <reset><message>",
-            val formatOutgoing: String = "<prefix><sc>-> <pc>[<pdc><player_display:receiver><pc>] <reset><message>",
+            val formatIncoming: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <message>",
+            val formatOutgoing: String = "<prefix><sc>-> <pc>[<pdc><player_display:receiver><pc>] <message>",
             val replyNoLastTarget: String = "<ec>There's no last direct message target.",
             val receiverOffline: String = "<ec>The receiver is not online.",
-        ): ConfigurationPart
+            val spy: Spy = Spy(),
+        ): ConfigurationPart {
+
+            data class Spy(
+                val prefix: String = "<sc>[<sdc>SPY<sc>] ",
+                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <pc>[<pdc><player_display:receiver><pc>] <message>",
+            ): ConfigurationPart
+        }
 
         data class Ignore(
             val prefix: String = "<sc>[<sdc>Ignore<sc>] ",
