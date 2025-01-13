@@ -19,8 +19,12 @@ object ModuleManager {
         } catch (e: Throwable) {
             EsuCore.instance.err("Failed to read config of module ${module.name}", e)
         }
-        if (module.canUse()) {
-            enableModule(module)
+        try {
+            if (module.canUse()) {
+                enableModule(module)
+            }
+        } catch(e: Throwable) {
+            EsuCore.instance.err("Failed to check&enable module ${module.name}", e)
         }
     }
 
