@@ -1,16 +1,21 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.google.common.cache.CacheBuilder
+import io.github.rothes.esu.bukkit.module.EsuChatModule.EMOTE_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
+import io.github.rothes.esu.bukkit.module.EsuChatModule.REPLY_COMMANDS
+import io.github.rothes.esu.bukkit.module.EsuChatModule.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.user.ConsoleUser.isOnline
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
+import io.lumine.mythic.bukkit.utils.lib.jooq.conf.SettingsTools.locale
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -24,7 +29,10 @@ import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.spigotmc.SpigotConfig.config
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import kotlin.collections.find
+import kotlin.jvm.java
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -55,7 +63,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             private val last = CacheBuilder.newBuilder()
                 .expireAfterAccess(Duration.parse("8h").toJavaDuration())
-                .build<User, User>()
+                .build<User, LastTarget>()
             private val spying = hashSetOf<User>(ConsoleUser)
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
@@ -73,12 +81,12 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     component("message", msg),
                     component("prefix", receiver.buildMinimessage(locale, { directMessage.prefix }))
                 )
-                last.put(sender, receiver)
-                last.put(receiver, sender)
+                val initiative = updateLast(sender, LastTarget(receiver, true)).initiative
+                updateLast(receiver, LastTarget(sender, false))
                 for (user in spying) {
                     if (user.isOnline && user != sender && user != receiver)
                         user.message(
-                            locale, { directMessage.spy.dmFormat },
+                            locale, { with(directMessage.spy) { if (initiative) dmFormat else dmReplyFormat } },
                             playerDisplay(user, mapOf("sender" to sender, "receiver" to receiver)),
                             component("message", msg),
                             component("prefix", user.buildMinimessage(locale, { directMessage.spy.prefix }))
@@ -88,7 +96,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("$REPLY_COMMANDS <message>")
             fun reply(sender: User, @Argument(parserName = "greedyString") message: String) {
-                val last = last.getIfPresent(sender)
+                val last = last.getIfPresent(sender)?.user
                 if (last == null) {
                     sender.message(
                         locale, { directMessage.replyNoLastTarget },
@@ -105,6 +113,21 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 }
                 whisper(sender, last, message)
             }
+
+            fun updateLast(user: User, lastTarget: LastTarget): LastTarget {
+                val present = last.getIfPresent(user)
+                val value = if (present?.user == lastTarget.user) present else lastTarget
+                last.put(user, value)
+                return value
+            }
+
+            data class LastTarget(
+                val user: User,
+                /**
+                 * If the message is sent by sender firstly.
+                 */
+                val initiative: Boolean,
+            )
         }
 
         object Emote {
@@ -299,6 +322,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
             data class Spy(
                 val prefix: String = "<sc>[<sdc>SPY<sc>] ",
                 val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender> <sc>-> <pdc><player_display:receiver><pc>] <message>",
+                val dmReplyFormat: String = "<prefix><pc>[<pdc><player_display:receiver> <sdc><- <pdc><player_display:sender><pc>] <message>",
             ): ConfigurationPart
         }
 
