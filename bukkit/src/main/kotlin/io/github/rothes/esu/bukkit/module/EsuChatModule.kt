@@ -81,7 +81,9 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     component("message", msg),
                     component("prefix", receiver.buildMinimessage(locale, { directMessage.prefix }))
                 )
-                val initiative = updateLast(sender, LastTarget(receiver, true)).initiative
+                val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
+                    it == null || it.user != sender || !it.initiative
+                })).initiative
                 updateLast(receiver, LastTarget(sender, false))
                 for (user in spying) {
                     if (user.isOnline && user != sender && user != receiver)
