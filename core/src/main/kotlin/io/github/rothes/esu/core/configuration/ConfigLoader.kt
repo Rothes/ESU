@@ -12,6 +12,7 @@ import io.github.rothes.esu.core.configuration.serializer.LocalTimeSerializer
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer
 import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
 import io.github.rothes.esu.core.configuration.serializer.PathSerializer
+import io.github.rothes.esu.core.configuration.serializer.RegexSerializer
 import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
@@ -165,6 +166,7 @@ object ConfigLoader {
                             .register(LocalDateSerializer)
                             .register(LocalTimeSerializer)
                             .register(PathSerializer)
+                            .register(RegexSerializer)
                             .register(TextColorSerializer)
                     }
             }
