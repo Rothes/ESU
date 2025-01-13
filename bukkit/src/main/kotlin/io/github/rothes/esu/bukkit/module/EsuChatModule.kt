@@ -201,6 +201,16 @@ the 'head' and 'foot' will be appended to the chat message.""")
             ),
         ): ConfigurationPart
 
+        data class DirectMessage(
+            @field:Comment("Enable esu direct message(a.k.a whisper) commands.")
+            val enabled: Boolean = true,
+            val interceptNamespaces: Boolean = true,
+            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
+                PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
+                PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
+            ),
+        ): ConfigurationPart
+
         data class Emote(
             @field:Comment("Enable esu emote/me commands.")
             val enabled: Boolean = true,
@@ -209,16 +219,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
                 PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
-            ),
-        ): ConfigurationPart
-
-        data class DirectMessage(
-            @field:Comment("Enable esu direct message(a.k.a whisper) commands.")
-            val enabled: Boolean = true,
-            val interceptNamespaces: Boolean = true,
-            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
-                PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
-                PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
+                PrefixedMessageModifier("", true, "", "<gray>", "</gray>"),
             ),
         ): ConfigurationPart
 
