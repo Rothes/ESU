@@ -84,7 +84,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
                     it == null || it.user != sender || !it.initiative
                 })).initiative
-                updateLast(receiver, LastTarget(sender, false))
+                updateLast(receiver, LastTarget(sender, !initiative))
                 for (user in spying) {
                     if (user.isOnline && user != sender && user != receiver)
                         user.message(
