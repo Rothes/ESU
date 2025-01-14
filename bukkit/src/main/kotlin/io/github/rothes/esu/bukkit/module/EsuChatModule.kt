@@ -313,9 +313,9 @@ the 'head' and 'foot' will be appended to the chat message.""")
         ): ConfigurationPart
 
         data class DirectMessage(
-            val prefix: String = "<sc>[<sdc>DM<sc>] ",
-            val formatIncoming: String = "<prefix><pc>[<pdc><player_display:sender><pc>] <sc>-> <tdc><message>",
-            val formatOutgoing: String = "<prefix><sc>-> <pc>[<pdc><player_display:receiver><pc>] <tc><message>",
+            val prefix: String = "<sdc>📨 ",
+            val formatIncoming: String = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>",
+            val formatOutgoing: String = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>",
             val replyNoLastTarget: String = "<ec>There's no last direct message target.",
             val receiverOffline: String = "<ec>The receiver is not online.",
             val spy: Spy = Spy(),
@@ -323,8 +323,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
             data class Spy(
                 val prefix: String = "<sc>[<sdc>SPY<sc>] ",
-                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender> <sdc>-> <tdc><player_display:receiver><pc>] <tc><message>",
-                val dmReplyFormat: String = "<prefix><pc>[<tdc><player_display:receiver> <sc><- <pdc><player_display:sender><pc>] <tdc><message>",
+                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender> <sdc>➡ <tdc><player_display:receiver><pc>] <tc><message>",
+                val dmReplyFormat: String = "<prefix><pc>[<tdc><player_display:receiver> <sc>⬅ <pdc><player_display:sender><pc>] <tdc><message>",
             ): ConfigurationPart
         }
 
