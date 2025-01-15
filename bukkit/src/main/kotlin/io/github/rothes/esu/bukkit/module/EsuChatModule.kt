@@ -41,7 +41,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 ) {
 
     const val WHISPER_COMMANDS = "message|msg|m|whisper|w|tell|dm|pm"
-    const val REPLY_COMMANDS = "reply|r|last|l"
+    const val REPLY_COMMANDS = "reply|r|last"
     const val EMOTE_COMMANDS = "emote|me"
 
     override fun enable() {
