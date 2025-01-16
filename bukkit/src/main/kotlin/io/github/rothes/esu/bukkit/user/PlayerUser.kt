@@ -29,7 +29,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
                 field = get
                 return get
             }
-            error("Player $uuid is not online and there's no cached instance!")
+            return cache ?: error("Player $uuid is not online and there's no cached instance!")
         }
         internal set
     val player: Player
