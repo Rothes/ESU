@@ -1,21 +1,16 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.google.common.cache.CacheBuilder
-import io.github.rothes.esu.bukkit.module.EsuChatModule.EMOTE_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
-import io.github.rothes.esu.bukkit.module.EsuChatModule.REPLY_COMMANDS
-import io.github.rothes.esu.bukkit.module.EsuChatModule.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.bukkit.user.ConsoleUser.isOnline
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
-import io.lumine.mythic.bukkit.utils.lib.jooq.conf.SettingsTools.locale
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -29,7 +24,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
-import org.spigotmc.SpigotConfig.config
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.collections.find
 import kotlin.jvm.java
@@ -40,13 +34,13 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     ModuleConfig::class.java, ModuleLocale::class.java
 ) {
 
-    const val WHISPER_COMMANDS = "message|msg|m|whisper|w|tell|dm|pm"
-    const val REPLY_COMMANDS = "reply|r|last"
+    const val WHISPER_COMMANDS = "msg|m|whisper|w|tell"
+    const val REPLY_COMMANDS = "reply|r"
     const val EMOTE_COMMANDS = "emote|me"
 
     override fun enable() {
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)
-        if (config.directMessage.enabled)
+        if (config.whisper.enabled)
             registerCommands(ChatHandler.Whisper)
         if (config.emote.enabled)
             registerCommands(ChatHandler.Emote)
@@ -68,18 +62,18 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
             fun whisper(sender: User, receiver: User, @Argument(parserName = "greedyString") message: String) {
-                val msg = parseMessage(sender, message, config.directMessage.prefixedMessageModifiers)
+                val msg = parseMessage(sender, message, config.whisper.prefixedMessageModifiers)
                 sender.message(
-                    locale, { directMessage.formatOutgoing },
+                    locale, { whisper.formatOutgoing },
                     playerDisplay(sender, mapOf("sender" to sender, "receiver" to receiver)),
                     component("message", msg),
-                    component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                    component("prefix", sender.buildMinimessage(locale, { whisper.prefix }))
                 )
                 receiver.message(
-                    locale, { directMessage.formatIncoming },
+                    locale, { whisper.formatIncoming },
                     playerDisplay(receiver, mapOf("sender" to sender, "receiver" to receiver)),
                     component("message", msg),
-                    component("prefix", receiver.buildMinimessage(locale, { directMessage.prefix }))
+                    component("prefix", receiver.buildMinimessage(locale, { whisper.prefix }))
                 )
                 val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
                     it == null || it.user != sender || !it.initiative
@@ -88,10 +82,10 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 for (user in spying) {
                     if (user.isOnline && user != sender && user != receiver)
                         user.message(
-                            locale, { with(directMessage.spy) { if (initiative) dmFormat else dmReplyFormat } },
+                            locale, { with(whisper.spy) { if (initiative) dmFormat else dmReplyFormat } },
                             playerDisplay(user, mapOf("sender" to sender, "receiver" to receiver)),
                             component("message", msg),
-                            component("prefix", user.buildMinimessage(locale, { directMessage.spy.prefix }))
+                            component("prefix", user.buildMinimessage(locale, { whisper.spy.prefix }))
                         )
                 }
             }
@@ -101,15 +95,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val last = last.getIfPresent(sender)?.user
                 if (last == null) {
                     sender.message(
-                        locale, { directMessage.replyNoLastTarget },
-                        component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                        locale, { whisper.replyNoLastTarget },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.prefix }))
                     )
                     return
                 }
                 if (!last.isOnline) {
                     sender.message(
-                        locale, { directMessage.receiverOffline },
-                        component("prefix", sender.buildMinimessage(locale, { directMessage.prefix }))
+                        locale, { whisper.receiverOffline },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.prefix }))
                     )
                     return
                 }
@@ -187,12 +181,12 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     event.isCancelled = true
                 }
             } else if (WHISPER_COMMANDS.split('|').contains(command)) {
-                if (config.directMessage.interceptNamespaces && split.size >= 3) {
+                if (config.whisper.interceptNamespaces && split.size >= 3) {
                     ChatHandler.Whisper.whisper(event.player.user, Bukkit.getPlayer(split[1])?.user ?: return , split[2])
                     event.isCancelled = true
                 }
             } else if (REPLY_COMMANDS.split('|').contains(command)) {
-                if (config.directMessage.interceptNamespaces && split.size >= 2) {
+                if (config.whisper.interceptNamespaces && split.size >= 2) {
                     ChatHandler.Whisper.reply(event.player.user, split.drop(1).joinToString(separator = " "))
                     event.isCancelled = true
                 }
@@ -246,7 +240,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     data class ModuleConfig(
         val chat: Chat = Chat(),
-        val directMessage: DirectMessage = DirectMessage(),
+        val whisper: Whisper = Whisper(),
         val emote: Emote = Emote(),
     ): BaseModuleConfiguration() {
 
@@ -261,8 +255,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
             ),
         ): ConfigurationPart
 
-        data class DirectMessage(
-            @field:Comment("Enable esu direct message(a.k.a whisper) commands.")
+        data class Whisper(
+            @field:Comment("Enable esu whisper commands.")
             val enabled: Boolean = true,
             val interceptNamespaces: Boolean = true,
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
@@ -297,7 +291,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
         val playerDisplay: String = "<hover:show_text:'<pc>Click to whisper <pdc><player_key>'>" +
                 "<click:suggest_command:/m <player_key_name> ><player_key></hover>",
         val chat: Chat = Chat(),
-        val directMessage: DirectMessage = DirectMessage(),
+        val whisper: Whisper = Whisper(),
         val emote: Emote = Emote(),
         val ignore: Ignore = Ignore(),
     ): ConfigurationPart {
@@ -312,7 +306,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val format: String = "<pc>* <pdc><player_display:sender> <message>",
         ): ConfigurationPart
 
-        data class DirectMessage(
+        data class Whisper(
             val prefix: String = "<sdc>📨 ",
             val formatIncoming: String = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>",
             val formatOutgoing: String = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>",
