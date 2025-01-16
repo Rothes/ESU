@@ -16,8 +16,21 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     constructor(player: Player): this(player.uniqueId, player)
 
     var playerCache: Player? = initPlayer
-        get() = field ?: Bukkit.getPlayer(uuid)?.also { field = it }
-            ?: throw IllegalStateException("Player $uuid is not online and there's no cached instance!")
+        get() {
+            val cache = field
+            if (cache != null) {
+                // Check if the instance is as it is.
+                if (cache.isOnline && cache.isConnected) {
+                    return cache
+                }
+            }
+            val get = Bukkit.getPlayer(uuid)
+            if (get != null) {
+                field = get
+                return get
+            }
+            error("Player $uuid is not online and there's no cached instance!")
+        }
         internal set
     val player: Player
         get() = playerCache!!
