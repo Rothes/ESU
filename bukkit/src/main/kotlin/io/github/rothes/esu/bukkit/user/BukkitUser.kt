@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.config.pojo.ItemData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
-import io.github.rothes.esu.core.configuration.pojo.ParsedMessageData
-import io.github.rothes.esu.core.configuration.pojo.SoundData
+import io.github.rothes.esu.core.configuration.data.ParsedMessageData
+import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component

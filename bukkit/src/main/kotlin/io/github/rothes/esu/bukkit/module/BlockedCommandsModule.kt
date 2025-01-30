@@ -5,8 +5,8 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.pojo.MessageData
-import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler

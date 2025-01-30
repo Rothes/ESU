@@ -3,9 +3,9 @@ package io.github.rothes.esu.core.user
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
-import io.github.rothes.esu.core.configuration.pojo.MessageData
-import io.github.rothes.esu.core.configuration.pojo.ParsedMessageData
-import io.github.rothes.esu.core.configuration.pojo.SoundData
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.ParsedMessageData
+import io.github.rothes.esu.core.configuration.data.SoundData
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver

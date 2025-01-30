@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.configuration.serializer
 
-import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData
 import org.spongepowered.configurate.serialize.ScalarSerializer
 import org.spongepowered.configurate.serialize.SerializationException
 import java.lang.reflect.Type

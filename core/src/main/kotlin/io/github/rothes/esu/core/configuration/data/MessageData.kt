@@ -1,4 +1,4 @@
-package io.github.rothes.esu.core.configuration.pojo
+package io.github.rothes.esu.core.configuration.data
 
 import io.github.rothes.esu.core.EsuCore
 import net.kyori.adventure.sound.Sound
