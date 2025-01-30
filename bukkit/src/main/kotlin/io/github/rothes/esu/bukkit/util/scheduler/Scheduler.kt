@@ -10,25 +10,23 @@ import java.util.concurrent.TimeUnit
 
 object Scheduler {
 
-    fun global(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
-        return if (folia)
-            FoliaTask(Bukkit.getGlobalRegionScheduler().runDelayed(plugin, { func.invoke() }, delayTicks))
-        else
-            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
-    }
-
     fun global(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
             FoliaTask(Bukkit.getGlobalRegionScheduler().run(plugin) { func.invoke() })
         else
             BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
     }
-
-    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun global(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
-            FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks)!!)
+            FoliaTask(Bukkit.getGlobalRegionScheduler().runDelayed(plugin, { func.invoke() }, delayTicks))
         else
             BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
+    }
+    fun global(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (folia)
+            FoliaTask(Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, { func.invoke() }, delayTicks, periodTicks))
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
     }
 
     fun schedule(entity: Entity, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
@@ -37,6 +35,18 @@ object Scheduler {
         else
             BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
     }
+    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (folia)
+            FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks)!!)
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
+    }
+    fun schedule(entity: Entity, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (folia)
+            FoliaTask(entity.scheduler.runAtFixedRate(plugin, { func.invoke() }, null, delayTicks, periodTicks)!!)
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
+    }
 
     fun schedule(location: Location, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
@@ -44,22 +54,17 @@ object Scheduler {
         else
             BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
     }
-
-    fun async(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(location: Location, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
-            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
-                delayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS)
-            )
+            FoliaTask(Bukkit.getRegionScheduler().runDelayed(plugin, location, { func.invoke() }, delayTicks))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
+            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
     }
-
-    fun async(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(location: Location, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
-            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
-                delayTicks * 50, TimeUnit.MILLISECONDS))
+            FoliaTask(Bukkit.getRegionScheduler().runAtFixedRate(plugin, location, { func.invoke() }, delayTicks, periodTicks))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func, delayTicks))
+            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
     }
 
     fun async(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
@@ -67,6 +72,21 @@ object Scheduler {
             FoliaTask(Bukkit.getAsyncScheduler().runNow(plugin) { func.invoke() })
         else
             BukkitTask(Bukkit.getScheduler().runTaskAsynchronously(plugin, func))
+    }
+    fun async(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (folia)
+            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
+                delayTicks * 50, TimeUnit.MILLISECONDS))
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func, delayTicks))
+    }
+    fun async(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (folia)
+            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
+                delayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS)
+            )
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
     }
 
 
