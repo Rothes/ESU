@@ -174,10 +174,12 @@ data class MessageData(
             else "$namespace:$key"
 
         private fun parseTitleTimes(builder: MessageDataBuilder, string: String) {
+            if (string.isEmpty())
+                return
             val split = string.split(':')
             if (split.isNotEmpty()) {
                 if (split.size != 3) {
-                    EsuCore.instance.err("Failed to parse title times: Exactly 3 arguments required")
+                    EsuCore.instance.err("Failed to parse title times: Exactly 3 arguments required; Your input is '$string'")
                 } else {
                     val map = split.map {
                         val ticks = it.toLongOrNull()
