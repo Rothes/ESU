@@ -25,7 +25,6 @@ data class ColorScheme(
 ): ConfigurationPart {
 
     @Suppress("SpellCheckingInspection")
-    @delegate:Transient
     val tagResolver: TagResolver by lazy {
         TagResolver.builder()
             .styling(primary, "primary_color", "pc")
