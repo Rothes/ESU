@@ -1,7 +1,10 @@
 package io.github.rothes.esu.core.configuration.data
 
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.user.User
+import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.subTitle
 import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
@@ -23,6 +26,15 @@ data class MessageData(
 
     constructor(pattern: String) : this(parse(pattern))
     constructor(copy: MessageData) : this(copy.chat, copy.actionBar, copy.title, copy.sound, copy.pattern)
+
+    fun parse(user: User, vararg params: TagResolver): ParsedMessageData {
+        return ParsedMessageData(
+            chat?.let { user.buildMinimessage(it, params = params) },
+            actionBar?.let { user.buildMinimessage(it, params = params) },
+            title?.parse(user, params = params),
+            sound,
+        )
+    }
 
     val string
         get() = pattern ?: buildString {

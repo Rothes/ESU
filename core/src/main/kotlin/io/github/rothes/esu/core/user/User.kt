@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
+import net.kyori.adventure.sound.Sound.sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -64,22 +65,17 @@ interface User {
         )
     }
 
-    fun message(messageData: MessageData, vararg params: TagResolver): ParsedMessageData {
-        val parsed = with(messageData) {
-            ParsedMessageData(
-                chat?.let { buildMinimessage(it, params = params) },
-                actionBar?.let { buildMinimessage(it, params = params) },
-                title?.parse(this@User, params = params),
-                sound,
-            )
-        }
-        with(parsed) {
+    fun message(messageData: MessageData, vararg params: TagResolver) {
+        message(messageData.parse(this, params = params))
+    }
+
+    fun message(messageData: ParsedMessageData) {
+        with(messageData) {
             chat?.let { message(it) }
             actionBar?.let { actionBar(it) }
             title?.let { title(it) }
             sound?.let { playSound(it) }
         }
-        return parsed
     }
 
     fun message(message: String) {
