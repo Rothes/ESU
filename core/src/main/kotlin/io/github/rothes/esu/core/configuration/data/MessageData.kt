@@ -3,6 +3,7 @@ package io.github.rothes.esu.core.configuration.data
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.sound.SoundStop.source
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -86,6 +87,7 @@ data class MessageData(
         fun parse(string: String): MessageData {
             val builder = MessageDataBuilder(string)
             var messageType = MessageType.CHAT
+            var handled = false // This flag is for fixing empty chat message if set other message type at start
 
             val buffer = StringBuilder()
             val tagBuffer = StringBuilder()
@@ -145,9 +147,13 @@ data class MessageData(
                         }
                     }
                     if (matches) {
-                        setMessage(type, builder, buffer.toString().dropLast(tagBuffer.length + 1))
+                        val string = buffer.toString().dropLast(tagBuffer.length + 1)
+                        if (handled || string.isNotEmpty()) {
+                            setMessage(type, builder, string)
+                        }
                         buffer.clear()
                         tagBuffer.clear()
+                        handled = true
                         continue
                     }
                 }
@@ -158,7 +164,9 @@ data class MessageData(
                 }
             }
 
-            setMessage(messageType, builder, buffer.toString())
+            if (handled || buffer.isNotEmpty()) {
+                setMessage(messageType, builder, buffer.toString())
+            }
             return builder.messageData
         }
 
@@ -195,13 +203,11 @@ data class MessageData(
 
 
         private fun setMessage(messageType: MessageType, builder: MessageDataBuilder, message: String) {
-            if (message.isNotEmpty()) {
-                when (messageType) {
-                    MessageType.CHAT -> builder.chat = message
-                    MessageType.ACTIONBAR -> builder.actionbar = message
-                    MessageType.TITLE -> builder.title = message
-                    MessageType.SUBTITLE -> builder.subTitle = message
-                }
+            when (messageType) {
+                MessageType.CHAT -> builder.chat = message
+                MessageType.ACTIONBAR -> builder.actionbar = message
+                MessageType.TITLE -> builder.title = message
+                MessageType.SUBTITLE -> builder.subTitle = message
             }
         }
 
