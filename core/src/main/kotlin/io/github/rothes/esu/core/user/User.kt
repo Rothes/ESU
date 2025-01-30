@@ -6,7 +6,6 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
-import net.kyori.adventure.sound.Sound.sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -66,7 +65,7 @@ interface User {
     }
 
     fun message(messageData: MessageData, vararg params: TagResolver) {
-        message(messageData.parse(this, params = params))
+        message(messageData.parsed(this, params = params))
     }
 
     fun message(messageData: ParsedMessageData) {

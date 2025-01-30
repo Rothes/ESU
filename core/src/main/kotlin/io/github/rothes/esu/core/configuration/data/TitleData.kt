@@ -14,7 +14,7 @@ data class TitleData(
     val times: Times? = null,
 ) {
 
-    fun parse(user: User, vararg params: TagResolver): ParsedMessageData.ParsedTitleData {
+    fun parsed(user: User, vararg params: TagResolver): ParsedMessageData.ParsedTitleData {
         return ParsedMessageData.ParsedTitleData(
             title?.let { user.buildMinimessage(it, *params) },
             subTitle?.let { user.buildMinimessage(it, *params) },
