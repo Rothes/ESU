@@ -2,18 +2,7 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.configuration.serializer.CaptionSerializer
-import io.github.rothes.esu.core.configuration.serializer.ComponentSerializer
-import io.github.rothes.esu.core.configuration.serializer.DurationSerializer
-import io.github.rothes.esu.core.configuration.serializer.EnumValueSerializer
-import io.github.rothes.esu.core.configuration.serializer.JavaDurationSerializer
-import io.github.rothes.esu.core.configuration.serializer.LocalDateSerializer
-import io.github.rothes.esu.core.configuration.serializer.LocalTimeSerializer
-import io.github.rothes.esu.core.configuration.serializer.MapSerializer
-import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
-import io.github.rothes.esu.core.configuration.serializer.PathSerializer
-import io.github.rothes.esu.core.configuration.serializer.RegexSerializer
-import io.github.rothes.esu.core.configuration.serializer.TextColorSerializer
+import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
@@ -165,6 +154,7 @@ object ConfigLoader {
                             .register(JavaDurationSerializer)
                             .register(LocalDateSerializer)
                             .register(LocalTimeSerializer)
+                            .register(MessageDataSerializer)
                             .register(PathSerializer)
                             .register(RegexSerializer)
                             .register(TextColorSerializer)
