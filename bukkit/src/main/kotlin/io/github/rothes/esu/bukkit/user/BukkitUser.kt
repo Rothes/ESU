@@ -73,6 +73,10 @@ abstract class BukkitUser: User {
         commandSender.playSound(sound.adventure, Sound.Emitter.self())
     }
 
+    override fun clearTitle() {
+        commandSender.clearTitle()
+    }
+
     fun <T: ConfigurationPart> item(locales: MultiLocaleConfiguration<T>, block: T.() -> ItemData?, vararg params: TagResolver): ItemStack {
         val itemData = localedOrNull(locales, block) ?: throw NullPointerException()
         val item = itemData.getItem()

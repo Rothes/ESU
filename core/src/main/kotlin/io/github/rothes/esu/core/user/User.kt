@@ -92,4 +92,9 @@ interface User {
     fun title(title: TitleData, vararg params: TagResolver)
     fun playSound(sound: SoundData)
 
+    fun clearTitle()
+    fun clearActionBar() {
+        actionBar(Component.empty())
+    }
+
 }
