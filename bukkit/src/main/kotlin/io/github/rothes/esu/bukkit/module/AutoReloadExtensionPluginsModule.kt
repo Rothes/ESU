@@ -42,10 +42,10 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
             val otherName = db.name
             if (da.depend.contains(otherName) || da.softDepend.contains(otherName)) -1 else 1
         }
-        plugins.reversed().forEach {
+        plugins.forEach {
             PlugMan.getInstance().pluginUtil.unload(it)
         }
-        plugins.forEach {
+        plugins.reversed().forEach {
             PlugMan.getInstance().pluginUtil.load(it.name)
         }
     }
