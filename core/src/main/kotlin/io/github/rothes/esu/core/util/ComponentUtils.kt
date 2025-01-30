@@ -5,9 +5,13 @@ import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.resolver.Formatter
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.math.floor
 import kotlin.time.Duration
 
@@ -51,6 +55,10 @@ object ComponentUtils {
                 }
             }
         })
+    }
+
+    fun time(epochMilli: Long, key: String = "time"): TagResolver {
+        return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
     }
 
 //    fun Component.set(vararg objects: Any): Component {
