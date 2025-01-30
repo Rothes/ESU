@@ -1,5 +1,7 @@
 package io.github.rothes.esu.core.configuration.pojo
 
+import io.github.rothes.esu.core.user.User
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.title.Title
 import java.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -11,6 +13,14 @@ data class TitleData(
     val subTitle: String? = null,
     val times: Times? = null,
 ) {
+
+    fun parse(user: User, vararg params: TagResolver): ParsedMessageData.ParsedTitleData {
+        return ParsedMessageData.ParsedTitleData(
+            title?.let { user.buildMinimessage(it, *params) },
+            subTitle?.let { user.buildMinimessage(it, *params) },
+            times
+        )
+    }
 
     data class Times(
         val fadeIn: Duration = Duration.ofMillis(500),

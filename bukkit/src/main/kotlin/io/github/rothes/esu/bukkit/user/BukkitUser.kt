@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.config.pojo.ItemData
-import io.github.rothes.esu.core.configuration.pojo.SoundData
-import io.github.rothes.esu.core.configuration.pojo.TitleData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.pojo.ParsedMessageData
+import io.github.rothes.esu.core.configuration.pojo.SoundData
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -45,26 +45,22 @@ abstract class BukkitUser: User {
         commandSender.sendActionBar(message)
     }
 
-    override fun title(titleData: TitleData, vararg params: TagResolver) {
-        val title = titleData.title
-        val subTitle = titleData.subTitle
-        val times = titleData.times
+    override fun title(parsed: ParsedMessageData.ParsedTitleData) {
+        val title = parsed.title
+        val subTitle = parsed.subTitle
+        val times = parsed.times
 
         if (title != null && subTitle != null) {
-            commandSender.showTitle(Title.title(
-                buildMinimessage(title, *params),
-                buildMinimessage(subTitle, *params),
-                times?.adventure
-            ))
+            commandSender.showTitle(Title.title(title, subTitle, times?.adventure))
         } else {
             if (times != null) {
                 commandSender.sendTitlePart(TitlePart.TIMES, times.adventure)
             }
             if (title != null) {
-                commandSender.sendTitlePart(TitlePart.TITLE, buildMinimessage(title, *params))
+                commandSender.sendTitlePart(TitlePart.TITLE, title)
             }
             if (subTitle != null) {
-                commandSender.sendTitlePart(TitlePart.SUBTITLE, buildMinimessage(subTitle, *params))
+                commandSender.sendTitlePart(TitlePart.SUBTITLE, subTitle)
             }
         }
     }
