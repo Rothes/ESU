@@ -202,7 +202,11 @@ data class MessageData(
             var sound: SoundData? = null,
         ) {
             val messageData
-                get() = MessageData(chat, actionbar, TitleData(title, subTitle, titleTimes), sound, pattern)
+                get() = MessageData(chat, actionbar,
+                    if (title != null || subTitle != null || titleTimes != null)
+                        TitleData(title, subTitle, titleTimes)
+                    else null,
+                    sound, pattern)
         }
 
         private enum class MessageType {
