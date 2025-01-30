@@ -89,5 +89,14 @@ object Scheduler {
             BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
     }
 
+    fun cancelTasks(plugin: Plugin = esuPlugin) {
+        if (folia) {
+            Bukkit.getGlobalRegionScheduler().cancelTasks(plugin)
+            Bukkit.getAsyncScheduler().cancelTasks(plugin)
+        } else {
+            Bukkit.getScheduler().cancelTasks(plugin)
+        }
+    }
+
 
 }
