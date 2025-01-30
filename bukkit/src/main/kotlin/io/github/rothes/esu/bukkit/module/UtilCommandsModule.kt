@@ -11,6 +11,8 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -179,30 +181,30 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             }
 
     data class ModuleLocale(
-        val pingCommand: String = "<pdc><name><pc>'s ping is <sdc><ping><sc>ms",
-        val clientLocaleCommand: String = "<pdc><name><pc>'s client locale is <sdc><locale>",
-        val ipCommand: String = "<pdc><name><pc>'s ip is <sdc><address>",
+        val pingCommand: MessageData = "<pdc><name><pc>'s ping is <sdc><ping><sc>ms".message,
+        val clientLocaleCommand: MessageData = "<pdc><name><pc>'s client locale is <sdc><locale>".message,
+        val ipCommand: MessageData = "<pdc><name><pc>'s ip is <sdc><address>".message,
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
-        val tpChunkTeleporting: String = "<tc>Teleporting <tdc><player><tc>...",
+        val tpChunkTeleporting: MessageData = "<tc>Teleporting <tdc><player><tc>...".message,
         val genRateTop: ChunkRateTop = ChunkRateTop(
-            "<pc>There's no chunk generate at this moment.",
+            "<pc>There's no chunk generate at this moment.".message,
             "<pdc>[player]<pc>: <sc>[chunk generate tickets/sec]",
         ),
         val loadRateTop: ChunkRateTop = ChunkRateTop(
-            "<pc>There's no chunk load at this moment.",
+            "<pc>There's no chunk load at this moment.".message,
             "<pdc>[player]<pc>: <sc>[chunk load tickets/sec]",
         ),
     ): ConfigurationPart {
 
         data class IpGroupCommand(
-            val noSameIp: String = "<pc>There's no players on same ip.",
-            val entry: String = "<tdc><address><tc>: <players>",
+            val noSameIp: MessageData = "<pc>There's no players on same ip.".message,
+            val entry: MessageData = "<tdc><address><tc>: <players>".message,
             val playerPrefix: String = "<sdc>",
             val playerSeparator: String = "<pc>, <sdc>",
         ): ConfigurationPart
 
         data class ChunkRateTop(
-            val noData: String = "",
+            val noData: MessageData = "".message,
             val header: String = "",
             val entry: String = "<tdc><player><tc>: <sdc><rate>",
         ): ConfigurationPart

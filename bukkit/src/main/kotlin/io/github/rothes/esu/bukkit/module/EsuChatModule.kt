@@ -7,6 +7,8 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -310,8 +312,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
             val prefix: String = "<sdc>📨 ",
             val formatIncoming: String = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>",
             val formatOutgoing: String = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>",
-            val replyNoLastTarget: String = "<ec>There's no last direct message target.",
-            val receiverOffline: String = "<ec>The receiver is not online.",
+            val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
+            val receiverOffline: MessageData = "<ec>The receiver is not online.".message,
             val spy: Spy = Spy(),
         ): ConfigurationPart {
 
@@ -324,8 +326,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
         data class Ignore(
             val prefix: String = "<sc>[<sdc>Ignore<sc>] ",
-            val ignoringPlayer: String = "<prefix><vnc>You are now ignoring <vndc><player><vnc>.",
-            val receivingPlayer: String = "<prefix><vpc>You are now receiving <vpdc><player><vpc>.",
+            val ignoringPlayer: MessageData = "<prefix><vnc>You are now ignoring <vndc><player><vnc>.".message,
+            val receivingPlayer: MessageData = "<prefix><vpc>You are now receiving <vpdc><player><vpc>.".message,
         ): ConfigurationPart
     }
 

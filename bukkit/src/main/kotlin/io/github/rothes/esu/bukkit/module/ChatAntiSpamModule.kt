@@ -14,6 +14,8 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedEnumMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
@@ -339,29 +341,29 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         ): ConfigurationPart {
 
             data class Data(
-                val noData: String = "<prefix><pc>Player <pdc><player> <pc>has no chat data.",
-                val data: String = """
+                val noData: MessageData = "<prefix><pc>Player <pdc><player> <pc>has no chat data.".message,
+                val data: MessageData = """
                     |<prefix><pc>Data of player <pdc><player> :
                     |<tdc><debug-data>
                     |<sc>Filters: <sdc><filtered-size>
                     |<pc>Requests: <pdc><requested-size>
                     |<sc>Score: <sdc><spam-score>
                     |<pc>Mute duration: <pdc><mute-duration>
-                """.trimMargin(),
+                """.trimMargin().message,
                 val notMuted: String = "Not muted",
             ): ConfigurationPart
 
             data class Notify(
-                val enabled: String = "<prefix><vpc>Receiving spam notify now.",
-                val disabled: String = "<prefix><vnc>Rejecting spam notify now.",
+                val enabled: MessageData = "<prefix><vpc>Receiving spam notify now.".message,
+                val disabled: MessageData = "<prefix><vnc>Rejecting spam notify now.".message,
             ): ConfigurationPart
 
             data class Mute(
-                val mutedPlayer: String = "<prefix><pc>Muted <pdc><player> <pc>for <pdc><duration><pc>."
+                val mutedPlayer: MessageData = "<prefix><pc>Muted <pdc><player> <pc>for <pdc><duration><pc>.".message,
             ): ConfigurationPart
 
             data class Reset(
-                val resetPlayer: String = "<prefix><pc>Reset data for player <pdc><player><pc>.",
+                val resetPlayer: MessageData = "<prefix><pc>Reset data for player <pdc><player><pc>.".message,
             ): ConfigurationPart
 
         }

@@ -8,6 +8,8 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
@@ -174,7 +176,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
         }
     }
 
-    private fun BukkitUser.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> String?) {
+    private fun BukkitUser.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> MessageData?) {
         val instant = Instant.ofEpochMilli(restartOn!!).atZone(ZoneId.systemDefault())
         val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(locale) { timeFormatterP })
         message(locale, block, duration(duration, this, "interval"), unparsed("time", time))
@@ -194,12 +196,12 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
 
     data class ModuleLocale(
         val timeFormatter: String = "MM/dd HH:mm:ss",
-        val couldNotParseTime: String = "<ec>The time you provided could not be parsed: <edc><message>",
-        val noTask: String = "<pc>This server has no scheduled restart!",
-        val notify: String = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> <pc>!",
-        val overridesTo: String = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> <pc>!",
-        val overridesReset: String = "<pc>Reset restart time overrides. Now it's using the configured values.",
-        val toggledPausing: String = "<pc>Toggled pausing to <pdc><state>",
+        val couldNotParseTime: MessageData = "<ec>The time you provided could not be parsed: <edc><message>".message,
+        val noTask: MessageData = "<pc>This server has no scheduled restart!".message,
+        val notify: MessageData = "<pc>This server is restarting in <pdc><interval> <pc>at <pdc><time> <pc>!".message,
+        val overridesTo: MessageData = "<pc>Overrides restart time to <pdc><interval> <pc>at <pdc><time> <pc>!".message,
+        val overridesReset: MessageData = "<pc>Reset restart time overrides. Now it's using the configured values.".message,
+        val toggledPausing: MessageData = "<pc>Toggled pausing to <pdc><state>".message,
         val kickMessage: String = "<pc>Server restarting, please wait a minute."
     ): ConfigurationPart {
         @Transient

@@ -6,6 +6,8 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import org.bukkit.Bukkit

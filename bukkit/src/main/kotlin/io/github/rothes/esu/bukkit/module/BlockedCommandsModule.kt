@@ -5,6 +5,8 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.pojo.MessageData
+import io.github.rothes.esu.core.configuration.pojo.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -51,7 +53,7 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
             }
             if (matched != null) {
                 val key = matched.blockedMessage
-                user.minimessage(user.localedOrNull(locale) { blockedMessage[key] } ?: key)
+                user.message(user.localedOrNull(locale) { blockedMessage[key] } ?: key.message)
                 return true
             }
             return false
@@ -74,8 +76,8 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
     }
 
     data class ModuleLocale(
-        val blockedMessage: Map<String, String> = linkedMapOf(
-            Pair("no-suicide", "<gold>Do not kill yourself! We still love you...")
+        val blockedMessage: Map<String, MessageData> = linkedMapOf(
+            Pair("no-suicide", "<gold>Do not kill yourself! We still love you...".message)
         ),
     ): ConfigurationPart
 
