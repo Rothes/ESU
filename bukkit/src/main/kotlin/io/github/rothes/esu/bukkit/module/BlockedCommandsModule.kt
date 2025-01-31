@@ -48,7 +48,7 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
                 }
 
                 group.commands.find { cmd ->
-                    command.matches(cmd)
+                    cmd.containsMatchIn(command)
                 } != null
             }
             if (matched != null) {
