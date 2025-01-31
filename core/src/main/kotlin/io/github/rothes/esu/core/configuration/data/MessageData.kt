@@ -129,7 +129,7 @@ data class MessageData(
                             parseTitleTimes(builder, off)
                             matches = true
                         }
-                        SOUND              -> {
+                        SOUND    -> {
                             val split = off.split(':')
                             if (split.size < 2) {
                                 EsuCore.instance.err("Failed to parse sound: At least namespace + key arguments provided")
@@ -141,6 +141,7 @@ data class MessageData(
                                 val pitch = if (split.size > 4) split[4].toFloat() else null
                                 val seed = if (split.size > 5) split[5].toLong() else null
                                 builder.sound = SoundData(namespace, key, source, volume, pitch, seed)
+                                messageType = MessageType.SOUND
                                 matches = true
                             }
                         }
@@ -207,6 +208,7 @@ data class MessageData(
                 MessageType.ACTIONBAR -> builder.actionbar = message
                 MessageType.TITLE -> builder.title = message
                 MessageType.SUBTITLE -> builder.subTitle = message
+                MessageType.SOUND -> return
             }
         }
 
@@ -232,6 +234,7 @@ data class MessageData(
             ACTIONBAR,
             TITLE,
             SUBTITLE,
+            SOUND,
         }
     }
 }
