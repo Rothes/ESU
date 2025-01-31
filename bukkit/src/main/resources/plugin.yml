@@ -11,3 +11,5 @@ permissions:
     default: op
   'esu.chatantispam.notify':
     default: op
+  'esu.anticommandspam.exempt':
+    default: op

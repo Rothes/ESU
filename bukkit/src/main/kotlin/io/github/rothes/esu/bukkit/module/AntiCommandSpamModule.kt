@@ -56,6 +56,9 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
         @EventHandler(priority = EventPriority.LOW)
         fun onCommand(event: PlayerCommandPreprocessEvent) {
             val user = event.player.user
+            if (user.hasPerm("exempt")) {
+                return
+            }
             val command = event.message.substring(1)
             val matched = config.commands.find { group ->
                 group.commands.any { cmd ->
