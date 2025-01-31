@@ -7,8 +7,10 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.MINECRAFT
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.data.SOUND
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -18,6 +20,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
+import org.bukkit.Sound
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
@@ -310,7 +313,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
         data class Whisper(
             val prefix: String = "<sdc>📨 ",
-            val formatIncoming: MessageData = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>".message,
+            val formatIncoming: MessageData = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message><$SOUND:$MINECRAFT:entity.silverfish.ambient:voice:0.2:2:-7007683334921848987>".message,
             val formatOutgoing: MessageData = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>".message,
             val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
             val receiverOffline: MessageData = "<ec>The receiver is not online.".message,
