@@ -3,8 +3,10 @@ package io.github.rothes.esu.core.configuration.data
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 
+const val MINECRAFT = "minecraft"
+
 data class SoundData(
-    val namespace: String = "",
+    val namespace: String = MINECRAFT,
     val key: String = "",
     val source: Sound.Source? = null,
     val volume: Float? = null,
