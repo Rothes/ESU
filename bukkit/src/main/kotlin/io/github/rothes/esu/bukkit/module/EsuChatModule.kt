@@ -299,19 +299,19 @@ the 'head' and 'foot' will be appended to the chat message.""")
     ): ConfigurationPart {
 
         data class Chat(
-            val format: String = "\\<<player_display:sender>> <message>",
+            val format: MessageData = "\\<<player_display:sender>> <message>".message,
             @field:Comment("The format used for console logs.")
-            val consoleFormat: String = "<#48c0c0>\\<<player_display:sender>> <message>"
+            val consoleFormat: MessageData = "<#48c0c0>\\<<player_display:sender>> <message>".message,
         ): ConfigurationPart
 
         data class Emote(
-            val format: String = "<pc>* <pdc><player_display:sender> <message>",
+            val format: MessageData = "<pc>* <pdc><player_display:sender> <message>".message,
         ): ConfigurationPart
 
         data class Whisper(
             val prefix: String = "<sdc>📨 ",
-            val formatIncoming: String = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>",
-            val formatOutgoing: String = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>",
+            val formatIncoming: MessageData = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message>".message,
+            val formatOutgoing: MessageData = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>".message,
             val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
             val receiverOffline: MessageData = "<ec>The receiver is not online.".message,
             val spy: Spy = Spy(),
@@ -319,8 +319,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
             data class Spy(
                 val prefix: String = "<sc>[<sdc>SPY<sc>] ",
-                val dmFormat: String = "<prefix><pc>[<pdc><player_display:sender> <sdc>➡ <tdc><player_display:receiver><pc>] <tc><message>",
-                val dmReplyFormat: String = "<prefix><pc>[<tdc><player_display:receiver> <sc>⬅ <pdc><player_display:sender><pc>] <tdc><message>",
+                val dmFormat: MessageData = "<prefix><pc>[<pdc><player_display:sender> <sdc>➡ <tdc><player_display:receiver><pc>] <tc><message>".message,
+                val dmReplyFormat: MessageData = "<prefix><pc>[<tdc><player_display:receiver> <sc>⬅ <pdc><player_display:sender><pc>] <tdc><message>".message,
             ): ConfigurationPart
         }
 
