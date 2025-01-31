@@ -8,12 +8,14 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import org.apache.logging.log4j.util.Lazy.pure
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import kotlin.collections.find
 
 object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, AntiCommandSpamModule.ModuleLocale>(
     ModuleConfig::class.java, ModuleLocale::class.java
@@ -28,7 +30,7 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
             Listeners.hits.cellSet().toList().forEach { cell ->
                 val cmd = cell.columnKey
                 val queue = cell.value
-                val conf = config.kickCommands.find { it.commands.contains(cmd) }
+                val conf = config.kickCommands.find { it.commands.any { it.matches(cmd) } }
                 if (conf == null) {
                     queue.clear()
                 } else {
@@ -55,14 +57,10 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
         @EventHandler
         fun onCommand(event: PlayerCommandPreprocessEvent) {
             val user = event.player.user
-            val command = event.message.substring(1).split(' ', limit = 2)[0]
-            val pure = command.split(':').last()
+            val command = event.message.substring(1)
             val matched = config.kickCommands.find { group ->
                 group.commands.find { cmd ->
-                    if (cmd.contains(':'))
-                        command == cmd
-                    else
-                        pure == cmd
+                    cmd.matches(command)
                 } != null
             }
             if (matched != null) {
@@ -82,13 +80,18 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
 
 
     data class ModuleConfig(
-        val kickCommands: List<KickGroup> = arrayListOf(KickGroup("suicide-spam", listOf("suicide", "kill"))),
+        @field:Comment("Plugin will increase the count for the command player send if it matches any condition,\n" +
+                "and handle the limit with the first limit it hits.")
+        val kickCommands: List<KickGroup> = arrayListOf(
+            KickGroup("suicide-spam", listOf("^(.+:)?suicide$".toRegex(), "^(.+:)?kill$".toRegex())),
+            KickGroup("generic-spam", listOf(".".toRegex())),
+        ),
     ): BaseModuleConfiguration() {
         
         data class KickGroup(
             @field:Comment("The message key to send to users. You need to set the message in locale configs.")
             val kickMessage: String = "",
-            val commands: List<String> = arrayListOf(),
+            val commands: List<Regex> = arrayListOf(),
             val hitCount: Int = 5,
             val removeInterval: Int = 20 * 1000,
             val addBlocked: Boolean = true,
@@ -98,7 +101,8 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
 
     data class ModuleLocale(
         val kickMessage: Map<String, String> = linkedMapOf(
-            Pair("suicide-spam", "<red>Please do not spam suicide.")
+            Pair("suicide-spam", "<red>Please do not spam suicide."),
+            Pair("generic-spam", "<red>Please do not spam commands."),
         ),
     ): ConfigurationPart
 
