@@ -93,7 +93,7 @@ object ComponentUtils {
                         component
                     else {
                         handled = true
-                        component.content(component.content().replaceFirstChar { it.uppercase() })
+                        component.content(component.content().replaceFirstChar { it.titlecase() })
                     }
                 }
         }
