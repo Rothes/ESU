@@ -166,7 +166,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     sender.message(locale, { whisper.spy.enabled },
                         component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
                         user(user, "user"), component("enable-state", true.enabled(sender)) )
-                    if (!silent) {
+                    if (!silent && sender != user) {
                         user.message(locale, { whisper.spy.enabled },
                             component("prefix", user.buildMinimessage(locale, { whisper.spy.prefix })),
                             user(user, "user"), component("enable-state", true.enabled(sender)) )
@@ -186,7 +186,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     sender.message(locale, { whisper.spy.disabled },
                         component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
                         user(user, "user"), component("enable-state", false.enabled(sender)) )
-                    if (!silent)
+                    if (!silent && sender != user)
                         user.message(locale, { whisper.spy.disabled },
                             component("prefix", user.buildMinimessage(locale, { whisper.spy.prefix })),
                             user(user, "user"), component("enable-state", false.enabled(sender)) )
