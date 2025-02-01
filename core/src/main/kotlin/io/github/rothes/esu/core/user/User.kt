@@ -6,8 +6,13 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
+import io.github.rothes.esu.core.util.ComponentUtils
+import io.github.rothes.esu.core.util.ComponentUtils.capitalize
+import io.github.rothes.esu.core.util.ComponentUtils.component
+import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import java.util.*
@@ -60,7 +65,7 @@ interface User {
     }
     fun buildMinimessage(message: String, vararg params: TagResolver): Component {
         return MiniMessage.miniMessage().deserialize(message, *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!
+            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!, capitalize
         )
     }
 

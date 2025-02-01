@@ -5,11 +5,11 @@ import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-import org.checkerframework.checker.units.qual.t
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -17,6 +17,20 @@ import kotlin.math.floor
 import kotlin.time.Duration
 
 object ComponentUtils {
+
+    val capitalize = TagResolver.resolver("capitalize") { arg, context ->
+        if (!arg.hasNext()) {
+            error("At least one argument expected for capitalize")
+        }
+        val args = buildString {
+            while (arg.hasNext()) {
+                append(arg.pop().value()).append(':')
+            }
+            deleteAt(length - 1)
+        }
+        val deserialize = context.deserialize(args)
+        Tag.inserting(deserialize.capitalize())
+    }
 
     fun fromLegacy(legacyText: String): Component {
         return LegacyComponentSerializer.legacySection().deserialize(legacyText)
@@ -68,6 +82,22 @@ object ComponentUtils {
 
     private fun Boolean.duel(user: User, t: EsuLocale.BaseEsuLocaleData.Booleans.() -> String, f: EsuLocale.BaseEsuLocaleData.Booleans.() -> String): Component {
         return user.buildMinimessage(EsuLocale.get(), { if (this@duel) t(booleans) else f(booleans) })
+    }
+
+    fun Component.capitalize(): Component {
+        var handled = false
+        return this.replaceText {
+            it.match(".+")
+                .replacement { component ->
+                    val content = component.content()
+                    if (handled || content.isEmpty())
+                        component
+                    else {
+                        handled = true
+                        component.content(content.replaceFirstChar { it.uppercase() })
+                    }
+                }
+        }
     }
 
 //    fun Component.set(vararg objects: Any): Component {
