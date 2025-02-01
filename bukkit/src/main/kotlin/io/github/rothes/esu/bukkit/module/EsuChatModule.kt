@@ -326,8 +326,9 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     fun playerDisplay(viewer: User, map: Map<String, User>): TagResolver {
         return TagResolver.resolver("player_display") { arg, context ->
-            val pop = arg.pop()
-            val user = map[pop.value()]
+            val pop = arg.popOr("One argument required for player_display")
+            val id = pop.value()
+            val user = map[id]
             if (user != null)
                 Tag.selfClosingInserting(
                     viewer.buildMinimessage(locale, { playerDisplay },
@@ -337,8 +338,10 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                             parsed("player_key", MiniMessage.miniMessage().escapeTags(user.name)),
                         parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)))
                 )
-            else
-                error("Unknown argument: $pop")
+            else {
+                context.newException("Unknown argument: $id")
+                Tag.styling {  }
+            }
         }
     }
 
