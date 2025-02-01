@@ -132,7 +132,7 @@ data class MessageData(
                         SOUND    -> {
                             val split = off.split(':')
                             if (split.size < 2) {
-                                EsuCore.instance.err("Failed to parse sound: At least namespace + key arguments provided")
+                                EsuCore.instance.err("Failed to parse sound: At least namespace + key arguments required")
                             } else {
                                 val namespace = split[0]
                                 val key = split[1]
