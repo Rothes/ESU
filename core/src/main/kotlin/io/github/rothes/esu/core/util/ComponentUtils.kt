@@ -85,16 +85,10 @@ object ComponentUtils {
     }
 
     fun Component.capitalize(): Component {
-        var handled = false
         return this.replaceText {
-            it.match(".+")
+            it.match(".+").once()
                 .replacement { component ->
-                    if (handled)
-                        component
-                    else {
-                        handled = true
-                        component.content(component.content().replaceFirstChar { it.titlecase() })
-                    }
+                    component.content(component.content().replaceFirstChar { it.titlecase() })
                 }
         }
     }
