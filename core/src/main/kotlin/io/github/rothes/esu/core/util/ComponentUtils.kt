@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Formatter
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import org.checkerframework.checker.units.qual.t
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -59,6 +60,14 @@ object ComponentUtils {
 
     fun time(epochMilli: Long, key: String = "time"): TagResolver {
         return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
+    }
+
+    fun Boolean.enabled(user: User): Component = duel(user, { enabled }) { disabled }
+    fun Boolean.on(user: User): Component = duel(user, { on }) { off }
+    fun Boolean.yes(user: User): Component = duel(user, { yes }) { no }
+
+    private fun Boolean.duel(user: User, t: EsuLocale.BaseEsuLocaleData.Booleans.() -> String, f: EsuLocale.BaseEsuLocaleData.Booleans.() -> String): Component {
+        return user.buildMinimessage(EsuLocale.get(), { if (this@duel) t(booleans) else f(booleans) })
     }
 
 //    fun Component.set(vararg objects: Any): Component {

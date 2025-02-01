@@ -19,9 +19,19 @@ abstract class EsuLocale<T: BaseEsuLocaleData> {
     protected abstract fun load(): MultiLocaleConfiguration<T>
 
     open class BaseEsuLocaleData(
+        val booleans: Booleans = Booleans(),
         val format: Format = Format(),
         val commandCaptions: LinkedHashMap<Caption, String> = LinkedHashMap()
     ): ConfigurationPart {
+
+        data class Booleans(
+            val enabled: String = "enabled",
+            val disabled: String = "disabled",
+            val on: String = "on",
+            val off: String = "off",
+            val yes: String = "yes",
+            val no: String = "no",
+        ): ConfigurationPart
 
         data class Format(
             val duration: Duration = Duration(),
