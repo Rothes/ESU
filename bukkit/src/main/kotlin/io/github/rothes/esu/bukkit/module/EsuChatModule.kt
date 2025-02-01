@@ -20,7 +20,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
-import org.bukkit.Sound
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
@@ -29,6 +28,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Permission
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.collections.find
 import kotlin.jvm.java
@@ -113,6 +113,48 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     return
                 }
                 whisper(sender, last, message)
+            }
+
+            @Command("spy")
+            @Permission("esu.esuChat.spy")
+            fun spyToggleShort(sender: User) {
+                spyToggleShort(sender)
+            }
+
+            @Command("spy toggle")
+            @Permission("esu.esuChat.spy")
+            fun spyToggle(sender: User) {
+                spyToggle(sender, sender)
+            }
+
+            @Command("spy enable")
+            @Permission("esu.esuChat.spy")
+            fun spyEnable(sender: User) {
+                spyEnable(sender, sender)
+            }
+
+            @Command("spy disable")
+            @Permission("esu.esuChat.spy")
+            fun spyDisable(sender: User) {
+                spyDisable(sender, sender)
+            }
+
+            @Command("spy toggle <user>")
+            @Permission("esu.esuChat.spy")
+            fun spyToggle(sender: User, target: User = sender) {
+
+            }
+
+            @Command("spy enable <user>")
+            @Permission("esu.esuChat.spy")
+            fun spyEnable(sender: User, target: User = sender) {
+
+            }
+
+            @Command("spy disable <user>")
+            @Permission("esu.esuChat.spy")
+            fun spyDisable(sender: User, target: User = sender) {
+
             }
 
             fun updateLast(user: User, lastTarget: LastTarget): LastTarget {
