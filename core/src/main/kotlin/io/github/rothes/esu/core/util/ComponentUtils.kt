@@ -19,16 +19,7 @@ import kotlin.time.Duration
 object ComponentUtils {
 
     val capitalize = TagResolver.resolver("capitalize") { arg, context ->
-        if (!arg.hasNext()) {
-            error("At least one argument expected for capitalize")
-        }
-        val args = buildString {
-            while (arg.hasNext()) {
-                append(arg.pop().value()).append(':')
-            }
-            deleteAt(length - 1)
-        }
-        val deserialize = context.deserialize(args)
+        val deserialize = context.deserialize(arg.popOr("One argument expected for capitalize").value())
         Tag.inserting(deserialize.capitalize())
     }
 
