@@ -1,7 +1,9 @@
 package io.github.rothes.esu.bukkit.util
 
+import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.Location
 import org.bukkit.entity.Entity
+import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
 
@@ -16,6 +18,14 @@ object ServerCompatibility {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)
         true
     } catch (_: NoSuchMethodException) {
+        false
+    }
+
+    val proxyMode = try {
+        SpigotConfig.bungee || GlobalConfiguration.get().proxies.velocity.enabled
+    } catch (_: NoSuchMethodException) {
+        false
+    } catch (_: NoClassDefFoundError) {
         false
     }
 
