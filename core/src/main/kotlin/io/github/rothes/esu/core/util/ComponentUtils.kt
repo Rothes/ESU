@@ -89,12 +89,11 @@ object ComponentUtils {
         return this.replaceText {
             it.match(".+")
                 .replacement { component ->
-                    val content = component.content()
-                    if (handled || content.isEmpty())
+                    if (handled)
                         component
                     else {
                         handled = true
-                        component.content(content.replaceFirstChar { it.uppercase() })
+                        component.content(component.content().replaceFirstChar { it.uppercase() })
                     }
                 }
         }
