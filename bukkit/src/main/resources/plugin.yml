@@ -7,9 +7,15 @@ folia-supported: true
 softdepend:
   - PlugMan
 permissions:
-  'esu.chatantispam.bypass':
+  'esu.chatAntiSpam.bypass':
     default: op
-  'esu.chatantispam.notify':
+  'esu.chatAntiSpam.notify':
     default: op
-  'esu.anticommandspam.exempt':
+  'esu.antiCommandSpam.exempt':
+    default: op
+  'esu.esuChat.spy':
+    default: op
+  'esu.esuChat.spy.other':
+    default: op
+  'esu.esuChat.spy.enableOnJoin':
     default: op

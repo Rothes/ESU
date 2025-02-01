@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MINECRAFT
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -14,6 +15,7 @@ import io.github.rothes.esu.core.configuration.data.SOUND
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
+import io.github.rothes.esu.core.util.ComponentUtils.enabled
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -26,8 +28,11 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 import org.incendo.cloud.annotations.Permission
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.collections.find
@@ -49,6 +54,10 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             registerCommands(ChatHandler.Whisper)
         if (config.emote.enabled)
             registerCommands(ChatHandler.Emote)
+
+        for (player in Bukkit.getOnlinePlayers()) {
+            ChatHandler.Whisper.checkSpyOnJoin(player.user)
+        }
     }
 
     override fun disable() {
@@ -118,7 +127,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             @Command("spy")
             @Permission("esu.esuChat.spy")
             fun spyToggleShort(sender: User) {
-                spyToggleShort(sender)
+                spyToggle(sender)
             }
 
             @Command("spy toggle")
@@ -140,21 +149,58 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             }
 
             @Command("spy toggle <user>")
-            @Permission("esu.esuChat.spy")
-            fun spyToggle(sender: User, target: User = sender) {
-
+            @Permission("esu.esuChat.spy.other")
+            fun spyToggle(sender: User, user: User = sender, @Flag("silent") silent: Boolean = false) {
+                if (!spying.contains(user)) {
+                    spyEnable(sender, user, silent)
+                } else {
+                    spyDisable(sender, user, silent)
+                }
             }
 
             @Command("spy enable <user>")
-            @Permission("esu.esuChat.spy")
-            fun spyEnable(sender: User, target: User = sender) {
-
+            @Permission("esu.esuChat.spy.other")
+            fun spyEnable(sender: User, user: User = sender, @Flag("silent") silent: Boolean = false) {
+                val added = spying.add(user)
+                if (added) {
+                    sender.message(locale, { whisper.spy.enabled },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
+                        user(user, "user"), component("enable-state", true.enabled(sender)) )
+                    if (!silent) {
+                        user.message(locale, { whisper.spy.enabled },
+                            component("prefix", user.buildMinimessage(locale, { whisper.spy.prefix })),
+                            user(user, "user"), component("enable-state", true.enabled(sender)) )
+                    }
+                } else {
+                    sender.message(locale, { whisper.spy.alreadyEnabled },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
+                        user(user, "user"))
+                }
             }
 
             @Command("spy disable <user>")
-            @Permission("esu.esuChat.spy")
-            fun spyDisable(sender: User, target: User = sender) {
+            @Permission("esu.esuChat.spy.other")
+            fun spyDisable(sender: User, user: User = sender, @Flag("silent") silent: Boolean = false) {
+                val removed = spying.remove(user)
+                if (removed) {
+                    sender.message(locale, { whisper.spy.disabled },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
+                        user(user, "user"), component("enable-state", false.enabled(sender)) )
+                    if (!silent)
+                        user.message(locale, { whisper.spy.disabled },
+                            component("prefix", user.buildMinimessage(locale, { whisper.spy.prefix })),
+                            user(user, "user"), component("enable-state", false.enabled(sender)) )
+                } else {
+                    sender.message(locale, { whisper.spy.alreadyDisabled },
+                        component("prefix", sender.buildMinimessage(locale, { whisper.spy.prefix })),
+                        user(user, "user"))
+                }
+            }
 
+            fun checkSpyOnJoin(user: User) {
+                if (user.hasPerm("spy.enableOnJoin")) {
+                    spyEnable(user, user, true)
+                }
             }
 
             fun updateLast(user: User, lastTarget: LastTarget): LastTarget {
@@ -238,6 +284,17 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     event.isCancelled = true
                 }
             }
+        }
+
+        @EventHandler
+        fun onPlayerJoin(e: PlayerJoinEvent) {
+            ChatHandler.Whisper.checkSpyOnJoin(e.player.user)
+        }
+
+        @EventHandler
+        fun onPlayerLeave(e: PlayerQuitEvent) {
+            val user = e.player.user
+            ChatHandler.Whisper.spyDisable(user, user, true)
         }
 
     }
@@ -366,6 +423,11 @@ the 'head' and 'foot' will be appended to the chat message.""")
                 val prefix: String = "<sc>[<sdc>SPY<sc>] ",
                 val dmFormat: MessageData = "<prefix><pc>[<pdc><player_display:sender> <sdc>➡ <tdc><player_display:receiver><pc>] <tc><message>".message,
                 val dmReplyFormat: MessageData = "<prefix><pc>[<tdc><player_display:receiver> <sc>⬅ <pdc><player_display:sender><pc>] <tdc><message>".message,
+
+                val enabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user><pc>.".message,
+                val disabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user><pc>.".message,
+                val alreadyEnabled: MessageData = "<prefix><edc><user> <ec>has already enabled spy.".message,
+                val alreadyDisabled: MessageData = "<prefix><edc><user> <ec>has already disabled spy.".message,
             ): ConfigurationPart
         }
 
