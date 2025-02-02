@@ -11,6 +11,7 @@ import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
 import io.github.rothes.esu.bukkit.module.BlockedCommandsModule
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.module.EsuChatModule
+import io.github.rothes.esu.bukkit.module.ItemEditModule
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
@@ -81,6 +82,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.addModule(BlockedCommandsModule)
         ModuleManager.addModule(ChatAntiSpamModule)
         ModuleManager.addModule(EsuChatModule)
+        ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(UtilCommandsModule)
 
         // Register commands
