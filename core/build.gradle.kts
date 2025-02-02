@@ -13,6 +13,8 @@ dependencies {
 //    api(kotlin("reflect"))
     api("cc.carm.lib:easysql-hikaricp:0.4.7")
     api("org.incendo:cloud-core:2.0.0")
+    api("org.incendo:cloud-annotations:2.0.0")
+    api("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0")
     api("org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:4.17.0")
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.17.0")

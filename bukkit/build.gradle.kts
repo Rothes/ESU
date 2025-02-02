@@ -34,8 +34,6 @@ dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
-    api("org.incendo:cloud-annotations:2.0.0")
-    api("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0")
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("com.h2database:h2:2.3.232")
     compileOnly("com.rylinaux:PlugManX:2.4.1")
