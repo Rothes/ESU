@@ -2,14 +2,14 @@ package io.github.rothes.esu.bukkit.module
 
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
-import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule.ModuleLocale.ChunkRateTop
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -17,6 +17,7 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
+import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.papermc.paper.configuration.GlobalConfiguration
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
@@ -24,14 +25,8 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
-import org.incendo.cloud.CommandBuilderSource
-import org.incendo.cloud.bukkit.parser.PlayerParser
-import org.incendo.cloud.bukkit.parser.WorldParser
+import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.bukkit.parser.location.Location2D
-import org.incendo.cloud.bukkit.parser.location.Location2DParser
-import org.incendo.cloud.component.DefaultValue
-import org.incendo.cloud.context.CommandContext
-import org.incendo.cloud.execution.CommandExecutionHandler
 import java.lang.reflect.Field
 
 object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
@@ -39,30 +34,28 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
 ) {
 
     override fun enable() {
-        registerCommand {
-            playerOptionalCmd("ping") { _, user, player ->
-                user.message(locale, { pingCommand },
-                    Placeholder.unparsed("name", player.name),
-                    Placeholder.unparsed("ping", player.ping.toString()))
+        registerCommands(object {
+            @Command("ping [player]")
+            @ShortPerm("ping")
+            fun ping(sender: User, player: Player = sender.player) {
+                sender.message(locale, { pingCommand }, player(player), unparsed("ping", player.ping))
             }
-        }
-        registerCommand {
-            playerOptionalCmd("clientLocale") { _, user, player ->
-                user.message(locale, { clientLocaleCommand },
-                    Placeholder.unparsed("name", player.name),
-                    Placeholder.unparsed("locale", player.user.clientLocale))
+
+            @Command("clientLocale [player]")
+            @ShortPerm("clientLocale")
+            fun clientLocale(sender: User, player: User = sender) {
+                sender.message(locale, { clientLocaleCommand }, user(player), unparsed("locale", player.clientLocale))
             }
-        }
-        registerCommand {
-            playerOptionalCmd("ip") { _, user, player ->
-                user.message(locale, { ipCommand },
-                    Placeholder.unparsed("name", player.name),
-                    Placeholder.unparsed("address", player.address!!.hostString))
+
+            @Command("ip [player]")
+            @ShortPerm("ip")
+            fun ip(sender: User, player: Player = sender.player) {
+                sender.message(locale, { ipCommand }, player(player), unparsed("address", player.address!!.hostString))
             }
-        }
-        registerCommand {
-            cmd("ipGroup").handler { context ->
-                val user = context.sender()
+
+            @Command("ipGroup")
+            @ShortPerm("ipGroup")
+            fun ipGroup(sender: User) {
                 val list = Bukkit.getOnlinePlayers()
                     .groupBy { it.address!!.hostString }
                     .filter { it.value.size > 1 }
@@ -71,56 +64,64 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     .asReversed()
                 if (list.isNotEmpty()) {
                     list.forEach {
-                        user.message(locale, { ipGroupCommand.entry },
-                            Placeholder.unparsed("address", it.key),
-                            Placeholder.parsed("players", it.value.joinToString(
-                                prefix = user.localed(locale) { ipGroupCommand.playerPrefix },
-                                separator = user.localed(locale) { ipGroupCommand.playerSeparator })
+                        sender.message(locale, { ipGroupCommand.entry },
+                            unparsed("address", it.key),
+                            parsed("players", it.value.joinToString(
+                                prefix = sender.localed(locale) { ipGroupCommand.playerPrefix },
+                                separator = sender.localed(locale) { ipGroupCommand.playerSeparator })
                             ))
                     }
                 } else {
-                    user.message(locale, { ipGroupCommand.noSameIp } )
+                    sender.message(locale, { ipGroupCommand.noSameIp } )
                 }
             }
-        }
-        registerCommand {
-            cmd("tpChunk")
-                .required("chunk", Location2DParser.location2DComponent())
-                .optional("world", WorldParser.worldParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player.location.world })
-                .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, UserParser())
-                .handler { context ->
-                    val location2D = context.get<Location2D>("chunk")
-                    val sender = context.sender()
-                    val player = context.get<Player>("player")
-                    val world = context.get<World>("world")
-                    sender.message(locale, { tpChunkTeleporting }, component("player", player.displayName()))
-                    val location = Location(world, (location2D.x.toInt() shl 4) + 8.5, 0.0, (location2D.z.toInt() shl 4) + 8.5)
-                    Scheduler.schedule(location) {
-                        val y = if (world.environment == World.Environment.NETHER) {
-                            var y = 125
-                            while (y > 0) {
-                                y--
-                                if (world.getBlockAt(location.blockX, y + 2, location.blockZ).type.isEmpty
-                                    && world.getBlockAt(location.blockX, y + 1, location.blockZ).type.isEmpty
-                                    && world.getBlockAt(location.blockX, y, location.blockZ).type.isSolid) {
-                                    break
-                                }
+
+            @Command("tpChunk <chunk> [world] [player]")
+            @ShortPerm("tpChunk")
+            fun tpChunk(sender: User, chunk: Location2D, world: World = sender.player.location.world, player: Player = sender.player) {
+                sender.message(locale, { tpChunkTeleporting }, component("player", player.displayName()))
+                val location = Location(world, (chunk.x.toInt() shl 4) + 8.5, 0.0, (chunk.z.toInt() shl 4) + 8.5)
+                Scheduler.schedule(location) {
+                    val y = if (world.environment == World.Environment.NETHER) {
+                        var y = 125
+                        while (y > 0) {
+                            y--
+                            if (world.getBlockAt(location.blockX, y + 2, location.blockZ).type.isEmpty
+                                && world.getBlockAt(location.blockX, y + 1, location.blockZ).type.isEmpty
+                                && world.getBlockAt(location.blockX, y, location.blockZ).type.isSolid) {
+                                break
                             }
-                            y
-                        } else {
-                            world.getHighestBlockYAt(location)
                         }
-                        location.y = y.toDouble() + 1
-                        player.tp(location)
+                        y
+                    } else {
+                        world.getHighestBlockYAt(location)
                     }
+                    location.y = y.toDouble() + 1
+                    player.tp(location)
                 }
-        }
+            }
+        })
+
         try {
             val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-            val handlerCreator: (Field, () -> Double, ModuleLocale.() -> ChunkRateTop)
-                    -> CommandExecutionHandler<BukkitUser> = { field, maxRateGetter, baseLocale ->
-                CommandExecutionHandler<BukkitUser> { context ->
-                    val maxRate = maxRateGetter()
+            registerCommands(object {
+
+                private val gen = clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true }
+                @Command("genRateTop")
+                @ShortPerm("genRateTop")
+                fun genRateTop(sender: User) {
+                    rate(sender, gen, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate) { genRateTop }
+                }
+
+                private val load = clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true }
+                @Command("loadRateTop")
+                @ShortPerm("loadRateTop")
+                fun loadRateTop(sender: User) {
+                    rate(sender, load, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate) { loadRateTop }
+                }
+                // We don't add sendRate command as it doesn't have the logic for this.
+
+                private fun rate(sender: User, field: Field, maxRate: Double, lang: ModuleLocale.() -> ChunkRateTop) {
                     val map = Bukkit.getOnlinePlayers().associateWith { player ->
                         (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
                     }.mapValues { entry ->
@@ -132,34 +133,17 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                         value != null && value > 0
                     }.toList().sortedByDescending { it.second }
                     if (map.isEmpty()) {
-                        context.sender().message(locale, { baseLocale().noData })
+                        sender.message(locale, { lang().noData })
                     } else {
-                        context.sender().message(locale, { baseLocale().header })
+                        sender.message(locale, { lang().header })
                         map.forEach { (p, v) ->
-                            context.sender().message(
-                                locale, { baseLocale().entry }, component("player", p.displayName()), parsed("rate", v)
+                            sender.message(
+                                locale, { lang().entry }, player(p), unparsed("rate", v)
                             )
                         }
                     }
                 }
-            }
-            registerCommand {
-                cmd("genRateTop").handler(
-                    handlerCreator(
-                        clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true },
-                        { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate },
-                    ) { genRateTop }
-                )
-            }
-            registerCommand {
-                cmd("loadRateTop").handler(
-                    handlerCreator(
-                        clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true },
-                        { GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate },
-                    ) { loadRateTop }
-                )
-            }
-            // We don't add sendRate command as it doesn't have the logic for this.
+            })
         } catch (e: Exception) {
             plugin.warn("Cannot register chunk rate commands: $e")
         }
@@ -169,21 +153,16 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
         super.reloadConfig()
     }
 
-    private fun <C> CommandBuilderSource<C>.cmd(root: String) =
-        commandBuilder(root).permission(perm("command.$root"))
+    private val User.pu
+        get() = this as PlayerUser
 
-    private fun <C> CommandBuilderSource<C>.playerOptionalCmd(root: String, handler: (CommandContext<C>, User, Player) -> Unit) =
-        cmd(root)
-            .optional("player", PlayerParser.playerParser(), DefaultValue.dynamic { (it.sender() as PlayerUser).player }, UserParser())
-            .handler { context ->
-                val player = context.get<Player>("player")
-                handler(context, context.sender() as User, player)
-            }
+    private val User.player
+        get() = this.pu.player
 
     data class ModuleLocale(
-        val pingCommand: MessageData = "<pdc><name><pc>'s ping is <sdc><ping><sc>ms".message,
-        val clientLocaleCommand: MessageData = "<pdc><name><pc>'s client locale is <sdc><locale>".message,
-        val ipCommand: MessageData = "<pdc><name><pc>'s ip is <sdc><address>".message,
+        val pingCommand: MessageData = "<pdc><player><pc>'s ping is <sdc><ping><sc>ms".message,
+        val clientLocaleCommand: MessageData = "<pdc><player><pc>'s client locale is <sdc><locale>".message,
+        val ipCommand: MessageData = "<pdc><player><pc>'s ip is <sdc><address>".message,
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
         val tpChunkTeleporting: MessageData = "<tc>Teleporting <tdc><player><tc>...".message,
         val genRateTop: ChunkRateTop = ChunkRateTop(
