@@ -202,7 +202,7 @@ object CasListeners: Listener {
             it.message(locale, { this.notify.muted },
                 player(player), it.msgPrefix,
                 unparsed("duration", duration.milliseconds),
-                unparsed("multiplier", String.format("%.1fx", spamData.muteMultiplier)),
+                unparsed("multiplier", String.format("%.1f", spamData.muteMultiplier)),
             )
         }
         CasDataManager.saveSpamDataAsync(player.user)

@@ -403,13 +403,13 @@ the 'head' and 'foot' will be appended to the chat message.""")
         ): ConfigurationPart
 
         data class Emote(
-            val format: MessageData = "<pc>* <pdc><player_display:sender> <message>".message,
+            val format: MessageData = "<pc>* <pdc><player_display:sender></pdc> <message>".message,
         ): ConfigurationPart
 
         data class Whisper(
             val prefix: String = "<sdc>📨 ",
-            val formatIncoming: MessageData = "<prefix><pdc><player_display:sender><pc> <sc>➡ <tdc><message><$SOUND:$MINECRAFT:entity.silverfish.ambient:voice:0.2:2:-7007683334921848987>".message,
-            val formatOutgoing: MessageData = "<prefix><sc>➡ <pc><pdc><player_display:receiver> <tc><message>".message,
+            val formatIncoming: MessageData = "<prefix><pdc><player_display:sender> <sc>➡ <tdc><message><$SOUND:$MINECRAFT:entity.silverfish.ambient:voice:0.2:2:-7007683334921848987>".message,
+            val formatOutgoing: MessageData = "<prefix><sc>➡ <pdc><player_display:receiver> <tc><message>".message,
             val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
             val receiverOffline: MessageData = "<ec>The receiver is not online.".message,
             val spy: Spy = Spy(),
@@ -420,8 +420,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
                 val dmFormat: MessageData = "<prefix><pc>[<pdc><player_display:sender> <sdc>➡ <tdc><player_display:receiver><pc>] <tc><message>".message,
                 val dmReplyFormat: MessageData = "<prefix><pc>[<tdc><player_display:receiver> <sc>⬅ <pdc><player_display:sender><pc>] <tdc><message>".message,
 
-                val enabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user><pc>.".message,
-                val disabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user><pc>.".message,
+                val enabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user></pdc>.".message,
+                val disabled: MessageData = "<prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user></pdc>.".message,
                 val alreadyEnabled: MessageData = "<prefix><edc><user> <ec>has already enabled spy.".message,
                 val alreadyDisabled: MessageData = "<prefix><edc><user> <ec>has already disabled spy.".message,
             ): ConfigurationPart
@@ -429,8 +429,8 @@ the 'head' and 'foot' will be appended to the chat message.""")
 
         data class Ignore(
             val prefix: String = "<sc>[<sdc>Ignore<sc>] ",
-            val ignoringPlayer: MessageData = "<prefix><vnc>You are now ignoring <vndc><player><vnc>.".message,
-            val receivingPlayer: MessageData = "<prefix><vpc>You are now receiving <vpdc><player><vpc>.".message,
+            val ignoringPlayer: MessageData = "<prefix><nc>You are now <vnc>ignoring</vnc> <pdc><player></pdc>.".message,
+            val receivingPlayer: MessageData = "<prefix><pc>You are now <vpc>receiving</vpc> <pdc><player></pdc>.".message,
         ): ConfigurationPart
     }
 

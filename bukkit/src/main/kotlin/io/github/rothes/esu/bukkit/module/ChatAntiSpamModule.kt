@@ -328,9 +328,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
         data class Notify(
             val filtered: String = "<prefix><pc><player><tc>: <sdc><message> <tc>filtered " +
-                    "(<pdc><check-type> <chat-type><tc>)",
+                    "(<pdc><check-type> <chat-type></pdc>)",
             val muted: String = "<prefix><pc><player> <tc>has been muted " +
-                    "(<pdc><duration>, <multiplier><tc>)"
+                    "(<pdc><duration>, <multiplier>x</pdc>)"
         ): ConfigurationPart
 
         data class Command(
@@ -359,11 +359,11 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ): ConfigurationPart
 
             data class Mute(
-                val mutedPlayer: MessageData = "<prefix><pc>Muted <pdc><player> <pc>for <pdc><duration><pc>.".message,
+                val mutedPlayer: MessageData = "<prefix><pc>Muted <pdc><player></pdc> for <pdc><duration></pdc>.".message,
             ): ConfigurationPart
 
             data class Reset(
-                val resetPlayer: MessageData = "<prefix><pc>Reset data for player <pdc><player><pc>.".message,
+                val resetPlayer: MessageData = "<prefix><pc>Reset data for player <pdc><player></pdc>.".message,
             ): ConfigurationPart
 
         }

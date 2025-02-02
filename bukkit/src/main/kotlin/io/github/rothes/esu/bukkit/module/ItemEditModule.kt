@@ -64,7 +64,7 @@ object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.Modu
         val playerOnlyCommand: MessageData = "<ec>Only players can use this command.".message,
         val itemInHandRequired: MessageData = "<ec>A item must be hold in your main hand.".message,
 
-        val attributeCleared: MessageData = "<pc>The <pdc><attribute> <pc>is cleared.".message,
-        val attributeSet: MessageData = "<pc>The <pdc><attribute> <pc>has been set to <pdc><value><pc>.".message,
+        val attributeCleared: MessageData = "<pc>The <pdc><attribute></pdc> is cleared.".message,
+        val attributeSet: MessageData = "<pc>The <pdc><attribute></pdc> has been set to <pdc><value></pdc>.".message,
     ): ConfigurationPart
 }

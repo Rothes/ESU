@@ -164,7 +164,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
         val clientLocaleCommand: MessageData = "<pdc><player><pc>'s client locale is <sdc><locale>".message,
         val ipCommand: MessageData = "<pdc><player><pc>'s ip is <sdc><address>".message,
         val ipGroupCommand: IpGroupCommand = IpGroupCommand(),
-        val tpChunkTeleporting: MessageData = "<tc>Teleporting <tdc><player><tc>...".message,
+        val tpChunkTeleporting: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
         val genRateTop: ChunkRateTop = ChunkRateTop(
             "<pc>There's no chunk generate at this moment.".message,
             "<pdc>[player]<pc>: <sc>[chunk generate tickets/sec]",
