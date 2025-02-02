@@ -32,8 +32,10 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
 import org.incendo.cloud.annotations.Permission
+import org.incendo.cloud.annotations.ProxiedBy
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.collections.find
 import kotlin.jvm.java
@@ -124,13 +126,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 whisper(sender, last, message)
             }
 
-            @Command("spy")
-            @Permission("esu.esuChat.spy")
-            fun spyToggleShort(sender: User) {
-                spyToggle(sender)
-            }
-
-            @Command("spy toggle")
+            @Commands(Command("spy"), Command("spy toggle"))
             @Permission("esu.esuChat.spy")
             fun spyToggle(sender: User) {
                 spyToggle(sender, sender)
