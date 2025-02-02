@@ -2,9 +2,9 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.BukkitUser
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
-import net.minecraft.world.level.storage.loot.functions.SetAttributesFunction.modifier
 import org.incendo.cloud.Command
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
@@ -31,6 +31,10 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
     protected fun registerCommands(obj: Any, modifier: ((AnnotationParser<BukkitUser>) -> Unit)? = null) {
         with(plugin.commandManager) {
             val annotationParser = AnnotationParser(this, BukkitUser::class.java)
+
+            annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
+                b.permission(perm(a.value))
+            }
             modifier?.invoke(annotationParser)
 
             val commands = annotationParser.parse(obj)

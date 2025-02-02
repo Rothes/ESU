@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Path
+import kotlin.jvm.java
 import kotlin.reflect.KClass
 
 abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
@@ -49,6 +50,6 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
         return hasPermission(perm(shortPerm))
     }
 
-    open fun perm(shortPerm: String): String = "esu.${name.lowercase()}.$shortPerm"
+    open fun perm(shortPerm: String): String = "esu.${name.lowercase()}.${shortPerm.lowercase()}"
 
 }
