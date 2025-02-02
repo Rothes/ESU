@@ -4,6 +4,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
+import net.minecraft.world.level.storage.loot.functions.SetAttributesFunction.modifier
 import org.incendo.cloud.Command
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
@@ -26,9 +27,13 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
             registeredCommands.add(command)
         }
     }
-    protected fun registerCommands(obj: Any) {
+    @JvmOverloads
+    protected fun registerCommands(obj: Any, modifier: ((AnnotationParser<BukkitUser>) -> Unit)? = null) {
         with(plugin.commandManager) {
-            val commands = AnnotationParser(this, BukkitUser::class.java).parse(obj)
+            val annotationParser = AnnotationParser(this, BukkitUser::class.java)
+            modifier?.invoke(annotationParser)
+
+            val commands = annotationParser.parse(obj)
             registeredCommands.addAll(commands)
         }
     }
