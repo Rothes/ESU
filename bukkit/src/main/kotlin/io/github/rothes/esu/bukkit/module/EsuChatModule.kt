@@ -403,11 +403,11 @@ the 'head' and 'foot' will be appended to the chat message.""")
         ): ConfigurationPart
 
         data class Emote(
-            val format: MessageData = "<pc>* <pdc><player_display:sender></pdc> <message>".message,
+            val format: MessageData = "<pc><hover:show_text:'<pc>Emote message'>* </hover><pdc><player_display:sender></pdc> <message>".message,
         ): ConfigurationPart
 
         data class Whisper(
-            val prefix: String = "<sdc>📨 ",
+            val prefix: String = "<sdc><hover:show_text:'<pc>Whisper channel'>📨 </hover>",
             val formatIncoming: MessageData = "<prefix><pdc><player_display:sender> <sc>➡ <tdc><message><$SOUND:$MINECRAFT:entity.silverfish.ambient:voice:0.2:2:-7007683334921848987>".message,
             val formatOutgoing: MessageData = "<prefix><sc>➡ <pdc><player_display:receiver> <tc><message>".message,
             val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
