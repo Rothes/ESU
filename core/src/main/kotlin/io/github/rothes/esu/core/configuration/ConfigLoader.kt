@@ -132,16 +132,6 @@ object ConfigLoader {
                             { type ->
                                 GenericTypeReflector.erase(type).let { clazz ->
                                     ConfigurationPart::class.java.isAssignableFrom(clazz)
-                                            || try {
-                                                clazz.kotlin.isData
-                                            } catch (_: KotlinReflectionNotSupportedError) {
-                                                false
-                                            } catch (e: Throwable) {
-                                                if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
-                                                    e.printStackTrace()
-                                                }
-                                                false
-                                            }
                                 }
                             }, factory.asTypeSerializer())
                             .registerAnnotatedObjects(factory)
@@ -158,6 +148,21 @@ object ConfigLoader {
                             .register(PathSerializer)
                             .register(RegexSerializer)
                             .register(TextColorSerializer)
+                            .register(
+                                { type ->
+                                    GenericTypeReflector.erase(type).let { clazz ->
+                                        try {
+                                            clazz.kotlin.isData
+                                        } catch (_: KotlinReflectionNotSupportedError) {
+                                            false
+                                        } catch (e: Throwable) {
+                                            if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
+                                                e.printStackTrace()
+                                            }
+                                            false
+                                        }
+                                    }
+                                }, factory.asTypeSerializer())
                     }
             }
     }
