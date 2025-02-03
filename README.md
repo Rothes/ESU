@@ -3,7 +3,8 @@ A bukkit plugin that helps with managing your server, provides a better gameplay
 
 All features can be enabled independently, and configurable.
 
-Locales are supported, and will provide messages based on client locale.
+Lang settings are supported, and will provide messages based on client locale.
+You have the ability to set the message location(chat, actionbar, title), and sound too!
 
 Custom color scheme feature, allowing your players to choose a theme they like!
 
@@ -15,6 +16,8 @@ Custom color scheme feature, allowing your players to choose a theme they like!
 - BlockedCommandsModule
 - ChatAntiSpamModule
 - EsuChatModule
+- ItemEditModule
+- SpoofServerSettingsModule
 - UtilCommandsModule
 
 ### (Working in Progress)
