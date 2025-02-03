@@ -21,8 +21,9 @@ repositories {
     }
 
     maven("https://jitpack.io")
-    maven("https://mvn.lumine.io/repository/maven-public")
+    maven("https://repo.codemc.org/repository/maven-public/")
 
+    maven("https://mvn.lumine.io/repository/maven-public")
     maven {
         name = "MMOItems"
         url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
@@ -36,7 +37,9 @@ dependencies {
     api("org.incendo:cloud-paper:2.0.0-beta.10")
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("com.h2database:h2:2.3.232")
+
     compileOnly("com.rylinaux:PlugManX:2.4.1")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
