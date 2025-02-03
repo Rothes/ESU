@@ -1,7 +1,7 @@
+import com.xpdustry.ksr.kotlinRelocate
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id("com.gradleup.shadow") version "8.3.4"
     id("io.papermc.paperweight.userdev") version "1.7.5"
 }
 
@@ -56,8 +56,8 @@ val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
 
-    relocate("kotlin", "io.github.rothes.esu.lib.kotlin")
-    relocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
+//    kotlinRelocate("kotlin", "io.github.rothes.esu.lib.kotlin")
+    kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
     relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")

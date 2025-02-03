@@ -132,16 +132,16 @@ object ConfigLoader {
                             { type ->
                                 GenericTypeReflector.erase(type).let { clazz ->
                                     ConfigurationPart::class.java.isAssignableFrom(clazz)
-//                                            || try {
-//                                                clazz.kotlin.isData
-//                                            } catch (_: KotlinReflectionNotSupportedError) {
-//                                                false
-//                                            } catch (e: Throwable) {
-//                                                if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
-//                                                    e.printStackTrace()
-//                                                }
-//                                                false
-//                                            }
+                                            || try {
+                                                clazz.kotlin.isData
+                                            } catch (_: KotlinReflectionNotSupportedError) {
+                                                false
+                                            } catch (e: Throwable) {
+                                                if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
+                                                    e.printStackTrace()
+                                                }
+                                                false
+                                            }
                                 }
                             }, factory.asTypeSerializer())
                             .registerAnnotatedObjects(factory)

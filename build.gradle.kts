@@ -2,8 +2,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("java")
-    kotlin("jvm") version "2.0.21"
+    kotlin("jvm") version "2.1.10"
     `maven-publish`
+    id("com.gradleup.shadow") version "8.3.6"
+    id("com.xpdustry.kotlin-shadow-relocator") version "2.0.0"
 }
 
 repositories {
@@ -23,6 +25,7 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     apply(plugin = "maven-publish")
+    apply(plugin = "com.gradleup.shadow")
 
     group = "io.github.rothes.esu"
     version = rootProject.property("versionName").toString()

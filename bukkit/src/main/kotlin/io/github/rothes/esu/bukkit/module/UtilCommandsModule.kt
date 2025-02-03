@@ -79,7 +79,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("tpChunk")
             fun tpChunk(sender: User, chunk: Location2D, world: World = sender.player.location.world, player: Player = sender.player) {
-                sender.message(locale, { tpChunkTeleporting }, component("player", player.displayName()))
+                sender.message(locale, { tpChunkTeleporting }, player(player))
                 val location = Location(world, (chunk.x.toInt() shl 4) + 8.5, 0.0, (chunk.z.toInt() shl 4) + 8.5)
                 Scheduler.schedule(location) {
                     val y = if (world.environment == World.Environment.NETHER) {

@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.module.CommonModule
 import org.incendo.cloud.Command
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
+import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 
 abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
     dataClass: Class<T>, localeClass: Class<L>,
@@ -30,8 +31,7 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
     @JvmOverloads
     protected fun registerCommands(obj: Any, modifier: ((AnnotationParser<BukkitUser>) -> Unit)? = null) {
         with(plugin.commandManager) {
-            val annotationParser = AnnotationParser(this, BukkitUser::class.java)
-
+            val annotationParser = AnnotationParser(this, BukkitUser::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
                 val value = perm(a.value)
                 val perm = buildString {
