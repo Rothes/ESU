@@ -7,7 +7,10 @@ import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -177,6 +180,24 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 return
             }
             when (event.packetType) {
+                PacketType.Play.Server.BLOCK_CHANGE -> {
+                    val wrapper = WrapperPlayServerBlockChange(event)
+                    val player = event.getPlayer<Player>()
+                    if (wrapper.blockId != 0) {
+                        // Only send full chunk if blocks get broken
+                        return
+                    }
+                    val location = wrapper.blockPosition
+                    val x = location.x shr 4
+                    val z = location.z shr 4
+                    val chunkKey = Chunk.getChunkKey(x, z)
+                    val miniChunks = player.miniChunks
+                    if (!miniChunks.getOrDefault(chunkKey, true)) {
+                        miniChunks[chunkKey] = true
+                        val nms = (player as CraftPlayer).handle
+                        PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), nms.serverLevel().`moonrise$getFullChunkIfLoaded`(x, z))
+                    }
+                }
                 PacketType.Play.Server.CHUNK_DATA -> {
                     val wrapper = WrapperPlayServerChunkData(event)
                     val player = event.getPlayer<Player>()
@@ -205,12 +226,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     if (blockId == 0)
                                         continue
 
-                                    val occlude = if (occludeCache.cached[blockId]) {
-                                        occludeCache.value[blockId]
-                                    } else {
-                                        cacheOcclude(blockId)
-                                    }
-                                    if (occlude) {
+                                    if (blockId.occlude) {
                                         dp[x][i][z] = true
                                         if ( x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
                                             // Check if the block is visible
@@ -236,6 +252,13 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 }
             }
         }
+
+        private val Int.occlude
+            get() = if (occludeCache.cached[this]) {
+                occludeCache.value[this]
+            } else {
+                cacheOcclude(this)
+            }
 
         private fun cacheOcclude(blockId: Int): Boolean {
             val wrapped = WrappedBlockState.getByGlobalId(PacketEvents.getAPI().serverManager.version.toClientVersion(), blockId, false)
