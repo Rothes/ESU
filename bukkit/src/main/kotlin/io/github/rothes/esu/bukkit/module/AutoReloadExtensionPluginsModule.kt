@@ -49,6 +49,9 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     }
 
     override fun disable() {
+        super.disable()
+        if (plugin.isEnabled)
+            return
         val esuName = plugin.description.name
         val plugins = Bukkit.getPluginManager().plugins.filter {
             val description = it.description
