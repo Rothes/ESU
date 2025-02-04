@@ -31,15 +31,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     override fun enable() {
         registerCommands(object {
-            @Command("getblock")
-            fun a(sender: User) {
-                val location = (sender as PlayerUser).player.location
-                Scheduler.schedule(location) {
-                    val block = location.world.getBlockState(location)
-                    sender.message(block.type.name)
-                }
-            }
-
             @Command("network analyser start")
             @ShortPerm("analyser")
             fun analyserStart(sender: User) {
@@ -113,7 +104,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     val minHeight = world.minHeight
                     val maxHeight = world.maxHeight
 
-                    val dp = Array(16) { Array(maxHeight - minHeight) { BooleanArray(16) { false } } }
+                    val dp = Array(16) { Array(maxHeight - minHeight) { BooleanArray(16) } }
 
                     val chunks = column.chunks
                     for ((index, chunk) in chunks.withIndex()) {
@@ -125,7 +116,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     val material = SpigotConversionUtil.toBukkitBlockData(get).material
                                     if (material.isOccluding) {
                                         dp[x][i][z] = true
-                                        if ( x >= 2 && (i >= minHeight + 2) && z >= 2
+                                        if ( x >= 2 && i >= 2 && z >= 2
                                             && dp[x - 2][i - 1][z - 1] && dp[x - 1][i - 2][z - 1] && dp[x - 1][i - 1][z - 2]
                                             && dp[x][i - 1][z - 1] && dp[x - 1][i - 1][z] && dp[x - 1][i][z - 1]) {
 
