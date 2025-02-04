@@ -4,7 +4,6 @@ import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketSendEvent
-import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
@@ -12,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
+import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -21,8 +21,8 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.netty.buffer.ByteBuf
 import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
-import it.unimi.dsi.fastutil.longs.Long2BooleanArrayMap
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap
 import net.minecraft.server.network.PlayerChunkSender
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
@@ -36,13 +36,18 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
     ModuleConfig::class.java, ModuleLang::class.java
 ) {
 
+    private lateinit var data: ModuleData
+    private val dataPath = moduleFolder.resolve("data.yml")
+
     override fun enable() {
+        data = ConfigLoader.load(dataPath)
         registerCommands(object {
             @Command("network analyser start")
             @ShortPerm("analyser")
@@ -98,58 +103,38 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         Analyser // Init this
         PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
         Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
+        data.miniChunks.clear()
     }
 
     override fun disable() {
+        super.disable()
         PacketEvents.getAPI().eventManager.unregisterListener(ChunkDataThrottle)
         HandlerList.unregisterAll(ChunkDataThrottle)
         ChunkDataThrottle.onDisable()
         Analyser.stop()
+        ConfigLoader.save(dataPath, data)
     }
 
     object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
-        private val cache = hashMapOf<Player, Long2BooleanMap>()
+        private val minimalChunks = hashMapOf<Player, Long2BooleanMap>()
         private val occludeCache = OccludeCache()
-
-        data class OccludeCache(
-            val cached: BooleanArray = BooleanArray(1 shl 16),
-            val value: BooleanArray = BooleanArray(1 shl 16),
-        ) {
-
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
-
-                other as OccludeCache
-
-                if (!cached.contentEquals(other.cached)) return false
-                if (!value.contentEquals(other.value)) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = cached.contentHashCode()
-                result = 31 * result + value.contentHashCode()
-                return result
-            }
-        }
 
         init {
             for (player in Bukkit.getOnlinePlayers()) {
-                initCache(player)
+                val miniChunks = player.miniChunks
+                data.miniChunks[player.uniqueId]?.forEach {
+                    miniChunks[it] = false
+                }
             }
         }
 
         fun onDisable() {
-            for ((player, map) in cache.entries) {
-                val nms = (player as CraftPlayer).handle
-                map.forEach { (k, v) ->
-                    if (!v) {
-                        val chunk = nms.serverLevel().`moonrise$getFullChunkIfLoaded`(k.toInt(), (k ushr 32).toInt())
-                        if (chunk != null) {
-                            PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), chunk)
+            if (plugin.isEnabled || plugin.disabledHot) {
+                for ((player, map) in minimalChunks.entries) {
+                    map.forEach { (k, v) ->
+                        if (!v) {
+                            data.miniChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                         }
                     }
                 }
@@ -158,23 +143,23 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         @EventHandler
         fun onJoin(e: PlayerJoinEvent) {
-            initCache(e.player)
+            e.player.miniChunks
         }
 
         @EventHandler
         fun onQuit(e: PlayerQuitEvent) {
-            cache.remove(e.player)
+            minimalChunks.remove(e.player)
         }
 
         @EventHandler
         fun onChunkUnload(e: PlayerChunkUnloadEvent) {
-            e.player.cache.remove(e.chunk.chunkKey)
+            e.player.miniChunks.remove(e.chunk.chunkKey)
         }
 
         @EventHandler
         fun onInteract(e: PlayerInteractEvent) {
             val chunk = e.clickedBlock?.chunk ?: return
-            val cache = e.player.cache
+            val cache = e.player.miniChunks
             val fullSent = cache.getOrElse(chunk.chunkKey) { true }
             if (!fullSent) {
                 cache[chunk.chunkKey] = true
@@ -183,12 +168,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             }
         }
 
-        private fun initCache(player: Player) {
-            cache[player] = Long2BooleanArrayMap()
-        }
-
-        private val Player.cache
-            get() = this@ChunkDataThrottle.cache.getOrElse(this) { Long2BooleanArrayMap() }
+        private val Player.miniChunks
+            get() = this@ChunkDataThrottle.minimalChunks.getOrPut(this) { Long2BooleanOpenHashMap() }
 
 
         override fun onPacketSend(event: PacketSendEvent) {
@@ -202,21 +183,19 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     val column = wrapper.column
                     val chunkKey = Chunk.getChunkKey(column.x, column.z)
 
-                    val playerCache = player.cache
-                    if (playerCache[chunkKey] == true) {
+                    val miniChunks = player.miniChunks
+                    if (miniChunks[chunkKey] == true) {
                         // This should be a full chunk
                         return
                     }
-                    playerCache[chunkKey] = false
+                    miniChunks[chunkKey] = false
 
                     val world = player.world
                     val minHeight = world.minHeight
                     val maxHeight = world.maxHeight
 
                     val dp = Array(16) { Array(maxHeight - minHeight) { BooleanArray(16) } }
-
                     val chunks = column.chunks
-
                     var i = 0
                     out@ for ((index, chunk) in chunks.withIndex()) {
                         for (y in 0 ..< 16) {
@@ -233,7 +212,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     }
                                     if (occlude) {
                                         dp[x][i][z] = true
-                                        if ( x >= 2 && i >= 2 && z >= 2
+                                        if ( x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
+                                            // Check if the block is visible
                                             && dp[x - 2][i - 1][z - 1] && dp[x - 1][i - 2][z - 1] && dp[x - 1][i - 1][z - 2]
                                             && dp[x][i - 1][z - 1] && dp[x - 1][i - 1][z] && dp[x - 1][i][z - 1]) {
 
@@ -259,10 +239,34 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         private fun cacheOcclude(blockId: Int): Boolean {
             val wrapped = WrappedBlockState.getByGlobalId(PacketEvents.getAPI().serverManager.version.toClientVersion(), blockId, false)
-            val bukkit = SpigotConversionUtil.toBukkitBlockData(wrapped).material
-            return bukkit.isOccluding.also {
+            val material = SpigotConversionUtil.toBukkitBlockData(wrapped).material
+            return material.isOccluding.also {
                 occludeCache.cached[blockId] = true
                 occludeCache.value[blockId] = it
+            }
+        }
+
+        data class OccludeCache(
+            val cached: BooleanArray = BooleanArray(1 shl 16),
+            val value: BooleanArray = BooleanArray(1 shl 16),
+        ) {
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as OccludeCache
+
+                if (!cached.contentEquals(other.cached)) return false
+                if (!value.contentEquals(other.value)) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = cached.contentHashCode()
+                result = 31 * result + value.contentHashCode()
+                return result
             }
         }
     }
@@ -306,6 +310,9 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         }
     }
 
+    data class ModuleData(
+        val miniChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
+    )
 
     data class ModuleConfig(
         @field:Comment("Helps to reduce chunk upload bandwidth.\n" +
