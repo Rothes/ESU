@@ -27,6 +27,7 @@ import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.util.InitOnce
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -51,6 +52,9 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     override var initialized: Boolean = false
         private set
 
+    var enabledHot: Boolean by InitOnce()
+    var disabledHot: Boolean by InitOnce()
+
     override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
         LegacyPaperCommandManager(this, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
@@ -72,6 +76,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
     override fun onEnable() {
         EsuCore.instance = this
+        enabledHot = byPluginMan()
         EsuConfig // Load global config
         BukkitEsuLocale // Load global locale
         StorageManager // Load database
@@ -159,6 +164,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
 
     override fun onDisable() {
+        disabledHot = byPluginMan()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
     }
@@ -181,6 +187,16 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     override fun baseConfigPath(): Path {
         return dataFolder.toPath()
+    }
+
+    private fun byPluginMan(): Boolean {
+        var found = false
+        StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach {
+            if (found || it.declaringClass.canonicalName.contains("plugman")) {
+                found = true
+            }
+        }
+        return found
     }
 
 }
