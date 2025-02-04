@@ -232,9 +232,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                         cacheOcclude(blockId)
                                     }
                                     if (occlude) {
-                                        if (i >= maxHeight - minHeight) {
-                                            continue
-                                        }
                                         dp[x][i][z] = true
                                         if ( x >= 2 && i >= 2 && z >= 2
                                             && dp[x - 2][i - 1][z - 1] && dp[x - 1][i - 2][z - 1] && dp[x - 1][i - 1][z - 2]
@@ -251,7 +248,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     }
                                 }
                             }
-                            if (++i > 128) {
+                            if (++i > 128 || i >= maxHeight - minHeight) {
                                 break@out
                             }
                         }
