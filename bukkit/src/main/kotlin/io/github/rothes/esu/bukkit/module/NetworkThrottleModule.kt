@@ -109,7 +109,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
         private val cache = hashMapOf<Player, Long2BooleanMap>()
-//        private val occludeCache = Int2BooleanOpenHashMap()
         private val occludeCache = OccludeCache()
 
         data class OccludeCache(
@@ -232,11 +231,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     } else {
                                         cacheOcclude(blockId)
                                     }
-//                                    val occlude = occludeCache.getOrPut(blockId) {
-//                                        val wrapped = WrappedBlockState.getByGlobalId(version, blockId, false)
-//                                        val bukkit = SpigotConversionUtil.toBukkitBlockData(wrapped).material
-//                                        bukkit.isOccluding
-//                                    }
                                     if (occlude) {
                                         if (i >= maxHeight - minHeight) {
                                             continue
