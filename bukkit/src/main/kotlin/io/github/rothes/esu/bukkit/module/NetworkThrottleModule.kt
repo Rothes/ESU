@@ -19,6 +19,7 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.netty.buffer.ByteBuf
 import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import it.unimi.dsi.fastutil.longs.Long2BooleanArrayMap
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap
@@ -146,11 +147,10 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 val nms = (player as CraftPlayer).handle
                 map.forEach { (k, v) ->
                     if (!v) {
-                        PlayerChunkSender.sendChunk(
-                            nms.connection,
-                            nms.serverLevel(),
-                            nms.serverLevel().`moonrise$getFullChunkIfLoaded`(k.toInt(), (k ushr 32).toInt())
-                        )
+                        val chunk = nms.serverLevel().`moonrise$getFullChunkIfLoaded`(k.toInt(), (k ushr 32).toInt())
+                        if (chunk != null) {
+                            PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), chunk)
+                        }
                     }
                 }
             }
@@ -304,7 +304,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         object AnalyserPacketListener: PacketListenerAbstract(PacketListenerPriority.HIGHEST) {
             override fun onPacketSend(event: PacketSendEvent) {
                 val records = records.computeIfAbsent(event.packetType) { arrayListOf() }
-                records.add(PacketRecord(ByteBufHelper.capacity(event.byteBuf)))
+                records.add(PacketRecord((event.byteBuf as ByteBuf).capacity()))
             }
         }
     }
