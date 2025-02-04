@@ -9,8 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
-import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -19,7 +18,20 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
+import it.unimi.dsi.fastutil.longs.Long2BooleanArrayMap
+import it.unimi.dsi.fastutil.longs.Long2BooleanMap
+import net.minecraft.server.network.PlayerChunkSender
+import org.bukkit.Bukkit
+import org.bukkit.Chunk
+import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.math.min
@@ -83,15 +95,57 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             }
         })
         Analyser // Init this
-        PacketEvents.getAPI().eventManager.registerListener(PacketListener)
+        PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
+        Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
     }
 
     override fun disable() {
-        PacketEvents.getAPI().eventManager.unregisterListener(PacketListener)
+        PacketEvents.getAPI().eventManager.unregisterListener(ChunkDataThrottle)
+        HandlerList.unregisterAll(ChunkDataThrottle)
         Analyser.stop()
     }
 
-    object PacketListener: PacketListenerAbstract(PacketListenerPriority.HIGHEST) {
+    object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
+
+        private val cache = hashMapOf<Player, Long2BooleanMap>()
+
+        init {
+            for (player in Bukkit.getOnlinePlayers()) {
+                initCache(player)
+            }
+        }
+
+        @EventHandler
+        fun onJoin(e: PlayerJoinEvent) {
+            initCache(e.player)
+        }
+
+        @EventHandler
+        fun onQuit(e: PlayerQuitEvent) {
+            cache.remove(e.player)
+        }
+
+        @EventHandler
+        fun onChunkUnload(e: PlayerChunkUnloadEvent) {
+            cache[e.player]!!.remove(e.chunk.chunkKey)
+        }
+
+        @EventHandler
+        fun onInteract(e: PlayerInteractEvent) {
+            val chunk = e.clickedBlock?.chunk ?: return
+            val fullSent = cache[e.player]!!.getOrElse(chunk.chunkKey) { true }
+            if (!fullSent) {
+                cache[e.player]!![chunk.chunkKey] = true
+                val nms = (e.player as CraftPlayer).handle
+                PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), nms.serverLevel().`moonrise$getFullChunkIfLoaded`(chunk.x, chunk.z))
+            }
+        }
+
+        private fun initCache(player: Player) {
+            cache[player] = Long2BooleanArrayMap()
+        }
+
+
         override fun onPacketSend(event: PacketSendEvent) {
             if (!config.chunkDataThrottle.enabled) {
                 return
@@ -99,8 +153,18 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             when (event.packetType) {
                 PacketType.Play.Server.CHUNK_DATA -> {
                     val wrapper = WrapperPlayServerChunkData(event)
+                    val player = event.getPlayer<Player>()
                     val column = wrapper.column
-                    val world = event.getPlayer<Player>().world
+                    val chunkKey = Chunk.getChunkKey(column.x, column.z)
+
+                    val playerCache = cache[player]!!
+                    if (playerCache[chunkKey] == true) {
+                        // This should be a full chunk
+                        return
+                    }
+                    playerCache[chunkKey] = false
+
+                    val world = player.world
                     val minHeight = world.minHeight
                     val maxHeight = world.maxHeight
 
