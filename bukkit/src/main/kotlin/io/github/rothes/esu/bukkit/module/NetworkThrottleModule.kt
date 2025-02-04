@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
@@ -34,7 +35,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
-import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -102,16 +102,58 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     override fun disable() {
         PacketEvents.getAPI().eventManager.unregisterListener(ChunkDataThrottle)
         HandlerList.unregisterAll(ChunkDataThrottle)
+        ChunkDataThrottle.onDisable()
         Analyser.stop()
     }
 
     object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
         private val cache = hashMapOf<Player, Long2BooleanMap>()
+//        private val occludeCache = Int2BooleanOpenHashMap()
+        private val occludeCache = OccludeCache()
+
+        data class OccludeCache(
+            val cached: BooleanArray = BooleanArray(1 shl 16),
+            val value: BooleanArray = BooleanArray(1 shl 16),
+        ) {
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as OccludeCache
+
+                if (!cached.contentEquals(other.cached)) return false
+                if (!value.contentEquals(other.value)) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = cached.contentHashCode()
+                result = 31 * result + value.contentHashCode()
+                return result
+            }
+        }
 
         init {
             for (player in Bukkit.getOnlinePlayers()) {
                 initCache(player)
+            }
+        }
+
+        fun onDisable() {
+            for ((player, map) in cache.entries) {
+                val nms = (player as CraftPlayer).handle
+                map.forEach { (k, v) ->
+                    if (!v) {
+                        PlayerChunkSender.sendChunk(
+                            nms.connection,
+                            nms.serverLevel(),
+                            nms.serverLevel().`moonrise$getFullChunkIfLoaded`(k.toInt(), (k ushr 32).toInt())
+                        )
+                    }
+                }
             }
         }
 
@@ -127,15 +169,16 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         @EventHandler
         fun onChunkUnload(e: PlayerChunkUnloadEvent) {
-            cache[e.player]!!.remove(e.chunk.chunkKey)
+            e.player.cache.remove(e.chunk.chunkKey)
         }
 
         @EventHandler
         fun onInteract(e: PlayerInteractEvent) {
             val chunk = e.clickedBlock?.chunk ?: return
-            val fullSent = cache[e.player]!!.getOrElse(chunk.chunkKey) { true }
+            val cache = e.player.cache
+            val fullSent = cache.getOrElse(chunk.chunkKey) { true }
             if (!fullSent) {
-                cache[e.player]!![chunk.chunkKey] = true
+                cache[chunk.chunkKey] = true
                 val nms = (e.player as CraftPlayer).handle
                 PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), nms.serverLevel().`moonrise$getFullChunkIfLoaded`(chunk.x, chunk.z))
             }
@@ -144,6 +187,9 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         private fun initCache(player: Player) {
             cache[player] = Long2BooleanArrayMap()
         }
+
+        private val Player.cache
+            get() = this@ChunkDataThrottle.cache.getOrElse(this) { Long2BooleanArrayMap() }
 
 
         override fun onPacketSend(event: PacketSendEvent) {
@@ -157,7 +203,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     val column = wrapper.column
                     val chunkKey = Chunk.getChunkKey(column.x, column.z)
 
-                    val playerCache = cache[player]!!
+                    val playerCache = player.cache
                     if (playerCache[chunkKey] == true) {
                         // This should be a full chunk
                         return
@@ -171,14 +217,30 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     val dp = Array(16) { Array(maxHeight - minHeight) { BooleanArray(16) } }
 
                     val chunks = column.chunks
-                    for ((index, chunk) in chunks.withIndex()) {
-                        for (x in 0 ..< 16) {
-                            for (y in 0 ..< 16) {
-                                val i = y + index * 16 - min(minHeight, 0)
-                                out@ for (z in 0 ..< 16) {
-                                    val get = chunk.get(event.user.clientVersion, x, y, z)
-                                    val material = SpigotConversionUtil.toBukkitBlockData(get).material
-                                    if (material.isOccluding) {
+
+                    var i = 0
+                    out@ for ((index, chunk) in chunks.withIndex()) {
+                        for (y in 0 ..< 16) {
+                            for (x in 0 ..< 16) {
+                                for (z in 0 ..< 16) {
+                                    val blockId = chunk.getBlockId(x, y, z)
+                                    if (blockId == 0)
+                                        continue
+
+                                    val occlude = if (occludeCache.cached[blockId]) {
+                                        occludeCache.value[blockId]
+                                    } else {
+                                        cacheOcclude(blockId)
+                                    }
+//                                    val occlude = occludeCache.getOrPut(blockId) {
+//                                        val wrapped = WrappedBlockState.getByGlobalId(version, blockId, false)
+//                                        val bukkit = SpigotConversionUtil.toBukkitBlockData(wrapped).material
+//                                        bukkit.isOccluding
+//                                    }
+                                    if (occlude) {
+                                        if (i >= maxHeight - minHeight) {
+                                            continue
+                                        }
                                         dp[x][i][z] = true
                                         if ( x >= 2 && i >= 2 && z >= 2
                                             && dp[x - 2][i - 1][z - 1] && dp[x - 1][i - 2][z - 1] && dp[x - 1][i - 1][z - 2]
@@ -195,9 +257,21 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     }
                                 }
                             }
+                            if (++i > 128) {
+                                break@out
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        private fun cacheOcclude(blockId: Int): Boolean {
+            val wrapped = WrappedBlockState.getByGlobalId(PacketEvents.getAPI().serverManager.version.toClientVersion(), blockId, false)
+            val bukkit = SpigotConversionUtil.toBukkitBlockData(wrapped).material
+            return bukkit.isOccluding.also {
+                occludeCache.cached[blockId] = true
+                occludeCache.value[blockId] = it
             }
         }
     }
