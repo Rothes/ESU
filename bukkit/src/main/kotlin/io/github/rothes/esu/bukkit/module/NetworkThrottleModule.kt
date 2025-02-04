@@ -7,10 +7,8 @@ import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -39,7 +37,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
-import java.util.UUID
+import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -215,6 +213,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     val minHeight = world.minHeight
                     val maxHeight = world.maxHeight
 
+                    val maxHeightToProceed = config.chunkDataThrottle.maxHeightToProceed
                     val dp = Array(16) { Array(maxHeight - minHeight) { BooleanArray(16) } }
                     val chunks = column.chunks
                     var i = 0
@@ -244,7 +243,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                                     }
                                 }
                             }
-                            if (++i > 128 || i >= maxHeight - minHeight) {
+                            if (++i > maxHeightToProceed) {
                                 break@out
                             }
                         }
@@ -346,6 +345,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
+            val maxHeightToProceed: Int = 140,
         )
     }
 
