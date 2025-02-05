@@ -8,7 +8,6 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.Bukkit
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import kotlin.jvm.java
 
 object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java
@@ -39,7 +38,6 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         ConfigLoader.save(dataPath, data)
     }
 
-    @Suppress("DEPRECATION")
     override fun enable() {
         if (!plugin.enabledHot)
             return
@@ -50,6 +48,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         ConfigLoader.save(dataPath, data)
     }
 
+    @Suppress("DEPRECATION")
     override fun disable() {
         super.disable()
         if (plugin.isEnabled)
