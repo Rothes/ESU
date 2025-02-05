@@ -1,5 +1,9 @@
 import com.xpdustry.ksr.kotlinRelocate
 import org.apache.tools.ant.filters.ReplaceTokens
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.io.path.createDirectory
+
 
 plugins {
     id("io.papermc.paperweight.userdev") version "1.7.5"
@@ -59,14 +63,36 @@ val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
 
-//    kotlinRelocate("kotlin", "io.github.rothes.esu.lib.kotlin")
+    kotlinRelocate("kotlin.", "io.github.rothes.esu.lib.kotlin.")
+    kotlinRelocate("kotlinx.", "io.github.rothes.esu.lib.kotlinx.")
     kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
+//    relocate("Any", "io.github.rothes.esu.lib.kotlin.Any") {
+//        include("Any")
+//        include("kotlin.reflect.jvm.internal.impl.builtins.StandardNames\$FqNames")
+////        include("%regex[kotlin/reflect/jvm/internal/impl/.*]")
+//    }
+//    kotlinRelocate("io.github.rothes.esu.lib.kotlin.Any", "Any") {
+//        include("io.github.rothes.esu.lib.kotlin.Any")
+//        include("io.github.rothes.esu.lib.kotlin.reflect.jvm.internal.impl.builtins.KotlinBuiltIns")
+//    }
+//    relocate("io.github.rothes.esu.lib.kotlin", "kotlin") {
+//        include("io.github.rothes.esu.lib.kotlin")
+//        include("io.github.rothes.esu.lib.kotlin.reflect.jvm.internal.impl.builtins.StandardNames")
+//    }
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
     relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
     relocate("org.h2", "io.github.rothes.esu.lib.org.h2")
 
-//    exclude("com.google.errorprone")
+    doLast("FixKotlinBuiltins") {
+        val zip = archiveFile.get().asFile.toPath()
+        FileSystems.newFileSystem(zip, mapOf("create" to "true")).use { fs ->
+            val from = fs.getPath("io/github/rothes/esu/lib/kotlin/kotlin.kotlin_builtins")
+            val to = fs.getPath("kotlin/kotlin.kotlin_builtins")
+            to.parent.createDirectory()
+            Files.move(from, to)
+        }
+    }
 }
 
 tasks.processResources {
