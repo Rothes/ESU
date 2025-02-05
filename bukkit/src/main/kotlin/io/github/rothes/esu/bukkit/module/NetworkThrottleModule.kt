@@ -184,11 +184,14 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             when (event.packetType) {
                 PacketType.Play.Server.EXPLOSION -> {
                     val wrapper = WrapperPlayServerExplosion(event)
-                    if (wrapper.blockInteraction != BlockInteraction.DESTROY_BLOCKS)
-                        return
-                    val player = event.getPlayer<Player>()
-                    for (location in wrapper.records)
-                        sendFullChunk(player, location)
+                    when (wrapper.blockInteraction) {
+                        BlockInteraction.DESTROY_BLOCKS, BlockInteraction.DECAY_DESTROYED_BLOCKS -> {
+                            val player = event.getPlayer<Player>()
+                            for (location in wrapper.records)
+                                sendFullChunk(player, location)
+                        }
+                        else -> return
+                    }
                 }
                 PacketType.Play.Server.BLOCK_CHANGE -> {
                     val wrapper = WrapperPlayServerBlockChange(event)
