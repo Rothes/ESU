@@ -317,6 +317,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         data class WhisperTargets(
             val maxTargets: Int = 10,
             val safeTargets: Int = 2,
+            val safeTargetsMax: Int = 6,
         ): ConfigurationPart
     }
 
