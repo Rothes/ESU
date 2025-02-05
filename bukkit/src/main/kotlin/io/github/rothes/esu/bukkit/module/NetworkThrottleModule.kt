@@ -52,6 +52,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     override fun enable() {
         data = ConfigLoader.load(dataPath)
+        ConfigLoader.save(dataPath, data)
         registerCommands(object {
             @Command("network analyser start")
             @ShortPerm("analyser")

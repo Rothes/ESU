@@ -36,6 +36,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     override fun reloadConfig() {
         super.reloadConfig()
         data = ConfigLoader.load(dataPath)
+        ConfigLoader.save(dataPath, data)
     }
 
     @Suppress("DEPRECATION")
