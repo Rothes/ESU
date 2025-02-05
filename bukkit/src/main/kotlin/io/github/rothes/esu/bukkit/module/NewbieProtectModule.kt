@@ -30,11 +30,14 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
 
     override fun disable() {
         super.disable()
-        for (world in Bukkit.getWorlds()) {
-            for (chunk in world.loadedChunks) {
-                Scheduler.schedule(chunk.getBlock(0, 0, 0).location, plugin) {
-                    for (entity in chunk.entities) {
-                        resetEntity(entity)
+        if (plugin.isEnabled) {
+            // This can only run when enabled
+            for (world in Bukkit.getWorlds()) {
+                for (chunk in world.loadedChunks) {
+                    Scheduler.schedule(chunk.getBlock(0, 0, 0).location, plugin) {
+                        for (entity in chunk.entities) {
+                            resetEntity(entity)
+                        }
                     }
                 }
             }
