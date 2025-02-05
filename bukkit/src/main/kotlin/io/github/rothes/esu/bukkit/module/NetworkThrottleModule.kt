@@ -7,8 +7,12 @@ import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
+import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion.BlockInteraction
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -32,6 +36,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockExplodeEvent
+import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -104,7 +110,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         Analyser // Init this
         PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
         Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
-        data.miniChunks.clear()
+        data.minimalChunks.clear()
     }
 
     override fun disable() {
@@ -124,7 +130,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         init {
             for (player in Bukkit.getOnlinePlayers()) {
                 val miniChunks = player.miniChunks
-                data.miniChunks[player.uniqueId]?.forEach {
+                data.minimalChunks[player.uniqueId]?.forEach {
                     miniChunks[it] = false
                 }
             }
@@ -135,7 +141,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 for ((player, map) in minimalChunks.entries) {
                     map.forEach { (k, v) ->
                         if (!v) {
-                            data.miniChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
+                            data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                         }
                     }
                 }
@@ -178,6 +184,14 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 return
             }
             when (event.packetType) {
+                PacketType.Play.Server.EXPLOSION -> {
+                    val wrapper = WrapperPlayServerExplosion(event)
+                    if (wrapper.blockInteraction != BlockInteraction.DESTROY_BLOCKS)
+                        return
+                    val player = event.getPlayer<Player>()
+                    for (location in wrapper.records)
+                        sendFullChunk(player, location)
+                }
                 PacketType.Play.Server.BLOCK_CHANGE -> {
                     val wrapper = WrapperPlayServerBlockChange(event)
                     val player = event.getPlayer<Player>()
@@ -185,16 +199,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                         // Only send full chunk if blocks get broken
                         return
                     }
-                    val location = wrapper.blockPosition
-                    val x = location.x shr 4
-                    val z = location.z shr 4
-                    val chunkKey = Chunk.getChunkKey(x, z)
-                    val miniChunks = player.miniChunks
-                    if (!miniChunks.getOrDefault(chunkKey, true)) {
-                        miniChunks[chunkKey] = true
-                        val nms = (player as CraftPlayer).handle
-                        PlayerChunkSender.sendChunk(nms.connection, nms.serverLevel(), nms.serverLevel().`moonrise$getFullChunkIfLoaded`(x, z))
-                    }
+                    sendFullChunk(player, wrapper.blockPosition)
                 }
                 PacketType.Play.Server.CHUNK_DATA -> {
                     val wrapper = WrapperPlayServerChunkData(event)
@@ -249,6 +254,19 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                         }
                     }
                 }
+            }
+        }
+
+        private fun sendFullChunk(player: Player, blockLocation: Vector3i) {
+            val x = blockLocation.x shr 4
+            val z = blockLocation.z shr 4
+            val chunkKey = Chunk.getChunkKey(x, z)
+            val miniChunks = player.miniChunks
+            if (!miniChunks.getOrDefault(chunkKey, true)) {
+                miniChunks[chunkKey] = true
+                val nms = (player as CraftPlayer).handle
+                val level = nms.serverLevel()
+                PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(x, z))
             }
         }
 
@@ -333,7 +351,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     }
 
     data class ModuleData(
-        val miniChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
+        val minimalChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
     )
 
     data class ModuleConfig(
