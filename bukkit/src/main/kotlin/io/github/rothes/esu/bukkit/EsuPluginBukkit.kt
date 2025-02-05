@@ -13,6 +13,7 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.module.EsuChatModule
 import io.github.rothes.esu.bukkit.module.ItemEditModule
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
+import io.github.rothes.esu.bukkit.module.NewbieProtectModule
 import io.github.rothes.esu.bukkit.module.SpoofServerSettingsModule
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule
 import io.github.rothes.esu.bukkit.user.BukkitUser
@@ -91,6 +92,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.addModule(EsuChatModule)
         ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(NetworkThrottleModule)
+        ModuleManager.addModule(NewbieProtectModule)
         ModuleManager.addModule(SpoofServerSettingsModule)
         ModuleManager.addModule(UtilCommandsModule)
 
