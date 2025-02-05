@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion.BlockInteraction
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
@@ -36,8 +35,6 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockExplodeEvent
-import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -111,6 +108,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
         Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
         data.minimalChunks.clear()
+        ConfigLoader.save(dataPath, data)
     }
 
     override fun disable() {

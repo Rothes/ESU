@@ -46,6 +46,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
             PlugMan.getInstance().pluginUtil.load(plugin)
         }
         data.pluginsToLoad.clear()
+        ConfigLoader.save(dataPath, data)
     }
 
     override fun disable() {
