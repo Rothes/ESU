@@ -3,17 +3,22 @@ package io.github.rothes.esu.bukkit.module
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
+import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.util.Vector3i
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion.BlockInteraction
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -41,6 +46,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.*
+import kotlin.jvm.java
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -106,6 +112,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             }
         })
         Analyser // Init this
+        HighLatencyAdjust.onEnable()
         PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
         Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
         data.minimalChunks.clear()
@@ -117,6 +124,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         PacketEvents.getAPI().eventManager.unregisterListener(ChunkDataThrottle)
         HandlerList.unregisterAll(ChunkDataThrottle)
         ChunkDataThrottle.onDisable()
+        HighLatencyAdjust.onDisable()
         Analyser.stop()
         ConfigLoader.save(dataPath, data)
     }
@@ -313,6 +321,77 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         }
     }
 
+    object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
+
+        val adjusted = hashMapOf<Player, Int>()
+        var task: ScheduledTask? = null
+
+        init {
+            for ((uuid, v) in data.originalViewDistance.entries) {
+                val player = Bukkit.getPlayer(uuid)
+                if (player != null)
+                    adjusted[player] = v
+            }
+            data.originalViewDistance.clear()
+        }
+
+        @EventHandler
+        fun onQuit(e: PlayerQuitEvent) {
+            adjusted.remove(e.player)
+        }
+
+        fun onEnable() {
+            if (config.highLatencyAdjust.enabled) {
+                task = Scheduler.async(0, 20 * 20) {
+                    for (player in Bukkit.getOnlinePlayers()) {
+                        if (player.ping > config.highLatencyAdjust.latencyThreshold) {
+                            if (!adjusted.containsKey(player)) {
+                                adjusted[player] = player.clientViewDistance
+                                player.user.message(locale, { highLatencyAdjust.adjustedWarning })
+                                player.sendViewDistance = player.clientViewDistance - 1
+                            } else {
+                                if (player.sendViewDistance > config.highLatencyAdjust.minViewDistance) {
+                                    player.sendViewDistance--
+                                }
+                            }
+                        }
+                    }
+                }
+                PacketEvents.getAPI().eventManager.registerListener(this)
+                Bukkit.getPluginManager().registerEvents(this, plugin)
+            }
+        }
+
+        fun onDisable() {
+            if (plugin.isEnabled || plugin.disabledHot) {
+                for ((player, v) in adjusted.entries) {
+                    data.originalViewDistance[player.uniqueId] = v
+                }
+            }
+            task?.cancel()
+            task = null
+            PacketEvents.getAPI().eventManager.unregisterListener(this)
+            HandlerList.unregisterAll(this)
+        }
+
+        override fun onPacketReceive(event: PacketReceiveEvent) {
+            when (event.packetType) {
+                PacketType.Play.Client.CLIENT_SETTINGS -> {
+                    val wrapper = WrapperPlayClientSettings(event)
+                    val player = event.getPlayer<Player>()
+
+                    val old = adjusted[player] ?: return
+                    val viewDistance = wrapper.viewDistance
+                    if (old != viewDistance) {
+                        // They have changed the setting
+                        adjusted.remove(player)
+                        player.sendViewDistance = -1
+                    }
+                }
+            }
+        }
+    }
+
     object Analyser {
         var running: Boolean = false
             private set
@@ -354,24 +433,42 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     data class ModuleData(
         val minimalChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
+        val originalViewDistance: MutableMap<UUID, Int> = linkedMapOf(),
     )
 
     data class ModuleConfig(
         @field:Comment("Helps to reduce chunk upload bandwidth.\n" +
                 "Plugin will only send visible blocks if players are moving fast,\n" +
-                "Once they interact with blocks, we send a full chunk data again.")
+                "If necessary, we send a full chunk data again.\n" +
+                "This can reduce 33% ~ 50% bandwidth usage averagely.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
+        @field:Comment("Adjust the settings the players with high latency to lower value.\n" +
+                "So they won't affect average quality of all players.")
+        val highLatencyAdjust: HighLatencyAdjust = HighLatencyAdjust(),
     ): BaseModuleConfiguration() {
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
             val maxHeightToProceed: Int = 140,
         )
+
+        data class HighLatencyAdjust(
+            val enabled: Boolean = false,
+            val latencyThreshold: Int = 150,
+            val minViewDistance: Int = 5,
+        )
     }
 
     data class ModuleLang(
+        val highLatencyAdjust: HighLatencyAdjust = HighLatencyAdjust(),
         val analyser: Analyser = Analyser(),
     ): ConfigurationPart {
+
+        data class HighLatencyAdjust(
+            val adjustedWarning: MessageData = ("<ec><b>Warning: </b><pc>Your network latency seems to be high. \n" +
+                    "To enhance your experience, we have adjusted your view distance. " +
+                    "You can always adjust it yourself in the game options.").message,
+        )
 
         data class Analyser(
             val started: MessageData = "<pc>Started the analyser.".message,
