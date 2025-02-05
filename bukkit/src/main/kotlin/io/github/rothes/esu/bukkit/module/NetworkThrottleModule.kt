@@ -47,6 +47,7 @@ import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.*
 import kotlin.jvm.java
+import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -348,7 +349,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                             if (!adjusted.containsKey(player)) {
                                 adjusted[player] = player.clientViewDistance
                                 player.user.message(locale, { highLatencyAdjust.adjustedWarning })
-                                player.sendViewDistance = player.clientViewDistance - 1
+                                player.sendViewDistance = min(player.clientViewDistance, player.viewDistance) - 1
                             } else {
                                 if (player.sendViewDistance > config.highLatencyAdjust.minViewDistance) {
                                     player.sendViewDistance--
