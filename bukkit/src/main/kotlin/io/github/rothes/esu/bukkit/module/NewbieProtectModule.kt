@@ -108,6 +108,8 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
         fun onEntitySpawn(e: EntitySpawnEvent) {
             if (e.entity !is Wither)
                 return
+            if (max(abs(e.location.x), abs(e.location.z)) > config.spawnWitherNerf.radius) return
+
             val amount = e.entity.chunk.entities.filter { it is Wither }.size
             if (amount >= config.spawnWitherNerf.maxAmount) {
                 e.isCancelled = true
