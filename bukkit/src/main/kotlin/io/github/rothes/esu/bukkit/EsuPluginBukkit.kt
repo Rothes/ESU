@@ -45,6 +45,7 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
+import org.yaml.snakeyaml.emitter.Emitter
 import java.nio.file.Path
 import java.util.logging.Level
 

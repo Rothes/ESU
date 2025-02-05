@@ -32,20 +32,17 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         return super.canUse() && !plugin.initialized && Bukkit.getPluginManager().getPlugin("PlugMan") != null
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
-        data = ConfigLoader.load(dataPath)
-        ConfigLoader.save(dataPath, data)
-    }
-
     override fun enable() {
         if (!plugin.enabledHot)
             return
+
+        data = ConfigLoader.load(dataPath)
         for (plugin in data.pluginsToLoad) {
             PlugMan.getInstance().pluginUtil.load(plugin)
         }
+
         data.pluginsToLoad.clear()
-        ConfigLoader.save(dataPath, data)
+        loadCriticalClasses()
     }
 
     @Suppress("DEPRECATION")
@@ -70,6 +67,11 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
+    }
+
+    private fun loadCriticalClasses() {
+        // Load the classes those are easily to break the hot plugin update.
+        org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaringClass // This may cause break when empty data loaded and saving with flow node
     }
 
     data class ModuleData(

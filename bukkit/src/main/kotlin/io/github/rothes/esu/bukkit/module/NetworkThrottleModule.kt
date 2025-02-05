@@ -59,7 +59,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     override fun enable() {
         data = ConfigLoader.load(dataPath)
-        ConfigLoader.save(dataPath, data)
         registerCommands(object {
             @Command("network analyser start")
             @ShortPerm("analyser")
@@ -116,8 +115,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         HighLatencyAdjust.onEnable()
         PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
         Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
-        data.minimalChunks.clear()
-        ConfigLoader.save(dataPath, data)
     }
 
     override fun disable() {
@@ -142,6 +139,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     miniChunks[it] = false
                 }
             }
+            data.minimalChunks.clear()
         }
 
         fun onDisable() {
