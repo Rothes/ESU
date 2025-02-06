@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.WorldCache.ChunkCache
+import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.counter
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
@@ -154,17 +155,21 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val world = player.world
                 val minHeight = world.minHeight
                 for (block in wrapper.blocks) {
-                    checkBlockUpdate(player, block.x, block.y, block.z, minHeight)
+                    if (block.blockId != 0) {
+                        // Only check full chunk if blocks get broken
+                        return
+                    }
+                    if (checkBlockUpdate(player, block.x, block.y, block.z, minHeight)) return
                 }
             }
             PacketType.Play.Server.BLOCK_CHANGE -> {
                 val wrapper = WrapperPlayServerBlockChange(event)
                 val player = event.getPlayer<Player>()
                 if (wrapper.blockId != 0) {
-                    // Only send full chunk if blocks get broken
+                    // Only check full chunk if blocks get broken
                     return
                 }
-                checkBlockUpdate(player, wrapper.blockPosition)
+                if (checkBlockUpdate(player, wrapper.blockPosition)) return
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
 //                val tm = System.nanoTime()
@@ -285,35 +290,36 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
-        checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, minHeight)
+    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight): Boolean {
+        return checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, minHeight)
     }
 
-    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
+    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight): Boolean {
         val miniChunks = player.miniChunks
         val chunkX = x shr 4
         val chunkZ = z shr 4
         val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
-        val invisible = miniChunks[chunkKey] ?: return
-        if (invisible !== FULL_CHUNK) {
-            val id = blockKeyChunkAnd(x, y, z, minHeight)
-            checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
-        }
+        val invisible = miniChunks[chunkKey] ?: return true
+        if (invisible === FULL_CHUNK) return true
+
+        val id = blockKeyChunkAnd(x, y, z, minHeight)
+        return checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
     }
 
-    private fun checkBlockUpdate(player: Player, chunkX: Int, chunkZ: Int, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
+    private fun checkBlockUpdate(player: Player, chunkX: Int, chunkZ: Int, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight): Boolean {
         val miniChunks = player.miniChunks
         val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
-        val invisible = miniChunks[chunkKey] ?: return
-        if (invisible !== FULL_CHUNK) {
-            val id = blockKeyChunk(x, y, z, minHeight)
-            checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
-        }
+        val invisible = miniChunks[chunkKey] ?: return true
+        if (invisible === FULL_CHUNK) return true
+
+        val id = blockKeyChunk(x, y, z, minHeight)
+        return checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
     }
 
-    private fun checkBlockUpdate1(player: Player, miniChunks: Long2ObjectOpenHashMap<BooleanArray>, invisible: BooleanArray, chunkX: Int, chunkZ: Int, chunkKey: Long, blockId: Int) {
+    private fun checkBlockUpdate1(player: Player, miniChunks: Long2ObjectOpenHashMap<BooleanArray>, invisible: BooleanArray, chunkX: Int, chunkZ: Int, chunkKey: Long, blockId: Int): Boolean {
         if (blockId == -1) {
-            return
+            // Overflows, we just return
+            return false
         }
         var needsUpdate = false
         blockId.nearbyBlockId(invisible.size shr 8) { blockId ->
@@ -327,7 +333,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             val level = nms.serverLevel()
             PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
             counter.resentChunks++
+            return true
         }
+        return false
     }
 
     private data class ChunkPos(val x: Int, val z: Int)
