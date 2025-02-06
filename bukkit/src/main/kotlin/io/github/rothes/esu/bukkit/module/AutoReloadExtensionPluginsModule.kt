@@ -71,7 +71,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     private fun loadCriticalClasses() {
         // Load the classes those are easily to break the hot plugin update.
-        org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaringClass // This may cause break when empty data loaded and saving with flow node
+        org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
     }
 
     data class ModuleData(
