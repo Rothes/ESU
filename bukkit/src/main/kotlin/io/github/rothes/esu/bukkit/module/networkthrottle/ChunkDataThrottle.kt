@@ -16,6 +16,8 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.WorldCache.ChunkCache
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -43,6 +45,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private val worldCache = Object2ObjectOpenHashMap<String, WorldCache>()
     private val minimalChunks = hashMapOf<Player, Long2ObjectOpenHashMap<BooleanArray>>()
     private val occludeCache = OccludeCache()
+    val counter = Counter()
+
+    private var task: ScheduledTask? = null
 
     private fun worldCache(world: World) = worldCache.getOrPut(world.name) { WorldCache(world.name) }
 
@@ -68,6 +73,18 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     fun onEnable() {
         PacketEvents.getAPI().eventManager.registerListener(this)
         Bukkit.getPluginManager().registerEvents(this, plugin)
+        task = Scheduler.async(0, 30 * 60 * 20) {
+            val expire = System.currentTimeMillis() - config.chunkDataThrottle.cacheExpireTicks * 50
+            for (worldCache in worldCache.values) {
+                val iterator = worldCache.chunks.iterator()
+                while (iterator.hasNext()) {
+                    val (chunkKey, chunkCache) = iterator.next()
+                    if (chunkCache.lastAccess < expire) {
+                        iterator.remove()
+                    }
+                }
+            }
+        }
     }
 
     fun onDisable() {
@@ -83,6 +100,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
             }
         }
+        task?.cancel()
     }
 
     @EventHandler
@@ -167,11 +185,16 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     var id = 0
                     out@ for (chunk in chunks) {
                         chunk as Chunk_v1_18
+                        val storage = chunk.chunkData.storage
+                        if (storage == null) {
+                            id += 16 * 16 * 16
+                            i += 16
+                            continue
+                        }
                         for (y in 0 ..< 16) {
-                            for (zAndX in 0 ..< 16 * 16) {
+                            for (zx in 0 ..< 16 * 16) {
                                 if (clone[id]) {
-                                    chunk.chunkData.storage?.set(id and 0xfff, 0)
-                                    chunk.blockCount--
+                                    storage.set(id and 0xfff, 0)
                                 }
                                 id++
                             }
@@ -185,6 +208,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     return
                 }
                 val chunkCache = ChunkCache(BooleanArray(16 * 16 * height))
+                val invisible = chunkCache.invisible
 //                wc.chunks[chunkKey] = chunkCache
 //                wc.chunks[chunkKey + 1] ?.let { neighbor ->
 //                    chunkCache.xp = neighbor
@@ -203,31 +227,36 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 //                    neighbor.zp = chunkCache
 //                }
 
-                val dp = BooleanArray(16 * 16 * height)
+                val occlude = BooleanArray(16 * 16 * height)
                 var i = 0
                 var id = 0
                 out@ for ((index, chunk) in chunks.withIndex()) {
                     chunk as Chunk_v1_18
+                    val storage = chunk.chunkData.storage
+                    if (storage == null) {
+                        id += 16 * 16 * 16
+                        i += 16
+                        continue
+                    }
+                    val palette = chunk.chunkData.palette
                     for (y in 0 ..< 16) {
                         for (z in 0 ..< 16) {
                             for (x in 0 ..< 16) {
-                                val blockId = chunk.chunkData.palette.idToState(chunk.chunkData.storage?.get(id and 0xfff) ?: 0)
+                                val blockId = palette.idToState(storage.get(id and 0xfff))
                                 if (blockId != 0 && blockId.occlude) {
-                                    dp[id] = true
-                                    if ( x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
-                                        // Check if the block is visible
-                                        && dp[id - 0x211] && dp[id - 0x121] && dp[id - 0x112]
-                                        && dp[id - 0x011] && dp[id - 0x110] && dp[id - 0x101]) {
+                                    occlude[id] = true
+                                    if (x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
+                                        // Check if the block is invisible
+                                        && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
+                                        && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
 
                                         if (y == 0) {
                                             val chunk = chunks[index - 1] as Chunk_v1_18
-                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, 0)
-                                            chunk.blockCount--
+                                            chunk.chunkData.storage?.set(id - 0x111 and 0xfff, 0)
                                         } else {
-                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, 0)
-                                            chunk.blockCount--
+                                            storage.set(id - 0x111 and 0xfff, 0)
                                         }
-                                        chunkCache.invisible[id - 0x111] = true
+                                        invisible[id - 0x111] = true
                                     }
                                 }
                                 id++
@@ -238,7 +267,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                     }
                 }
-                miniChunks[chunkKey] = chunkCache.invisible.clone()
+                counter.minimalChunks++
+                miniChunks[chunkKey] = invisible.clone()
 //                println("NO CACHE.... ${System.nanoTime() - tm}")
             }
         }
@@ -270,6 +300,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val nms = (player as CraftPlayer).handle
                 val level = nms.serverLevel()
                 PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
+                counter.resentChunks++
             }
         }
     }
@@ -357,4 +388,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             return result
         }
     }
+
+    data class Counter(
+        var minimalChunks: Long = 0,
+        var resentChunks: Long = 0,
+    )
 }

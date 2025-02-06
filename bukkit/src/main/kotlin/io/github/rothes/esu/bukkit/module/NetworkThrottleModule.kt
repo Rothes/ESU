@@ -77,6 +77,13 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                         }).milliseconds, sender
                     ))
             }
+
+            @Command("network chunkDataThrottle view")
+            @ShortPerm()
+            fun chunkDataThrottleView(sender: User) {
+                val (minimalChunks, resentChunks) = ChunkDataThrottle.counter
+                sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks")
+            }
         })
         Analyser // Init this
         HighLatencyAdjust.onEnable()
