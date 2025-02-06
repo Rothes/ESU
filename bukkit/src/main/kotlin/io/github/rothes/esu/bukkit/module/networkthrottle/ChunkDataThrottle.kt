@@ -192,26 +192,34 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val dp = BooleanArray(16 * 16 * height)
                 var i = 0
                 out@ for ((index, chunk) in chunks.withIndex()) {
+                    chunk as Chunk_v1_18
+                    val air = chunk.chunkData.palette.stateToId(0)
                     for (y in 0 ..< 16) {
                         for (x in 0 ..< 16) {
                             for (z in 0 ..< 16) {
-                                val blockId = chunk.getBlockId(x, y, z)
+                                val id = blockKeyChunk(x, i, z)
+                                val blockId = chunk.chunkData.palette.idToState(chunk.chunkData.storage?.get(id and 0xfff) ?: 0)
                                 if (blockId == 0)
                                     continue
 
                                 if (blockId.occlude) {
-                                    dp[blockKeyChunk(x, i, z)] = true
+                                    dp[id] = true
                                     if ( x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
                                         // Check if the block is visible
-                                        && dp[blockKeyChunk(x - 2, i - 1, z - 1)] && dp[blockKeyChunk(x - 1, i - 2, z - 1)] && dp[blockKeyChunk(x - 1, i - 1, z - 2)]
-                                        && dp[blockKeyChunk(x, i - 1, z - 1)] && dp[blockKeyChunk(x - 1, i - 1, z)] && dp[blockKeyChunk(x - 1, i, z - 1)]) {
+                                        && dp[id - 0x211] && dp[id - 0x121] && dp[id - 0x112]
+                                        && dp[id - 0x011] && dp[id - 0x110] && dp[id - 0x101]) {
 
                                         if (y == 0) {
-                                            chunks[index - 1].set(x - 1, 15, z - 1, 0)
+                                            val chunk = chunks[index - 1] as Chunk_v1_18
+                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, chunk.chunkData.palette.stateToId(0))
+                                            chunk.blockCount--
+//                                            chunks[index - 1].set(x - 1, 15, z - 1, 0)
                                         } else {
-                                            chunk.set(x - 1, y - 1, z - 1, 0)
+                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, air)
+                                            chunk.blockCount--
+//                                            chunk.set(x - 1, y - 1, z - 1, 0)
                                         }
-                                        chunkCache.invisible[blockKeyChunk(x - 1, i - 1, z - 1)] = true
+                                        chunkCache.invisible[id - 0x111] = true
                                     }
                                 }
                             }
