@@ -33,16 +33,16 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     }
 
     override fun enable() {
+        data = ConfigLoader.load(dataPath)
+        loadCriticalClasses()
         if (!plugin.enabledHot)
             return
 
-        data = ConfigLoader.load(dataPath)
         for (plugin in data.pluginsToLoad) {
             PlugMan.getInstance().pluginUtil.load(plugin)
         }
 
         data.pluginsToLoad.clear()
-        loadCriticalClasses()
     }
 
     @Suppress("DEPRECATION")
