@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
@@ -134,16 +134,27 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             return
         }
         when (event.packetType) {
-            PacketType.Play.Server.EXPLOSION    -> {
-                val wrapper = WrapperPlayServerExplosion(event)
-                when (wrapper.blockInteraction) {
-                    WrapperPlayServerExplosion.BlockInteraction.DESTROY_BLOCKS,
-                    WrapperPlayServerExplosion.BlockInteraction.DECAY_DESTROYED_BLOCKS -> {
-                        val player = event.getPlayer<Player>()
-                        for (location in wrapper.records)
-                            checkBlockUpdate(player, location)
-                    }
-                    else -> return
+//            PacketType.Play.Server.EXPLOSION    -> {
+//                val wrapper = WrapperPlayServerExplosion(event)
+//                when (wrapper.blockInteraction) {
+//                    WrapperPlayServerExplosion.BlockInteraction.DESTROY_BLOCKS,
+//                    WrapperPlayServerExplosion.BlockInteraction.DECAY_DESTROYED_BLOCKS -> {
+//                        val player = event.getPlayer<Player>()
+//                        val world = player.world
+//                        val minHeight = world.minHeight
+//                        for (location in wrapper.records)
+//                            checkBlockUpdate(player, location, minHeight)
+//                    }
+//                    else -> return
+//                }
+//            }
+            PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
+                val wrapper = WrapperPlayServerMultiBlockChange(event)
+                val player = event.getPlayer<Player>()
+                val world = player.world
+                val minHeight = world.minHeight
+                for (block in wrapper.blocks) {
+                    checkBlockUpdate(player, block.x, block.y, block.z, minHeight)
                 }
             }
             PacketType.Play.Server.BLOCK_CHANGE -> {
@@ -274,8 +285,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i) {
-        checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z)
+    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
+        checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, minHeight)
     }
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
@@ -286,22 +297,36 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val invisible = miniChunks[chunkKey] ?: return
         if (invisible !== FULL_CHUNK) {
             val id = blockKeyChunkAnd(x, y, z, minHeight)
-            if (id == -1) {
-                return
+            checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
+        }
+    }
+
+    private fun checkBlockUpdate(player: Player, chunkX: Int, chunkZ: Int, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
+        val miniChunks = player.miniChunks
+        val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
+        val invisible = miniChunks[chunkKey] ?: return
+        if (invisible !== FULL_CHUNK) {
+            val id = blockKeyChunk(x, y, z, minHeight)
+            checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
+        }
+    }
+
+    private fun checkBlockUpdate1(player: Player, miniChunks: Long2ObjectOpenHashMap<BooleanArray>, invisible: BooleanArray, chunkX: Int, chunkZ: Int, chunkKey: Long, blockId: Int) {
+        if (blockId == -1) {
+            return
+        }
+        var needsUpdate = false
+        blockId.nearbyBlockId(invisible.size shr 8) { blockId ->
+            if (needsUpdate || invisible[blockId]) {
+                needsUpdate = true
             }
-            var needsUpdate = false
-            id.nearbyBlockId(invisible.size shr 8) { blockId ->
-                if (needsUpdate || invisible[blockId]) {
-                    needsUpdate = true
-                }
-            }
-            if (needsUpdate) {
-                miniChunks[chunkKey] = FULL_CHUNK
-                val nms = (player as CraftPlayer).handle
-                val level = nms.serverLevel()
-                PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
-                counter.resentChunks++
-            }
+        }
+        if (needsUpdate) {
+            miniChunks[chunkKey] = FULL_CHUNK
+            val nms = (player as CraftPlayer).handle
+            val level = nms.serverLevel()
+            PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
+            counter.resentChunks++
         }
     }
 
@@ -309,8 +334,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private val Long.chunkPos
         get() = ChunkPos((this and 0xffffffffL).toInt(), (this shr 32).toInt())
 
-    private fun blockKeyChunk(x: Int, y: Int, z: Int): Int {
-        return x or (z shl 4) or (y shl 8)
+    private fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
+        if (y - minHeight > 256) {
+            // Overflows
+            return -1
+        }
+        return x or (z shl 4) or (y - minHeight and 0xff shl 8)
     }
     private fun blockKeyChunkAnd(x: Int, y: Int, z: Int, minHeight: Int): Int {
         if (y - minHeight > 256) {
