@@ -118,7 +118,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
             @field:Comment("Only process height below this value. DO NOT set it greater than 256.")
-            val maxHeightToProceed: Int = 140,
+            val maxHeightToProceed: Int = 160,
             val cacheExpireTicks: Int = 2 * 60 * 60 * 20,
         )
 
