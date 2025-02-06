@@ -155,9 +155,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val world = player.world
                 val minHeight = world.minHeight
                 for (block in wrapper.blocks) {
-                    if (block.blockId != 0) {
-                        // Only check full chunk if blocks get broken
-                        return
+                    if (block.blockId.occlude) {
+                        // Only check full chunk if blocks get broken or transformed to non-occlude
+                        continue
                     }
                     if (checkBlockUpdate(player, block.x, block.y, block.z, minHeight)) return
                 }
@@ -165,8 +165,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             PacketType.Play.Server.BLOCK_CHANGE -> {
                 val wrapper = WrapperPlayServerBlockChange(event)
                 val player = event.getPlayer<Player>()
-                if (wrapper.blockId != 0) {
-                    // Only check full chunk if blocks get broken
+                if (wrapper.blockId.occlude) {
+                    // Only check full chunk if blocks get broken or transformed to non-occlude
                     return
                 }
                 if (checkBlockUpdate(player, wrapper.blockPosition)) return
