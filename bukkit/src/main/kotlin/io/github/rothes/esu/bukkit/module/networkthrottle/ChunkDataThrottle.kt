@@ -41,13 +41,22 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private val minimalChunks = hashMapOf<Player, Long2ObjectOpenHashMap<BooleanArray>>()
     private val occludeCache = OccludeCache()
 
-    private fun worldCache(world: World, y: Int) = worldCache.getOrPut(world.name) { WorldCache(world.name) }
+    private fun worldCache(world: World) = worldCache.getOrPut(world.name) { WorldCache(world.name) }
 
     init {
         for (player in Bukkit.getOnlinePlayers()) {
-            val miniChunks = player.miniChunks
-            data.minimalChunks[player.uniqueId]?.forEach {
-//                miniChunks[it.key] = it.value.toHashSet()
+            val hotData = data.minimalChunks[player.uniqueId]
+            if (hotData != null) {
+                val world = player.world
+                val minHeight = world.minHeight
+                val maxHeight = world.maxHeight
+                val height = maxHeight - minHeight
+                // We don't persist the invisible blocks data so let's assume all invisible.
+                val array = BooleanArray(16 * 16 * height) { true }
+                val miniChunks = player.miniChunks
+                for (chunkKey in hotData) {
+                    miniChunks[chunkKey] = array.clone()
+                }
             }
         }
         data.minimalChunks.clear()
@@ -66,7 +75,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             for ((player, map) in minimalChunks.entries) {
                 map.forEach { (k, v) ->
                     if (v !== FULL_CHUNK) {
-//                        data.minimalChunks.computeIfAbsent(player.uniqueId) { linkedMapOf() }.put(k, v.toList())
+                        data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                     }
                 }
             }
@@ -145,7 +154,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val height = maxHeight - minHeight
                 val maxHeightToProceed = config.chunkDataThrottle.maxHeightToProceed
 
-                val wc = worldCache(world, maxHeight - minHeight)
+                val wc = worldCache(world)
                 val cc = wc.chunks[chunkKey]
                 if (cc != null) {
                     val clone = cc.invisible.clone()
@@ -153,7 +162,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     var id = 0
                     out@ for (chunk in chunks) {
                         chunk as Chunk_v1_18
-                        val air = chunk.chunkData.palette.stateToId(0)
+                        val air = chunk.chunkData.palette.stateToId(0).let {
+                            if (it == -1) {
+                                val old = chunk.chunkData.set(0, 0, 0, 0)
+                                val air = chunk.chunkData.set(0, 0, 0, old)
+                                chunk.chunkData.palette.stateToId(air)
+                            } else
+                                it
+                        }
                         for (y in 0 ..< 16) {
                             for (zAndX in 0 ..< 16 * 16) {
                                 if (clone[id]) {
@@ -195,7 +211,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 var id = 0
                 out@ for ((index, chunk) in chunks.withIndex()) {
                     chunk as Chunk_v1_18
-                    val air = chunk.chunkData.palette.stateToId(0)
+                    val air = chunk.chunkData.palette.stateToId(0).let {
+                        if (it == -1) {
+                            val old = chunk.chunkData.set(0, 0, 0, 0)
+                            val air = chunk.chunkData.set(0, 0, 0, old)
+                            chunk.chunkData.palette.stateToId(air)
+                        } else
+                            it
+                    }
                     for (y in 0 ..< 16) {
                         for (z in 0 ..< 16) {
                             for (x in 0 ..< 16) {
