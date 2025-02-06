@@ -20,6 +20,7 @@ import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.minecraft.data.worldgen.SurfaceRuleData.air
 import net.minecraft.server.network.PlayerChunkSender
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
@@ -162,18 +163,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     var id = 0
                     out@ for (chunk in chunks) {
                         chunk as Chunk_v1_18
-                        val air = chunk.chunkData.palette.stateToId(0).let {
-                            if (it == -1) {
-                                val old = chunk.chunkData.set(0, 0, 0, 0)
-                                val air = chunk.chunkData.set(0, 0, 0, old)
-                                chunk.chunkData.palette.stateToId(air)
-                            } else
-                                it
-                        }
                         for (y in 0 ..< 16) {
                             for (zAndX in 0 ..< 16 * 16) {
                                 if (clone[id]) {
-                                    chunk.chunkData.storage?.set(id and 0xfff, air)
+                                    chunk.chunkData.storage?.set(id and 0xfff, 0)
                                     chunk.blockCount--
                                 }
                                 id++
@@ -211,14 +204,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 var id = 0
                 out@ for ((index, chunk) in chunks.withIndex()) {
                     chunk as Chunk_v1_18
-                    val air = chunk.chunkData.palette.stateToId(0).let {
-                        if (it == -1) {
-                            val old = chunk.chunkData.set(0, 0, 0, 0)
-                            val air = chunk.chunkData.set(0, 0, 0, old)
-                            chunk.chunkData.palette.stateToId(air)
-                        } else
-                            it
-                    }
                     for (y in 0 ..< 16) {
                         for (z in 0 ..< 16) {
                             for (x in 0 ..< 16) {
@@ -232,10 +217,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
                                         if (y == 0) {
                                             val chunk = chunks[index - 1] as Chunk_v1_18
-                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, chunk.chunkData.palette.stateToId(0))
+                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, 0)
                                             chunk.blockCount--
                                         } else {
-                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, air)
+                                            chunk.chunkData.storage.set(id - 0x111 and 0xfff, 0)
                                             chunk.blockCount--
                                         }
                                         chunkCache.invisible[id - 0x111] = true
@@ -249,6 +234,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                     }
                 }
+                miniChunks[chunkKey] = chunkCache.invisible.clone()
 //                println("NO CACHE.... ${System.nanoTime() - tm}")
             }
         }
