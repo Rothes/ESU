@@ -17,7 +17,6 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.WorldCache.ChunkCache
 import io.github.rothes.esu.bukkit.plugin
 import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
-import it.unimi.dsi.fastutil.ints.Int2BooleanMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -125,7 +124,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 sendFullChunk(player, wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
-                val tm = System.nanoTime()
+//                val tm = System.nanoTime()
                 val wrapper = WrapperPlayServerChunkData(event)
                 val player = event.getPlayer<Player>()
                 val column = wrapper.column
@@ -151,15 +150,17 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 if (cc != null) {
                     val clone = cc.invisible.clone()
                     var i = 0
+                    var id = 0
                     out@ for (chunk in chunks) {
                         chunk as Chunk_v1_18
+                        val air = chunk.chunkData.palette.stateToId(0)
                         for (y in 0 ..< 16) {
-                            for (x in 0 ..< 16) {
-                                for (z in 0 ..< 16) {
-                                    val id = blockKeyChunk(x, i, z)
-                                    if (clone[id])
-                                        chunk.chunkData.storage?.set(id and 0xfff, 0)
+                            for (zAndX in 0 ..< 16 * 16) {
+                                if (clone[id]) {
+                                    chunk.chunkData.storage?.set(id and 0xfff, air)
+                                    chunk.blockCount--
                                 }
+                                id++
                             }
                             if (++i > maxHeightToProceed) {
                                 break@out
@@ -167,42 +168,39 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                     }
                     miniChunks[chunkKey] = clone
-                    println("FROM CACHE! ${System.nanoTime() - tm}")
+//                    println("FROM CACHE! ${System.nanoTime() - tm}")
                     return
                 }
                 val chunkCache = ChunkCache(BooleanArray(16 * 16 * height))
-                wc.chunks[chunkKey] = chunkCache
-                wc.chunks[chunkKey + 1] ?.let { neighbor ->
-                    chunkCache.xp = neighbor
-                    neighbor.xm = chunkCache
-                }
-                wc.chunks[chunkKey - 1] ?.let { neighbor ->
-                    chunkCache.xm = neighbor
-                    neighbor.xp = chunkCache
-                }
-                wc.chunks[chunkKey + 1 shl 32] ?.let { neighbor ->
-                    chunkCache.zp = neighbor
-                    neighbor.zm = chunkCache
-                }
-                wc.chunks[chunkKey - 1 shl 32] ?.let { neighbor ->
-                    chunkCache.zm = neighbor
-                    neighbor.zp = chunkCache
-                }
+//                wc.chunks[chunkKey] = chunkCache
+//                wc.chunks[chunkKey + 1] ?.let { neighbor ->
+//                    chunkCache.xp = neighbor
+//                    neighbor.xm = chunkCache
+//                }
+//                wc.chunks[chunkKey - 1] ?.let { neighbor ->
+//                    chunkCache.xm = neighbor
+//                    neighbor.xp = chunkCache
+//                }
+//                wc.chunks[chunkKey + (1 shl 32)] ?.let { neighbor ->
+//                    chunkCache.zp = neighbor
+//                    neighbor.zm = chunkCache
+//                }
+//                wc.chunks[chunkKey - (1 shl 32)] ?.let { neighbor ->
+//                    chunkCache.zm = neighbor
+//                    neighbor.zp = chunkCache
+//                }
 
                 val dp = BooleanArray(16 * 16 * height)
                 var i = 0
+                var id = 0
                 out@ for ((index, chunk) in chunks.withIndex()) {
                     chunk as Chunk_v1_18
                     val air = chunk.chunkData.palette.stateToId(0)
                     for (y in 0 ..< 16) {
-                        for (x in 0 ..< 16) {
-                            for (z in 0 ..< 16) {
-                                val id = blockKeyChunk(x, i, z)
+                        for (z in 0 ..< 16) {
+                            for (x in 0 ..< 16) {
                                 val blockId = chunk.chunkData.palette.idToState(chunk.chunkData.storage?.get(id and 0xfff) ?: 0)
-                                if (blockId == 0)
-                                    continue
-
-                                if (blockId.occlude) {
+                                if (blockId != 0 && blockId.occlude) {
                                     dp[id] = true
                                     if ( x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
                                         // Check if the block is visible
@@ -213,15 +211,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                             val chunk = chunks[index - 1] as Chunk_v1_18
                                             chunk.chunkData.storage.set(id - 0x111 and 0xfff, chunk.chunkData.palette.stateToId(0))
                                             chunk.blockCount--
-//                                            chunks[index - 1].set(x - 1, 15, z - 1, 0)
                                         } else {
                                             chunk.chunkData.storage.set(id - 0x111 and 0xfff, air)
                                             chunk.blockCount--
-//                                            chunk.set(x - 1, y - 1, z - 1, 0)
                                         }
                                         chunkCache.invisible[id - 0x111] = true
                                     }
                                 }
+                                id++
                             }
                         }
                         if (++i > maxHeightToProceed) {
@@ -229,7 +226,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                     }
                 }
-                println("NO CACHE.... ${System.nanoTime() - tm}")
+//                println("NO CACHE.... ${System.nanoTime() - tm}")
             }
         }
     }
@@ -258,6 +255,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private fun blockKeyChunk(x: Int, y: Int, z: Int): Int {
         return x or (z shl 4) or (y shl 8)
+    }
+    private fun blockKeyChunkAnd(x: Int, y: Int, z: Int): Int {
+        return (x and 0xf) or (z and 0xf shl 4) or (y and 0xf shl 8)
     }
     private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
 
