@@ -1,10 +1,8 @@
 package io.github.rothes.esu.bukkit.module
 
-import com.github.retrooper.packetevents.PacketEvents
 import io.github.rothes.esu.bukkit.module.networkthrottle.Analyser
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -14,14 +12,9 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import org.bukkit.Bukkit
-import org.bukkit.event.HandlerList
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.*
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.jvm.java
 import kotlin.time.Duration.Companion.milliseconds
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -87,14 +80,11 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         })
         Analyser // Init this
         HighLatencyAdjust.onEnable()
-        PacketEvents.getAPI().eventManager.registerListener(ChunkDataThrottle)
-        Bukkit.getPluginManager().registerEvents(ChunkDataThrottle, plugin)
+        ChunkDataThrottle.onEnable()
     }
 
     override fun disable() {
         super.disable()
-        PacketEvents.getAPI().eventManager.unregisterListener(ChunkDataThrottle)
-        HandlerList.unregisterAll(ChunkDataThrottle)
         ChunkDataThrottle.onDisable()
         HighLatencyAdjust.onDisable()
         Analyser.stop()
@@ -103,7 +93,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
 
     data class ModuleData(
-        val minimalChunks: MutableMap<UUID, MutableMap<Long, List<Int>>> = linkedMapOf(),
+        val minimalChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
         val originalViewDistance: MutableMap<UUID, Int> = linkedMapOf(),
     )
 
@@ -121,6 +111,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
             val maxHeightToProceed: Int = 140,
+            val cacheExpireTicks: Int = 2 * 60 * 60 * 20,
         )
 
         data class HighLatencyAdjust(
