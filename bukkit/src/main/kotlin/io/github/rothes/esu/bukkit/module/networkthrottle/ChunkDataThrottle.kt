@@ -20,7 +20,6 @@ import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import net.minecraft.data.worldgen.SurfaceRuleData.air
 import net.minecraft.server.network.PlayerChunkSender
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
@@ -30,9 +29,12 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.EquipmentSlot
+import kotlin.collections.getOrPut
 
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
@@ -100,8 +102,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     @EventHandler
     fun onInteract(e: PlayerInteractEvent) {
-        val chunk = e.clickedBlock?.chunk ?: return
-        sendFullChunk(e.player, chunk.x, chunk.z)
+        if (e.action != Action.LEFT_CLICK_BLOCK || e.hand != EquipmentSlot.HAND) return
+        val block = e.clickedBlock ?: return
+
+        checkBlockUpdate(e.player, block.x, block.y, block.z)
     }
 
     private val Player.miniChunks
@@ -119,7 +123,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     WrapperPlayServerExplosion.BlockInteraction.DECAY_DESTROYED_BLOCKS -> {
                         val player = event.getPlayer<Player>()
                         for (location in wrapper.records)
-                            sendFullChunk(player, location)
+                            checkBlockUpdate(player, location)
                     }
                     else -> return
                 }
@@ -131,7 +135,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     // Only send full chunk if blocks get broken
                     return
                 }
-                sendFullChunk(player, wrapper.blockPosition)
+                checkBlockUpdate(player, wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
 //                val tm = System.nanoTime()
@@ -240,21 +244,33 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private fun sendFullChunk(player: Player, blockLocation: Vector3i) {
-        val x = blockLocation.x shr 4
-        val z = blockLocation.z shr 4
-        sendFullChunk(player, x, z)
+    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i) {
+        checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z)
     }
 
-    private fun sendFullChunk(player: Player, x: Int, z: Int) {
+    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
         val miniChunks = player.miniChunks
-        val chunkKey = Chunk.getChunkKey(x, z)
-        val playerCache = miniChunks[chunkKey] ?: return
-        if (playerCache !== FULL_CHUNK) {
-            miniChunks[chunkKey] = FULL_CHUNK
-            val nms = (player as CraftPlayer).handle
-            val level = nms.serverLevel()
-            PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(x, z))
+        val chunkX = x shr 4
+        val chunkZ = z shr 4
+        val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
+        val invisible = miniChunks[chunkKey] ?: return
+        if (invisible !== FULL_CHUNK) {
+            val id = blockKeyChunkAnd(x, y, z, minHeight)
+            if (id == -1) {
+                return
+            }
+            var needsUpdate = false
+            id.nearbyBlockId(invisible.size shr 8) { blockId ->
+                if (needsUpdate || invisible[blockId]) {
+                    needsUpdate = true
+                }
+            }
+            if (needsUpdate) {
+                miniChunks[chunkKey] = FULL_CHUNK
+                val nms = (player as CraftPlayer).handle
+                val level = nms.serverLevel()
+                PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
+            }
         }
     }
 
@@ -265,10 +281,25 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private fun blockKeyChunk(x: Int, y: Int, z: Int): Int {
         return x or (z shl 4) or (y shl 8)
     }
-    private fun blockKeyChunkAnd(x: Int, y: Int, z: Int): Int {
-        return (x and 0xf) or (z and 0xf shl 4) or (y and 0xf shl 8)
+    private fun blockKeyChunkAnd(x: Int, y: Int, z: Int, minHeight: Int): Int {
+        if (y - minHeight > 256) {
+            // Overflows
+            return -1
+        }
+        return (x and 0xf) or (z and 0xf shl 4) or (y - minHeight and 0xff shl 8)
     }
+    private val Int.chunkBlockPos
+        get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
     private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
+    private inline fun Int.nearbyBlockId(height: Int, crossinline scope: (Int) -> Unit) {
+        val (x, y, z) = this.chunkBlockPos
+        if (x > 0)  scope(this - 0x001)
+        if (x < 16) scope(this + 0x001)
+        if (z > 0)  scope(this - 0x010)
+        if (z < 16) scope(this + 0x010)
+        if (y > 0)  scope(this - 0x100)
+        if (y < height) scope(this + 0x100)
+    }
 
     private val Int.occlude
         get() = if (occludeCache.cached[this]) {
