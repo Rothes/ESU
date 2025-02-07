@@ -172,7 +172,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     // Only check full chunk if blocks get broken or transformed to non-occlude
                     return
                 }
-                if (checkBlockUpdate(player, wrapper.blockPosition)) return
+                checkBlockUpdate(player, wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
 //                val tm = System.nanoTime()
@@ -271,7 +271,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
                         is ListPalette, is MapPalette -> {
                             val isOcclude = BooleanArray(palette.size()) { id -> palette.idToState(id).occlude }
-                            val storage = section.chunkData.storage
+                            val storage = section.chunkData.storage!!
                             forChunk2D { x, z ->
                                 if (isOcclude[storage.get(id and 0xfff)])
                                     handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
@@ -288,7 +288,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
 
                         else -> {
-                            val storage = section.chunkData.storage
+                            val storage = section.chunkData.storage!!
                             forChunk2D { x, z ->
                                 if (palette.idToState(storage.get(id and 0xfff)).occlude)
                                     handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
@@ -385,11 +385,16 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             }
         }
         if (needsUpdate) {
-            val nms = (player as CraftPlayer).handle
-            val level = nms.serverLevel()
-            PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
             miniChunks[chunkKey] = FULL_CHUNK
-            counter.resentChunks++
+            try {
+                val nms = (player as CraftPlayer).handle
+                val level = nms.serverLevel()
+                PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
+                counter.resentChunks++
+            } catch (e: Exception) {
+                miniChunks[chunkKey] = invisible
+                throw e
+            }
             return true
         }
         return false
