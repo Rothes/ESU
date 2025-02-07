@@ -106,7 +106,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     data class ModuleConfig(
         @field:Comment("Helps to reduce chunk upload bandwidth.\n" +
-                "Plugin will compress invisible blocks if players are moving fast,\n" +
+                "Plugin will compress invisible blocks in chunk data packet.\n" +
                 "If necessary, we send a full chunk data again.\n" +
                 "This can reduce 20% ~ 40% bandwidth usage averagely.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
