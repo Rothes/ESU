@@ -3,8 +3,10 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
+import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
+import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
@@ -13,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonP
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BaseStorage
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.util.Vector3i
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
@@ -35,11 +38,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
-import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.inventory.EquipmentSlot
 
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
@@ -121,36 +121,29 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         e.player.miniChunks.remove(e.chunk.chunkKey)
     }
 
-    @EventHandler
-    fun onInteract(e: PlayerInteractEvent) {
-        if (e.action != Action.LEFT_CLICK_BLOCK || e.hand != EquipmentSlot.HAND) return
-        val block = e.clickedBlock ?: return
-
-        checkBlockUpdate(e.player, block.x, block.y, block.z)
-    }
-
     private val Player.miniChunks
         get() = this@ChunkDataThrottle.minimalChunks.getOrPut(this) { Long2ObjectOpenHashMap() }
+
+    override fun onPacketReceive(event: PacketReceiveEvent) {
+        if (!config.chunkDataThrottle.enabled) {
+            return
+        }
+        when (event.packetType) {
+            PacketType.Play.Client.PLAYER_DIGGING -> {
+                val wrapper = WrapperPlayClientPlayerDigging(event)
+                if (wrapper.action == DiggingAction.START_DIGGING) {
+                    wrapper.blockPosition
+                    checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
+                }
+            }
+        }
+    }
 
     override fun onPacketSend(event: PacketSendEvent) {
         if (!config.chunkDataThrottle.enabled) {
             return
         }
         when (event.packetType) {
-//            PacketType.Play.Server.EXPLOSION    -> {
-//                val wrapper = WrapperPlayServerExplosion(event)
-//                when (wrapper.blockInteraction) {
-//                    WrapperPlayServerExplosion.BlockInteraction.DESTROY_BLOCKS,
-//                    WrapperPlayServerExplosion.BlockInteraction.DECAY_DESTROYED_BLOCKS -> {
-//                        val player = event.getPlayer<Player>()
-//                        val world = player.world
-//                        val minHeight = world.minHeight
-//                        for (location in wrapper.records)
-//                            checkBlockUpdate(player, location, minHeight)
-//                    }
-//                    else -> return
-//                }
-//            }
             PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
                 val wrapper = WrapperPlayServerMultiBlockChange(event)
                 val player = event.getPlayer<Player>()
@@ -166,15 +159,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             }
             PacketType.Play.Server.BLOCK_CHANGE -> {
                 val wrapper = WrapperPlayServerBlockChange(event)
-                val player = event.getPlayer<Player>()
                 if (wrapper.blockId.occlude) {
                     // Only check full chunk if blocks get broken or transformed to non-occlude
                     return
                 }
-                checkBlockUpdate(player, wrapper.blockPosition)
+                checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
-//                val tm = System.nanoTime()
+                val tm = System.nanoTime()
                 val wrapper = WrapperPlayServerChunkData(event)
                 val player = event.getPlayer<Player>()
                 val column = wrapper.column
@@ -237,7 +229,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 //                }
 
                 val occlude = BooleanArray(16 * 16 * height)
-                var i = 0
                 var id = 0
                 out@ for ((index, section) in sections.withIndex()) {
                     section as Chunk_v1_18
@@ -247,7 +238,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             // This section contains only one block type, and it's already the smallest way.
                             if (palette.idToState(0).occlude) {
                                 forChunk2D { x, z ->
-                                    handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
+                                    handleOccludePrevSection(occlude, invisible, index, x, z, id, sections)
                                     id++
                                 }
                                 for (xyz in 0 ..< 16 * 16 * 15)
@@ -255,7 +246,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             } else {
                                 id += 16 * 16 * 16
                             }
-                            i += 16
                         }
 
                         is ListPalette, is MapPalette -> {
@@ -263,13 +253,13 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             val isOcclude = BooleanArray(palette.size()) { id -> palette.idToState(id).occlude }
                             forChunk2D { x, z ->
                                 if (isOcclude[storage.get(id and 0xfff)])
-                                    handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
+                                    handleOccludePrevSection(occlude, invisible, index, x, z, id, sections)
                                 id++
                             }
                             for (y in 0 ..< 15) {
                                 forChunk2D { x, z ->
                                     if (isOcclude[storage.get(id and 0xfff)])
-                                        handleOcclude(occlude, invisible, x, i, z, id, storage)
+                                        handleOcclude(occlude, invisible, x, z, id, storage)
                                     id++
                                 }
                             }
@@ -285,7 +275,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             for (y in 0 ..< 15) {
                                 forChunk2D { x, z ->
                                     if (palette.idToState(storage.get(id and 0xfff)).occlude)
-                                        handleOcclude(occlude, invisible, x, i, z, id, storage)
+                                        handleOcclude(occlude, invisible, x, z, id, storage)
                                     id++
                                 }
                             }
@@ -295,7 +285,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
                 counter.minimalChunks++
                 miniChunks[chunkKey] = invisible.clone()
-//                println("NO CACHE.... ${System.nanoTime() - tm}")
+                println("NO CACHE.... ${System.nanoTime() - tm}")
             }
         }
     }
@@ -307,8 +297,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun handleOccludePrevSection(occlude: BooleanArray, invisible: BooleanArray,
-                                                x: Int, index: Int, z: Int, id: Int, sections: Array<BaseChunk>) {
+    private inline fun handleOccludePrevSection(occlude: BooleanArray, invisible: BooleanArray, index: Int,
+                                                x: Int, z: Int, id: Int, sections: Array<BaseChunk>) {
         occlude[id] = true
         if (x >= 2 && index != 0 && z >= 2 // We want to keep the edge so the algo is simpler
             // Check if the block is invisible
@@ -325,9 +315,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun handleOcclude(occlude: BooleanArray, invisible: BooleanArray,
-                                     x: Int, i: Int, z: Int, id: Int, storage: BaseStorage) {
+                                     x: Int, z: Int, id: Int, storage: BaseStorage) {
         occlude[id] = true
-        if (x >= 2 && i >= 2 && z >= 2
+        if (x >= 2 && id >= 0x200 && z >= 2
             && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
             && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
 
