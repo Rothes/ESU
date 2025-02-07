@@ -79,6 +79,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
             }
         }
+        // Clear these so we can save our memory
+        minimalChunks.values.forEach { it.clear() }
         minimalChunks.clear()
     }
 
@@ -89,7 +91,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
-        minimalChunks.remove(e.player)
+        minimalChunks.remove(e.player)?.clear()
     }
 
     private val Player.miniChunks
