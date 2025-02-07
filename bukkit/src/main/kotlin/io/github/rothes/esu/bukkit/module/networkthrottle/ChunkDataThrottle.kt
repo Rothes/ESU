@@ -19,20 +19,16 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
-import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.WorldCache.ChunkCache
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
-import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.server.network.PlayerChunkSender
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
-import org.bukkit.World
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -45,16 +41,11 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private val FULL_CHUNK = BooleanArray(0)
 
-    private val worldCache = Object2ObjectOpenHashMap<String, WorldCache>()
     private val minimalChunks = hashMapOf<Player, Long2ObjectOpenHashMap<BooleanArray>>()
     private val occludeCache = OccludeCache()
     val counter = Counter()
 
-    private var task: ScheduledTask? = null
-
-    private fun worldCache(world: World) = worldCache.getOrPut(world.name) { WorldCache(world.name) }
-
-    init {
+    fun onEnable() {
         for (player in Bukkit.getOnlinePlayers()) {
             val hotData = data.minimalChunks[player.uniqueId]
             if (hotData != null) {
@@ -71,23 +62,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             }
         }
         data.minimalChunks.clear()
-    }
-
-    fun onEnable() {
         PacketEvents.getAPI().eventManager.registerListener(this)
         Bukkit.getPluginManager().registerEvents(this, plugin)
-//        task = Scheduler.async(0, 30 * 60 * 20) {
-//            val expire = System.currentTimeMillis() - config.chunkDataThrottle.cacheExpireTicks * 50
-//            for (worldCache in worldCache.values) {
-//                val iterator = worldCache.chunks.iterator()
-//                while (iterator.hasNext()) {
-//                    val (chunkKey, chunkCache) = iterator.next()
-//                    if (chunkCache.lastAccess < expire) {
-//                        iterator.remove()
-//                    }
-//                }
-//            }
-//        }
     }
 
     fun onDisable() {
@@ -97,13 +73,13 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (plugin.isEnabled || plugin.disabledHot) {
             for ((player, map) in minimalChunks.entries) {
                 map.forEach { (k, v) ->
-                    if (v !== FULL_CHUNK) {
+                    if (v.contains(true)) {
                         data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                     }
                 }
             }
         }
-        task?.cancel()
+        minimalChunks.clear()
     }
 
     @EventHandler
@@ -114,11 +90,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
         minimalChunks.remove(e.player)
-    }
-
-    @EventHandler
-    fun onChunkUnload(e: PlayerChunkUnloadEvent) {
-        e.player.miniChunks.remove(e.chunk.chunkKey)
     }
 
     private val Player.miniChunks
@@ -144,6 +115,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             return
         }
         when (event.packetType) {
+            PacketType.Play.Server.UNLOAD_CHUNK -> {
+                val wrapper = WrapperPlayServerUnloadChunk(event)
+                event.getPlayer<Player>().miniChunks.remove(Chunk.getChunkKey(wrapper.chunkX, wrapper.chunkZ))
+            }
             PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
                 val wrapper = WrapperPlayServerMultiBlockChange(event)
                 val player = event.getPlayer<Player>()
@@ -166,7 +141,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
-                val tm = System.nanoTime()
+//                val tm = System.nanoTime()
                 val wrapper = WrapperPlayServerChunkData(event)
                 val player = event.getPlayer<Player>()
                 val column = wrapper.column
@@ -179,56 +154,11 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     return
                 }
 
-                val world = player.world
                 val sections = column.chunks
-
-                val minHeight = world.minHeight
-                val maxHeight = world.maxHeight
-                val height = maxHeight - minHeight
-
-                val wc = worldCache(world)
-                val cc = wc.chunks[chunkKey]
-                if (cc != null) {
-                    val clone = cc.invisible.clone()
-                    var id = 0
-                    out@ for (chunk in sections) {
-                        chunk as Chunk_v1_18
-                        val storage = chunk.chunkData.storage
-                        if (storage == null) {
-                            id += 16 * 16 * 16
-                            continue
-                        }
-                        for (xyz in 0 ..< 16 * 16 * 16) {
-                            if (clone[id])
-                                storage.set(id and 0xfff, 0)
-                            id++
-                        }
-                    }
-                    miniChunks[chunkKey] = clone
-//                    println("FROM CACHE! ${System.nanoTime() - tm}")
-                    return
-                }
-                val chunkCache = ChunkCache(BooleanArray(16 * 16 * height))
-                val invisible = chunkCache.invisible
-//                wc.chunks[chunkKey] = chunkCache
-//                wc.chunks[chunkKey + 1] ?.let { neighbor ->
-//                    chunkCache.xp = neighbor
-//                    neighbor.xm = chunkCache
-//                }
-//                wc.chunks[chunkKey - 1] ?.let { neighbor ->
-//                    chunkCache.xm = neighbor
-//                    neighbor.xp = chunkCache
-//                }
-//                wc.chunks[chunkKey + (1 shl 32)] ?.let { neighbor ->
-//                    chunkCache.zp = neighbor
-//                    neighbor.zm = chunkCache
-//                }
-//                wc.chunks[chunkKey - (1 shl 32)] ?.let { neighbor ->
-//                    chunkCache.zm = neighbor
-//                    neighbor.zp = chunkCache
-//                }
-
+                val height = event.user.totalWorldHeight
                 val occlude = BooleanArray(16 * 16 * height)
+                val invisible = BooleanArray(16 * 16 * height)
+
                 var id = 0
                 out@ for ((index, section) in sections.withIndex()) {
                     section as Chunk_v1_18
@@ -285,7 +215,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
                 counter.minimalChunks++
                 miniChunks[chunkKey] = invisible.clone()
-                println("NO CACHE.... ${System.nanoTime() - tm}")
+//                println("TIME: ${System.nanoTime() - tm}")
             }
         }
     }
@@ -419,23 +349,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         return material.isOccluding.also {
             occludeCache.cached[blockId] = true
             occludeCache.value[blockId] = it
-        }
-    }
-
-    data class WorldCache(
-        val worldName: String,
-        val chunks: Long2ObjectMap<ChunkCache> = Long2ObjectOpenHashMap(),
-    ) {
-
-        class ChunkCache(
-            val invisible: BooleanArray,
-            var xp: ChunkCache? = null,
-            var xm: ChunkCache? = null,
-            var zp: ChunkCache? = null,
-            var zm: ChunkCache? = null,
-            var lastAccess: Long = System.currentTimeMillis(),
-        ) {
-            data class BlockPosition(val chunk: Int, val x: Int, val y: Int, val z: Int)
         }
     }
 

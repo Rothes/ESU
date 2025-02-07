@@ -28,21 +28,19 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     val adjusted = hashMapOf<Player, Int>()
     var task: ScheduledTask? = null
 
-    init {
-        for ((uuid, v) in data.originalViewDistance.entries) {
-            val player = Bukkit.getPlayer(uuid)
-            if (player != null)
-                adjusted[player] = v
-        }
-        data.originalViewDistance.clear()
-    }
-
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
         adjusted.remove(e.player)
     }
 
     fun onEnable() {
+        for ((uuid, v) in data.originalViewDistance.entries) {
+            val player = Bukkit.getPlayer(uuid)
+            if (player != null)
+                adjusted[player] = v
+        }
+        data.originalViewDistance.clear()
+
         if (config.highLatencyAdjust.enabled) {
             task = Scheduler.async(0, 20 * 20) {
                 for (player in Bukkit.getOnlinePlayers()) {
@@ -74,6 +72,7 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         task = null
         PacketEvents.getAPI().eventManager.unregisterListener(this)
         HandlerList.unregisterAll(this)
+        adjusted.clear()
     }
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
