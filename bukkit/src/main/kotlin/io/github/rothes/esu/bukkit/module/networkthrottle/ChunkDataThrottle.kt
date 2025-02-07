@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
@@ -198,22 +199,22 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             }
                         }
 
-                        else -> {
+                        is GlobalPalette -> {
                             val storage = section.chunkData.storage!!
                             forChunk2D { x, z ->
-                                if (palette.idToState(storage.get(id and 0xfff)).occlude)
+                                if (storage.get(id and 0xfff).occlude)
                                     handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
                                 id++
                             }
                             for (y in 0 ..< 15) {
                                 forChunk2D { x, z ->
-                                    if (palette.idToState(storage.get(id and 0xfff)).occlude)
+                                    if (storage.get(id and 0xfff).occlude)
                                         handleOcclude(occlude, invisible, x, z, id, storage)
                                     id++
                                 }
                             }
                         }
-
+                        else -> throw AssertionError("Unsupported palette type: ${palette::class.simpleName}")
                     }
                 }
                 counter.minimalChunks++
