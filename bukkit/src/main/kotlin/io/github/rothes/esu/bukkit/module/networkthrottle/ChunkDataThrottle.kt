@@ -15,7 +15,6 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.WorldCache.ChunkCache
-import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.counter
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
@@ -246,41 +245,79 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val occlude = BooleanArray(16 * 16 * height)
                 var i = 0
                 var id = 0
-                out@ for ((index, chunk) in chunks.withIndex()) {
-                    chunk as Chunk_v1_18
-                    val storage = chunk.chunkData.storage
-                    if (storage == null) {
-                        id += 16 * 16 * 16
-                        i += 16
-                        continue
-                    }
-                    val palette = chunk.chunkData.palette
-                    for (y in 0 ..< 16) {
-                        for (z in 0 ..< 16) {
-                            for (x in 0 ..< 16) {
-                                val blockId = palette.idToState(storage.get(id and 0xfff))
-                                if (blockId != 0 && blockId.occlude) {
-                                    occlude[id] = true
-                                    if (x >= 2 && i >= 2 && z >= 2 // We want to keep the edge so the algo is simpler
-                                        // Check if the block is invisible
-                                        && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
-                                        && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
-
-                                        if (y == 0) {
-                                            val chunk = chunks[index - 1] as Chunk_v1_18
-                                            chunk.chunkData.storage?.set(id - 0x111 and 0xfff, 0)
-                                        } else {
-                                            storage.set(id - 0x111 and 0xfff, 0)
-                                        }
+                out@ for ((index, section) in chunks.withIndex()) {
+                    section as Chunk_v1_18
+                    val palette = section.chunkData.palette
+                    if (palette.size() == 1) {
+                        // This section contains only one block type, and it's already the smallest way.
+                        if (palette.idToState(0).occlude) {
+                            chunk2D { x, z ->
+                                occlude[id] = true
+                                if (x > 2 && index != 0 && z > 2 // We want to keep the edge so the algo is simpler
+                                    // Check if the block is invisible
+                                    && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
+                                    && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
+                                    val last = (chunks[index - 1] as Chunk_v1_18).chunkData.storage
+                                    if (last != null) {
+                                        last.set(id - 0x111 and 0xfff, 0)
                                         invisible[id - 0x111] = true
                                     }
                                 }
                                 id++
                             }
+                            for (xyz in 0 ..< 16 * 16 * 15) {
+                                occlude[id++] = true
+                            }
+                        } else {
+                            id += 16 * 16 * 16
                         }
-                        if (++i > maxHeightToProceed) {
-                            break@out
+                        i += 16
+                        continue
+                    }
+
+                    val isOcclude = BooleanArray(palette.size())
+                    for (id in 0 ..< palette.size()) {
+                        isOcclude[id] = palette.idToState(id).occlude
+                    }
+                    val storage = section.chunkData.storage
+                    chunk2D { x, z ->
+                        val blockId = storage.get(id and 0xfff)
+                        if (isOcclude[blockId]) {
+                            occlude[id] = true
+                            if (x >= 2 && index != 0 && z >= 2
+                                && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
+                                && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
+
+                                val last = (chunks[index - 1] as Chunk_v1_18).chunkData.storage
+                                if (last != null) {
+                                    last.set(id - 0x111 and 0xfff, 0)
+                                    invisible[id - 0x111] = true
+                                }
+                            }
                         }
+                        id++
+                    }
+                    if (++i > maxHeightToProceed) {
+                        break@out
+                    }
+                    for (y in 0 ..< 15) {
+                        chunk2D { x, z ->
+                            val blockId = storage.get(id and 0xfff)
+                            if (isOcclude[blockId]) {
+                                occlude[id] = true
+                                if (x >= 2 && i >= 2 && z >= 2
+                                    && occlude[id - 0x211] && occlude[id - 0x121] && occlude[id - 0x112]
+                                    && occlude[id - 0x011] && occlude[id - 0x110] && occlude[id - 0x101]) {
+
+                                    storage.set(id - 0x111 and 0xfff, 0)
+                                    invisible[id - 0x111] = true
+                                }
+                            }
+                            id++
+                        }
+                    }
+                    if (++i > maxHeightToProceed) {
+                        break@out
                     }
                 }
                 counter.minimalChunks++
@@ -288,6 +325,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 //                println("NO CACHE.... ${System.nanoTime() - tm}")
             }
         }
+    }
+
+    private inline fun chunk2D(crossinline scope: (x: Int, z: Int) -> Unit) {
+        for (x in 0 ..< 16)
+            for (z in 0 ..< 16)
+                scope(x, z)
     }
 
     private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight): Boolean {
@@ -343,14 +386,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         get() = ChunkPos((this and 0xffffffffL).toInt(), (this shr 32).toInt())
 
     private fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
-        if (y - minHeight > 256) {
+        if (y - minHeight > 0xff) {
             // Overflows
             return -1
         }
         return x or (z shl 4) or (y - minHeight and 0xff shl 8)
     }
     private fun blockKeyChunkAnd(x: Int, y: Int, z: Int, minHeight: Int): Int {
-        if (y - minHeight > 256) {
+        if (y - minHeight > 0xff) {
             // Overflows
             return -1
         }
@@ -366,7 +409,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (z > 0)  scope(this - 0x010)
         if (z < 16) scope(this + 0x010)
         if (y > 0)  scope(this - 0x100)
-        if (y < height) scope(this + 0x100)
+        if (y < height - 1) scope(this + 0x100)
     }
 
     private val Int.occlude
