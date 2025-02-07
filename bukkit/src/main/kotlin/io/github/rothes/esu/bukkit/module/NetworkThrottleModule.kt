@@ -105,10 +105,11 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     )
 
     data class ModuleConfig(
-        @field:Comment("Helps to reduce chunk upload bandwidth.\n" +
-                "Plugin will compress invisible blocks in chunk data packet.\n" +
+        @field:Comment("Helps to reduce chunk upload bandwidth. " +
+                "Plugin will compress invisible blocks in chunk data packet." +
                 "If necessary, we send a full chunk data again.\n" +
-                "This can reduce 20% ~ 40% bandwidth usage averagely.")
+                "This can reduce about 50% bandwidth usage averagely. " +
+                "Make sure you enabled network-compression on proxy or this server.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
         @field:Comment("Adjust the settings the players with high latency to lower value.\n" +
                 "So they won't affect average quality of all players.")
@@ -117,9 +118,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
-            @field:Comment("Only process height below this value. DO NOT set it greater than 256.")
-            val maxHeightToProceed: Int = 160,
-            val cacheExpireTicks: Int = 2 * 60 * 60 * 20,
+//            val cacheExpireTicks: Int = 2 * 60 * 60 * 20,
         )
 
         data class HighLatencyAdjust(
