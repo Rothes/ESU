@@ -385,10 +385,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             }
         }
         if (needsUpdate) {
-            miniChunks[chunkKey] = FULL_CHUNK
             val nms = (player as CraftPlayer).handle
             val level = nms.serverLevel()
             PlayerChunkSender.sendChunk(nms.connection, level, level.`moonrise$getFullChunkIfLoaded`(chunkX, chunkZ))
+            miniChunks[chunkKey] = FULL_CHUNK
             counter.resentChunks++
             return true
         }
