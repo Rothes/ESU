@@ -41,7 +41,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private val FULL_CHUNK = BooleanArray(0)
 
-    private val minimalChunks = hashMapOf<Player, Long2ObjectOpenHashMap<BooleanArray>>()
+    private val minimalChunks = hashMapOf<Player, Long2ObjectMap<BooleanArray>>()
     private val occludeCache = OccludeCache()
     val counter = Counter()
 
@@ -57,7 +57,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val array = BooleanArray(16 * 16 * height) { true }
                 val miniChunks = player.miniChunks
                 for (chunkKey in hotData) {
-                    miniChunks[chunkKey] = array.clone()
+                    if (player.isChunkSent(chunkKey))
+                        miniChunks[chunkKey] = array.clone()
                 }
             }
         }
@@ -289,13 +290,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private fun checkBlockUpdate1(player: Player, miniChunks: Long2ObjectMap<BooleanArray>, invisible: BooleanArray,
                                   chunkX: Int, chunkZ: Int, chunkKey: Long, blockId: Int): Boolean {
-        if (blockId == -1) {
-            // Overflows, we just return
-            return false
-        }
         var needsUpdate = false
         blockId.nearbyBlockId(invisible.size shr 8) { blockId ->
-            if (needsUpdate || invisible[blockId]) {
+            if (needsUpdate || invisible.size > blockId && invisible[blockId]) {
                 needsUpdate = true
             }
         }
