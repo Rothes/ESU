@@ -1,9 +1,5 @@
 import com.xpdustry.ksr.kotlinRelocate
 import org.apache.tools.ant.filters.ReplaceTokens
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import kotlin.io.path.createDirectory
-
 
 plugins {
     id("io.papermc.paperweight.userdev") version "1.7.5"
