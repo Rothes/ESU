@@ -39,8 +39,10 @@ dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
-    implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("com.h2database:h2:2.3.232")
+
+    implementation("info.debatty:java-string-similarity:2.0.0")
+    implementation("org.bstats:bstats-bukkit:3.1.0")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
@@ -70,8 +72,10 @@ tasks.shadowJar {
     kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
-    relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
     relocate("org.h2", "io.github.rothes.esu.lib.org.h2")
+
+    relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
+    relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")
 }
 
 tasks.processResources {

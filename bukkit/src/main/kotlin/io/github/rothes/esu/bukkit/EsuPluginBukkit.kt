@@ -29,6 +29,7 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
+import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -161,6 +162,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             }
         }, this)
 
+        Metrics(this, 24645) // bStats
         Scheduler.global {
             initialized = true
         }
