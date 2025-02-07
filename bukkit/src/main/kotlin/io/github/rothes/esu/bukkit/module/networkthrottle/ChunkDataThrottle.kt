@@ -181,7 +181,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                 id += 16 * 16 * 16
                             }
                         }
-
                         is ListPalette, is MapPalette -> {
                             val storage = section.chunkData.storage!!
                             val isOcclude = BooleanArray(palette.size()) { id -> palette.idToState(id).occlude }
@@ -190,15 +189,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                     handleOccludePrevSection(occlude, invisible, index, x, z, id, sections)
                                 id++
                             }
-                            for (y in 0 ..< 15) {
-                                forChunk2D { x, z ->
-                                    if (isOcclude[storage.get(id and 0xfff)])
-                                        handleOcclude(occlude, invisible, x, z, id, storage)
-                                    id++
-                                }
+                            for (y in 0 ..< 15) forChunk2D { x, z ->
+                                if (isOcclude[storage.get(id and 0xfff)])
+                                    handleOcclude(occlude, invisible, x, z, id, storage)
+                                id++
                             }
                         }
-
                         is GlobalPalette -> {
                             val storage = section.chunkData.storage!!
                             forChunk2D { x, z ->
@@ -206,19 +202,19 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                     handleOccludePrevSection(occlude, invisible, x, index, z, id, sections)
                                 id++
                             }
-                            for (y in 0 ..< 15) {
-                                forChunk2D { x, z ->
-                                    if (storage.get(id and 0xfff).occlude)
-                                        handleOcclude(occlude, invisible, x, z, id, storage)
-                                    id++
-                                }
+                            for (y in 0 ..< 15) forChunk2D { x, z ->
+                                if (storage.get(id and 0xfff).occlude)
+                                    handleOcclude(occlude, invisible, x, z, id, storage)
+                                id++
                             }
                         }
-                        else -> throw AssertionError("Unsupported palette type: ${palette::class.simpleName}")
+                        else -> {
+                            throw AssertionError("Unsupported palette type: ${palette::class.simpleName}")
+                        }
                     }
                 }
                 counter.minimalChunks++
-                miniChunks[chunkKey] = invisible.clone()
+                miniChunks[chunkKey] = invisible
 //                println("TIME: ${System.nanoTime() - tm}")
             }
         }
