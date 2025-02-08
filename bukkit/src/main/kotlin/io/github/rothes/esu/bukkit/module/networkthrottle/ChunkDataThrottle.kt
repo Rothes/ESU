@@ -221,8 +221,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     private inline fun forChunk2D(crossinline scope: (x: Int, z: Int) -> Unit) {
-        for (x in 0 ..< 16)
-            for (z in 0 ..< 16)
+        for (z in 0 ..< 16)
+            for (x in 0 ..< 16)
                 scope(x, z)
     }
 

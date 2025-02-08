@@ -7,6 +7,7 @@ folia-supported: true
 softdepend:
   - PlugMan
   - packetevents
+
 permissions:
   'esu.chatAntiSpam.bypass':
     default: op
