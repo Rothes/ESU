@@ -34,13 +34,7 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
             val annotationParser = AnnotationParser(this, BukkitUser::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
                 val value = perm(a.value)
-                val perm = buildString {
-                    append("command")
-                    if (value.isNotEmpty()) {
-                        append('.')
-                        append(value)
-                    }
-                }
+                val perm = if (value.isNotEmpty()) "command.$value" else "command"
                 b.permission(perm)
             }
             modifier?.invoke(annotationParser)
