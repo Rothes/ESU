@@ -186,7 +186,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         logger.log(Level.SEVERE, message)
     }
 
-    override fun err(message: String, throwable: Throwable) {
+    override fun err(message: String, throwable: Throwable?) {
         logger.log(Level.SEVERE, message, throwable)
     }
 

@@ -13,7 +13,7 @@ interface EsuCore {
     fun info(message: String)
     fun warn(message: String)
     fun err(message: String)
-    fun err(message: String, throwable: Throwable)
+    fun err(message: String, throwable: Throwable?)
 
     fun baseConfigPath(): Path
 
