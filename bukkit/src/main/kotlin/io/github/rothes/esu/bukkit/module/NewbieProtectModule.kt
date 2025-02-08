@@ -125,8 +125,8 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
             val max = config.spawnWitherNerf.maxAmount
             val amount = withers.size
             if (amount > max) {
-                for (entity in withers.takeLast(max - amount)) entity.remove()
-                for (entity in withers.dropLast(max - amount)) handleEntity(entity)
+                for (entity in withers.takeLast(amount - max)) entity.remove()
+                for (entity in withers.dropLast(amount - max)) handleEntity(entity)
                 return
             }
             for (entity in withers) handleEntity(entity)
