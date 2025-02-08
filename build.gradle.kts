@@ -21,15 +21,17 @@ tasks.test {
     useJUnitPlatform()
 }
 
+allprojects {
+    group = "io.github.rothes.esu"
+    project.version = rootProject.property("versionName").toString()
+}
+
 subprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     apply(plugin = "maven-publish")
     apply(plugin = "com.gradleup.shadow")
     apply(plugin = "com.xpdustry.kotlin-shadow-relocator")
-
-    group = "io.github.rothes.esu"
-    version = rootProject.property("versionName").toString()
 
     val javaVer = JavaVersion.VERSION_17
 
