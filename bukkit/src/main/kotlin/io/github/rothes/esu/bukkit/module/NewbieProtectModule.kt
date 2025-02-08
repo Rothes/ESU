@@ -8,7 +8,6 @@ import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
-import org.bukkit.craftbukkit.entity.CraftWither
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Wither
 import org.bukkit.event.EventHandler
@@ -66,7 +65,7 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
 
     private val witherNerfKey = NamespacedKey.fromString("wither-mod", plugin)!!
     fun handleEntity(e: Entity) {
-        if (e !is CraftWither) return
+        if (e !is Wither) return
 
         resetEntity(e)
         if (max(abs(e.location.x), abs(e.location.z)) > config.spawnWitherNerf.radius) return
@@ -95,7 +94,7 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
     }
 
     fun resetEntity(e: Entity) {
-        if (e !is CraftWither) return
+        if (e !is Wither) return
 
         e.getAttribute(Attribute.GENERIC_FLYING_SPEED)?.removeModifier(witherNerfKey)
         e.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)?.removeModifier(witherNerfKey)
@@ -120,9 +119,17 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
 
         @EventHandler
         fun onChunkLoad(e: ChunkLoadEvent) {
-            for (entity in e.chunk.entities) {
-                handleEntity(entity)
+            if (max(abs(e.chunk.x), abs(e.chunk.z)) > config.spawnWitherNerf.radius shr 4) return
+
+            val withers = e.chunk.entities.filterIsInstance<Wither>()
+            val max = config.spawnWitherNerf.maxAmount
+            val amount = withers.size
+            if (amount > max) {
+                for (entity in withers.takeLast(max - amount)) entity.remove()
+                for (entity in withers.dropLast(max - amount)) handleEntity(entity)
+                return
             }
+            for (entity in withers) handleEntity(entity)
         }
     }
 
