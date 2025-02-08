@@ -14,8 +14,10 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import java.time.Duration
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
     ModuleConfig::class.java, ModuleLang::class.java
@@ -123,7 +125,14 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class HighLatencyAdjust(
             val enabled: Boolean = false,
+            @field:Comment("Trigger a adjust when player's ping is greater than or equal this.")
             val latencyThreshold: Int = 150,
+            @field:Comment("The high ping must keep for the duration to trigger a adjust finally.")
+            val duration: Duration = kotlin.time.Duration.parse("1m").toJavaDuration(),
+            @field:Comment("Plugin detects CLIENT_SETTINGS packets to reset the view distance for players.\n" +
+                    "If true, player must change the client view distance for a reset;\n" +
+                    "If false, any new settings could reset the view distance for the player.")
+            val newViewDistanceToReset: Boolean = false,
             val minViewDistance: Int = 5,
         )
     }
