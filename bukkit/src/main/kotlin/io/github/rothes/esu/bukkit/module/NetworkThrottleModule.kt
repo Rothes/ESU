@@ -127,8 +127,9 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,
             @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
-                    "This could save a lot of bandwidth. And since we are conflicting with anti-xray\n" +
-                    "things, you can use this for kind of substitution.")
+                    "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
+                    "you can use this for some kind of substitution.\n" +
+                    "We choose a random block from the list and make it of a 16*16*16 chunk section.")
             val singleValuedSectionBlock: DefaultedLinkedHashMap<String, List<Material>> = DefaultedLinkedHashMap<String, List<Material>>(
                 listOf(Material.BEDROCK)
             ).apply {
