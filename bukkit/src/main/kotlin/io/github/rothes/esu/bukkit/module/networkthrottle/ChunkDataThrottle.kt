@@ -40,7 +40,6 @@ import net.minecraft.world.level.chunk.PalettedContainer
 import net.minecraft.world.level.chunk.SingleValuePalette
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
-import org.bukkit.Material
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -174,15 +173,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val level = nms.serverLevel()
 
                 val sections = column.chunks
-                val minHeight = event.user.minWorldHeight
                 val height = event.user.totalWorldHeight
                 val occlude = BooleanArray(height shl 8)
                 // Handle neighbour chunks starts
                 val occludeNeighbor = BooleanArray(4 * 16 * (height + 1))
-//                handleNeighbourChunk(occludeNeighbor, level, minHeight, height, 0, column.x - 1, column.z, { 15 }, { it })
-//                handleNeighbourChunk(occludeNeighbor, level, minHeight, height, 1, column.x + 1, column.z, { 0 }, { it })
-//                handleNeighbourChunk(occludeNeighbor, level, minHeight, height, 2, column.x, column.z - 1, { it }, { 15 })
-//                handleNeighbourChunk(occludeNeighbor, level, minHeight, height, 3, column.x, column.z + 1, { it }, { 0 })
 
                 handleNeighbourChunk(occludeNeighbor, level, 0, column.x - 1, column.z, 0x0f, 0x10)
                 handleNeighbourChunk(occludeNeighbor, level, 1, column.x + 1, column.z, 0x00, 0x10)
@@ -275,28 +269,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     val paletteField = palettedContainerDataClass.getDeclaredField("palette").also { it.isAccessible = true }
     val storageField = palettedContainerDataClass.getDeclaredField("storage").also { it.isAccessible = true }
 
-    private inline fun handleNeighbourChunk(occludeNeighbor: BooleanArray, level: ServerLevel, minHeight: Int, height: Int,
-                                            iValue: Int, chunkX: Int, chunkZ: Int,
-                                            crossinline x: (j: Int) -> Int, crossinline z: (j: Int) -> Int) {
-        level.getChunkIfLoaded(chunkX, chunkZ)?.let { chunk ->
-            var i = 4 + iValue shl 4
-            for (y in minHeight until height - minHeight) {
-                for (j in 0 until 16) {
-                    if (chunk.getBlockState(x(j), y, z(j)).occlude)
-                        occludeNeighbor[i] = true
-                    i++
-                }
-                i = i + (0b0001_00_0000 - 0b1_0000)
-            }
-        }
-    }
-
     private inline fun handleNeighbourChunk(occludeNeighbor: BooleanArray, level: ServerLevel,
-                                            iValue: Int, chunkX: Int, chunkZ: Int, index: Int, indexStep: Int) {
+                                            iType: Int, chunkX: Int, chunkZ: Int, bid: Int, bidStep: Int) {
         level.getChunkIfLoaded(chunkX, chunkZ)?.let { chunk ->
-            val indexLoop = 0x100 - indexStep * 16
-            var blockId = index
-            var i = 4 + iValue shl 4
+            val indexLoop = 0x100 - bidStep * 16
+            var blockId = bid
+            var i = 4 + iType shl 4
             for (section in chunk.sections) {
                 val data = section.states.data
                 @Suppress("UNCHECKED_CAST")
@@ -307,7 +285,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             for (y in 0 until 16) {
                                 for (j in 0 until 16) {
                                     occludeNeighbor[i++] = true
-                                    blockId += indexStep
+                                    blockId += bidStep
                                 }
                                 blockId += indexLoop
                                 i = i + (0b0001_00_0000 - 0b1_0000)
@@ -325,7 +303,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                 if (isOcclude[storage.get(blockId and 0xfff)])
                                     occludeNeighbor[i] = true
                                 i++
-                                blockId += indexStep
+                                blockId += bidStep
                             }
                             blockId += indexLoop
                             i = i + (0b0001_00_0000 - 0b1_0000)
@@ -338,7 +316,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                 if (storage.get(blockId and 0xfff).occlude)
                                     occludeNeighbor[i] = true
                                 i++
-                                blockId += indexStep
+                                blockId += bidStep
                             }
                             blockId += indexLoop
                             i = i + (0b0001_00_0000 - 0b1_0000)
