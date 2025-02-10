@@ -19,6 +19,7 @@ import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.time.Duration
 import java.util.*
+import kotlin.apply
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 
@@ -140,6 +141,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
                 ))
                 put("world_nether", listOf(Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE))
+                put("world_the_end", listOf(Material.END_STONE))
             }
         ) {
             val singleValuedSectionBlockIds by lazy {
