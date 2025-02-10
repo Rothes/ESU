@@ -11,6 +11,7 @@ import org.spongepowered.configurate.serialize.TypeSerializer
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
+import kotlin.collections.getOrDefault
 
 object MapSerializer: TypeSerializer<Map<*, *>> {
 
@@ -161,16 +162,12 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
 
     class DefaultedLinkedHashMap<K, V>(override var default: V?): LinkedHashMap<K, V>(), Defaulted<V> {
 
-        fun getOrDefault(key: K): V? {
-            return get(key) ?: default
-        }
+        fun getOrDefault(key: K): V? = getOrDefault(key, default)
 
     }
     class DefaultedEnumMap<K: Enum<K>, V>(keyType : Class<K>, override var default: V?): EnumMap<K, V>(keyType), Defaulted<V> {
 
-        fun getOrDefault(key: K): V? {
-            return get(key) ?: default
-        }
+        fun getOrDefault(key: K): V? = getOrDefault(key, default)
 
     }
 
