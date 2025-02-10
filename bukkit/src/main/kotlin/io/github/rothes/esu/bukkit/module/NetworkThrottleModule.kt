@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
+import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.networkthrottle.Analyser
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
@@ -8,10 +9,12 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.time.Duration
@@ -120,8 +123,35 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
-//            val cacheExpireTicks: Int = 2 * 60 * 60 * 20,
-        )
+            @field:Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
+                    "We would skip the check, and if you don't like it you can enable it.")
+            val minimalHeightInvisibleCheck: Boolean = false,
+            @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
+                    "This could save a lot of bandwidth. And since we are conflicting with anti-xray\n" +
+                    "things, you can use this for kind of substitution.")
+            val singleValuedSectionBlock: DefaultedLinkedHashMap<String, List<Material>> = DefaultedLinkedHashMap<String, List<Material>>(
+                listOf(Material.BEDROCK)
+            ).apply {
+                put("world", listOf(
+                    Material.COAL_ORE, Material.COPPER_ORE, Material.IRON_ORE, Material.GOLD_ORE,
+                    Material.EMERALD_ORE, Material.DIAMOND_ORE, Material.REDSTONE_ORE, Material.LAPIS_ORE,
+                    Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE,
+                    Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
+                ))
+                put("world_nether", listOf(Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE))
+            }
+        ) {
+            val singleValuedSectionBlockIds by lazy {
+                with(singleValuedSectionBlock) {
+                    DefaultedLinkedHashMap<String, List<Int>>((default ?: listOf(Material.BEDROCK)).map { it.globalId }).also {
+                        it.putAll(entries.map { it.key to it.value.map { it.globalId } })
+                    }
+                }
+            }
+
+            private val Material.globalId
+                get() = if (!this.isBlock) error("Material $this is not a block type!") else SpigotConversionUtil.fromBukkitBlockData(createBlockData()).globalId
+        }
 
         data class HighLatencyAdjust(
             val enabled: Boolean = false,
