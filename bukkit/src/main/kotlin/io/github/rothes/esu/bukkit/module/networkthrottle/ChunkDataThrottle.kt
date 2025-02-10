@@ -504,9 +504,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         var resentChunks: Long = 0,
     )
 
-    private class CustomSingletonPalette(state: Int): SingletonPalette(CustomNetStreamInput(SpigotConversionUtil.fromBukkitBlockData(
-        Material.AIR.createBlockData()
-    ).globalId))
+    private class CustomSingletonPalette(state: Int): SingletonPalette(CustomNetStreamInput(state))
 
     private class CustomNetStreamInput(val value: Int): NetStreamInput(null) {
 
