@@ -89,7 +89,7 @@ object CasListeners: Listener {
         val now = System.currentTimeMillis()
         spamData.requests.sizedAdd(config.expireSize.chatRequest, now)
 
-        val spamCheck = config.spamCheck[messageMeta.type] ?: return false
+        val spamCheck = config.spamCheck.getOrDefault(messageMeta.type) ?: return false
         val request = MessageRequest(player, messageMeta, spamCheck, spamData, now, message)
 
         var blockValue = false

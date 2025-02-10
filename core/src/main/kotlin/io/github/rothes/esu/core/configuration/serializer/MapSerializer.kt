@@ -159,7 +159,19 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
         var default: V?
     }
 
-    class DefaultedLinkedHashMap<K, V>(override var default: V?): LinkedHashMap<K, V>(), Defaulted<V>
-    class DefaultedEnumMap<K: Enum<K>, V>(keyType : Class<K>, override var default: V?): EnumMap<K, V>(keyType), Defaulted<V>
+    class DefaultedLinkedHashMap<K, V>(override var default: V?): LinkedHashMap<K, V>(), Defaulted<V> {
+
+        fun getOrDefault(key: K): V? {
+            return get(key) ?: default
+        }
+
+    }
+    class DefaultedEnumMap<K: Enum<K>, V>(keyType : Class<K>, override var default: V?): EnumMap<K, V>(keyType), Defaulted<V> {
+
+        fun getOrDefault(key: K): V? {
+            return get(key) ?: default
+        }
+
+    }
 
 }
