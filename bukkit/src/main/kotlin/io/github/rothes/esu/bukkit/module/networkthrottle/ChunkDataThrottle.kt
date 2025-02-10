@@ -26,6 +26,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.plugin
+import io.lumine.mythic.bukkit.utils.reflection.ServerReflection.nms
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.server.level.ServerLevel
@@ -146,7 +147,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         // Only check full chunk if blocks get broken or transformed to non-occlude
                         continue
                     }
-                    if (checkBlockUpdate(player, block.x, block.y, block.z, minHeight)) return
+                    checkBlockUpdate(player, block.x, block.y, block.z, minHeight)
                 }
             }
             PacketType.Play.Server.BLOCK_CHANGE -> {
@@ -373,59 +374,65 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 && (if (z == 15) occludeNeighbor[(3 shl 4) + (id shr 8 shl 2 + 4) + x] else occlude[id - (0x100 - 0x10)])
     }
 
-    private fun checkBlockUpdate(player: Player,
-                                 blockLocation: Vector3i, minHeight: Int = player.world.minHeight): Boolean {
+    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
         return checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, minHeight)
     }
 
-    private fun checkBlockUpdate(player: Player,
-                                 x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight): Boolean {
-        val miniChunks = player.miniChunks
+    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
+        val map = player.miniChunks
         val chunkX = x shr 4
         val chunkZ = z shr 4
         val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
-        val invisible = miniChunks[chunkKey] ?: return true
-        if (invisible === FULL_CHUNK) return true
 
-        val id = blockKeyChunkAnd(x, y, z, minHeight)
-        return checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
-    }
-
-    private fun checkBlockUpdate(player: Player, chunkX: Int, chunkZ: Int,
-                                 x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight): Boolean {
-        val miniChunks = player.miniChunks
-        val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
-        val invisible = miniChunks[chunkKey] ?: return true
-        if (invisible === FULL_CHUNK) return true
-
-        val id = blockKeyChunk(x, y, z, minHeight)
-        return checkBlockUpdate1(player, miniChunks, invisible, chunkX, chunkZ, chunkKey, id)
-    }
-
-    private fun checkBlockUpdate1(player: Player, miniChunks: Long2ObjectMap<BooleanArray>, invisible: BooleanArray,
-                                  chunkX: Int, chunkZ: Int, chunkKey: Long, blockId: Int): Boolean {
-        return true
-        // TODO
-        var needsUpdate = false
-        blockId.nearbyBlockId(invisible.size shr 8) { blockId ->
-            if (needsUpdate || invisible.size > blockId && invisible[blockId]) {
-                needsUpdate = true
+        val bid = blockKeyChunkAnd(x, y, z, minHeight)
+        val nms = player.nms
+        val level = nms.serverLevel()
+        fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int): Boolean {
+            val invisibleNearby = map[chunkKey + chunkOff] ?: return false
+            if (invisibleNearby[bid + blockOff] == true) {
+                map[chunkKey + chunkOff] = FULL_CHUNK
+                try {
+                    val chunk = level.getChunkIfLoaded(chunkX + xOff, chunkZ + zOff) ?: error("Failed to resent chunk (${chunkX + xOff}, ${chunkZ + zOff}) for ${player.name}, it is not loaded!")
+                    PlayerChunkSender.sendChunk(nms.connection, level, chunk)
+                    counter.resentChunks++
+                } catch (e: Exception) {
+                    map[chunkKey] = invisibleNearby
+                    throw e
+                }
             }
+            return false
         }
-        if (needsUpdate) {
-            miniChunks[chunkKey] = FULL_CHUNK
+
+        val (x, y, z) = bid.chunkBlockPos
+        if (x == 0 ) handleRelativeChunk(-0x000000001, +15      , -1, 0 )
+        if (x == 15) handleRelativeChunk(+0x000000001, -15      , +1, 0 )
+        if (z == 0 ) handleRelativeChunk(-0x100000000, +15 shl 4, 0 , -1)
+        if (z == 15) handleRelativeChunk(+0x100000000, -15 shl 4, 0 , +1)
+
+        val invisible = map[chunkKey] ?: return
+        if (invisible === FULL_CHUNK) return
+
+        val height = invisible.size shr 8
+
+        val update = (if (x > 0 )         invisible[bid - 0x001] else false) ||
+                     (if (x < 15)         invisible[bid + 0x001] else false) ||
+                     (if (z > 0 )         invisible[bid - 0x010] else false) ||
+                     (if (z < 15)         invisible[bid + 0x010] else false) ||
+                     (if (y > 0 )         invisible[bid - 0x100] else false) ||
+                     (if (y < height - 1) invisible[bid + 0x100] else false)
+        if (update) {
+            map[chunkKey] = FULL_CHUNK
             try {
                 val nms = player.nms
                 val level = nms.serverLevel()
-                PlayerChunkSender.sendChunk(nms.connection, level, level.getChunkIfLoaded(chunkX, chunkZ)!!)
+                val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: error("Failed to resent chunk ($chunkX, $chunkZ) for ${player.name}, it is not loaded!")
+                PlayerChunkSender.sendChunk(nms.connection, level, chunk)
                 counter.resentChunks++
             } catch (e: Exception) {
-                miniChunks[chunkKey] = invisible
+                map[chunkKey] = invisible
                 throw e
             }
-            return true
         }
-        return false
     }
 
     private val Player.nms
@@ -447,14 +454,21 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private val Int.chunkBlockPos: ChunkBlockPos
         get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
     private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
-    private inline fun Int.nearbyBlockId(height: Int, crossinline scope: (Int) -> Unit) {
+    private inline fun Int.nearbyBlockVisible(map: Long2ObjectMap<BooleanArray>, invisible: BooleanArray,
+                                              chunk: Long): Boolean {
+        val height = invisible.size shr 8
+        println("${chunk.chunkPos}\n" +
+                "${(chunk - 0x000000001).chunkPos} = ${map[chunk - 0x000000001]?.get(this + 15)        }\n" +
+                "${(chunk + 0x000000001).chunkPos} = ${map[chunk + 0x000000001]?.get(this - 15)        }\n" +
+                "${(chunk - 0x100000000).chunkPos} = ${map[chunk - 0x100000000]?.get(this + (15 shl 4))}\n" +
+                "${(chunk + 0x100000000).chunkPos} = ${map[chunk + 0x100000000]?.get(this - (15 shl 4))}\n")
         val (x, y, z) = this.chunkBlockPos
-        if (x > 0)          scope(this - 0x001)
-        if (x < 16)         scope(this + 0x001)
-        if (z > 0)          scope(this - 0x010)
-        if (z < 16)         scope(this + 0x010)
-        if (y > 0)          scope(this - 0x100)
-        if (y < height - 1) scope(this + 0x100)
+        return (if (x == 0 ) map[chunk - 0x000000001]?.get(this + 15)         ?: false else invisible[this - 0x001]) ||
+               (if (x == 15) map[chunk + 0x000000001]?.get(this - 15)         ?: false else invisible[this + 0x001]) ||
+               (if (z == 0 ) map[chunk - 0x100000000]?.get(this + (15 shl 4)) ?: false else invisible[this - 0x010]) ||
+               (if (z == 15) map[chunk + 0x100000000]?.get(this - (15 shl 4)) ?: false else invisible[this + 0x010]) ||
+               (if (y > 0 )         invisible[this - 0x100] else false) ||
+               (if (y < height - 1) invisible[this + 0x100] else false)
     }
 
     private inline val Int.occlude
