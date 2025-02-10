@@ -68,7 +68,6 @@ tasks.shadowJar {
     kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
-    relocate("org.h2", "io.github.rothes.esu.lib.org.h2")
 
     relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
     relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")
