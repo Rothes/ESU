@@ -19,7 +19,6 @@ import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.time.Duration
 import java.util.*
-import kotlin.apply
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 
@@ -57,16 +56,21 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             @ShortPerm("analyser")
             fun analyserView(sender: User) {
                 val entries = Analyser.records
-                    .mapValues { it.value.toList().sumOf { it.size.toLong() } }
-                    .entries.sortedByDescending { it.value }
+                    .mapValues {
+                        val list = it.value.toList()
+                        list.size to list.sumOf { it.size.toLong() }
+                    }
+                    .entries.sortedByDescending { it.value.second }
                 if (entries.isEmpty()) {
                     sender.message(locale, { analyser.view.noData })
                     return
                 }
                 sender.message(locale, { analyser.view.header })
-                for ((k, bytes) in entries.take(7)) {
+                for ((k, entry) in entries.take(7)) {
+                    val (counts, bytes) = entry
                     sender.message(locale, { analyser.view.entry },
                         unparsed("packet-type", k.name.lowercase()),
+                        unparsed("counts", counts),
                         unparsed("size", when {
                             bytes >= 1 shl 30 -> "%.1f GB".format(bytes.toDouble() / (1 shl 30))
                             bytes >= 1 shl 20 -> "%.1f MB".format(bytes.toDouble() / (1 shl 20))
@@ -192,8 +196,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
             data class View(
                 val noData: MessageData = "<pc>There's no data for view.".message,
-                val header: MessageData = "<pdc>[Packet Type]<pc>: <sc>[size]".message,
-                val entry: MessageData = "<tdc><packet-type><tc>: <sdc><size>".message,
+                val header: MessageData = "<pdc>[Packet Type]<pc> <pc>[count]</pc>: <sc>[size]".message,
+                val entry: MessageData = "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><size>".message,
                 val footer: MessageData = "<pc>The analyser has been running for <duration>".message,
             )
         }

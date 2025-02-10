@@ -6,6 +6,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import io.netty.buffer.ByteBuf
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 object Analyser {
     var running: Boolean = false
@@ -15,7 +17,7 @@ object Analyser {
     var stopTime: Long = 0
         private set
 
-    val records = hashMapOf<PacketTypeCommon, MutableList<PacketRecord>>()
+    val records = ConcurrentHashMap<PacketTypeCommon, MutableList<PacketRecord>>()
 
     fun start(): Boolean {
         if (running) return false
@@ -40,8 +42,8 @@ object Analyser {
 
     object AnalyserPacketListener: PacketListenerAbstract(PacketListenerPriority.HIGHEST) {
         override fun onPacketSend(event: PacketSendEvent) {
-            val records = records.computeIfAbsent(event.packetType) { arrayListOf() }
-            records.add(PacketRecord((event.byteBuf as ByteBuf).capacity()))
+            val records = records.computeIfAbsent(event.packetType) { Collections.synchronizedList(arrayListOf()) }
+            records.add(PacketRecord((event.byteBuf as ByteBuf).writerIndex()))
         }
     }
 }
