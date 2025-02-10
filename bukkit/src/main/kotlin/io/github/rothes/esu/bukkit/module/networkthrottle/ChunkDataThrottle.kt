@@ -5,6 +5,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
+import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
@@ -389,6 +390,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val level = nms.serverLevel()
         fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int) {
             val invisibleNearby = map[chunkKey + chunkOff] ?: return
+            if (bid > invisibleNearby.size) return // Well, on highest Y? I'm not sure how it happens.
             if (invisibleNearby != FULL_CHUNK && invisibleNearby[bid + blockOff]) {
                 map[chunkKey + chunkOff] = FULL_CHUNK
                 try {
@@ -412,6 +414,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (invisible === FULL_CHUNK) return
 
         val height = invisible.size shr 8
+        if (y >= height) return
 
         val update = (if (x > 0 )         invisible[bid - 0x001] else false) ||
                      (if (x < 15)         invisible[bid + 0x001] else false) ||
