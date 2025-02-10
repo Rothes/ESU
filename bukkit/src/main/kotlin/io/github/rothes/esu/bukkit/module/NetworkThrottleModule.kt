@@ -144,8 +144,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         ) {
             val singleValuedSectionBlockIds by lazy {
                 with(singleValuedSectionBlock) {
-                    DefaultedLinkedHashMap<String, List<Int>>((default ?: listOf(Material.BEDROCK)).map { it.globalId }).also {
-                        it.putAll(entries.map { it.key to it.value.map { it.globalId } })
+                    DefaultedLinkedHashMap<String, IntArray>((default ?: listOf(Material.BEDROCK)).map { it.globalId }.toIntArray()).also {
+                        it.putAll(entries.map { it.key to it.value.map { it.globalId }.toIntArray() })
                     }
                 }
             }
