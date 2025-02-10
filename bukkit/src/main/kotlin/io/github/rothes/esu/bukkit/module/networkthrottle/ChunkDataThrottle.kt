@@ -387,9 +387,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val bid = blockKeyChunkAnd(x, y, z, minHeight)
         val nms = player.nms
         val level = nms.serverLevel()
-        fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int): Boolean {
-            val invisibleNearby = map[chunkKey + chunkOff] ?: return false
-            if (invisibleNearby[bid + blockOff] == true) {
+        fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int) {
+            val invisibleNearby = map[chunkKey + chunkOff] ?: return
+            if (invisibleNearby != FULL_CHUNK && invisibleNearby[bid + blockOff]) {
                 map[chunkKey + chunkOff] = FULL_CHUNK
                 try {
                     val chunk = level.getChunkIfLoaded(chunkX + xOff, chunkZ + zOff) ?: error("Failed to resent chunk (${chunkX + xOff}, ${chunkZ + zOff}) for ${player.name}, it is not loaded!")
@@ -400,14 +400,13 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     throw e
                 }
             }
-            return false
         }
 
         val (x, y, z) = bid.chunkBlockPos
-        if (x == 0 ) handleRelativeChunk(-0x000000001, +15      , -1, 0 )
-        if (x == 15) handleRelativeChunk(+0x000000001, -15      , +1, 0 )
-        if (z == 0 ) handleRelativeChunk(-0x100000000, +15 shl 4, 0 , -1)
-        if (z == 15) handleRelativeChunk(+0x100000000, -15 shl 4, 0 , +1)
+        if (x == 0 ) handleRelativeChunk(-0x000000001, +15 shl 0, -1, +0)
+        if (x == 15) handleRelativeChunk(+0x000000001, -15 shl 0, +1, +0)
+        if (z == 0 ) handleRelativeChunk(-0x100000000, +15 shl 4, +0, -1)
+        if (z == 15) handleRelativeChunk(+0x100000000, -15 shl 4, +0, +1)
 
         val invisible = map[chunkKey] ?: return
         if (invisible === FULL_CHUNK) return
