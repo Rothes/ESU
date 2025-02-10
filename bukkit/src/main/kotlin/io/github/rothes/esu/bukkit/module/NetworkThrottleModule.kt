@@ -130,7 +130,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
                     "We choose a random block from the list and make it of a 16*16*16 chunk section.")
-            val singleValuedSectionBlock: DefaultedLinkedHashMap<String, List<Material>> = DefaultedLinkedHashMap<String, List<Material>>(
+            val singleValuedSectionBlockList: DefaultedLinkedHashMap<String, List<Material>> = DefaultedLinkedHashMap<String, List<Material>>(
                 listOf(Material.BEDROCK)
             ).apply {
                 put("world", listOf(
@@ -143,7 +143,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             }
         ) {
             val singleValuedSectionBlockIds by lazy {
-                with(singleValuedSectionBlock) {
+                with(singleValuedSectionBlockList) {
                     DefaultedLinkedHashMap<String, IntArray>((default ?: listOf(Material.BEDROCK)).map { it.globalId }.toIntArray()).also {
                         it.putAll(entries.map { it.key to it.value.map { it.globalId }.toIntArray() })
                     }
