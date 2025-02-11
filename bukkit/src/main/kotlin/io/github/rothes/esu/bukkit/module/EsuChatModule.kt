@@ -371,8 +371,6 @@ the 'head' and 'foot' will be appended to the chat message.""")
             @field:Comment("Enabling this will redirect all emote commands to esu one, to avoid mixing usage.")
             val interceptNamespaces: Boolean = true,
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
-                PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
-                PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
                 PrefixedMessageModifier("", true, "", "<gray>", "</gray>"),
             ),
         ): ConfigurationPart
