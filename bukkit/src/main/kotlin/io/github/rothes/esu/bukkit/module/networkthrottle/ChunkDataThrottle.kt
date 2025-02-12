@@ -42,6 +42,7 @@ import net.minecraft.world.level.chunk.PalettedContainer
 import net.minecraft.world.level.chunk.SingleValuePalette
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
+import org.bukkit.World.Environment
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -201,6 +202,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 var allInvisible = false
                 var id = 0
                 out@ for ((index, section) in sections.withIndex()) {
+                    if (index == 8 && allInvisible && !config.netherRoofInvisibleCheck && level.world.environment == Environment.NETHER)
+                        (sections[index - 1] as Chunk_v1_18).chunkData.palette = CustomSingletonPalette(singleValuedSectionBlockIds.random())
+
                     section as Chunk_v1_18
                     val palette = section.chunkData.palette
                     when (palette) {
