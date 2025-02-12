@@ -182,7 +182,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
                 val nms = player.nms
                 val level = nms.serverLevel()
-                val recreatePaletteMappings = config.recreatePaletteMappings
+                val rebuildPaletteMappings = config.rebuildPaletteMappings
                 val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
                 val singleValuedSectionBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.serverLevelData.levelName)!!
 
@@ -228,7 +228,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                         is ListPalette, is MapPalette -> {
                             val storage = section.chunkData.storage!!
-                            val blockingArr = if (recreatePaletteMappings) {
+                            val blockingArr = if (rebuildPaletteMappings) {
                                 val arr = Array<BlockType>(palette.size()) { i -> BlockType(palette.idToState(i), i) }
                                 for (i in 0 until 16 * 16 * 16) arr[storage.get(i)].blocks.add(i.toShort())
                                 arr.sortByDescending { it.blocks.size }
@@ -396,7 +396,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private inline fun isInvisible(blocking: BooleanArray, blockingNeighbor: BooleanArray, minimalHeightInvisibleCheck: Boolean,
                                    id: Int, x: Int, z: Int): Boolean {
-        return (    if (id < 0x200) !minimalHeightInvisibleCheck                       else blocking[id - (0x200)])
+        return (    if (id < 0x200) !minimalHeightInvisibleCheck                        else blocking[id - (0x200)])
                 && (if (x == 0 ) blockingNeighbor[(0 shl 4) + (id shr 8 shl 2 + 4) + z] else blocking[id - (0x101)])
                 && (if (z == 0 ) blockingNeighbor[(2 shl 4) + (id shr 8 shl 2 + 4) + x] else blocking[id - (0x110)])
                 && (if (x == 15) blockingNeighbor[(1 shl 4) + (id shr 8 shl 2 + 4) + z] else blocking[id - (0x100 - 0x01)])
