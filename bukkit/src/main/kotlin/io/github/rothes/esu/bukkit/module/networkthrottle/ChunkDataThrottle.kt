@@ -28,6 +28,8 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.plugin
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.shorts.ShortArrayList
+import it.unimi.dsi.fastutil.shorts.ShortList
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.PlayerChunkSender
 import net.minecraft.util.BitStorage
@@ -179,6 +181,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
                 val nms = player.nms
                 val level = nms.serverLevel()
+                val recreatePaletteMappings = config.recreatePaletteMappings
                 val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
                 val singleValuedSectionBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.serverLevelData.levelName)!!
 
@@ -221,7 +224,22 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                         is ListPalette, is MapPalette -> {
                             val storage = section.chunkData.storage!!
-                            val blockingArr = BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
+                            val blockingArr = if (recreatePaletteMappings) {
+                                val arr = Array<BlockType>(palette.size()) { i -> BlockType(palette.idToState(i), i) }
+                                for (i in 0 until 16 * 16 * 16) arr[storage.get(i)].blocks.add(i.toShort())
+                                arr.sortByDescending { it.blocks.size }
+                                for ((i, data) in arr.withIndex()) {
+                                    if (data.oldMapId != i) {
+                                        val iterator = data.blocks.iterator()
+                                        while (iterator.hasNext())
+                                            storage.set(iterator.nextShort().toInt(), i)
+                                    }
+                                }
+                                section.chunkData.palette = CustomListPalette(if (palette is ListPalette) 4 else 8, arr)
+                                BooleanArray(palette.size()) { id -> arr[id].blockId.blocking }
+                            } else {
+                                BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
+                            }
                             forChunk2D { x, z ->
                                 if (!blockingArr[storage.get(id and 0xfff)] ||
                                     !handleBlockingPrevSec(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
@@ -268,6 +286,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             }
         }
     }
+
+    private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(8))
 
     private inline fun forChunk2D(crossinline scope: (x: Int, z: Int) -> Unit) {
         for (z in 0 until 16)
@@ -488,12 +508,22 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         var resentChunks: Long = 0,
     )
 
-    private class CustomSingletonPalette(state: Int): SingletonPalette(CustomNetStreamInput(state))
+    private class CustomListPalette(bits: Int, array: Array<BlockType>): ListPalette(bits, CustomNetStreamInput(array)) {
 
-    private class CustomNetStreamInput(val value: Int): NetStreamInput(null) {
+        private class CustomNetStreamInput(val array: Array<BlockType>) : NetStreamInput(null) {
+            private var read = -2
+            override fun readVarInt(): Int {
+                return if (++read == -1) array.size else array[read].blockId
+            }
+        }
+    }
 
-        override fun readVarInt(): Int {
-            return value
+    private class CustomSingletonPalette(state: Int): SingletonPalette(CustomNetStreamInput(state)) {
+
+        private class CustomNetStreamInput(val value: Int) : NetStreamInput(null) {
+            override fun readVarInt(): Int {
+                return value
+            }
         }
     }
 }

@@ -131,6 +131,13 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             @field:Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,
+            @field:Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
+                    "However the mapping is not created based on the amount of blocks.\n" +
+                    "If this option is enabled, we will recreate the mapping.\n" +
+                    "This may slightly help with the compression rate, especially since we are changing the blocks too.\n" +
+                    "This could easily double the process time, so it's not enabled by default. \n" +
+                    "If you don't care about the ~0.3ms time, you can try it.")
+            val recreatePaletteMappings: Boolean = false,
             @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
