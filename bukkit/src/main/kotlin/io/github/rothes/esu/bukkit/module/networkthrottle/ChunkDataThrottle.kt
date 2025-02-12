@@ -189,6 +189,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val sections = column.chunks
                 val height = event.user.totalWorldHeight
                 val blocking = BooleanArray(height shl 8)
+                val isZero = BooleanArray(height shl 8)
                 // Handle neighbour chunks starts
                 val blockingNeighbor = BooleanArray(4 * 16 * (height + 1))
 
@@ -210,9 +211,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     when (palette) {
                         is SingletonPalette -> {
                             // This section contains only one block type, and it's already the smallest way.
+                            // We don't check isZero here because we never write data to this.
                             if (palette.idToState(0).blocking) {
                                 forChunk2D { x, z ->
-                                    if (!handleBlockingPrevSec(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
+                                    if (!handleBlockingPrevSec(blocking, blockingNeighbor, isZero, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
                                         allInvisible = false
                                     id++
                                 }
@@ -245,8 +247,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                 BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
                             }
                             forChunk2D { x, z ->
-                                if (!blockingArr[storage.get(id and 0xfff)] ||
-                                    !handleBlockingPrevSec(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
+                                val block = storage.get(id and 0xfff)
+                                if (block == 0) isZero[id] = true
+                                if (!blockingArr[block] ||
+                                    !handleBlockingPrevSec(blocking, blockingNeighbor, isZero, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
                                     allInvisible = false
                                 id++
                             }
@@ -254,8 +258,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             allInvisible = true
 
                             for (y in 0 until 15) forChunk2D { x, z ->
-                                if (!blockingArr[storage.get(id and 0xfff)] ||
-                                    !handleBlocking(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, x, z, id, storage))
+                                val block = storage.get(id and 0xfff)
+                                if (block == 0) isZero[id] = true
+                                if (!blockingArr[block] ||
+                                    !handleBlocking(blocking, blockingNeighbor, isZero, invisible, minimalHeightInvisibleCheck, x, z, id, storage))
                                     allInvisible = false
                                 id++
                             }
@@ -263,8 +269,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         is GlobalPalette -> {
                             val storage = section.chunkData.storage!!
                             forChunk2D { x, z ->
-                                if (!storage.get(id and 0xfff).blocking ||
-                                    !handleBlockingPrevSec(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
+                                val block = storage.get(id and 0xfff)
+                                if (block == 0) isZero[id] = true
+                                if (!block.blocking ||
+                                    !handleBlockingPrevSec(blocking, blockingNeighbor, isZero, invisible, minimalHeightInvisibleCheck, index, x, z, id, sections))
                                     allInvisible = false
                                 id++
                             }
@@ -272,8 +280,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             allInvisible = true
 
                             for (y in 0 until 15) forChunk2D { x, z ->
-                                if (!(storage.get(id and 0xfff).blocking ||
-                                            !handleBlocking(blocking, blockingNeighbor, invisible, minimalHeightInvisibleCheck, x, z, id, storage)))
+                                val block = storage.get(id and 0xfff)
+                                if (block == 0) isZero[id] = true
+                                if (!(block.blocking ||
+                                            !handleBlocking(blocking, blockingNeighbor, isZero, invisible, minimalHeightInvisibleCheck, x, z, id, storage)))
                                     allInvisible = false
                                 id++
                             }
@@ -364,13 +374,16 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private inline fun handleBlockingPrevSec(blocking: BooleanArray, blockingNeighbor: BooleanArray, invisible: BooleanArray, minimalHeightInvisibleCheck: Boolean,
+    private inline fun handleBlockingPrevSec(blocking: BooleanArray, blockingNeighbor: BooleanArray, isZero: BooleanArray,
+                                             invisible: BooleanArray, minimalHeightInvisibleCheck: Boolean,
                                              index: Int, x: Int, z: Int, id: Int, sections: Array<BaseChunk>): Boolean {
         blocking[id] = true
         if (index == 0)
             return true
 
         if (isInvisible(blocking, blockingNeighbor, minimalHeightInvisibleCheck, id, x, z)) {
+            if (isZero[id - 0x100])
+                return true
             val chunkData = (sections[index - 1] as Chunk_v1_18).chunkData
             val last = chunkData.storage
             if (last != null) {
@@ -383,10 +396,13 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         return false
     }
 
-    private inline fun handleBlocking(blocking: BooleanArray, blockingNeighbor: BooleanArray, invisible: BooleanArray, minimalHeightInvisibleCheck: Boolean,
+    private inline fun handleBlocking(blocking: BooleanArray, blockingNeighbor: BooleanArray, isZero: BooleanArray,
+                                      invisible: BooleanArray, minimalHeightInvisibleCheck: Boolean,
                                       x: Int, z: Int, id: Int, storage: BaseStorage): Boolean {
         blocking[id] = true
         if (isInvisible(blocking, blockingNeighbor, minimalHeightInvisibleCheck, id, x, z)) {
+            if (isZero[id - 0x100])
+                return true
             storage.set(id - 0x100 and 0xfff, 0)
             invisible[id - 0x100] = true
             return true
