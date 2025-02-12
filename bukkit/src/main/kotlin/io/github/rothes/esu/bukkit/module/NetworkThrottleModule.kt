@@ -137,8 +137,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "However the mapping is not created based on the amount of blocks.\n" +
                     "If this option is enabled, we will rebuild the mapping with sorted blocks amount.\n" +
                     "This may slightly help with the compression rate, especially since we are changing the blocks too.\n" +
-                    "This could easily double the process time, so it's not enabled by default. \n" +
-                    "If you don't care about the extra ~0.3ms time, you can try it.")
+                    "This could easily double the process time, so it's not enabled by default.\n" +
+                    "If you don't care about the extra about one times, you can try it.")
             val rebuildPaletteMappings: Boolean = false,
             @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
