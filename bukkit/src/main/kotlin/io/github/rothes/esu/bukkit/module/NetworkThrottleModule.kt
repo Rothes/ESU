@@ -115,11 +115,9 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     )
 
     data class ModuleConfig(
-        @field:Comment("Helps to reduce chunk upload bandwidth. " +
-                "Plugin will compress invisible blocks in chunk data packet." +
+        @field:Comment("Helps to reduce chunk upload bandwidth. Plugin will compress invisible blocks in chunk data packet.\n" +
                 "If necessary, we send a full chunk data again.\n" +
-                "This can reduce up to 50% bandwidth usage averagely. " +
-                "Make sure you enabled network-compression on proxy or this server.")
+                "This can save about 50% bandwidth usage averagely. Make sure you enabled network-compression on proxy or this server.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
         @field:Comment("Adjust the settings the players with high latency to lower value.\n" +
                 "So they won't affect average quality of all players.")
@@ -135,11 +133,12 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             val netherRoofInvisibleCheck: Boolean = false,
             @field:Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
                     "However the mapping is not created based on the amount of blocks.\n" +
-                    "If this option is enabled, we will rebuild the mapping with sorted blocks amount.\n" +
+                    "If this option is enabled, we will rebuild the mapping by sorted blocks amount.\n" +
                     "This may slightly help with the compression rate, especially since we are changing the blocks too.\n" +
-                    "This could easily double the process time, so it's not enabled by default.\n" +
-                    "If you don't care about the extra about one times, you can try it.")
-            val rebuildPaletteMappings: Boolean = false,
+                    "It also reduces the probability of ghost chunks(full chunk with portals [with sound], eta.) .\n" +
+                    "This could easily double the process time, if you care about the extra about ~0.2ms, disable it.\n" +
+                    " * We are planing to enhance this by another two approaches, which may help more.")
+            val rebuildPaletteMappings: Boolean = true,
             @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
