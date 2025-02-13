@@ -230,6 +230,11 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         }
                         is ListPalette, is MapPalette -> {
                             val storage = section.chunkData.storage!!
+                            // rebuildPaletteMappings starts
+                            /* TODO: Try to reduce the amount of block types; Each lower bit benefits at least 512 bytes.
+                                 Approaches:
+                                  a) Minecraft keeps the removed blocks in indexes, remove them;
+                                  b) Convert all blocks in block types to id=0, if possible. As we sorted the types by amount, it's clear how to do that. */
                             val blockingArr = if (rebuildPaletteMappings) {
                                 val arr = Array<BlockType>(palette.size()) { i -> BlockType(palette.idToState(i), i) }
                                 for (i in 0 until 16 * 16 * 16) arr[storage.get(i)].blocks.add(i.toShort())
@@ -241,11 +246,16 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                             storage.set(iterator.nextShort().toInt(), i)
                                     }
                                 }
+//                                val empty = arr.filter { it.blocks.isEmpty() }
+//                                if (empty.isNotEmpty()) {
+//                                    println("Block types: ${arr.size} - ${empty.size} not found; ${32 - arr.size.countLeadingZeroBits()} -> ${32 - (arr.size - empty.size).countLeadingZeroBits()}")
+//                                }
                                 section.chunkData.palette = CustomListPalette(if (palette is ListPalette) 4 else 8, arr)
                                 BooleanArray(palette.size()) { id -> arr[id].blockId.blocking }
                             } else {
                                 BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
                             }
+                            // rebuildPaletteMappings ends
                             forChunk2D { x, z ->
                                 val block = storage.get(id and 0xfff)
                                 if (block == 0) isZero[id] = true
