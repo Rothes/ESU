@@ -37,6 +37,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.SenderMapper
@@ -151,6 +152,11 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     BukkitUserManager[event.uniqueId]
                 else
                     BukkitUserManager.unload(event.uniqueId)
+            }
+
+            @EventHandler(priority = EventPriority.LOWEST)
+            fun onLogin(event: PlayerJoinEvent) {
+                BukkitUserManager[event.player]
             }
 
             @EventHandler(priority = EventPriority.MONITOR)
