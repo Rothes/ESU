@@ -29,6 +29,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.lumine.mythic.bukkit.utils.text.Text.DefaultFontInfo.i
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.LongArrayList
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import it.unimi.dsi.fastutil.shorts.ShortList
 import net.minecraft.server.level.ServerLevel
@@ -308,10 +309,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 // We don't check allInvisible for last section. It never happens in vanilla generated chunks.
                 counter.minimalChunks++
                 miniChunks[chunkKey] = invisible
-                println("TIME: ${System.nanoTime() - tm}ns")
+                val tim = System.nanoTime() - tm
+                if (tim < 600_000) timesl.add(tim)
+                if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
+                event.isCancelled = true
             }
         }
     }
+    private val timesl = LongArrayList(10000000)
 
     private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(8))
 
