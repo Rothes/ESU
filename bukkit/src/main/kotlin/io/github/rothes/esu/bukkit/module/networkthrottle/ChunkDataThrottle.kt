@@ -52,6 +52,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Field
+import kotlin.experimental.or
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -192,10 +193,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val blocking = ByteArray((height shl 8) + 16*16)
                 val isZero = BooleanArray(height shl 8)
                 // Handle neighbour chunks starts
-                handleNeighbourChunk(blocking, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f)
-                handleNeighbourChunk(blocking, level, column.x + 1, column.z, 0x00, 0x10, +0x0f)
-                handleNeighbourChunk(blocking, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0)
-                handleNeighbourChunk(blocking, level, column.x, column.z + 1, 0x00, 0x01, +0xf0)
+                handleNeighbourChunk(blocking, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, 0b00001)
+                handleNeighbourChunk(blocking, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, 0b00010)
+                handleNeighbourChunk(blocking, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, 0b00100)
+                handleNeighbourChunk(blocking, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, 0b01000)
                 // Handle neighbour chunks ends
                 val invisible = BooleanArray(height shl 8)
 
@@ -223,7 +224,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                 id += 16 * 16 * 15
                                 var bid = id
                                 for (i in 0 until 16 * 16)
-                                    blocking[bid++]++
+                                    blocking[bid] = blocking[bid++] or 0b10000
                             } else {
                                 id += 16 * 16 * 16
                                 allInvisible = false
@@ -324,8 +325,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     val paletteField: Field = pcDataClass.getDeclaredField("palette").also { it.isAccessible = true }
     val storageField: Field = pcDataClass.getDeclaredField("storage").also { it.isAccessible = true }
 
-    private inline fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel,
-                                            chunkX: Int, chunkZ: Int, bid: Int, bidStep: Int, arrOffset: Int) {
+    private inline fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
+                                            bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte) {
         level.getChunkIfLoaded(chunkX, chunkZ)?.let { chunk ->
             val indexLoop = 0x100 - bidStep * 16
             var blockId = bid
@@ -338,7 +339,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         if (palette.valueFor(0).blocking) {
                             for (y in 0 until 16) {
                                 for (j in 0 until 16) {
-                                    blocking[blockId + arrOffset]++
+                                    blocking[blockId + arrOffset] = arrValue
                                     blockId += bidStep
                                 }
                                 blockId += indexLoop
@@ -353,7 +354,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         for (y in 0 until 16) {
                             for (j in 0 until 16) {
                                 if (blockingArr[storage.get(blockId and 0xfff)])
-                                    blocking[blockId + arrOffset]++
+                                    blocking[blockId + arrOffset] = arrValue
                                 blockId += bidStep
                             }
                             blockId += indexLoop
@@ -364,7 +365,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                         for (y in 0 until 16) {
                             for (j in 0 until 16) {
                                 if (storage.get(blockId and 0xfff).blocking)
-                                    blocking[blockId + arrOffset]++
+                                    blocking[blockId + arrOffset] = arrValue
                                 blockId += bidStep
                             }
                             blockId += indexLoop
@@ -385,7 +386,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (index == 0)
             return true
 
-        if (blocking[id - 0x100] == 5.toByte()) {
+        if (blocking[id - 0x100] == 0b11111.toByte()) {
             if (isZero[id - 0x100])
                 return true
             val chunkData = (sections[index - 1] as Chunk_v1_18).chunkData
@@ -404,7 +405,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                       invisible: BooleanArray, minimalHeightInvisibleCheck: Boolean,
                                       x: Int, z: Int, id: Int, storage: BaseStorage): Boolean {
         addNearby(blocking, id, x, z)
-        if (blocking[id - 0x100] == 5.toByte()) {
+        if (blocking[id - 0x100] == 0b11111.toByte()) {
             if (isZero[id - 0x100])
                 return true
             storage.set(id - 0x100 and 0xfff, 0)
@@ -415,11 +416,11 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     private inline fun addNearby(blocking: ByteArray, id: Int, x: Int, z: Int) {
-        if (x > 0 ) blocking[id - 0x001]++
-        if (x < 15) blocking[id + 0x001]++
-        if (z > 0 ) blocking[id - 0x010]++
-        if (z < 15) blocking[id + 0x010]++
-        blocking[id + 0x100]++
+        if (x > 0 ) (id - 0x001).let { blocking[it] = blocking[it] or 0b00001 }
+        if (x < 15) (id + 0x001).let { blocking[it] = blocking[it] or 0b00010 }
+        if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or 0b00100 }
+        if (z < 15) (id + 0x010).let { blocking[it] = blocking[it] or 0b01000 }
+        (id + 0x100).let { blocking[it] = blocking[it] or 0b10000 }
     }
 
 //    private inline fun isInvisible(blocking: ByteArray, minimalHeightInvisibleCheck: Boolean,
