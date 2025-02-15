@@ -74,11 +74,8 @@ tasks.shadowJar {
 }
 
 tasks.processResources {
-    filter<ReplaceTokens>(
-        "tokens" to mapOf(
-            "versionName" to project.property("versionName"),
-            "versionChannel" to project.property("versionChannel"),
-            "versionId" to project.property("versionId"),
-        ))
-    outputs.doNotCacheIf("MakeReplacementsWork") { true }
+    val keys = listOf("versionName", "versionChannel", "versionId")
+    val properties = rootProject.ext.properties.filter { keys.contains(it.key) }
+    inputs.properties(properties)
+    filter<ReplaceTokens>("tokens" to properties)
 }
