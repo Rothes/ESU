@@ -65,6 +65,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private const val Y_MINUS   = 0b10000.toByte()
     private const val INVISIBLE = 0b11111.toByte()
 
+    init {
+        if (Block.BLOCK_STATE_REGISTRY.size() > Short.MAX_VALUE)
+            error("Block states has exceeded max value of short! This is not supported. " +
+                    "${Block.BLOCK_STATE_REGISTRY.size()} > ${Short.MAX_VALUE}")
+    }
+
     private val FULL_CHUNK = BitSet(0)
 
     private val minimalChunks = hashMapOf<Player, Long2ObjectMap<BitSet>>()
