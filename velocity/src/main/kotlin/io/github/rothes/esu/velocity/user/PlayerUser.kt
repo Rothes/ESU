@@ -1,17 +1,18 @@
-package io.github.rothes.esu.bukkit.user
+package io.github.rothes.esu.velocity.user
 
+import com.velocitypowered.api.command.CommandSource
+import com.velocitypowered.api.proxy.Player
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.velocity.plugin
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.Bukkit
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
-import java.util.*
+import java.util.UUID
+import kotlin.jvm.optionals.getOrNull
 
-class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUser() {
+class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityUser() {
 
     constructor(player: Player): this(player.uniqueId, player)
 
@@ -20,11 +21,11 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
             val cache = field
             if (cache != null) {
                 // Check if the instance is as it is.
-                if (cache.isOnline && cache.isConnected) {
+                if (cache.isActive) {
                     return cache
                 }
             }
-            val get = Bukkit.getPlayer(uuid)
+            val get = plugin.server.getPlayer(uuid).getOrNull()
             if (get != null) {
                 field = get
                 return get
@@ -34,19 +35,21 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         internal set
     val player: Player
         get() = playerCache!!
-    override val commandSender: CommandSender
+    override val commandSender: CommandSource
         get() = player
     override val dbId: Int
+    override val name: String
+        get() = nameUnsafe!!
     override val nameUnsafe: String?
-        get() = playerCache?.name
+        get() = playerCache?.username
     override val clientLocale: String
-        get() = with(player.locale()) { language + '_' + country.lowercase() }
+        get() = with(player.playerSettings.locale) { language + '_' + country.lowercase() }
 
     override var languageUnsafe: String?
     override var colorSchemeUnsafe: String?
 
     override val isOnline: Boolean
-        get() = playerCache?.isOnline == true
+        get() = playerCache?.isActive == true
 
     init {
         val userData = StorageManager.getUserData(uuid)
@@ -56,7 +59,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     }
 
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
+        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
             ColorSchemes.schemes.get(colorScheme) { tagResolver }!!))
     }
 
@@ -77,5 +80,6 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         result = 31 * result + uuid.hashCode()
         return result
     }
+
 
 }

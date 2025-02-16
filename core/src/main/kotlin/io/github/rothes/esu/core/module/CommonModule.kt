@@ -1,11 +1,16 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import org.incendo.cloud.Command
+import org.incendo.cloud.CommandManager
+import org.incendo.cloud.annotations.AnnotationParser
+import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Path
 import kotlin.jvm.java
@@ -25,6 +30,21 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
         protected set
     protected open val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
     protected open val localeLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
+
+    protected val registeredCommands = LinkedHashSet<Command<out User>>()
+
+    protected fun unregisterCommands() {
+        with(EsuCore.instance.commandManager) {
+            registeredCommands.forEach {
+                deleteRootCommand(it.rootComponent().name())
+            }
+            registeredCommands.clear()
+        }
+    }
+
+    override fun disable() {
+        unregisterCommands()
+    }
 
     override val moduleFolder: Path by lazy {
         EsuCore.instance.baseConfigPath().resolve("modules").resolve(name)
