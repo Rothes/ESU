@@ -288,7 +288,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ): ConfigurationPart
 
             data class LongMessage(
-                val maxMessageSize: Int = 72
+                val maxMessageSize: Int = 144
             ): ConfigurationPart
 
             data class RandomCharacters(
