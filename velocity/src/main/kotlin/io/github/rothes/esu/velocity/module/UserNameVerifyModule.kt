@@ -39,6 +39,8 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
                     user.kick(locale, { kickMessage.messages[key] },
                         component("prefix", user.buildMinimessage(locale, { kickMessage.prefix }))
                     )
+                    e.result = ServerPreConnectEvent.ServerResult.denied()
+                    break
                 }
             }
         }
