@@ -52,7 +52,9 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Field
+import java.util.BitSet
 import kotlin.experimental.or
+import kotlin.text.Typography.tm
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -65,9 +67,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private const val Y_MINUS   = 0b10000.toByte()
     private const val INVISIBLE = 0b11111.toByte()
 
-    private val FULL_CHUNK = BooleanArray(0)
+    private val FULL_CHUNK = BitSet(0)
 
-    private val minimalChunks = hashMapOf<Player, Long2ObjectMap<BooleanArray>>()
+    private val minimalChunks = hashMapOf<Player, Long2ObjectMap<BitSet>>()
     private val blockingCache = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
         BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
             val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
@@ -86,11 +88,12 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val maxHeight = world.maxHeight
                 val height = maxHeight - minHeight
                 // We don't persist the invisible blocks data so let's assume all invisible.
-                val array = BooleanArray(16 * 16 * height) { true }
+                val set = BitSet(16 * 16 * height)
+                set.set(0, set.size(), true)
                 val miniChunks = player.miniChunks
                 for (chunkKey in hotData) {
                     if (player.isChunkSent(chunkKey))
-                        miniChunks[chunkKey] = array.clone()
+                        miniChunks[chunkKey] = BitSet.valueOf(set.toLongArray())
                 }
             }
         }
@@ -106,7 +109,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (plugin.isEnabled || plugin.disabledHot) {
             for ((player, map) in minimalChunks.entries) {
                 map.forEach { (k, v) ->
-                    if (v.contains(true)) {
+                    if (v.toLongArray().find { it != 0L } != null) {
                         data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                     }
                 }
@@ -177,7 +180,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
-                val tm = System.nanoTime()
+//                val tm = System.nanoTime()
                 val wrapper = WrapperPlayServerChunkData(event)
                 val player = event.getPlayer<Player>()
                 val column = wrapper.column
@@ -200,7 +203,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val height = event.user.totalWorldHeight
                 val blocking = ByteArray((height shl 8) + 16*16)
                 val isZero = BooleanArray(height shl 8)
-                val invisible = BooleanArray(height shl 8)
+                val invisible = BitSet(height shl 8)
                 if (!minimalHeightInvisibleCheck)
                     for (i in 0 until 16 * 16)
                         blocking[i] = Y_MINUS
@@ -318,14 +321,14 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 // We don't check allInvisible for last section. It never happens in vanilla generated chunks.
                 counter.minimalChunks++
                 miniChunks[chunkKey] = invisible
-                val tim = System.nanoTime() - tm
-                if (tim < 600_000) timesl.add(tim)
-                if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
-                event.isCancelled = true
+//                val tim = System.nanoTime() - tm
+//                if (tim < 600_000) timesl.add(tim)
+//                if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
+//                event.isCancelled = true
             }
         }
     }
-    private val timesl = LongArrayList(10000000)
+//    private val timesl = LongArrayList(10000000)
 
     private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(8))
 
@@ -393,7 +396,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private inline fun handleBlockingPrevSec(blocking: ByteArray, isZero: BooleanArray, invisible: BooleanArray,
+    private inline fun handleBlockingPrevSec(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
                                              index: Int, x: Int, z: Int, id: Int, sections: Array<BaseChunk>): Boolean {
         addNearby(blocking, id, x, z)
         if (index == 0)
@@ -415,7 +418,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         return false
     }
 
-    private inline fun handleBlocking(blocking: ByteArray, isZero: BooleanArray, invisible: BooleanArray,
+    private inline fun handleBlocking(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
                                       x: Int, z: Int, id: Int, storage: BaseStorage): Boolean {
         addNearby(blocking, id, x, z)
 
@@ -453,7 +456,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val level = nms.serverLevel()
         fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int) {
             val invisibleNearby = map[chunkKey + chunkOff] ?: return
-            if (bid > invisibleNearby.size) return // Well, on highest Y? I'm not sure how it happens.
+            if (bid > invisibleNearby.size()) return // Well, on highest Y? I'm not sure how it happens.
             if (invisibleNearby != FULL_CHUNK && invisibleNearby[bid + blockOff]) {
                 map[chunkKey + chunkOff] = FULL_CHUNK
                 try {
@@ -476,7 +479,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val invisible = map[chunkKey] ?: return
         if (invisible === FULL_CHUNK) return
 
-        val height = invisible.size shr 8
+        val height = invisible.size() shr 8
         if (y >= height) return
 
         val update = (if (x > 0 )         invisible[bid - 0x001] else false) ||
