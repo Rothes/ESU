@@ -1,5 +1,5 @@
 # ESU
-A bukkit plugin that helps with managing your server, provides a better gameplay environment.
+Bukkit & Velocity plugin that helps with managing your server, provides a better gameplay environment.
 
 All features can be enabled independently, and configurable.
 
@@ -9,6 +9,7 @@ You have the ability to set the message location(chat, actionbar, title), and so
 Custom color scheme feature, allowing your players to choose a theme they like!
 
 ### Currently available modules
+#### ESU-Bukkit
 - AntiCommandSpamModule
 - AutoReloadExtensionPluginsModule
 - AutoRestartModule
@@ -18,8 +19,12 @@ Custom color scheme feature, allowing your players to choose a theme they like!
 - EsuChatModule
 - ItemEditModule
 - NetworkThrottleModule
+- NewbieProtectModule
 - SpoofServerSettingsModule
 - UtilCommandsModule
+
+#### ESU-Velocity
+- UserNameVerifyModule
 
 ### (Working in Progress)
 Though this plugin already has some modules for use,
