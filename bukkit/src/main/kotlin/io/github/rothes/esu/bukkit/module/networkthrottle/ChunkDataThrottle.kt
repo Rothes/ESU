@@ -28,7 +28,6 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.plugin
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.longs.LongArrayList
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import it.unimi.dsi.fastutil.shorts.ShortList
 import net.minecraft.server.level.ServerLevel
@@ -54,7 +53,6 @@ import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Field
 import java.util.BitSet
 import kotlin.experimental.or
-import kotlin.text.Typography.tm
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -451,7 +449,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         val chunkZ = z shr 4
         val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
 
-        val bid = blockKeyChunkAnd(x, y, z, minHeight)
+        val bid = blockKeyChunk(x, y, z, minHeight)
         val nms = player.nms
         val level = nms.serverLevel()
         fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int) {
@@ -503,41 +501,20 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
     }
 
-    private val Player.nms
+    private inline val Player.nms
         get() = (player as CraftPlayer).handle
 
-    private val BlockState.id
-        get() = Block.BLOCK_STATE_REGISTRY.getId(this)
-
     private data class ChunkPos(val x: Int, val z: Int)
-    private val Long.chunkPos
+    private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
+
+    private inline val Long.chunkPos
         get() = ChunkPos((this and 0xffffffffL).toInt(), (this shr 32).toInt())
 
-    private fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
-        return x or (z shl 4) or (y - minHeight shl 8)
-    }
-    private fun blockKeyChunkAnd(x: Int, y: Int, z: Int, minHeight: Int): Int {
+    private inline fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
         return (x and 0xf) or (z and 0xf shl 4) or (y - minHeight shl 8)
     }
-    private val Int.chunkBlockPos: ChunkBlockPos
+    private inline val Int.chunkBlockPos: ChunkBlockPos
         get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
-    private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
-    private inline fun Int.nearbyBlockVisible(map: Long2ObjectMap<BooleanArray>, invisible: BooleanArray,
-                                              chunk: Long): Boolean {
-        val height = invisible.size shr 8
-        println("${chunk.chunkPos}\n" +
-                "${(chunk - 0x000000001).chunkPos} = ${map[chunk - 0x000000001]?.get(this + 15)        }\n" +
-                "${(chunk + 0x000000001).chunkPos} = ${map[chunk + 0x000000001]?.get(this - 15)        }\n" +
-                "${(chunk - 0x100000000).chunkPos} = ${map[chunk - 0x100000000]?.get(this + (15 shl 4))}\n" +
-                "${(chunk + 0x100000000).chunkPos} = ${map[chunk + 0x100000000]?.get(this - (15 shl 4))}\n")
-        val (x, y, z) = this.chunkBlockPos
-        return (if (x == 0 ) map[chunk - 0x000000001]?.get(this + 15)         ?: false else invisible[this - 0x001]) ||
-                (if (x == 15) map[chunk + 0x000000001]?.get(this - 15)         ?: false else invisible[this + 0x001]) ||
-                (if (z == 0 ) map[chunk - 0x100000000]?.get(this + (15 shl 4)) ?: false else invisible[this - 0x010]) ||
-                (if (z == 15) map[chunk + 0x100000000]?.get(this - (15 shl 4)) ?: false else invisible[this + 0x010]) ||
-                (if (y > 0 )         invisible[this - 0x100] else false) ||
-                (if (y < height - 1) invisible[this + 0x100] else false)
-    }
 
     private inline val Int.blocking
         get() = blockingCache[this]
