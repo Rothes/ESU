@@ -32,6 +32,7 @@ dependencies {
     api(project(":core"))
     api("org.incendo:cloud-velocity:2.0.0-beta.10")
     implementation("com.h2database:h2:2.3.232")
+    implementation("com.mysql:mysql-connector-j:8.4.0")
 }
 
 kotlin {
