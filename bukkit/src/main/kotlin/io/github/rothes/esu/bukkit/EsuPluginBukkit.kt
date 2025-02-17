@@ -11,6 +11,7 @@ import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
 import io.github.rothes.esu.bukkit.module.BlockedCommandsModule
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
 import io.github.rothes.esu.bukkit.module.EsuChatModule
+import io.github.rothes.esu.bukkit.module.ExploitFixModule
 import io.github.rothes.esu.bukkit.module.ItemEditModule
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.NewbieProtectModule
@@ -93,6 +94,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.addModule(BlockedCommandsModule)
         ModuleManager.addModule(ChatAntiSpamModule)
         ModuleManager.addModule(EsuChatModule)
+        ModuleManager.addModule(ExploitFixModule)
         ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(NewbieProtectModule)

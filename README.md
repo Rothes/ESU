@@ -17,6 +17,7 @@ Custom color scheme feature, allowing your players to choose a theme they like!
 - BlockedCommandsModule
 - ChatAntiSpamModule
 - EsuChatModule
+- ExploitFixModule
 - ItemEditModule
 - NetworkThrottleModule
 - NewbieProtectModule
