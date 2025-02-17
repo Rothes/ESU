@@ -33,6 +33,8 @@ dependencies {
     api("org.incendo:cloud-velocity:2.0.0-beta.10")
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:8.4.0")
+
+    implementation("org.bstats:bstats-velocity:3.1.0")
 }
 
 kotlin {
@@ -53,7 +55,6 @@ tasks.shadowJar {
     relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
 
-    relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
     relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")
 }
 

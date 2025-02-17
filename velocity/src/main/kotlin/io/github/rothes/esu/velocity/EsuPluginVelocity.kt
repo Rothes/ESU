@@ -29,6 +29,7 @@ import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
+import org.bstats.velocity.Metrics
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -48,7 +49,7 @@ private const val PLUGIN_ID = "esu"
     url = "https://github.com/Rothes/ESU",
 )
 class EsuPluginVelocity @Inject constructor(
-    val server: ProxyServer, val logger: Logger, @DataDirectory private val dataDirectory: Path
+    val server: ProxyServer, val logger: Logger, @DataDirectory private val dataDirectory: Path, val metricsFactory: Metrics.Factory
 ): EsuCore {
 
     override var initialized: Boolean = false
@@ -133,6 +134,8 @@ class EsuPluginVelocity @Inject constructor(
         }
 
         server.allPlayers.forEach { it.user }
+
+        metricsFactory.make(this, 24826) // bStats
 
         initialized = true
     }
