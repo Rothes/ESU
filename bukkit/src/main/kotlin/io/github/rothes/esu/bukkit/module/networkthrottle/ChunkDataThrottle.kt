@@ -483,7 +483,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (playerChunk === FULL_CHUNK) return
 
         val invisible = playerChunk.invisible
-        val updates = blocks.filter { invisible.safeGet(blockKeyChunk(it.x, it.y, it.z, minHeight)) }
+        val updates = blocks.filter {
+            val bid = blockKeyChunk(it.x, it.y, it.z, minHeight)
+            invisible.safeGet(bid).also { if (it) invisible[bid] = false }
+        }
         if (updates.isEmpty()) return
 
         val (chunkX, chunkZ) = chunkKey.chunkPos
