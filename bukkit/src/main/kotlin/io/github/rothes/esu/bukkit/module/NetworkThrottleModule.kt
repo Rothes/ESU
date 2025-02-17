@@ -91,8 +91,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             @Command("network chunkDataThrottle view")
             @ShortPerm()
             fun chunkDataThrottleView(sender: User) {
-                val (minimalChunks, resentChunks) = ChunkDataThrottle.counter
-                sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks")
+                val (minimalChunks, resentChunks, resentBlocks) = ChunkDataThrottle.counter
+                sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks ; resentBlocks: $resentBlocks")
             }
         })
         Analyser // Init this
@@ -126,6 +126,12 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
+            @field:Comment("Plugin will resent whole chunk data if resent block amount exceeds this value.\n" +
+                    "Set it to -1 will never resent chunk but keep updating nearby blocks, \n" +
+                    " 0 to always resent chunks.")
+            val thresholdToResentWholeChunk: Int = 448,
+            @field:Comment("How many distance of blocks to update while necessary.")
+            val updateDistance: Int = 2,
             @field:Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,

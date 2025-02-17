@@ -30,7 +30,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import it.unimi.dsi.fastutil.shorts.ShortList
+import net.minecraft.core.BlockPos
+import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.PlayerChunkSender
 import net.minecraft.util.BitStorage
 import net.minecraft.world.level.block.Block
@@ -52,7 +55,9 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Field
 import java.util.BitSet
+import kotlin.collections.set
 import kotlin.experimental.or
+import kotlin.math.abs
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -71,9 +76,9 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                     "${Block.BLOCK_STATE_REGISTRY.size()} > ${Short.MAX_VALUE}")
     }
 
-    private val FULL_CHUNK = BitSet(0)
+    private val FULL_CHUNK = PlayerChunk(BitSet(0))
 
-    private val minimalChunks = hashMapOf<Player, Long2ObjectMap<BitSet>>()
+    private val minimalChunks = hashMapOf<Player, Long2ObjectMap<PlayerChunk>>()
     private val blockingCache = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
         BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
             val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
@@ -97,7 +102,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val miniChunks = player.miniChunks
                 for (chunkKey in hotData) {
                     if (player.isChunkSent(chunkKey))
-                        miniChunks[chunkKey] = BitSet.valueOf(set.toLongArray())
+                        miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(set.toLongArray()))
                 }
             }
         }
@@ -113,7 +118,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (plugin.isEnabled || plugin.disabledHot) {
             for ((player, map) in minimalChunks.entries) {
                 map.forEach { (k, v) ->
-                    if (v.toLongArray().find { it != 0L } != null) {
+                    if (v.invisible.toLongArray().find { it != 0L } != null) {
                         data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
                     }
                 }
@@ -324,7 +329,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
                 // We don't check allInvisible for last section. It never happens in vanilla generated chunks.
                 counter.minimalChunks++
-                miniChunks[chunkKey] = invisible
+                miniChunks[chunkKey] = PlayerChunk(invisible)
 //                val tim = System.nanoTime() - tm
 //                if (tim < 600_000) timesl.add(tim)
 //                if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
@@ -450,65 +455,84 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
-        val map = player.miniChunks
-        val chunkX = x shr 4
-        val chunkZ = z shr 4
-        val chunkKey = Chunk.getChunkKey(chunkX, chunkZ)
+        val fullUpdateThreshold = config.chunkDataThrottle.thresholdToResentWholeChunk
+        val updateDistance = config.chunkDataThrottle.updateDistance
 
-        val bid = blockKeyChunk(x, y, z, minHeight)
-        val nms = player.nms
-        val level = nms.serverLevel()
-        fun handleRelativeChunk(chunkOff: Long, blockOff: Int, xOff: Int, zOff: Int) {
-            val invisibleNearby = map[chunkKey + chunkOff] ?: return
-            if (bid > invisibleNearby.size()) return // Well, on highest Y? I'm not sure how it happens.
-            if (invisibleNearby != FULL_CHUNK && invisibleNearby[bid + blockOff]) {
-                map[chunkKey + chunkOff] = FULL_CHUNK
-                try {
-                    val chunk = level.getChunkIfLoaded(chunkX + xOff, chunkZ + zOff) ?: error("Failed to resent chunk (${chunkX + xOff}, ${chunkZ + zOff}) for ${player.name}, it is not loaded!")
-                    PlayerChunkSender.sendChunk(nms.connection, level, chunk)
-                    counter.resentChunks++
-                } catch (e: Exception) {
-                    map[chunkKey] = invisibleNearby
-                    throw e
-                }
-            }
+        val miniChunks = player.miniChunks
+        val groups = buildList {
+            for (i in -updateDistance..updateDistance)
+                for (j in -updateDistance + abs(i) .. updateDistance - abs(i))
+                    for (k in -updateDistance + abs(i) + abs(j) .. updateDistance - abs(i) - abs(j))
+                        add(BlockPos(x + i, y + j, z + k))
+        }.groupBy {
+            Chunk.getChunkKey(it.x shr 4, it.z shr 4)
         }
 
-        val (x, y, z) = bid.chunkBlockPos
-        if (x == 0 ) handleRelativeChunk(-0x000000001, +15 shl 0, -1, +0)
-        if (x == 15) handleRelativeChunk(+0x000000001, -15 shl 0, +1, +0)
-        if (z == 0 ) handleRelativeChunk(-0x100000000, +15 shl 4, +0, -1)
-        if (z == 15) handleRelativeChunk(+0x100000000, -15 shl 4, +0, +1)
+        val nms = player.nms
+        val level = nms.serverLevel()
 
-        val invisible = map[chunkKey] ?: return
-        if (invisible === FULL_CHUNK) return
-
-        val height = invisible.size() shr 8
-        if (y >= height) return
-
-        val update = (if (x > 0 )         invisible[bid - 0x001] else false) ||
-                (if (x < 15)         invisible[bid + 0x001] else false) ||
-                (if (z > 0 )         invisible[bid - 0x010] else false) ||
-                (if (z < 15)         invisible[bid + 0x010] else false) ||
-                (if (y > 0 )         invisible[bid - 0x100] else false) ||
-                (if (y < height - 1) invisible[bid + 0x100] else false)
-        if (update) {
-            map[chunkKey] = FULL_CHUNK
-            try {
-                val nms = player.nms
-                val level = nms.serverLevel()
-                val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: error("Failed to resent chunk ($chunkX, $chunkZ) for ${player.name}, it is not loaded!")
-                PlayerChunkSender.sendChunk(nms.connection, level, chunk)
-                counter.resentChunks++
-            } catch (e: Exception) {
-                map[chunkKey] = invisible
-                throw e
-            }
+        for ((chunkKey, blocks) in groups) {
+            checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, miniChunks, chunkKey, blocks, minHeight)
         }
     }
 
+    private fun checkChunkBlockUpdate(player: Player, nms: ServerPlayer, level: ServerLevel, fullUpdateThreshold: Int,
+                                      miniChunks: Long2ObjectMap<PlayerChunk>,
+                                      chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
+        val playerChunk = miniChunks[chunkKey] ?: return
+        if (playerChunk === FULL_CHUNK) return
+
+        val invisible = playerChunk.invisible
+        val updates = blocks.filter { invisible.safeGet(blockKeyChunk(it.x, it.y, it.z, minHeight)) }
+        if (updates.isEmpty()) return
+
+        val (chunkX, chunkZ) = chunkKey.chunkPos
+        val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
+        if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
+            try {
+                miniChunks[chunkKey] = FULL_CHUNK
+                PlayerChunkSender.sendChunk(nms.connection, level, chunk)
+                counter.resentChunks++
+            } catch (e: Exception) {
+                miniChunks[chunkKey] = playerChunk
+                throw e
+            }
+            return
+        }
+        playerChunk.updatedBlocks += updates.size
+        counter.resentBlocks += updates.size
+
+        val groupBy = updates.groupBy {
+            SectionPos.of(it)
+        }
+
+        for ((section, blocks) in groupBy) {
+            val wrapper = if (blocks.size > 1)
+                WrapperPlayServerMultiBlockChange(
+                    Vector3i(section.x, section.y, section.z), true, blocks.map {
+                        WrapperPlayServerMultiBlockChange.EncodedBlock(
+                            chunk.getBlockState(it).id,
+                            it.x and 0xf, it.y and 0xf, it.z and 0xf
+                        )
+                    }.toTypedArray()
+                )
+            else
+                blocks.first().let {
+                    WrapperPlayServerBlockChange(
+                        Vector3i(it.x, it.y, it.z), chunk.getBlockState(it).id
+                    )
+                }
+            PacketEvents.getAPI().playerManager.sendPacketSilently(player, wrapper)
+        }
+    }
+
+    private fun BitSet.safeGet(index: Int) = if (index in 0 until size()) get(index) else false
+
     private inline val Player.nms
         get() = (player as CraftPlayer).handle
+
+    private val BlockState.id
+        get() = Block.BLOCK_STATE_REGISTRY.getId(this)
 
     private data class ChunkPos(val x: Int, val z: Int)
     private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
@@ -528,9 +552,15 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     private inline val BlockState.blocking: Boolean
         get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocking
 
+    data class PlayerChunk(
+        val invisible: BitSet,
+        var updatedBlocks: Int = 0,
+    )
+
     data class Counter(
         var minimalChunks: Long = 0,
         var resentChunks: Long = 0,
+        var resentBlocks: Long = 0,
     )
 
     private class CustomListPalette(bits: Int, array: Array<BlockType>): ListPalette(bits, CustomNetStreamInput(array)) {
