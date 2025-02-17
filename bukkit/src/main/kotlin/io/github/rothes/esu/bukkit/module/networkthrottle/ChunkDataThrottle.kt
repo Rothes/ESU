@@ -143,9 +143,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         get() = this@ChunkDataThrottle.minimalChunks.getOrPut(this) { Long2ObjectOpenHashMap() }
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
-        if (!config.chunkDataThrottle.enabled) {
-            return
-        }
         when (event.packetType) {
             PacketType.Play.Client.PLAYER_DIGGING -> {
                 val wrapper = WrapperPlayClientPlayerDigging(event)
@@ -158,10 +155,6 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     override fun onPacketSend(event: PacketSendEvent) {
-        val config = config.chunkDataThrottle
-        if (!config.enabled) {
-            return
-        }
         when (event.packetType) {
             PacketType.Play.Server.UNLOAD_CHUNK -> {
                 val wrapper = WrapperPlayServerUnloadChunk(event)
@@ -189,6 +182,10 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
             }
             PacketType.Play.Server.CHUNK_DATA   -> {
+                val config = config.chunkDataThrottle
+                if (!config.enabled) {
+                    return
+                }
 //                val tm = System.nanoTime()
                 val wrapper = WrapperPlayServerChunkData(event)
                 val player = event.getPlayer<Player>()
