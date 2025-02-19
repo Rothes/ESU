@@ -259,9 +259,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                  Approaches:
                                   a) Minecraft keeps the removed blocks in indexes, remove them;
                                   b) Convert all blocks in block types to id=0, if possible. As we sorted the types by amount, it's clear how to do that. */
-                            val noChangeId: Int
                             val blockingArr = if (rebuildPaletteMappings) {
-                                var oldZero: Int? = null
                                 val arr = Array<BlockType>(palette.size()) { i -> BlockType(palette.idToState(i), i) }
                                 for (i in 0 until 16 * 16 * 16) arr[storage.get(i)].blocks.add(i.toShort())
                                 arr.sortByDescending { it.blocks.size }
@@ -271,24 +269,20 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                         while (iterator.hasNext())
                                             storage.set(iterator.nextShort().toInt(), i)
                                     }
-                                    if (data.oldMapId == 0)
-                                        oldZero = i
                                 }
 //                                val empty = arr.filter { it.blocks.isEmpty() }
 //                                if (empty.isNotEmpty()) {
 //                                    println("Block types: ${arr.size} - ${empty.size} not found; ${32 - arr.size.countLeadingZeroBits()} -> ${32 - (arr.size - empty.size).countLeadingZeroBits()}")
 //                                }
                                 section.chunkData.palette = CustomListPalette(if (palette is ListPalette) 4 else 8, arr)
-                                noChangeId = oldZero!!
                                 BooleanArray(palette.size()) { id -> arr[id].blockId.blocking }
                             } else {
-                                noChangeId = 0
                                 BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
                             }
                             // rebuildPaletteMappings ends
                             forChunk2D { x, z ->
                                 val block = storage.get(id and 0xfff)
-                                if (block == noChangeId) isZero[id] = true
+                                if (block == 0) isZero[id] = true
                                 if (!blockingArr[block] ||
                                     !handleBlockingPrevSec(blocking, isZero, invisible, index, x, z, id, sections))
                                     allInvisible = false
@@ -299,7 +293,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
                             for (y in 0 until 15) forChunk2D { x, z ->
                                 val block = storage.get(id and 0xfff)
-                                if (block == noChangeId) isZero[id] = true
+                                if (block == 0) isZero[id] = true
                                 if (!blockingArr[block] ||
                                     !handleBlocking(blocking, isZero, invisible, x, z, id, storage))
                                     allInvisible = false
