@@ -203,7 +203,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 val level = nms.serverLevel()
                 val rebuildPaletteMappings = config.rebuildPaletteMappings
                 val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
-                val singleValuedSectionBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.serverLevelData.levelName)!!
+                val randomBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.serverLevelData.levelName)!!
 
                 val sections = column.chunks
                 val height = event.user.totalWorldHeight
@@ -223,8 +223,11 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 var allInvisible = false
                 var id = 0
                 out@ for ((index, section) in sections.withIndex()) {
-                    if (index == 8 && allInvisible && !config.netherRoofInvisibleCheck && level.world.environment == Environment.NETHER)
-                        (sections[index - 1] as Chunk_v1_18).chunkData.palette = CustomSingletonPalette(singleValuedSectionBlockIds.random())
+                    checkSectionAllInvisible(
+                        allInvisible && index == 8 && !config.netherRoofInvisibleCheck
+                                && level.world.environment == Environment.NETHER,
+                        invisible, randomBlockIds, sections, index
+                    )
 
                     section as Chunk_v1_18
                     val palette = section.chunkData.palette
@@ -238,7 +241,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                         allInvisible = false
                                     id++
                                 }
-                                if (allInvisible) (sections[index - 1] as Chunk_v1_18).chunkData.palette = CustomSingletonPalette(singleValuedSectionBlockIds.random())
+                                checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
                                 allInvisible = true
 
                                 id += 16 * 16 * 15
@@ -291,7 +294,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                     allInvisible = false
                                 id++
                             }
-                            if (allInvisible) (sections[index - 1] as Chunk_v1_18).chunkData.palette = CustomSingletonPalette(singleValuedSectionBlockIds.random())
+                            checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
                             allInvisible = true
 
                             for (y in 0 until 15) forChunk2D { x, z ->
@@ -313,7 +316,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                     allInvisible = false
                                 id++
                             }
-                            if (allInvisible) (sections[index - 1] as Chunk_v1_18).chunkData.palette = CustomSingletonPalette(singleValuedSectionBlockIds.random())
+                            checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
                             allInvisible = true
 
                             for (y in 0 until 15) forChunk2D { x, z ->
@@ -451,6 +454,18 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
         if (z < 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
+    }
+
+    private inline fun checkSectionAllInvisible(allInvisible: Boolean, invisible: BitSet, randomList: IntArray,
+                                                sections: Array<BaseChunk>, index: Int) {
+        if (allInvisible) {
+            val section = sections[index - 1] as Chunk_v1_18
+            if (section.chunkData.palette is SingletonPalette) {
+                // Re-fill invisible; Actually 16 * 16 at end is already true, but just let it fill...
+                invisible.set(index shl 12, (index + 1) shl 12, true)
+            }
+            section.chunkData.palette = CustomSingletonPalette(randomList.random())
+        }
     }
 
     private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
