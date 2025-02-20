@@ -454,10 +454,8 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                                                 sections: Array<BaseChunk>, index: Int) {
         if (allInvisible) {
             val section = sections[index - 1] as Chunk_v1_18
-            if (section.chunkData.palette is SingletonPalette) {
-                // Re-fill invisible; Actually 16 * 16 at end is already true, but just let it fill...
-                invisible.set(index shl 12, (index + 1) shl 12, true)
-            }
+            // Re-fill invisible; This is to fix data with isZero skipped and SingletonPalette ...
+            invisible.set((index - 1) shl 12, index shl 12, true)
             section.chunkData.palette = CustomSingletonPalette(randomList.random())
         }
     }
