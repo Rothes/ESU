@@ -110,7 +110,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
 
     data class ModuleData(
-        val minimalChunks: MutableMap<UUID, MutableList<Long>> = linkedMapOf(),
         val originalViewDistance: MutableMap<UUID, Int> = linkedMapOf(),
     )
 

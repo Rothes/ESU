@@ -23,9 +23,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
+import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.DataSerializer.decode
+import io.github.rothes.esu.bukkit.util.DataSerializer.encode
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
@@ -54,9 +56,10 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Field
-import java.util.BitSet
-import kotlin.collections.set
+import java.nio.file.StandardOpenOption
+import java.util.*
 import kotlin.experimental.or
+import kotlin.io.path.outputStream
 import kotlin.math.abs
 
 @Suppress("NOTHING_TO_INLINE")
@@ -78,6 +81,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
 
     private val FULL_CHUNK = PlayerChunk(BitSet(0))
 
+    private val hotDataFile = NetworkThrottleModule.moduleFolder.resolve("minimalChunksData")
     private val minimalChunks = hashMapOf<Player, Long2ObjectMap<PlayerChunk>>()
     private val blockingCache = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
         BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
@@ -89,24 +93,22 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     val counter = Counter()
 
     fun onEnable() {
-        for (player in Bukkit.getOnlinePlayers()) {
-            val hotData = data.minimalChunks[player.uniqueId]
-            if (hotData != null) {
-                val world = player.world
-                val minHeight = world.minHeight
-                val maxHeight = world.maxHeight
-                val height = maxHeight - minHeight
-                // We don't persist the invisible blocks data so let's assume all invisible.
-                val set = BitSet(16 * 16 * height)
-                set.set(0, set.size(), true)
-                val miniChunks = player.miniChunks
-                for (chunkKey in hotData) {
-                    if (player.isChunkSent(chunkKey))
-                        miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(set.toLongArray()))
+        val toFile = hotDataFile.toFile()
+        if (toFile.exists()) {
+            val minimalChunksData = toFile.readBytes().decode<Map<UUID, MutableMap<Long, LongArray>>>()
+
+            for (player in Bukkit.getOnlinePlayers()) {
+                val hotData = minimalChunksData[player.uniqueId]
+                if (hotData != null) {
+                    val miniChunks = player.miniChunks
+                    for ((chunkKey, data) in hotData) {
+                        if (player.isChunkSent(chunkKey))
+                            miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(data))
+                    }
                 }
             }
+            toFile.delete()
         }
-        data.minimalChunks.clear()
         PacketEvents.getAPI().eventManager.registerListener(this)
         Bukkit.getPluginManager().registerEvents(this, plugin)
     }
@@ -116,12 +118,19 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         HandlerList.unregisterAll(this)
 
         if (plugin.isEnabled || plugin.disabledHot) {
-            for ((player, map) in minimalChunks.entries) {
-                map.forEach { (k, v) ->
-                    if (v.invisible.toLongArray().find { it != 0L } != null) {
-                        data.minimalChunks.computeIfAbsent(player.uniqueId) { arrayListOf() }.add(k)
-                    }
-                }
+            hotDataFile.outputStream(StandardOpenOption.CREATE).use {
+                it.write(
+                    buildMap<UUID, MutableMap<Long, LongArray>> {
+                        for ((player, map) in minimalChunks.entries) {
+                            map.forEach { (k, v) ->
+                                if (v.invisible.toLongArray().find { it != 0L } != null) {
+                                    computeIfAbsent(player.uniqueId) { linkedMapOf() }[k] = v.invisible.toLongArray()
+                                }
+                            }
+                        }
+                    }.encode()
+                )
+                it.flush()
             }
         }
         // Clear these so we can save our memory
