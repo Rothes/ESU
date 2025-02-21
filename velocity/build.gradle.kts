@@ -35,6 +35,8 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.4.0")
 
     implementation("org.bstats:bstats-velocity:3.1.0")
+
+    compileOnly("com.github.retrooper:packetevents-velocity:2.7.0")
 }
 
 kotlin {

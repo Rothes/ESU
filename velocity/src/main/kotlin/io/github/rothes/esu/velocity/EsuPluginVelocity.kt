@@ -9,6 +9,7 @@ import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PreLoginEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
+import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
@@ -47,6 +48,9 @@ private const val PLUGIN_ID = "esu"
     version = BuildConfig.VERSION_NAME,
     authors = ["Rothes"],
     url = "https://github.com/Rothes/ESU",
+    dependencies = [
+        Dependency("vpacketevents", true)
+    ]
 )
 class EsuPluginVelocity @Inject constructor(
     val server: ProxyServer, val logger: Logger, @DataDirectory private val dataDirectory: Path, val metricsFactory: Metrics.Factory
