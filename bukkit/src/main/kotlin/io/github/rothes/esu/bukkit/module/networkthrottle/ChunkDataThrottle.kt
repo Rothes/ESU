@@ -348,7 +348,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 //    private val timesl = LongArrayList(10000000)
 
-    private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(8))
+    private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(32))
 
     private inline fun forChunk2D(crossinline scope: (x: Int, z: Int) -> Unit) {
         for (z in 0 until 16)
