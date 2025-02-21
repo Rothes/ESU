@@ -68,26 +68,26 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
         if (e !is Wither) return
 
         resetEntity(e)
-        if (max(abs(e.location.x), abs(e.location.z)) > config.spawnWitherNerf.radius) return
+        val nerf = config.spawnWitherNerf.firstOrNull { it.radius >= max(abs(e.location.x), abs(e.location.z)) } ?: return
 
         e.getAttribute(Attribute.GENERIC_FLYING_SPEED)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey,
-                -1 + config.spawnWitherNerf.speedModifier,
+                -1 + nerf.speedModifier,
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1
             )
         )
         e.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey,
-                -1 + config.spawnWitherNerf.speedModifier,
+                -1 + nerf.speedModifier,
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1
             )
         )
         e.getAttribute(Attribute.GENERIC_FOLLOW_RANGE)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey,
-                -1 + config.spawnWitherNerf.followRangeModifier,
+                -1 + nerf.followRangeModifier,
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1
             )
         )
@@ -107,10 +107,10 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
         fun onEntitySpawn(e: EntitySpawnEvent) {
             if (e.entity !is Wither)
                 return
-            if (max(abs(e.location.x), abs(e.location.z)) > config.spawnWitherNerf.radius) return
+            val nerf = config.spawnWitherNerf.firstOrNull { it.radius >= max(abs(e.location.x), abs(e.location.z)) } ?: return
 
             val amount = e.entity.chunk.entities.filter { it is Wither }.size
-            if (amount >= config.spawnWitherNerf.maxAmount) {
+            if (amount >= nerf.maxAmount) {
                 e.isCancelled = true
                 return
             }
@@ -119,10 +119,10 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
 
         @EventHandler
         fun onChunkLoad(e: ChunkLoadEvent) {
-            if (max(abs(e.chunk.x), abs(e.chunk.z)) > config.spawnWitherNerf.radius shr 4) return
+            val nerf = config.spawnWitherNerf.firstOrNull { it.radius shr 4 >= max(abs(e.chunk.x), abs(e.chunk.z)) } ?: return
 
             val withers = e.chunk.entities.filterIsInstance<Wither>()
-            val max = config.spawnWitherNerf.maxAmount
+            val max = nerf.maxAmount
             val amount = withers.size
             if (amount > max) {
                 for (entity in withers.takeLast(amount - max)) entity.remove()
@@ -134,11 +134,11 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
     }
 
     data class ModuleConfig(
-        val spawnWitherNerf: SpawnWitherNerf = SpawnWitherNerf(),
+        val spawnWitherNerf: List<SpawnWitherNerf> = listOf(SpawnWitherNerf(256, 0), SpawnWitherNerf()),
     ): BaseModuleConfiguration() {
 
         data class SpawnWitherNerf(
-            val radius: Long = 512,
+            val radius: Long = 1024,
             val maxAmount: Int = 1,
             val speedModifier: Double = 0.5,
             val followRangeModifier: Double = 0.25,
