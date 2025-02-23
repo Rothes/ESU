@@ -13,10 +13,6 @@ repositories {
         name = "papermc"
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
-    maven {
-        name = "PlugManX"
-        url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
-    }
 
     maven("https://jitpack.io")
     maven("https://repo.codemc.org/repository/maven-public/")
@@ -38,6 +34,7 @@ dependencies {
 
     implementation("org.bstats:bstats-velocity:3.1.0")
 
+    compileOnly("com.github.Rothes.ServerUtils:ServerUtils-Velocity:master-SNAPSHOT") // Official repo is down
     compileOnly("com.github.retrooper:packetevents-velocity:2.7.0")
 }
 

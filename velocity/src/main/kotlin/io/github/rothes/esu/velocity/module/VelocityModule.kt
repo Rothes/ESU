@@ -18,7 +18,7 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
     protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
 
     override fun disable() {
-        super.disable()
+//        super.disable() // Don't unregister root commands, cloud framework doesn't support it on velocity yet
         for (listener in registeredListeners) {
             unregisterListener(listener.first, listener.second)
         }

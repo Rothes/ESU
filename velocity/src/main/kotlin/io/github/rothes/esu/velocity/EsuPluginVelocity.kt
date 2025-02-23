@@ -2,6 +2,7 @@ package io.github.rothes.esu.velocity
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
 import com.google.inject.Inject
+import com.google.inject.name.Named
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
@@ -27,12 +28,14 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
+import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import org.bstats.velocity.Metrics
+import org.incendo.cloud.CloudCapability
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -55,7 +58,11 @@ private const val PLUGIN_ID = "esu"
     ]
 )
 class EsuPluginVelocity @Inject constructor(
-    val server: ProxyServer, val logger: Logger, @DataDirectory private val dataDirectory: Path, val metricsFactory: Metrics.Factory
+    val server: ProxyServer,
+    val logger: Logger,
+    @DataDirectory private val dataDirectory: Path,
+    @Named("esu") val container: PluginContainer,
+    val metricsFactory: Metrics.Factory
 ): EsuCore {
 
     override var initialized: Boolean = false
@@ -66,9 +73,6 @@ class EsuPluginVelocity @Inject constructor(
     var enabledHot: Boolean by InitOnce()
     var disabledHot: Boolean by InitOnce()
 
-    private val container: PluginContainer by lazy {
-        server.pluginManager.getPlugin(PLUGIN_ID).get()
-    }
     override val commandManager: VelocityCommandManager<VelocityUser> by lazy {
         VelocityCommandManager(container, server, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
@@ -99,6 +103,7 @@ class EsuPluginVelocity @Inject constructor(
         StorageManager // Load database
         ColorSchemes // Load color schemes
 
+        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(UserNameVerifyModule)
 
