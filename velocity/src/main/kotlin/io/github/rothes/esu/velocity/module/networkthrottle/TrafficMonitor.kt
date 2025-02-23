@@ -7,45 +7,50 @@ import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
+import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor.users
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
+import org.incendo.cloud.annotations.Flag
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicLong
 
 object TrafficMonitor {
 
-    private var users = linkedSetOf<User>()
+    private var users = linkedMapOf<User, Unit>()
     private var outgoing = AtomicLong(0)
     private var task: ScheduledTask? = null
 
     fun enable() {
         task = plugin.server.scheduler.buildTask(plugin) { task ->
             val bytes = outgoing.getAndSet(0)
-            for (user in users) {
+            for ((user, unit) in users) {
                 user.message(locale, { trafficMonitor.message },
                     unparsed("incoming-traffic", "N/A"),
-                    bytes(bytes, "outgoing-traffic", " GiB/s", " MiB/s", " KiB/s", " B/s"),
+                    when (unit) {
+                        Unit.BIT -> bytes(bytes * 8, "outgoing-traffic", " Gbps", " Mbps", " Kbps", " bps")
+                        Unit.BYTE -> bytes(bytes, "outgoing-traffic", " GiB/s", " MiB/s", " KiB/s", " B/s")
+                    },
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()
         NetworkThrottleModule.registerCommands(object {
             @Commands(value = [Command("vnetwork trafficMonitor"), Command("vnetwork trafficMonitor toggle")])
             @ShortPerm("trafficMonitor")
-            fun toggle(sender: User) {
-                if (users.contains(sender)) {
-                    disable(sender)
+            fun toggle(sender: User, @Flag("unit") unit: Unit = Unit.BIT) {
+                if (!users.contains(sender)) {
+                    enable(sender, unit)
                 } else {
-                    enable(sender)
+                    disable(sender)
                 }
             }
             @Command("vnetwork trafficMonitor enable")
             @ShortPerm("trafficMonitor")
-            fun enable(sender: User) {
-                add(sender)
+            fun enable(sender: User, @Flag("unit") unit: Unit = Unit.BIT) {
+                add(sender, unit)
                 sender.message(locale, { trafficMonitor.enabled })
             }
             @Command("vnetwork trafficMonitor disable")
@@ -65,10 +70,10 @@ object TrafficMonitor {
         }
     }
 
-    fun add(user: User) {
+    fun add(user: User, unit: Unit) {
         synchronized(users) {
             if (users.isEmpty()) Injector.registerEncoderHandler(EncoderHandler)
-            users.add(user)
+            users[user] = unit
         }
     }
 
@@ -85,5 +90,10 @@ object TrafficMonitor {
             outgoing.addAndGet(packetData.compressedSize.toLong())
         }
 
+    }
+
+    enum class Unit {
+        BIT,
+        BYTE,
     }
 }
