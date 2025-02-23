@@ -146,8 +146,8 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
 
             data class View(
                 val noData: MessageData = "<pc>There's no data for view.".message,
-                val header: MessageData = "<pdc>[Packet Type]<pc> <pc>[count]</pc>: <sc>[fin-size/raw-size]".message,
-                val entry: MessageData = "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><compressed-size><sc>/<uncompressed-size>".message,
+                val header: MessageData = "<pdc>[Packet Type]<pc> <pc>[count]</pc>: <sc>[fin-size] <tc>/ [raw-size]</tc>".message,
+                val entry: MessageData = "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><compressed-size> <tc>/ <tdc><uncompressed-size".message,
                 val footer: MessageData = "<pc>The analyser has been running for <duration>".message,
             )
         }
