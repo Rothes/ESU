@@ -25,10 +25,12 @@ repositories {
 
 
 dependencies {
+    // Velocity
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-//    annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-
+    compileOnly("com.github.rothes.velocity:velocity-proxy:dev~3.0.0-SNAPSHOT")
+    compileOnly("io.netty:netty-all:4.1.114.Final")
+    // Project
     api(project(":core"))
     api("org.incendo:cloud-velocity:2.0.0-beta.10")
     implementation("com.h2database:h2:2.3.232")
