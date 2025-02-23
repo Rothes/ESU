@@ -2,11 +2,13 @@ package io.github.rothes.esu.velocity.module.networkthrottle
 
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.velocitypowered.api.proxy.Player
+import com.velocitypowered.api.proxy.server.RegisteredServer
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.jvm.optionals.getOrNull
 
 object Analyser {
 
@@ -22,8 +24,7 @@ object Analyser {
     fun start(): Boolean {
         if (running) return false
         running = true
-        startTime = System.currentTimeMillis()
-        records.clear()
+        reset()
         Injector.registerEncoderHandler(EncoderHandler)
         return true
     }
@@ -36,8 +37,14 @@ object Analyser {
         return true
     }
 
+    fun reset() {
+        startTime = System.currentTimeMillis()
+        records.clear()
+    }
+
     data class PacketRecord(
         val player: Player?,
+        val server: RegisteredServer?,
         val uncompressedSize: Int,
         val compressedSize: Int,
     )
@@ -46,7 +53,8 @@ object Analyser {
 
         override fun handle(packetData: PacketData) {
             val records = records.computeIfAbsent(packetData.packetType) { Collections.synchronizedList(arrayListOf()) }
-            records.add(PacketRecord(packetData.player, packetData.uncompressedSize, packetData.compressedSize))
+            val player = packetData.player
+            records.add(PacketRecord(player, player?.currentServer?.getOrNull()?.server, packetData.uncompressedSize, packetData.compressedSize))
         }
 
     }
