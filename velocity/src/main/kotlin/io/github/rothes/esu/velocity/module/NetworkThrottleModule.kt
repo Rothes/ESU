@@ -68,7 +68,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         }
 
         data class TrafficMonitor(
-            val message: MessageData = "<actionbar><#6AFFF3>⬇ <pc><incoming-traffic>  <tc>|  <#BF71FF>⬆ <pc><outgoing-traffic>".message,
+            val message: MessageData = "<actionbar><pdc><b>ESU</b> Monitor <tc>-  <#6AFFF3>⬇ <pc><incoming-traffic>  <tc>|  <#BF71FF>⬆ <pc><outgoing-traffic>".message,
             val enabled: MessageData = "<pc>You are now viewing traffic monitor.".message,
             val disabled: MessageData = "<pc>You are no longer viewing traffic monitor.<actionbar>".message,
         )
