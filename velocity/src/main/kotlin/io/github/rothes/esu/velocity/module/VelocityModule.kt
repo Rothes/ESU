@@ -25,7 +25,7 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
         registeredListeners.clear()
     }
 
-    protected fun registerCommand(block: VelocityCommandManager<VelocityUser>.() -> Command.Builder<VelocityUser>) {
+    fun registerCommand(block: VelocityCommandManager<VelocityUser>.() -> Command.Builder<VelocityUser>) {
         with(plugin.commandManager) {
             val command = block.invoke(this).build()
             command(command)
@@ -33,7 +33,7 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
-    protected fun registerCommands(obj: Any, modifier: ((AnnotationParser<VelocityUser>) -> Unit)? = null) {
+    fun registerCommands(obj: Any, modifier: ((AnnotationParser<VelocityUser>) -> Unit)? = null) {
         with(plugin.commandManager) {
             val annotationParser = AnnotationParser(this, VelocityUser::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
