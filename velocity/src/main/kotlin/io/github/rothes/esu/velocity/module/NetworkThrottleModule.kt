@@ -63,13 +63,13 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
                 val entries = Analyser.records
                     .let {
                         if (players != null)
-                            it.mapValues { it.value.filter { record -> players == record.player } }
+                            it.mapValues { it.value.toList().filter { record -> players == record.player } }
                         else
                             it
                     }
                     .let {
                         if (servers != null)
-                            it.mapValues { it.value.filter { record -> servers == record.server } }
+                            it.mapValues { it.value.toList().filter { record -> servers == record.server } }
                         else
                             it
                     }
