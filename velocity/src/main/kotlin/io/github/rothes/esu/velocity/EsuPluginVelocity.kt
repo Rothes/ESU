@@ -51,7 +51,7 @@ private const val PLUGIN_ID = "esu"
     authors = ["Rothes"],
     url = "https://github.com/Rothes/ESU",
     dependencies = [
-        Dependency("vpacketevents", true)
+        Dependency("packetevents", true)
     ]
 )
 class EsuPluginVelocity @Inject constructor(
