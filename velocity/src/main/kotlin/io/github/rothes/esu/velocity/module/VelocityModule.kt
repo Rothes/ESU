@@ -15,6 +15,16 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
     dataClass: Class<T>, localeClass: Class<L>,
 ): CommonModule<T, L>(dataClass, localeClass) {
 
+    protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
+
+    override fun disable() {
+        super.disable()
+        for (listener in registeredListeners) {
+            unregisterListener(listener.first, listener.second)
+        }
+        registeredListeners.clear()
+    }
+
     protected fun registerCommand(block: VelocityCommandManager<VelocityUser>.() -> Command.Builder<VelocityUser>) {
         with(plugin.commandManager) {
             val command = block.invoke(this).build()
@@ -35,6 +45,21 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
 
             val commands = annotationParser.parse(obj)
             registeredCommands.addAll(commands)
+        }
+    }
+
+    fun registerListener(listener: Any, pluginInstance: Any = plugin) {
+        plugin.server.eventManager.register(pluginInstance, listener)
+        registeredListeners.add(listener to pluginInstance)
+    }
+
+    fun unregisterListener(listener: Any, pluginInstance: Any = plugin) {
+        if (pluginInstance === plugin) {
+            if (pluginInstance.enabled) {
+                plugin.server.eventManager.unregisterListener(pluginInstance, listener)
+            }
+        } else {
+            plugin.server.eventManager.unregisterListener(pluginInstance, listener)
         }
     }
 
