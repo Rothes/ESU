@@ -67,12 +67,13 @@ object ComponentUtils {
         return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
     }
 
-    fun bytes(bytes: Long, key: String = "bytes"): TagResolver {
+    fun bytes(bytes: Long, key: String = "bytes",
+              gb: String = " GiB", mb: String = " MiB", kb: String = " KiB", b: String = " Bytes"): TagResolver {
         return unparsed(key, when {
-            bytes >= 1 shl 30 -> "%.1f GB".format(bytes.toDouble() / (1 shl 30))
-            bytes >= 1 shl 20 -> "%.1f MB".format(bytes.toDouble() / (1 shl 20))
-            bytes >= 1 shl 10 -> "%.1f KB".format(bytes.toDouble() / (1 shl 10))
-            else              -> "$bytes Bytes"
+            bytes >= 1 shl 30 -> "%.1f$gb".format(bytes.toDouble() / (1 shl 30))
+            bytes >= 1 shl 20 -> "%.1f$mb".format(bytes.toDouble() / (1 shl 20))
+            bytes >= 1 shl 10 -> "%.1f$kb".format(bytes.toDouble() / (1 shl 10))
+            else              -> "$bytes$b"
         })
     }
 

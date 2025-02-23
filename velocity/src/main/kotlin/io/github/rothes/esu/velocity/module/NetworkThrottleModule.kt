@@ -12,6 +12,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
+import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
 import org.incendo.cloud.annotations.Command
@@ -26,94 +27,15 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         if (plugin.server.pluginManager.getPlugin("packetevents") == null)
             error("PacketEvents is required!")
         Injector.enable()
-
-        registerCommands(object {
-            @Command("vnetwork analyser start")
-            @ShortPerm("analyser")
-            fun analyserStart(sender: User) {
-                if (Analyser.start()) {
-                    sender.message(locale, { analyser.started })
-                } else {
-                    sender.message(locale, { analyser.alreadyStarted })
-                }
-            }
-
-            @Command("vnetwork analyser stop")
-            @ShortPerm("analyser")
-            fun analyserStop(sender: User) {
-                if (Analyser.stop()) {
-                    sender.message(locale, { analyser.stopped })
-                } else {
-                    sender.message(locale, { analyser.alreadyStopped })
-                }
-            }
-
-            @Command("vnetwork analyser reset")
-            @ShortPerm("analyser")
-            fun analyserReset(sender: User) {
-                Analyser.reset()
-                sender.message(locale, { analyser.reset })
-            }
-
-            @Command("vnetwork analyser view")
-            @ShortPerm("analyser")
-            fun analyserView(sender: User,
-                             @Flag("limit") limit: Int = 7,
-                             @Flag("player") players: Player? = null,
-                             @Flag("server") servers: RegisteredServer? = null) {
-                val entries = Analyser.records
-                    .let {
-                        if (players != null)
-                            it.mapValues { it.value.toList().filter { record -> players == record.player } }
-                        else
-                            it
-                    }
-                    .let {
-                        if (servers != null)
-                            it.mapValues { it.value.toList().filter { record -> servers == record.server } }
-                        else
-                            it
-                    }
-                    .filterValues { it.isNotEmpty() }
-                    .mapValues {
-                        val list = it.value.toList()
-                        list.size to (list.sumOf { it.uncompressedSize.toLong() } to list.sumOf { it.compressedSize.toLong() })
-                    }
-                    .entries.sortedByDescending { it.value.second.second }
-                if (entries.isEmpty()) {
-                    sender.message(locale, { analyser.view.noData })
-                    return
-                }
-                sender.message(locale, { analyser.view.header })
-                for ((k, entry) in entries.take(limit)) {
-                    val (counts, v) = entry
-                    val (uncompressed, compressed) = v
-                    sender.message(
-                        locale, { analyser.view.entry },
-                        unparsed("packet-type", k.name.lowercase()),
-                        unparsed("counts", counts),
-                        bytes(uncompressed, "uncompressed-size"),
-                        bytes(compressed, "compressed-size"),
-                    )
-                }
-                sender.message(
-                    locale, { analyser.view.footer },
-                    duration(
-                        (if (Analyser.running) {
-                            System.currentTimeMillis() - Analyser.startTime
-                        } else {
-                            Analyser.stopTime - Analyser.startTime
-                        }).milliseconds, sender
-                    ))
-            }
-        })
-        Analyser // Init this
+        TrafficMonitor.enable()
+        Analyser.enable()
     }
 
     override fun disable() {
         super.disable()
         Injector.disable()
-        Analyser.stop()
+        TrafficMonitor.disable()
+        Analyser.disable()
     }
 
 
@@ -124,6 +46,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
 
     data class ModuleLang(
         val analyser: Analyser = Analyser(),
+        val trafficMonitor: TrafficMonitor = TrafficMonitor(),
     ): ConfigurationPart {
 
         data class Analyser(
@@ -143,6 +66,12 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
                 val footer: MessageData = "<pc>The analyser has been running for <duration>".message,
             )
         }
+
+        data class TrafficMonitor(
+            val message: MessageData = "<actionbar><#6AFFF3>⬇ <pc><incoming-traffic>  <tc>|  <#BF71FF>⬆ <pc><outgoing-traffic>".message,
+            val enabled: MessageData = "<pc>You are now viewing traffic monitor.".message,
+            val disabled: MessageData = "<pc>You are no longer viewing traffic monitor.".message,
+        )
     }
 
 }
