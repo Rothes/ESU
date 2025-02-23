@@ -121,6 +121,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
     override fun disable() {
         super.disable()
         Injector.disable()
+        Analyser.stop()
     }
 
 
