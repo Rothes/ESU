@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
@@ -91,18 +92,9 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
                         locale, { analyser.view.entry },
                         unparsed("packet-type", k.name.lowercase()),
                         unparsed("counts", counts),
-                        unparsed("uncompressed-size", when {
-                            uncompressed >= 1 shl 30 -> "%.1f GB".format(uncompressed.toDouble() / (1 shl 30))
-                            uncompressed >= 1 shl 20 -> "%.1f MB".format(uncompressed.toDouble() / (1 shl 20))
-                            uncompressed >= 1 shl 10 -> "%.1f KB".format(uncompressed.toDouble() / (1 shl 10))
-                            else              -> "$uncompressed Bytes"
-                        }),
-                        unparsed("compressed-size", when {
-                            compressed >= 1 shl 30 -> "%.1f GB".format(compressed.toDouble() / (1 shl 30))
-                            compressed >= 1 shl 20 -> "%.1f MB".format(compressed.toDouble() / (1 shl 20))
-                            compressed >= 1 shl 10 -> "%.1f KB".format(compressed.toDouble() / (1 shl 10))
-                            else              -> "$compressed Bytes"
-                    }))
+                        bytes(uncompressed, "uncompressed-size"),
+                        bytes(compressed, "compressed-size"),
+                    )
                 }
                 sender.message(
                     locale, { analyser.view.footer },

@@ -67,6 +67,15 @@ object ComponentUtils {
         return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
     }
 
+    fun bytes(bytes: Long, key: String = "bytes"): TagResolver {
+        return unparsed(key, when {
+            bytes >= 1 shl 30 -> "%.1f GB".format(bytes.toDouble() / (1 shl 30))
+            bytes >= 1 shl 20 -> "%.1f MB".format(bytes.toDouble() / (1 shl 20))
+            bytes >= 1 shl 10 -> "%.1f KB".format(bytes.toDouble() / (1 shl 10))
+            else              -> "$bytes Bytes"
+        })
+    }
+
     fun Boolean.enabled(user: User): Component = duel(user, { enabled }) { disabled }
     fun Boolean.on(user: User): Component = duel(user, { on }) { off }
     fun Boolean.yes(user: User): Component = duel(user, { yes }) { no }

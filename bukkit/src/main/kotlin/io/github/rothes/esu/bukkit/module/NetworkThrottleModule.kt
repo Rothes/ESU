@@ -12,6 +12,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.bukkit.Material
@@ -71,12 +72,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     sender.message(locale, { analyser.view.entry },
                         unparsed("packet-type", k.name.lowercase()),
                         unparsed("counts", counts),
-                        unparsed("size", when {
-                            bytes >= 1 shl 30 -> "%.1f GB".format(bytes.toDouble() / (1 shl 30))
-                            bytes >= 1 shl 20 -> "%.1f MB".format(bytes.toDouble() / (1 shl 20))
-                            bytes >= 1 shl 10 -> "%.1f KB".format(bytes.toDouble() / (1 shl 10))
-                            else              -> "$bytes bytes"
-                        }))
+                        bytes(bytes, "size"),
+                    )
                 }
                 sender.message(locale, { analyser.view.footer },
                     duration(
