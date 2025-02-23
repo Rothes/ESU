@@ -89,7 +89,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
                     val (uncompressed, compressed) = v
                     sender.message(
                         locale, { analyser.view.entry },
-                        unparsed("packet-type", k?.name?.lowercase() ?: "unknown"),
+                        unparsed("packet-type", k.name.lowercase()),
                         unparsed("counts", counts),
                         unparsed("uncompressed-size", when {
                             uncompressed >= 1 shl 30 -> "%.1f GB".format(uncompressed.toDouble() / (1 shl 30))

@@ -70,6 +70,6 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
         return hasPermission(perm(shortPerm))
     }
 
-    open fun perm(shortPerm: String): String = "esu.${name.lowercase()}.${shortPerm.lowercase()}"
+    open fun perm(shortPerm: String): String = "vesu.${name.lowercase()}.${shortPerm.lowercase()}"
 
 }
