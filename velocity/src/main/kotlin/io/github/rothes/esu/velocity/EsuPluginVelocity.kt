@@ -24,8 +24,10 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
+import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUser
@@ -58,6 +60,11 @@ class EsuPluginVelocity @Inject constructor(
 
     override var initialized: Boolean = false
         private set
+    var enabled: Boolean = false
+        private set
+
+    var enabledHot: Boolean by InitOnce()
+    var disabledHot: Boolean by InitOnce()
 
     private val container: PluginContainer by lazy {
         server.pluginManager.getPlugin(PLUGIN_ID).get()
@@ -86,11 +93,13 @@ class EsuPluginVelocity @Inject constructor(
     @Subscribe
     fun onProxyInitialization(e: ProxyInitializeEvent) {
         EsuCore.instance = this
+        enabledHot = byServerUtils()
         EsuConfig // Load global config
         VelocityEsuLocale // Load global locale
         StorageManager // Load database
         ColorSchemes // Load color schemes
 
+        ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(UserNameVerifyModule)
 
         // Register commands
@@ -142,10 +151,13 @@ class EsuPluginVelocity @Inject constructor(
         metricsFactory.make(this, 24826) // bStats
 
         initialized = true
+        enabled = true
     }
 
     @Subscribe
     fun onDisable(e: ProxyShutdownEvent) {
+        enabled = false
+        disabledHot = byServerUtils()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
     }
@@ -185,6 +197,16 @@ class EsuPluginVelocity @Inject constructor(
 
     override fun baseConfigPath(): Path {
         return dataDirectory
+    }
+
+    private fun byServerUtils(): Boolean {
+        var found = false
+        StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach {
+            if (found || it.declaringClass.canonicalName.contains("serverutils")) {
+                found = true
+            }
+        }
+        return found
     }
 
 }
