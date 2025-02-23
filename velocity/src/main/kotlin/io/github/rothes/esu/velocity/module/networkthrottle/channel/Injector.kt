@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.proxy.VelocityServer
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer
@@ -82,10 +82,12 @@ object Injector {
     }
 
     @Subscribe(order = PostOrder.FIRST)
-    fun onLogin(e: LoginEvent) {
+    fun onPostLogin(e: PostLoginEvent) {
         val player = e.player as ConnectedPlayer
         val channel = player.connection.channel ?: return
-        val data = channel.pipeline().get(EsuPreEncoder::class.java)?.data ?: inject(channel)
+        // Re-inject, because velocity add compression-encoder at this period, and we may not get packet type property.
+        eject(channel)
+        val data = inject(channel)
         data.player = player
     }
 
@@ -94,7 +96,7 @@ object Injector {
             if (get(ENCODER_NAME_PRE) != null)
                 error("ESU channel handlers are already injected")
             val data = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel))
-            addLast(ENCODER_NAME_PRE, EsuPreEncoder(data))
+            addBefore("minecraft-encoder", ENCODER_NAME_PRE, EsuPreEncoder(data))
             addFirst(ENCODER_NAME_FIN, EsuFinEncoder(data))
             return data
         }
