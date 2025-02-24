@@ -54,7 +54,10 @@ private const val PLUGIN_ID = "esu"
     authors = ["Rothes"],
     url = "https://github.com/Rothes/ESU",
     dependencies = [
-        Dependency("packetevents", true)
+        Dependency("packetevents", true),
+        // Let those plugins load first, so we can restore our ServerChannelInitializerHolder
+        Dependency("sonar", true),
+        Dependency("viaversion", true),
     ]
 )
 class EsuPluginVelocity @Inject constructor(
