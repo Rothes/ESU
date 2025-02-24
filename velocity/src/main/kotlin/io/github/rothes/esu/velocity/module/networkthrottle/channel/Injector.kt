@@ -221,7 +221,8 @@ object Injector {
 
         override fun initChannel(ch: Channel) {
             initWrapped(wrapped, ch)
-            inject(ch)
+            if (plugin.enabled)
+                inject(ch)
         }
     }
 
