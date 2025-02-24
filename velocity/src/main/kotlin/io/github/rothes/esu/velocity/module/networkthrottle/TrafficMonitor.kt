@@ -1,5 +1,7 @@
 package io.github.rothes.esu.velocity.module.networkthrottle
 
+import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.scheduler.ScheduledTask
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.user.User
@@ -13,6 +15,7 @@ import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChann
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.user
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
@@ -50,6 +53,7 @@ object TrafficMonitor {
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()
+        NetworkThrottleModule.registerListener(Listeners)
         NetworkThrottleModule.registerCommands(object {
             @Commands(value = [Command("vnetwork trafficMonitor"), Command("vnetwork trafficMonitor toggle")])
             @ShortPerm("trafficMonitor")
@@ -77,6 +81,7 @@ object TrafficMonitor {
 
     fun disable() {
         task?.cancel()
+        NetworkThrottleModule.unregisterListener(Listeners)
         if (users.isNotEmpty()) {
             users.clear()
             Injector.unregisterEncoderHandler(EncoderHandler)
@@ -101,6 +106,13 @@ object TrafficMonitor {
                 Injector.unregisterEncoderHandler(EncoderHandler)
                 Injector.unregisterDecoderHandler(DecoderHandler)
             }
+        }
+    }
+
+    object Listeners {
+        @Subscribe
+        fun onDisconnect(e: DisconnectEvent) {
+            users.remove(e.player.user)
         }
     }
 
