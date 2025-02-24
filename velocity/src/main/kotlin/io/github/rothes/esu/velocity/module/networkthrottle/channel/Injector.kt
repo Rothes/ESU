@@ -136,13 +136,26 @@ object Injector {
                 val packetData = PacketData(data.player, data.packetType, msg, data.uncompressedSize, msg.readableBytes())
                 for (handler in encoderHandlers) {
                     try {
-                        handler.handle(packetData)
+                        handler.encode(packetData)
                     } catch (e: Throwable) {
                         plugin.err("Unhandled exception while handling packet", e)
                     }
                 }
             }
             out.writeBytes(msg)
+        }
+
+        override fun flush(ctx: ChannelHandlerContext) {
+            if (encoderHandlers.isNotEmpty()) {
+                for (handler in encoderHandlers) {
+                    try {
+                        handler.flush()
+                    } catch (e: Throwable) {
+                        plugin.err("Unhandled exception while handling packet", e)
+                    }
+                }
+            }
+            super.flush(ctx)
         }
 
     }

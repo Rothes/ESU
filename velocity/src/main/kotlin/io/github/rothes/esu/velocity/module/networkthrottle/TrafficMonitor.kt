@@ -3,11 +3,11 @@ package io.github.rothes.esu.velocity.module.networkthrottle
 import com.velocitypowered.api.scheduler.ScheduledTask
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
-import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor.users
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
@@ -21,12 +21,14 @@ import java.util.concurrent.atomic.AtomicLong
 object TrafficMonitor {
 
     private var users = linkedMapOf<User, Unit>()
-    private var outgoing = AtomicLong(0)
+    private var outgoingBytes = AtomicLong(0)
+    private var outgoingPps = AtomicLong(0)
     private var task: ScheduledTask? = null
 
     fun enable() {
         task = plugin.server.scheduler.buildTask(plugin) { task ->
-            val bytes = outgoing.getAndSet(0)
+            val pps = outgoingPps.getAndSet(0)
+            val bytes = outgoingBytes.getAndSet(0) + pps * 40 // TCP overhead. This is a rough estimate on the application layer.
             for ((user, unit) in users) {
                 user.message(locale, { trafficMonitor.message },
                     unparsed("incoming-traffic", "N/A"),
@@ -34,6 +36,7 @@ object TrafficMonitor {
                         Unit.BIT -> bytes(bytes * 8, "outgoing-traffic", " Gbps", " Mbps", " Kbps", " bps")
                         Unit.BYTE -> bytes(bytes, "outgoing-traffic", " GiB/s", " MiB/s", " KiB/s", " B/s")
                     },
+                    amount(pps, "outgoing-pps")
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()
@@ -86,8 +89,12 @@ object TrafficMonitor {
 
     object EncoderHandler: ChannelHandler {
 
-        override fun handle(packetData: PacketData) {
-            outgoing.addAndGet(packetData.compressedSize.toLong())
+        override fun encode(packetData: PacketData) {
+            outgoingBytes.addAndGet(packetData.compressedSize.toLong())
+        }
+
+        override fun flush() {
+            outgoingPps.incrementAndGet()
         }
 
     }

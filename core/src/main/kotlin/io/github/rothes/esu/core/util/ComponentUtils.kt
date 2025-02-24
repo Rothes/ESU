@@ -67,6 +67,16 @@ object ComponentUtils {
         return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
     }
 
+    fun amount(amount: Long, key: String = "amount",
+               g: String = " G", m: String = " M", k: String = " K", b: String = ""): TagResolver {
+        return unparsed(key, when {
+            amount >= 1_000_000_000 -> "%.1f$g".format(amount.toDouble() / 1_000_000_000)
+            amount >= 1_000_000     -> "%.1f$m".format(amount.toDouble() / 1_000_000)
+            amount >= 1_000         -> "%.1f$k".format(amount.toDouble() / 1_000)
+            else                    -> "$amount$b"
+        })
+    }
+
     fun bytes(bytes: Long, key: String = "bytes",
               gb: String = " GiB", mb: String = " MiB", kb: String = " KiB", b: String = " Bytes"): TagResolver {
         return unparsed(key, when {

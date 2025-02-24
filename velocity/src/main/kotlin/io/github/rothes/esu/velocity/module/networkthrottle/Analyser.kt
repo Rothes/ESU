@@ -144,7 +144,7 @@ object Analyser {
 
     object EncoderHandler: ChannelHandler {
 
-        override fun handle(packetData: PacketData) {
+        override fun encode(packetData: PacketData) {
             val records = records.computeIfAbsent(packetData.packetType) { Collections.synchronizedList(arrayListOf()) }
             val player = packetData.player
             records.add(PacketRecord(player, player?.currentServer?.getOrNull()?.server, packetData.uncompressedSize, packetData.compressedSize))
