@@ -74,7 +74,7 @@ object Analyser {
             @Command("vnetwork analyser view")
             @ShortPerm("analyser")
             fun analyserView(sender: User,
-                             @Flag("size") side: PacketSide? = null,
+                             @Flag("side") side: PacketSide? = null,
                              @Flag("player") players: Player? = null,
                              @Flag("server") servers: RegisteredServer? = null,
                              @Flag("limit") limit: Int = 7, ) {
