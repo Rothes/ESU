@@ -19,12 +19,11 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
 ) {
 
     override fun enable() {
-        plugin.server.eventManager.register(plugin, Listener)
+        registerListener(Listener)
     }
 
     override fun disable() {
         super.disable()
-        plugin.server.eventManager.unregisterListener(plugin, Listener)
     }
 
     object Listener {
