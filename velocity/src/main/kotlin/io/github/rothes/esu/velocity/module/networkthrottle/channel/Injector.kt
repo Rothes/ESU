@@ -18,6 +18,7 @@ import io.github.rothes.esu.velocity.plugin
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.ChannelInitializer
 import io.netty.handler.codec.MessageToByteEncoder
 import com.github.retrooper.packetevents.protocol.player.User as PEUser
@@ -26,6 +27,8 @@ object Injector {
 
     private const val ENCODER_NAME_PRE = "esu-encoder-pre"
     private const val ENCODER_NAME_FIN = "esu-encoder-fin"
+    private const val DECODER_NAME_PRE = "esu-decoder-pre"
+    private const val DECODER_NAME_FIN = "esu-decoder-fin"
 
     private val connectionManager by lazy {
         val server = plugin.server as VelocityServer
@@ -35,14 +38,23 @@ object Injector {
             .get(server) as ConnectionManager
     }
 
-    private val encoderHandlers = linkedSetOf<ChannelHandler>()
+    private val encoderHandlers = linkedSetOf<EncoderChannelHandler>()
+    private val decoderHandlers = linkedSetOf<DecoderChannelHandler>()
 
-    fun registerEncoderHandler(channelHandler: ChannelHandler) {
+    fun registerEncoderHandler(channelHandler: EncoderChannelHandler) {
         encoderHandlers.add(channelHandler)
     }
 
-    fun unregisterEncoderHandler(channelHandler: ChannelHandler) {
+    fun unregisterEncoderHandler(channelHandler: EncoderChannelHandler) {
         encoderHandlers.remove(channelHandler)
+    }
+
+    fun registerDecoderHandler(channelHandler: DecoderChannelHandler) {
+        decoderHandlers.add(channelHandler)
+    }
+
+    fun unregisterDecoderHandler(channelHandler: DecoderChannelHandler) {
+        decoderHandlers.remove(channelHandler)
     }
 
     fun enable() {
@@ -57,7 +69,9 @@ object Injector {
         for (player in plugin.server.allPlayers) {
             val channel = (player as ConnectedPlayer).connection.channel
             try {
-                inject(channel).player = player
+                for (data in inject(channel)) {
+                    data.player = player
+                }
             } catch (e: IllegalStateException) {
                 plugin.err("Failed to inject for player ${player.username} at startup", e)
             }
@@ -87,24 +101,31 @@ object Injector {
         val channel = player.connection.channel ?: return
         // Re-inject, because velocity add compression-encoder at this period, and we may not get packet type property.
         eject(channel)
-        val data = inject(channel)
-        data.player = player
+        for (data in inject(channel)) {
+            data.player = player
+        }
     }
 
-    fun inject(channel: Channel): EsuPipelineData {
+    fun inject(channel: Channel): List<EsuPipelineData> {
         return with(channel.pipeline()) {
             if (get(ENCODER_NAME_PRE) != null)
                 error("ESU channel handlers are already injected")
-            val data = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel))
-            addBefore("minecraft-encoder", ENCODER_NAME_PRE, EsuPreEncoder(data))
-            addFirst(ENCODER_NAME_FIN, EsuFinEncoder(data))
-            return data
+            val outgoing = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel))
+            addBefore("minecraft-encoder", ENCODER_NAME_PRE, EsuPreEncoder(outgoing))
+            addFirst(ENCODER_NAME_FIN, EsuFinEncoder(outgoing))
+
+            val incoming = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel))
+            addFirst(DECODER_NAME_PRE, EsuPreDecoder(incoming))
+            addBefore("minecraft-decoder", DECODER_NAME_FIN, EsuFinDecoder(incoming))
+            listOf(incoming, outgoing)
         }
     }
 
     fun eject(channel: Channel) {
         channel.pipeline().remove(ENCODER_NAME_PRE)
         channel.pipeline().remove(ENCODER_NAME_FIN)
+        channel.pipeline().remove(DECODER_NAME_PRE)
+        channel.pipeline().remove(DECODER_NAME_FIN)
     }
 
     data class EsuPipelineData(
@@ -156,6 +177,40 @@ object Injector {
                 }
             }
             super.flush(ctx)
+        }
+
+    }
+
+    class EsuPreDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
+
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            if (msg is ByteBuf) {
+                data.uncompressedSize = msg.readableBytes()
+            } else {
+                data.uncompressedSize = -1
+            }
+            super.channelRead(ctx, msg)
+        }
+
+    }
+
+    class EsuFinDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
+
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            if (msg is ByteBuf) {
+                val readerIndex = msg.readerIndex()
+                val peUser = data.peUser
+                val packetId = ByteBufHelper.readVarInt(msg)
+                msg.readerIndex(readerIndex)
+                val packetType = PacketType.getById(PacketSide.CLIENT, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
+                val compressedSize = data.uncompressedSize
+                val decompressedSize = msg.readableBytes()
+                val packetData = PacketData(data.player, packetType, msg, decompressedSize, compressedSize)
+                for (handler in decoderHandlers) {
+                    handler.decode(packetData)
+                }
+            }
+            super.channelRead(ctx, msg)
         }
 
     }

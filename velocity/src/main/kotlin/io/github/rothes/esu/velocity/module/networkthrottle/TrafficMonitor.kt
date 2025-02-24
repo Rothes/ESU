@@ -5,10 +5,11 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
-import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
+import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelHandler
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
@@ -20,23 +21,32 @@ import java.util.concurrent.atomic.AtomicLong
 
 object TrafficMonitor {
 
-    private var users = linkedMapOf<User, Unit>()
+    private var incomingBytes = AtomicLong(0)
+    private var incomingPps   = AtomicLong(0)
     private var outgoingBytes = AtomicLong(0)
-    private var outgoingPps = AtomicLong(0)
+    private var outgoingPps   = AtomicLong(0)
+
+    private var users = linkedMapOf<User, Unit>()
     private var task: ScheduledTask? = null
 
     fun enable() {
         task = plugin.server.scheduler.buildTask(plugin) { task ->
-            val pps = outgoingPps.getAndSet(0)
-            val bytes = outgoingBytes.getAndSet(0) + pps * 40 // TCP overhead. This is a rough estimate on the application layer.
+            val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toLong()
+            val bytesO = outgoingBytes.getAndSet(0) + ppsO * 46 // TCP overhead.
+            val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toLong()
+            val bytesI = incomingBytes.getAndSet(0) + ppsI * 46
+            fun traffic(bytes: Long, key: String, unit: Unit) =
+                when (unit) {
+                    Unit.BIT  -> bytes(bytes * 8, key, " Gbps" , " Mbps" , " Kbps" , " bps")
+                    Unit.BYTE -> bytes(bytes    , key, " GiB/s", " MiB/s", " KiB/s", " B/s")
+                }
+
             for ((user, unit) in users) {
                 user.message(locale, { trafficMonitor.message },
-                    unparsed("incoming-traffic", "N/A"),
-                    when (unit) {
-                        Unit.BIT -> bytes(bytes * 8, "outgoing-traffic", " Gbps", " Mbps", " Kbps", " bps")
-                        Unit.BYTE -> bytes(bytes, "outgoing-traffic", " GiB/s", " MiB/s", " KiB/s", " B/s")
-                    },
-                    amount(pps, "outgoing-pps")
+                    traffic(bytesO, "outgoing-traffic", unit),
+                    amount( ppsO  , "outgoing-pps"),
+                    traffic(bytesI, "incoming-traffic", unit),
+                    amount( ppsI  , "incoming-pps"),
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()
@@ -70,12 +80,16 @@ object TrafficMonitor {
         if (users.isNotEmpty()) {
             users.clear()
             Injector.unregisterEncoderHandler(EncoderHandler)
+            Injector.unregisterDecoderHandler(DecoderHandler)
         }
     }
 
     fun add(user: User, unit: Unit) {
         synchronized(users) {
-            if (users.isEmpty()) Injector.registerEncoderHandler(EncoderHandler)
+            if (users.isEmpty()) {
+                Injector.registerEncoderHandler(EncoderHandler)
+                Injector.registerDecoderHandler(DecoderHandler)
+            }
             users[user] = unit
         }
     }
@@ -83,11 +97,14 @@ object TrafficMonitor {
     fun remove(user: User) {
         synchronized(users) {
             users.remove(user)
-            if (users.isEmpty()) Injector.unregisterEncoderHandler(EncoderHandler)
+            if (users.isEmpty()) {
+                Injector.unregisterEncoderHandler(EncoderHandler)
+                Injector.unregisterDecoderHandler(DecoderHandler)
+            }
         }
     }
 
-    object EncoderHandler: ChannelHandler {
+    object EncoderHandler: EncoderChannelHandler {
 
         override fun encode(packetData: PacketData) {
             outgoingBytes.addAndGet(packetData.compressedSize.toLong())
@@ -95,6 +112,15 @@ object TrafficMonitor {
 
         override fun flush() {
             outgoingPps.incrementAndGet()
+        }
+
+    }
+
+    object DecoderHandler: DecoderChannelHandler {
+
+        override fun decode(packetData: PacketData) {
+            incomingBytes.addAndGet(packetData.compressedSize.toLong())
+            incomingPps.incrementAndGet()
         }
 
     }

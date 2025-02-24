@@ -1,23 +1,14 @@
 package io.github.rothes.esu.velocity.module
 
-import com.velocitypowered.api.proxy.Player
-import com.velocitypowered.api.proxy.server.RegisteredServer
-import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.ComponentUtils.bytes
-import io.github.rothes.esu.core.util.ComponentUtils.duration
-import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
-import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.annotations.Flag
-import kotlin.time.Duration.Companion.milliseconds
+import org.spongepowered.configurate.objectmapping.meta.Comment
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
     ModuleConfig::class.java, ModuleLang::class.java
@@ -40,8 +31,15 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
 
 
     data class ModuleConfig(
-        val a: Int = 1
+        @field:Comment("We can't know exactly what the actual bandwidth rate and packet rate are at netty level.\n" +
+                "You can modify the correction parameters here.")
+        val trafficCalibration: TrafficCalibration = TrafficCalibration(),
     ): BaseModuleConfiguration() {
+
+        data class TrafficCalibration(
+            val outgoingPpsMultiplier: Double = 0.6667,
+            val incomingPpsMultiplier: Double = 3.0,
+        )
     }
 
     data class ModuleLang(
@@ -68,7 +66,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         }
 
         data class TrafficMonitor(
-            val message: MessageData = "<actionbar><pdc><b>ESU</b> Monitor <tc>-  <#6AFFF3>⬇ <pc><incoming-traffic>  <tc>|  <#BF71FF>⬆ <pc><outgoing-traffic>".message,
+            val message: MessageData = "<actionbar><pdc><b>ESU</b> Monitor <tc>-  <#BF71FF>⬆ <pc><outgoing-traffic>  <outgoing-pps>pps  <tc>|  <#6AFFF3>⬇ <pc><incoming-traffic>  <incoming-pps>pps".message,
             val enabled: MessageData = "<pc>You are now viewing traffic monitor.".message,
             val disabled: MessageData = "<pc>You are no longer viewing traffic monitor.<actionbar>".message,
         )

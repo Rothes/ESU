@@ -10,7 +10,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelHandler
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import org.incendo.cloud.annotations.Command
@@ -142,7 +142,7 @@ object Analyser {
         val compressedSize: Int,
     )
 
-    object EncoderHandler: ChannelHandler {
+    object EncoderHandler: EncoderChannelHandler {
 
         override fun encode(packetData: PacketData) {
             val records = records.computeIfAbsent(packetData.packetType) { Collections.synchronizedList(arrayListOf()) }

@@ -1,6 +1,6 @@
 package io.github.rothes.esu.velocity.module.networkthrottle.channel
 
-interface ChannelHandler {
+interface EncoderChannelHandler {
 
     fun encode(packetData: PacketData) { }
     fun flush() { }
