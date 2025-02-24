@@ -1,5 +1,6 @@
 package io.github.rothes.esu.velocity.module.networkthrottle
 
+import com.github.retrooper.packetevents.protocol.PacketSide
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.server.RegisteredServer
@@ -10,6 +11,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
@@ -36,6 +38,7 @@ object Analyser {
         running = true
         reset()
         Injector.registerEncoderHandler(EncoderHandler)
+        Injector.registerDecoderHandler(DecoderHandler)
         return true
     }
 
@@ -44,7 +47,7 @@ object Analyser {
             @Command("vnetwork analyser start")
             @ShortPerm("analyser")
             fun analyserStart(sender: User) {
-                if (Analyser.start()) {
+                if (start()) {
                     sender.message(locale, { analyser.started })
                 } else {
                     sender.message(locale, { analyser.alreadyStarted })
@@ -54,7 +57,7 @@ object Analyser {
             @Command("vnetwork analyser stop")
             @ShortPerm("analyser")
             fun analyserStop(sender: User) {
-                if (Analyser.disable()) {
+                if (disable()) {
                     sender.message(locale, { analyser.stopped })
                 } else {
                     sender.message(locale, { analyser.alreadyStopped })
@@ -64,32 +67,35 @@ object Analyser {
             @Command("vnetwork analyser reset")
             @ShortPerm("analyser")
             fun analyserReset(sender: User) {
-                Analyser.reset()
+                reset()
                 sender.message(locale, { analyser.reset })
             }
 
             @Command("vnetwork analyser view")
             @ShortPerm("analyser")
             fun analyserView(sender: User,
-                             @Flag("limit") limit: Int = 7,
+                             @Flag("size") side: PacketSide? = null,
                              @Flag("player") players: Player? = null,
-                             @Flag("server") servers: RegisteredServer? = null) {
-                val entries = Analyser.records
+                             @Flag("server") servers: RegisteredServer? = null,
+                             @Flag("limit") limit: Int = 7, ) {
+                val entries = records.mapValues { LinkedList(it.value) }
                     .let {
-                        if (players != null)
-                            it.mapValues { it.value.toList().filter { record -> players == record.player } }
+                        if (side != null)
+                            it.filterKeys { it.side == side }
                         else
                             it
                     }
-                    .let {
+                    .also {
+                        if (players != null)
+                            it.values.forEach { it.removeIf { record -> players == record.player } }
+                    }
+                    .also {
                         if (servers != null)
-                            it.mapValues { it.value.toList().filter { record -> servers == record.server } }
-                        else
-                            it
+                            it.values.forEach { it.removeIf { record -> servers == record.server } }
                     }
                     .filterValues { it.isNotEmpty() }
                     .mapValues {
-                        val list = it.value.toList()
+                        val list = it.value
                         list.size to (list.sumOf { it.uncompressedSize.toLong() } to list.sumOf { it.compressedSize.toLong() })
                     }
                     .entries.sortedByDescending { it.value.second.second }
@@ -123,10 +129,12 @@ object Analyser {
     }
 
     fun disable(): Boolean {
+        reset()
         if (!running) return false
         running = false
         stopTime = System.currentTimeMillis()
         Injector.unregisterEncoderHandler(EncoderHandler)
+        Injector.unregisterDecoderHandler(DecoderHandler)
         return true
     }
 
@@ -145,6 +153,16 @@ object Analyser {
     object EncoderHandler: EncoderChannelHandler {
 
         override fun encode(packetData: PacketData) {
+            val records = records.computeIfAbsent(packetData.packetType) { Collections.synchronizedList(arrayListOf()) }
+            val player = packetData.player
+            records.add(PacketRecord(player, player?.currentServer?.getOrNull()?.server, packetData.uncompressedSize, packetData.compressedSize))
+        }
+
+    }
+
+    object DecoderHandler: DecoderChannelHandler {
+
+        override fun decode(packetData: PacketData) {
             val records = records.computeIfAbsent(packetData.packetType) { Collections.synchronizedList(arrayListOf()) }
             val player = packetData.player
             records.add(PacketRecord(player, player?.currentServer?.getOrNull()?.server, packetData.uncompressedSize, packetData.compressedSize))
