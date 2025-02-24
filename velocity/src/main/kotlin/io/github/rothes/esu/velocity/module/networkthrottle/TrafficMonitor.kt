@@ -20,17 +20,28 @@ import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 object TrafficMonitor {
 
-    private var incomingBytes = AtomicLong(0)
-    private var incomingPps   = AtomicLong(0)
+    private var viewers = linkedMapOf<User, Unit>()
+    private var task: ScheduledTask? = null
+    private var forceRun = AtomicInteger(0)
+
     private var outgoingBytes = AtomicLong(0)
     private var outgoingPps   = AtomicLong(0)
+    private var incomingBytes = AtomicLong(0)
+    private var incomingPps   = AtomicLong(0)
 
-    private var users = linkedMapOf<User, Unit>()
-    private var task: ScheduledTask? = null
+    var lastOutgoingBytes = 0L
+        private set
+    var lastOutgoingPps   = 0L
+        private set
+    var lastIncomingBytes = 0L
+        private set
+    var lastIncomingPps   = 0L
+        private set
 
     fun enable() {
         task = plugin.server.scheduler.buildTask(plugin) { task ->
@@ -38,13 +49,17 @@ object TrafficMonitor {
             val bytesO = outgoingBytes.getAndSet(0) + ppsO * 46 // TCP overhead.
             val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toLong()
             val bytesI = incomingBytes.getAndSet(0) + ppsI * 46
+            lastOutgoingPps = ppsO
+            lastOutgoingBytes = bytesO
+            lastIncomingPps = ppsI
+            lastIncomingBytes = bytesI
             fun traffic(bytes: Long, key: String, unit: Unit) =
                 when (unit) {
                     Unit.BIT  -> bytes(bytes * 8, key, " Gbps" , " Mbps" , " Kbps" , " bps")
                     Unit.BYTE -> bytes(bytes    , key, " GiB/s", " MiB/s", " KiB/s", " B/s")
                 }
 
-            for ((user, unit) in users) {
+            for ((user, unit) in viewers) {
                 user.message(locale, { trafficMonitor.message },
                     traffic(bytesO, "outgoing-traffic", unit),
                     amount( ppsO  , "outgoing-pps"),
@@ -58,7 +73,7 @@ object TrafficMonitor {
             @Commands(value = [Command("vnetwork trafficMonitor"), Command("vnetwork trafficMonitor toggle")])
             @ShortPerm("trafficMonitor")
             fun toggle(sender: User, @Flag("unit") unit: Unit = Unit.BIT) {
-                if (!users.contains(sender)) {
+                if (!viewers.contains(sender)) {
                     enable(sender, unit)
                 } else {
                     disable(sender)
@@ -67,13 +82,13 @@ object TrafficMonitor {
             @Command("vnetwork trafficMonitor enable")
             @ShortPerm("trafficMonitor")
             fun enable(sender: User, @Flag("unit") unit: Unit = Unit.BIT) {
-                add(sender, unit)
+                addViewer(sender, unit)
                 sender.message(locale, { trafficMonitor.enabled })
             }
             @Command("vnetwork trafficMonitor disable")
             @ShortPerm("trafficMonitor")
             fun disable(sender: User) {
-                remove(sender)
+                removeViewer(sender)
                 sender.message(locale, { trafficMonitor.disabled })
             }
         })
@@ -82,27 +97,41 @@ object TrafficMonitor {
     fun disable() {
         task?.cancel()
         NetworkThrottleModule.unregisterListener(Listeners)
-        if (users.isNotEmpty()) {
-            users.clear()
+        if (viewers.isNotEmpty()) {
+            viewers.clear()
             Injector.unregisterEncoderHandler(EncoderHandler)
             Injector.unregisterDecoderHandler(DecoderHandler)
         }
     }
 
-    fun add(user: User, unit: Unit) {
-        synchronized(users) {
-            if (users.isEmpty()) {
-                Injector.registerEncoderHandler(EncoderHandler)
-                Injector.registerDecoderHandler(DecoderHandler)
-            }
-            users[user] = unit
+    fun forceRecord() {
+        if (forceRun.getAndAdd(1) == 0) {
+            Injector.registerEncoderHandler(EncoderHandler)
+            Injector.registerDecoderHandler(DecoderHandler)
         }
     }
 
-    fun remove(user: User) {
-        synchronized(users) {
-            users.remove(user)
-            if (users.isEmpty()) {
+    fun removeForceRecord() {
+        if (forceRun.addAndGet(-1) == 0 && viewers.isEmpty()) {
+            Injector.unregisterEncoderHandler(EncoderHandler)
+            Injector.unregisterDecoderHandler(DecoderHandler)
+        }
+    }
+
+    fun addViewer(user: User, unit: Unit) {
+        synchronized(viewers) {
+            if (viewers.isEmpty()) {
+                Injector.registerEncoderHandler(EncoderHandler)
+                Injector.registerDecoderHandler(DecoderHandler)
+            }
+            viewers[user] = unit
+        }
+    }
+
+    fun removeViewer(user: User) {
+        synchronized(viewers) {
+            viewers.remove(user)
+            if (viewers.isEmpty() && forceRun.get() == 0) {
                 Injector.unregisterEncoderHandler(EncoderHandler)
                 Injector.unregisterDecoderHandler(DecoderHandler)
             }
@@ -112,7 +141,7 @@ object TrafficMonitor {
     object Listeners {
         @Subscribe
         fun onDisconnect(e: DisconnectEvent) {
-            users.remove(e.player.user)
+            viewers.remove(e.player.user)
         }
     }
 
