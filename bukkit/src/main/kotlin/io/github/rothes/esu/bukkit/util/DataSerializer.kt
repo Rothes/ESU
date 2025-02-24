@@ -7,6 +7,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import com.google.gson.reflect.TypeToken
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import java.lang.reflect.Type
@@ -20,12 +21,13 @@ object DataSerializer {
         return GSON.toJson(data, T::class.java).toByteArray(Charsets.UTF_8)
     }
 
-    inline fun <reified T> deserialize(bytes: ByteArray): T {
-        return GSON.fromJson(bytes.toString(Charsets.UTF_8), T::class.java)
+    inline fun <reified T> deserialize(bytes: ByteArray, typeToken: TypeToken<T> = TypeToken.get(T::class.java)): T {
+        return GSON.fromJson(bytes.toString(Charsets.UTF_8), typeToken.type)
     }
 
     fun Any.encode(): ByteArray = serialize(this)
     inline fun <reified T> ByteArray.decode(): T = deserialize(this)
+    inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = deserialize(this, typeToken)
 
     private class BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
 

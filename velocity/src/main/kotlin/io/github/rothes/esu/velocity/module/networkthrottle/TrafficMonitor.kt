@@ -111,7 +111,7 @@ object TrafficMonitor {
         }
     }
 
-    fun removeForceRecord() {
+    fun cancelForceRecord() {
         if (forceRun.addAndGet(-1) == 0 && viewers.isEmpty()) {
             Injector.unregisterEncoderHandler(EncoderHandler)
             Injector.unregisterDecoderHandler(DecoderHandler)

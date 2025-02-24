@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.networkthrottle.Analyser
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
+import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
@@ -95,14 +96,25 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         Analyser // Init this
         HighLatencyAdjust.onEnable()
         ChunkDataThrottle.onEnable()
+        DynamicChunkSendRate.enable()
     }
 
     override fun disable() {
         super.disable()
         ChunkDataThrottle.onDisable()
         HighLatencyAdjust.onDisable()
+        DynamicChunkSendRate.disable()
         Analyser.stop()
         ConfigLoader.save(dataPath, data)
+    }
+
+    override fun reloadConfig() {
+        super.reloadConfig()
+        if (config.dynamicChunkSendRate.enabled) {
+            DynamicChunkSendRate.enable()
+        } else {
+            DynamicChunkSendRate.disable()
+        }
     }
 
 
@@ -116,6 +128,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 "This can save about 50% bandwidth usage in overworld and 30% in nether averagely.\n" +
                 "Make sure you enabled network-compression on proxy or this server.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
+        @field:Comment("Enable DynamicChunkSendRate. Make sure you have velocity mode on, and installed ESU on velocity.")
+        val dynamicChunkSendRate: DynamicChunkSendRate = DynamicChunkSendRate(),
         @field:Comment("Adjust the settings the players with high latency to lower value.\n" +
                 "So they won't affect average quality of all players.")
         val highLatencyAdjust: HighLatencyAdjust = HighLatencyAdjust(),
@@ -170,6 +184,10 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             private val Material.globalId
                 get() = if (!this.isBlock) error("Material $this is not a block type!") else SpigotConversionUtil.fromBukkitBlockData(createBlockData()).globalId
         }
+
+        data class DynamicChunkSendRate(
+            val enabled: Boolean = true,
+        )
 
         data class HighLatencyAdjust(
             val enabled: Boolean = false,

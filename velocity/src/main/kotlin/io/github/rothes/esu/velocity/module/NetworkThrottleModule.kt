@@ -5,10 +5,12 @@ import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
+import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import kotlin.jvm.java
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
     ModuleConfig::class.java, ModuleLang::class.java
@@ -20,6 +22,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         Injector.enable()
         TrafficMonitor.enable()
         Analyser.enable()
+        DynamicChunkSendRate.enable()
     }
 
     override fun disable() {
@@ -27,14 +30,42 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         Injector.disable()
         TrafficMonitor.disable()
         Analyser.disable()
+        DynamicChunkSendRate.disable()
+    }
+
+    override fun reloadConfig() {
+        super.reloadConfig()
+        if (config.dynamicChunkSendRate.enabled) {
+            DynamicChunkSendRate.enable()
+        } else {
+            DynamicChunkSendRate.disable()
+        }
     }
 
 
     data class ModuleConfig(
+        @field:Comment("Dynamic manage chunk send rate with outgoing traffic.\n" +
+                "NetworkThrottleModule at backend servers enabled is required.")
+        val dynamicChunkSendRate: DynamicChunkSendRate = DynamicChunkSendRate(),
         @field:Comment("We can't know exactly what the actual bandwidth rate and packet rate are at netty level.\n" +
                 "You can modify the correction parameters here.")
         val trafficCalibration: TrafficCalibration = TrafficCalibration(),
     ): BaseModuleConfiguration() {
+
+        data class DynamicChunkSendRate(
+            val enabled: Boolean = true,
+//            @field:Comment("The total upload bandwidth this server can send. Unit is KiB/s.")
+//            val totalUploadBandwidth: Long = 50 * 1024,
+            @field:Comment("The upload bandwidth threshold to start the throttle. Unit is KiB/s.\n" +
+                    "We will use the value from traffic monitor, so you may have done the\n" +
+                    " traffic-calibration settings.")
+            val limitUploadBandwidth: Long = 50 * 1024,
+            @field:Comment("Minimum guaranteed rate per player. If server bandwidth hits limitUploadBandwidth,\n" +
+                    "player with outgoing rates above this will be limit chunk sending by one second.\n" +
+                    "It's hard to hit the default value, you should set it lower like 256 if you have\n" +
+                    " many players.")
+            val guaranteedBandwidth: Long = 440,
+        )
 
         data class TrafficCalibration(
             val outgoingPpsMultiplier: Double = 0.6667,
