@@ -41,21 +41,10 @@ object Injector {
     private val encoderHandlers = linkedSetOf<EncoderChannelHandler>()
     private val decoderHandlers = linkedSetOf<DecoderChannelHandler>()
 
-    fun registerEncoderHandler(channelHandler: EncoderChannelHandler) {
-        encoderHandlers.add(channelHandler)
-    }
-
-    fun unregisterEncoderHandler(channelHandler: EncoderChannelHandler) {
-        encoderHandlers.remove(channelHandler)
-    }
-
-    fun registerDecoderHandler(channelHandler: DecoderChannelHandler) {
-        decoderHandlers.add(channelHandler)
-    }
-
-    fun unregisterDecoderHandler(channelHandler: DecoderChannelHandler) {
-        decoderHandlers.remove(channelHandler)
-    }
+    fun registerHandler(channelHandler: EncoderChannelHandler) = encoderHandlers.add(channelHandler)
+    fun unregisterHandler(channelHandler: EncoderChannelHandler) = encoderHandlers.remove(channelHandler)
+    fun registerHandler(channelHandler: DecoderChannelHandler) = decoderHandlers.add(channelHandler)
+    fun unregisterHandler(channelHandler: DecoderChannelHandler) = decoderHandlers.remove(channelHandler)
 
     fun enable() {
         NetworkThrottleModule.registerListener(this)

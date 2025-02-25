@@ -47,7 +47,7 @@ object DynamicChunkSendRate {
                 }
             }.repeat(Duration.ofSeconds(1)).schedule()
             TrafficMonitor.forceRecord()
-            Injector.registerEncoderHandler(EncoderHandler)
+            Injector.registerHandler(EncoderHandler)
         }
     }
 
@@ -56,7 +56,7 @@ object DynamicChunkSendRate {
             task?.cancel()
             task = null
             TrafficMonitor.cancelForceRecord()
-            Injector.unregisterEncoderHandler(EncoderHandler)
+            Injector.unregisterHandler(EncoderHandler)
             traffic.clear()
         }
     }

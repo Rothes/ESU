@@ -37,8 +37,8 @@ object Analyser {
         if (running) return false
         running = true
         reset()
-        Injector.registerEncoderHandler(EncoderHandler)
-        Injector.registerDecoderHandler(DecoderHandler)
+        Injector.registerHandler(EncoderHandler)
+        Injector.registerHandler(DecoderHandler)
         return true
     }
 
@@ -133,8 +133,8 @@ object Analyser {
         if (!running) return false
         running = false
         stopTime = System.currentTimeMillis()
-        Injector.unregisterEncoderHandler(EncoderHandler)
-        Injector.unregisterDecoderHandler(DecoderHandler)
+        Injector.unregisterHandler(EncoderHandler)
+        Injector.unregisterHandler(DecoderHandler)
         return true
     }
 

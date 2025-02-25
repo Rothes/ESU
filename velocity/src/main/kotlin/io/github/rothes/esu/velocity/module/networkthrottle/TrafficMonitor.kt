@@ -99,30 +99,30 @@ object TrafficMonitor {
         NetworkThrottleModule.unregisterListener(Listeners)
         if (viewers.isNotEmpty()) {
             viewers.clear()
-            Injector.unregisterEncoderHandler(EncoderHandler)
-            Injector.unregisterDecoderHandler(DecoderHandler)
+            Injector.unregisterHandler(EncoderHandler)
+            Injector.unregisterHandler(DecoderHandler)
         }
     }
 
     fun forceRecord() {
         if (forceRun.getAndAdd(1) == 0) {
-            Injector.registerEncoderHandler(EncoderHandler)
-            Injector.registerDecoderHandler(DecoderHandler)
+            Injector.registerHandler(EncoderHandler)
+            Injector.registerHandler(DecoderHandler)
         }
     }
 
     fun cancelForceRecord() {
         if (forceRun.addAndGet(-1) == 0 && viewers.isEmpty()) {
-            Injector.unregisterEncoderHandler(EncoderHandler)
-            Injector.unregisterDecoderHandler(DecoderHandler)
+            Injector.unregisterHandler(EncoderHandler)
+            Injector.unregisterHandler(DecoderHandler)
         }
     }
 
     fun addViewer(user: User, unit: Unit) {
         synchronized(viewers) {
             if (viewers.isEmpty()) {
-                Injector.registerEncoderHandler(EncoderHandler)
-                Injector.registerDecoderHandler(DecoderHandler)
+                Injector.registerHandler(EncoderHandler)
+                Injector.registerHandler(DecoderHandler)
             }
             viewers[user] = unit
         }
@@ -132,8 +132,8 @@ object TrafficMonitor {
         synchronized(viewers) {
             viewers.remove(user)
             if (viewers.isEmpty() && forceRun.get() == 0) {
-                Injector.unregisterEncoderHandler(EncoderHandler)
-                Injector.unregisterDecoderHandler(DecoderHandler)
+                Injector.unregisterHandler(EncoderHandler)
+                Injector.unregisterHandler(DecoderHandler)
             }
         }
     }
