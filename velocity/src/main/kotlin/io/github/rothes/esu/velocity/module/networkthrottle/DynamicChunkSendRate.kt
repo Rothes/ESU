@@ -31,13 +31,13 @@ object DynamicChunkSendRate {
         NetworkThrottleModule.registerListener(Listeners)
         if (config.dynamicChunkSendRate.enabled && !running) {
             task = plugin.server.scheduler.buildTask(plugin) { task ->
-                val total = TrafficMonitor.lastOutgoingBytes shr 10
+                val total = TrafficMonitor.lastOutgoingBytes shr 10 - 3
                 val limitUploadBandwidth = config.dynamicChunkSendRate.limitUploadBandwidth
                 val guaranteedBandwidth = config.dynamicChunkSendRate.guaranteedBandwidth
 
                 val limit = arrayListOf<Player>()
                 for ((player, atomicLong) in traffic) {
-                    val outgoing = atomicLong.getAndSet(0) shr 10
+                    val outgoing = atomicLong.getAndSet(0) shr 10 - 3
                     if (total >= limitUploadBandwidth && outgoing >= guaranteedBandwidth) {
                         limit.add(player)
                     }
