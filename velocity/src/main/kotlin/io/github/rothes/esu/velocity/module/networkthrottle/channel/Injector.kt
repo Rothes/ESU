@@ -132,7 +132,8 @@ object Injector {
         val peUser: PEUser,
         var player: Player? = null,
         var packetType: PacketTypeCommon = UnknownPacketType,
-        var uncompressedSize: Int = -1,
+        /** Stores uncompressed size on encoder, and compressed size on decoder. */
+        var oppositeSize: Int = -1,
     )
 
     class EsuPreEncoder(val data: EsuPipelineData): MessageToByteEncoder<ByteBuf>() {
@@ -140,10 +141,10 @@ object Injector {
         override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
             val peUser = data.peUser
             val readerIndex = msg.readerIndex()
-            data.uncompressedSize = msg.readableBytes()
             val packetId = ByteBufHelper.readVarInt(msg)
-            data.packetType = PacketType.getById(PacketSide.SERVER, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
             msg.readerIndex(readerIndex)
+            data.oppositeSize = msg.readableBytes()
+            data.packetType = PacketType.getById(PacketSide.SERVER, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
 
             out.writeBytes(msg)
         }
@@ -154,7 +155,7 @@ object Injector {
 
         override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
             if (encoderHandlers.isNotEmpty()) {
-                val packetData = PacketData(data.player, data.packetType, msg, data.uncompressedSize, msg.readableBytes())
+                val packetData = PacketData(data.player, data.packetType, msg, data.oppositeSize, msg.readableBytes())
                 for (handler in encoderHandlers) {
                     try {
                         handler.encode(packetData)
@@ -185,9 +186,9 @@ object Injector {
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             if (msg is ByteBuf) {
-                data.uncompressedSize = msg.readableBytes()
+                data.oppositeSize = msg.readableBytes()
             } else {
-                data.uncompressedSize = -1
+                data.oppositeSize = -1
             }
             super.channelRead(ctx, msg)
         }
@@ -198,14 +199,12 @@ object Injector {
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             if (msg is ByteBuf) {
-                val readerIndex = msg.readerIndex()
                 val peUser = data.peUser
+                val readerIndex = msg.readerIndex()
                 val packetId = ByteBufHelper.readVarInt(msg)
                 msg.readerIndex(readerIndex)
                 val packetType = PacketType.getById(PacketSide.CLIENT, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
-                val compressedSize = data.uncompressedSize
-                val decompressedSize = msg.readableBytes()
-                val packetData = PacketData(data.player, packetType, msg, decompressedSize, compressedSize)
+                val packetData = PacketData(data.player, packetType, msg, data.oppositeSize, msg.readableBytes())
                 for (handler in decoderHandlers) {
                     handler.decode(packetData)
                 }
