@@ -155,7 +155,7 @@ object Injector {
 
         override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
             if (encoderHandlers.isNotEmpty()) {
-                val packetData = PacketData(data.player, data.packetType, msg, data.oppositeSize, msg.readableBytes())
+                val packetData = PacketData(data.player, data.packetType, data.oppositeSize, msg.readableBytes())
                 for (handler in encoderHandlers) {
                     try {
                         handler.encode(packetData)
@@ -204,7 +204,7 @@ object Injector {
                 val packetId = ByteBufHelper.readVarInt(msg)
                 msg.readerIndex(readerIndex)
                 val packetType = PacketType.getById(PacketSide.CLIENT, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
-                val packetData = PacketData(data.player, packetType, msg, data.oppositeSize, msg.readableBytes())
+                val packetData = PacketData(data.player, packetType, data.oppositeSize, msg.readableBytes())
                 for (handler in decoderHandlers) {
                     handler.decode(packetData)
                 }
