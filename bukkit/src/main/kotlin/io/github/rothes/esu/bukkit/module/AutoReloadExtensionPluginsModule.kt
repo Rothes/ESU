@@ -77,6 +77,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         // Load the classes those are easily to break the hot plugin update.
         org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
         org.incendo.cloud.parser.flag.FlagContext::class.java
+        Charsets::class.java
     }
 
     data class ModuleData(
