@@ -42,19 +42,17 @@ object DynamicChunkSendRate {
             for (player in players) {
                 val chunkLoaderData = player.handle.`moonrise$getChunkLoader`()
 
-                val max = max(
+                val max =
                     max(
                         GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkSendRate,
                         GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate
-                    ),
-                    1000.0
-                )
+                    ).let { if (it !in (0.0 .. 10000.0)) 10000.0 else it }
                 val limiter = limiter[chunkLoaderData] as AllocatingRateLimiter
                 var times = 20
-                plugin.info("Limit ${player.name} for 1s")
+//                plugin.info("Limit ${player.name} for 1s")
                 fun func() {
                     if (--times > 0) {
-                        takeCarry[limiter] = 3 - max
+                        takeCarry[limiter] = 16 - max
                         Scheduler.schedule(player, 1) {
                             func()
                         }
