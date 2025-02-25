@@ -62,9 +62,9 @@ object TrafficMonitor {
             for ((user, unit) in viewers) {
                 user.message(locale, { trafficMonitor.message },
                     traffic(bytesO, "outgoing-traffic", unit),
-                    amount( ppsO  , "outgoing-pps"),
+                    amount(   ppsO, "outgoing-pps"),
                     traffic(bytesI, "incoming-traffic", unit),
-                    amount( ppsI  , "incoming-pps"),
+                    amount(   ppsI, "incoming-pps"),
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()

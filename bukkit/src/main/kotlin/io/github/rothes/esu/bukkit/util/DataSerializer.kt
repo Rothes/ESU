@@ -34,10 +34,10 @@ object DataSerializer {
         override fun serialize(location: Location, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             return JsonObject().apply {
                 addProperty("world", location.world?.name)
-                addProperty("x", location.x)
-                addProperty("y", location.y)
-                addProperty("z", location.z)
-                addProperty("yaw", location.yaw)
+                addProperty("x"    , location.x)
+                addProperty("y"    , location.y)
+                addProperty("z"    , location.z)
+                addProperty("yaw"  , location.yaw)
                 addProperty("pitch", location.pitch)
             }
         }
