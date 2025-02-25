@@ -38,8 +38,12 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         if (!plugin.enabledHot)
             return
 
-        for (plugin in data.pluginsToLoad) {
-            PlugMan.getInstance().pluginUtil.load(plugin)
+        for (pl in data.pluginsToLoad) {
+            try {
+                PlugMan.getInstance().pluginUtil.load(pl)
+            } catch (e: Throwable) {
+                plugin.err("Failed to load plugin $pl :", e)
+            }
         }
 
         data.pluginsToLoad.clear()
