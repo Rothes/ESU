@@ -12,7 +12,6 @@ import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChann
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
-import io.github.rothes.esu.velocity.util.DataSerializer.encode
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -20,7 +19,7 @@ import kotlin.jvm.optionals.getOrNull
 
 object DynamicChunkSendRate {
 
-    private val CHANNEL_IDENTIFIER = MinecraftChannelIdentifier.create("esu", "dynamic_chunk_send_rate")
+    private val CHANNEL_IDENTIFIER = MinecraftChannelIdentifier.create("esu", "dynamic_chunk_send_rate_limit")
 
     private val traffic = ConcurrentHashMap<Player, AtomicLong>()
     private var task: ScheduledTask? = null
@@ -31,19 +30,8 @@ object DynamicChunkSendRate {
         NetworkThrottleModule.registerListener(Listeners)
         if (config.dynamicChunkSendRate.enabled && !running) {
             task = plugin.server.scheduler.buildTask(plugin) { task ->
-                val total = TrafficMonitor.lastOutgoingBytes shr 10 - 3
-                val limitUploadBandwidth = config.dynamicChunkSendRate.limitUploadBandwidth
-                val guaranteedBandwidth = config.dynamicChunkSendRate.guaranteedBandwidth
-
-                val limit = arrayListOf<Player>()
-                for ((player, atomicLong) in traffic) {
-                    val outgoing = atomicLong.getAndSet(0) shr 10 - 3
-                    if (total >= limitUploadBandwidth && outgoing >= guaranteedBandwidth) {
-                        limit.add(player)
-                    }
-                }
-                for ((server, players) in limit.groupBy { it.currentServer.getOrNull() }) {
-                    server?.sendPluginMessage(CHANNEL_IDENTIFIER, players.map { it.uniqueId }.encode())
+                for ((_, atomicLong) in traffic) {
+                    atomicLong.set(0)
                 }
             }.repeat(Duration.ofSeconds(1)).schedule()
             TrafficMonitor.forceRecord()
@@ -82,7 +70,15 @@ object DynamicChunkSendRate {
         override fun encode(packetData: PacketData) {
             val player = packetData.player ?: return
             val atomicLong = traffic.computeIfAbsent(player) { AtomicLong(0) }
-            atomicLong.addAndGet(packetData.compressedSize.toLong() + (46 / 3).toLong())
+
+            val outgoing = atomicLong.addAndGet(packetData.compressedSize.toLong() + (46 / 3).toLong()) shr 10 - 3
+            val total = TrafficMonitor.lastOutgoingBytes shr 10 - 3
+            if (total >= config.dynamicChunkSendRate.limitUploadBandwidth
+                && outgoing >= config.dynamicChunkSendRate.guaranteedBandwidth) {
+
+                player.currentServer?.getOrNull()?.sendPluginMessage(CHANNEL_IDENTIFIER, ByteArray(0))
+                atomicLong.set(0)
+            }
         }
 
     }

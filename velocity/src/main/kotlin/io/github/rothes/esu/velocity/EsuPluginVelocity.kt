@@ -35,7 +35,6 @@ import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import org.bstats.velocity.Metrics
-import org.incendo.cloud.CloudCapability
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
