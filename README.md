@@ -25,6 +25,7 @@ Custom color scheme feature, allowing your players to choose a theme they like!
 - UtilCommandsModule
 
 #### ESU-Velocity
+- NetworkThrottleModule
 - UserNameVerifyModule
 
 ### (Working in Progress)
