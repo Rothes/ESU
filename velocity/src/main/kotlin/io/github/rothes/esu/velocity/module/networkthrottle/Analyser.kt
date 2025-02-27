@@ -129,7 +129,6 @@ object Analyser {
     }
 
     fun disable(): Boolean {
-        reset()
         if (!running) return false
         running = false
         stopTime = System.currentTimeMillis()

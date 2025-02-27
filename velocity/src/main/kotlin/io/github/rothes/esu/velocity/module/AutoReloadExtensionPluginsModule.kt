@@ -6,12 +6,10 @@ import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.velocity.plugin
 import net.frankheijden.serverutils.velocity.managers.VelocityPluginManager
-import org.incendo.cloud.CloudCapability
 import org.incendo.cloud.parser.flag.FlagContext
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import org.spongepowered.configurate.yaml.internal.snakeyaml.parser.ParserImpl
-import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
 object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfiguration>(

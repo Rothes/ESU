@@ -30,6 +30,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         Injector.disable()
         TrafficMonitor.disable()
         Analyser.disable()
+        Analyser.reset()
         DynamicChunkSendRate.disable()
     }
 
