@@ -2,6 +2,8 @@ package io.github.rothes.esu.core.storage
 
 import cc.carm.lib.easysql.EasySQL
 import cc.carm.lib.easysql.api.SQLTable
+import cc.carm.lib.easysql.api.action.PreparedSQLUpdateAction
+import cc.carm.lib.easysql.api.builder.ReplaceBuilder
 import cc.carm.lib.easysql.api.enums.IndexType
 import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.core.config.EsuConfig
@@ -70,14 +72,19 @@ object StorageManager {
             }
     }
 
-    fun updateUserNameAsync(user: User) {
+    fun updateUserNow(user: User) {
+        buildUpdateUser(user).execute()
+    }
+
+    fun updateUserAsync(user: User) {
+        buildUpdateUser(user).executeAsync()
+    }
+
+    private fun buildUpdateUser(user: User): PreparedSQLUpdateAction<Int> {
         val id = user.dbId
-        val nameUnsafe = user.nameUnsafe
-        if (nameUnsafe != null)
-            userTable.createReplace(sqlManager)
-                .setColumnNames("id", "uuid", "name", "language", "color_scheme")
-                .setParams(id, user.uuid, nameUnsafe, user.languageUnsafe, user.colorSchemeUnsafe)
-                .executeAsync()
+        return userTable.createReplace(sqlManager)
+            .setColumnNames("id", "uuid", "name", "language", "color_scheme")
+            .setParams(id, user.uuid, user.nameUnsafe, user.languageUnsafe, user.colorSchemeUnsafe)
     }
 
     data class UserData(

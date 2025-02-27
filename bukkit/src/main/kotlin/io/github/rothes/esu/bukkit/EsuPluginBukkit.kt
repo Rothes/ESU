@@ -48,7 +48,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
-import org.yaml.snakeyaml.emitter.Emitter
 import java.nio.file.Path
 import java.util.logging.Level
 
@@ -164,7 +163,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             @EventHandler(priority = EventPriority.MONITOR)
             fun onQuit(event: PlayerQuitEvent) {
                 BukkitUserManager.getCache(event.player.uniqueId)?.let {
-                    StorageManager.updateUserNameAsync(it)
+                    StorageManager.updateUserAsync(it)
                     BukkitUserManager.unload(it)
                 }
             }
@@ -179,6 +178,13 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     override fun onDisable() {
         disabledHot = byPluginMan()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
+
+        for (player in Bukkit.getOnlinePlayers()) {
+            BukkitUserManager.getCache(player.uniqueId)?.let {
+                StorageManager.updateUserNow(it)
+                BukkitUserManager.unload(it)
+            }
+        }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
     }
 

@@ -166,6 +166,13 @@ class EsuPluginVelocity @Inject constructor(
         enabled = false
         disabledHot = byServerUtils()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
+
+        for (player in server.allPlayers) {
+            VelocityUserManager.getCache(player.uniqueId)?.let {
+                // We don't update user there, backend server will do it
+                VelocityUserManager.unload(it)
+            }
+        }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
     }
 
