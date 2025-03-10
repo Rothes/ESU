@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.user
 
-import io.github.rothes.esu.bukkit.config.pojo.ItemData
+import io.github.rothes.esu.bukkit.config.data.ItemData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData

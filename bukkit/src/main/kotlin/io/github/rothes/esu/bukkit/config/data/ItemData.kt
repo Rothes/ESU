@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.config.pojo
+package io.github.rothes.esu.bukkit.config.data
 
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -24,6 +24,26 @@ data class ItemData(
 
     val displayNameComponent: Component? by lazy { displayName?.let(ComponentUtils::fromMiniMessage) }
     val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
+    val itemStackUnsafe: ItemStack by lazy {
+        val item = itemsAdderId?.let { ia -> CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount } }
+            ?: mythicMobsItemId?.let { mm ->
+                BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
+                    .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
+                    .generateItemStack(DropMetadataImpl(null, null), amount))
+            } ?: mmoItemsItemId?.let {
+                MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
+                    ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
+            }
+            ?: ItemStack(material ?: Material.AIR, amount)
+
+        item.editMeta { meta ->
+            displayNameComponent?.let { meta.displayName(it) }
+            loreComponent?.let { meta.lore(it) }
+        }
+        item
+    }
+    val item
+        get() = itemStackUnsafe.clone()
 
     fun matches(itemStack: ItemStack): Boolean {
         if (material == null && itemsAdderId == null && mythicMobsItemId == null && itemStack.type != Material.AIR) {
@@ -56,27 +76,6 @@ data class ItemData(
             if (itemStack.lore() != it) return false
         }
         return true
-    }
-
-    fun getItem(): ItemStack {
-        val item = itemsAdderId?.let { ia -> CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount } }
-            ?: mythicMobsItemId?.let { mm ->
-                BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
-                    .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
-                    .generateItemStack(DropMetadataImpl(null, null), amount))
-            } ?: mmoItemsItemId?.let {
-                MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
-                    ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
-            }
-            ?: ItemStack(material ?: Material.AIR, amount)
-
-
-        item.editMeta { meta ->
-            displayNameComponent?.let { meta.displayName(it) }
-            loreComponent?.let { meta.lore(it) }
-        }
-
-        return item
     }
 
 }
