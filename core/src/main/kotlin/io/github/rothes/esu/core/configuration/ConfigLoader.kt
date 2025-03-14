@@ -31,13 +31,17 @@ object ConfigLoader {
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
             loadMulti(path: Path, vararg forceLoad: String,
+                      create: Array<String>? = null, loadSubDir: Boolean = false,
+                      nameMapper: (Path) -> String = { it.nameWithoutExtension },
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
                       modifier: (D) -> D = { it }): T {
-        return loadMulti(path, D::class.java, forceLoad = forceLoad, builder, modifier)
+        return loadMulti(path, D::class.java, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, modifier)
     }
 
     inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
             loadMulti(path: Path, clazz: Class<D>, vararg forceLoad: String,
+                      create: Array<String>? = null, loadSubDir: Boolean = false,
+                      nameMapper: (Path) -> String = { it.nameWithoutExtension },
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
                       modifier: (D) -> D = { it }): T {
         if (clazz.isInstance(EmptyConfiguration)) {
@@ -57,18 +61,28 @@ object ConfigLoader {
         return T::class.java.getConstructor(Map::class.java).newInstance(
             buildMap {
                 val files = forceLoad.map { path.resolve(it) }.toMutableSet()
+                if (create?.isNotEmpty() == true && path.notExists()) {
+                    files.addAll(create.map { path.resolve(it) })
+                }
+
                 if (path.isDirectory()) {
-                    path.forEachDirectoryEntry {
-                        if (it.isRegularFile() && !files.contains(it)) {
-                            files.add(it)
-                        }
-                    }
+                    loadDirectory(path, files, loadSubDir)
                 }
                 files.forEach { file ->
-                    put(file.nameWithoutExtension, load(file, clazz, builder, modifier))
+                    put(nameMapper(file), load(file, clazz, builder, modifier))
                 }
             }
         )
+    }
+
+    fun loadDirectory(dir: Path, files: MutableCollection<Path>, deep: Boolean) {
+        dir.forEachDirectoryEntry {
+            if (it.isRegularFile() && !files.contains(it)) {
+                files.add(it)
+            } else if (it.isDirectory() && deep) {
+                loadDirectory(it, files, true)
+            }
+        }
     }
 
     inline fun <reified T> load(path: Path,
@@ -135,6 +149,7 @@ object ConfigLoader {
                                 }
                             }, factory.asTypeSerializer())
                             .registerAnnotatedObjects(factory)
+                            .register(TypeToken.get(List::class.java), ListSerializer)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
                             .register(CaptionSerializer)

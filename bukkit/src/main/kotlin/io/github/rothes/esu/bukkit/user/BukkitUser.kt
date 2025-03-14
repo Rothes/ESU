@@ -75,14 +75,18 @@ abstract class BukkitUser: User {
 
     fun <T: ConfigurationPart> item(locales: MultiLocaleConfiguration<T>, block: T.() -> ItemData?, vararg params: TagResolver): ItemStack {
         val itemData = localedOrNull(locales, block) ?: throw NullPointerException()
-        val item = itemData.getItem()
+        return item(itemData, *params)
+    }
+
+    fun item(itemData: ItemData, vararg params: TagResolver): ItemStack {
+        val item = itemData.create
 
         item.editMeta { meta ->
             itemData.displayName?.let {
                 meta.displayName(buildMinimessage(it, params = params))
             }
-            itemData.lore?.let {
-                val built = it.map { buildMinimessage(it, params = params) }
+            itemData.lore?.let { lore ->
+                val built = lore.map { buildMinimessage(it, params = params) }
                 val list = arrayListOf<Component>()
                 built.forEach { component ->
                     val serialize = MiniMessage.miniMessage().serialize(component)
