@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.config.data
 
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.lumine.mythic.bukkit.BukkitAdapter
@@ -21,6 +22,7 @@ data class ItemData(
     val mmoItemsItemId: String? = null,
     @NoDeserializeNull
     val lore: List<String>? = null,
+    @NoDeserializeIf("1")
     val amount: Int = 1,
 ): ConfigurationPart {
 

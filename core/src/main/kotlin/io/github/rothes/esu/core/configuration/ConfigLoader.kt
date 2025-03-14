@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.leangen.geantyref.GenericTypeReflector
@@ -12,6 +13,7 @@ import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.loader.HeaderMode
 import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.objectmapping.meta.NodeResolver
+import org.spongepowered.configurate.objectmapping.meta.Processor
 import org.spongepowered.configurate.util.MapFactories
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
@@ -134,12 +136,20 @@ object ConfigLoader {
             .lineLength(150)
             .commentsEnabled(true)
             .defaultOptions { options ->
-                val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder().addNodeResolver { name, elem ->
-                    // Skip kotlin delegate(e.g. lazy) properties
-                    if (name.endsWith("\$delegate")) {
-                        NodeResolver.SKIP_FIELD
-                    } else null
-                }.build()
+                val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder()
+                    .addProcessor(NoDeserializeIf::class.java) { data, _ ->
+                        Processor { value, destination ->
+                            if (value.toString() == data.value) {
+//                                destination.parent()?.removeChild(destination.key())
+                                destination.set(null)
+                            }
+                        }
+                    }.addNodeResolver { name, _ ->
+                        // Skip kotlin delegate(e.g. lazy) properties
+                        if (name.endsWith("\$delegate")) {
+                            NodeResolver.SKIP_FIELD
+                        } else null
+                    }.build()
                 options.mapFactory(MapFactories.insertionOrdered())
                     .serializers {
                         it.register(
