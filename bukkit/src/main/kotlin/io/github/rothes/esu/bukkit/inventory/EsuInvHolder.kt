@@ -48,6 +48,10 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
         humanEntity.openInventory(inventory)
     }
 
+    fun close() {
+        inventory.close()
+    }
+
     open fun handleClick(e: InventoryClickEvent) {
         val clickedInventory = e.clickedInventory ?: return
         if (clickedInventory.holder == this) {

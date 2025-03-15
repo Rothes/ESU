@@ -196,12 +196,14 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {
+            val inventoryHolder = player.openInventory.topInventory.holder
+            if (inventoryHolder is EsuInvHolder<*>) {
+                inventoryHolder.close()
+            }
+
             BukkitUserManager.getCache(player.uniqueId)?.let {
                 StorageManager.updateUserNow(it)
                 BukkitUserManager.unload(it)
-            }
-            if (player.openInventory.topInventory.holder is EsuInvHolder<*>) {
-                player.closeInventory()
             }
         }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()
