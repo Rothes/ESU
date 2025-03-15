@@ -17,29 +17,23 @@ data class ItemData(
     val material: Material? = null,
     val itemsAdderId: String? = null,
     val mythicMobsItemId: String? = null,
-    val displayName: String? = null,
     val mmoItemsItemType: String? = null,
     val mmoItemsItemId: String? = null,
+
+    val displayName: String? = null,
     @NoDeserializeNull
     val lore: List<String>? = null,
     @NoDeserializeIf("1")
     val amount: Int = 1,
+    val customModelData: Int? = null,
 ): ConfigurationPart {
 
     val displayNameComponent: Component? by lazy { displayName?.let(ComponentUtils::fromMiniMessage) }
     val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
     val create: ItemStack
-        get() =
-            itemsAdderId?.let { ia -> CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount } }
-                ?: mythicMobsItemId?.let {
-                    BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
-                        .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
-                        .generateItemStack(DropMetadataImpl(null, null), amount))
-                } ?: mmoItemsItemId?.let {
-                    MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
-                        ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
-                }
-                ?: ItemStack(material ?: Material.AIR, amount)
+        get() = createItemByType().also {
+            it.editMeta { meta -> customModelData?.let { meta.setCustomModelData(customModelData) } }
+        }
     val itemUnsafe: ItemStack by lazy {
         create.apply {
             editMeta { meta ->
@@ -60,19 +54,32 @@ data class ItemData(
             return if (ia.id != itemsAdderId) false else checkProp(itemStack)
         }
         mythicMobsItemId?.let {
-            val mm = MythicBukkit.inst().volatileCodeHandler.itemHandler.getNBTData(itemStack).getString("MMOITEMS_ITEM_ID")
+            val mm =
+                MythicBukkit.inst().volatileCodeHandler.itemHandler.getNBTData(itemStack).getString("MMOITEMS_ITEM_ID")
             return if (mm != mythicMobsItemId) false else checkProp(itemStack)
         }
         mmoItemsItemId?.let {
-            return MMOItems.getTypeName(itemStack) == mmoItemsItemType
-                    && MMOItems.getID(itemStack) == mmoItemsItemId
-                    && checkProp(itemStack)
+            return MMOItems.getTypeName(itemStack) == mmoItemsItemType && MMOItems.getID(itemStack) == mmoItemsItemId && checkProp(
+                itemStack
+            )
         }
         material?.let {
             return if (itemStack.type != material) false else checkProp(itemStack)
         }
         return true
     }
+
+    private fun createItemByType() =
+        itemsAdderId?.let { ia -> CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount } }
+            ?: mythicMobsItemId?.let {
+                BukkitAdapter.adapt(
+                    MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
+                        .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
+                        .generateItemStack(DropMetadataImpl(null, null), amount))
+            } ?: mmoItemsItemId?.let {
+                MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
+                    ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
+            } ?: ItemStack(material ?: Material.AIR, amount)
 
     private fun checkProp(itemStack: ItemStack): Boolean {
         displayNameComponent?.let {

@@ -4,6 +4,7 @@ import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AntiCommandSpamModule
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.bukkit.module.AutoRestartModule
@@ -37,6 +38,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -154,17 +157,30 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 else
                     BukkitUserManager.unload(event.uniqueId)
             }
-
             @EventHandler(priority = EventPriority.LOWEST)
             fun onLogin(event: PlayerJoinEvent) {
                 BukkitUserManager[event.player]
             }
-
             @EventHandler(priority = EventPriority.MONITOR)
             fun onQuit(event: PlayerQuitEvent) {
                 BukkitUserManager.getCache(event.player.uniqueId)?.let {
                     StorageManager.updateUserAsync(it)
                     BukkitUserManager.unload(it)
+                }
+            }
+
+            @EventHandler(priority = EventPriority.LOWEST)
+            fun onClick(e: InventoryClickEvent) {
+                val holder = e.inventory.holder
+                if (holder is EsuInvHolder<*>) {
+                    holder.handleClick(e)
+                }
+            }
+            @EventHandler(priority = EventPriority.LOWEST)
+            fun onClick(e: InventoryDragEvent) {
+                val holder = e.inventory.holder
+                if (holder is EsuInvHolder<*>) {
+                    holder.handleDrag(e)
                 }
             }
         }, this)
@@ -183,6 +199,9 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             BukkitUserManager.getCache(player.uniqueId)?.let {
                 StorageManager.updateUserNow(it)
                 BukkitUserManager.unload(it)
+            }
+            if (player.openInventory.topInventory.holder is EsuInvHolder<*>) {
+                player.closeInventory()
             }
         }
         (StorageManager.sqlManager.dataSource as HikariDataSource).close()

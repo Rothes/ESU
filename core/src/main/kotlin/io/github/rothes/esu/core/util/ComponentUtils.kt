@@ -31,6 +31,9 @@ object ComponentUtils {
         return MiniMessage.miniMessage().deserialize(miniMessage)
     }
 
+    val String.miniMessage
+        get() = fromMiniMessage(this)
+
     fun unparsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.unparsed(key, value.toString())
     }

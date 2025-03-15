@@ -44,9 +44,12 @@ dependencies {
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
-    compileOnly("io.lumine:Mythic-Dist:5.6.1")
+    compileOnly("io.lumine:Mythic-Dist:5.8.0")
     compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
     compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
+
+    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 kotlin {
