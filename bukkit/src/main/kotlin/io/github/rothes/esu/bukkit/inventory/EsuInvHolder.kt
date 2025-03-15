@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.inventory
 
 import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
 import org.bukkit.Bukkit
 import org.bukkit.entity.HumanEntity
@@ -45,7 +46,9 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
     }
 
     fun open(humanEntity: HumanEntity) {
-        humanEntity.openInventory(inventory)
+        Scheduler.schedule(humanEntity) {
+            humanEntity.openInventory(inventory)
+        }
     }
 
     fun close() {
@@ -65,7 +68,7 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
     }
 
     open fun handleDrag(e: InventoryDragEvent) {
-        if (e.rawSlots.find { it >= inv.size } != null)
+        if (e.rawSlots.find { it < inv.size } != null)
             e.isCancelled = true
     }
 

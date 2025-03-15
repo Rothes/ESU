@@ -43,7 +43,7 @@ abstract class PagedHolder<T: PagedHolder.PagedExtra, E>(
             },
         )
         defer(10) {
-            var i = entries.size * page
+            var i = listSlots.size * page
             for ((slot, item) in listSlots.sequencedEntrySet()) {
                 if (i < entries.size) {
                     val entry = entries[i++]

@@ -1,6 +1,7 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.leangen.geantyref.GenericTypeReflector
 import org.spongepowered.configurate.BasicConfigurationNode
 import org.spongepowered.configurate.ConfigurationNode
@@ -11,7 +12,6 @@ import org.spongepowered.configurate.serialize.TypeSerializer
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
-import kotlin.collections.getOrDefault
 
 object MapSerializer: TypeSerializer<Map<*, *>> {
 
@@ -96,7 +96,7 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
             type, "No type serializer available for value type $value"
         )
 
-        if (obj == null || obj.isEmpty()) {
+        if (obj !is Defaulted<*> && (obj == null || obj.isEmpty())) {
             node.set(emptyMap<Any, Any>())
         } else {
             if (node.empty()) {
@@ -162,11 +162,13 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
 
     class DefaultedLinkedHashMap<K, V>(override var default: V?): LinkedHashMap<K, V>(), Defaulted<V> {
 
+        override fun get(key: K) = getOrDefault(key)
         fun getOrDefault(key: K): V? = getOrDefault(key, default)
 
     }
     class DefaultedEnumMap<K: Enum<K>, V>(keyType : Class<K>, override var default: V?): EnumMap<K, V>(keyType), Defaulted<V> {
 
+        override fun get(key: K) = getOrDefault(key)
         fun getOrDefault(key: K): V? = getOrDefault(key, default)
 
     }
