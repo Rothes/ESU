@@ -47,7 +47,7 @@ abstract class PagedHolder<T: PagedHolder.PagedExtra, E>(
             for ((slot, item) in listSlots.sequencedEntrySet()) {
                 if (i < entries.size) {
                     val entry = entries[i++]
-                    setItem(slot, setEntryItem(item, entry))
+                    setItem(slot, setEntryItem(slot, item, entry))
                 } else {
                     setItem(slot, inventoryData.extra.noEntry.itemUnsafe)
                 }
@@ -57,7 +57,7 @@ abstract class PagedHolder<T: PagedHolder.PagedExtra, E>(
 
     abstract fun nextPage(): PagedHolder<T, E>
     abstract fun prevPage(): PagedHolder<T, E>
-    abstract fun setEntryItem(item: InventoryData.InventoryItem, entry: E): ItemStack?
+    abstract fun setEntryItem(slot: Int, item: InventoryData.InventoryItem, entry: E): ItemStack?
 
     open class PagedExtra (
         val noPreviousPage: ItemData = ItemData(Material.GRAY_STAINED_GLASS_PANE, displayName = ""),
