@@ -1,44 +1,22 @@
 package io.github.rothes.esu.bukkit.inventory.action
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
-import io.github.rothes.esu.bukkit.inventory.DynamicHolder
-import org.bukkit.inventory.ItemStack
+import io.github.rothes.esu.core.user.User
 
-open class SimpleAction<H: DynamicHolder<*>>(
-    final override val name: String
-): InventoryAction<H> {
+abstract class SimpleAction(override val name: String) : Action {
 
-    override val id: String = "[${name.lowercase()}]"
+    override fun handle(user: User, argument: String?) {
+        handle(user)
+    }
+    abstract fun handle(user: User)
 
-    override fun parseAction(slot: Int, item: InventoryData.InventoryItem, holder: H): ItemStack? {
-        return item.item.item
+    override fun toString(): String {
+        return "SimpleAction(name='$name')"
     }
 
     companion object {
-        fun <H: DynamicHolder<*>> create(name: String, func: (
-            slot: Int,
-            item: InventoryData.InventoryItem,
-            holder: H,
-        ) -> ItemStack?): SimpleAction<H> {
-            return object : SimpleAction<H>(name) {
-                override fun parseAction(
-                    slot: Int,
-                    item: InventoryData.InventoryItem,
-                    holder: H,
-                ): ItemStack? {
-                    return func(slot, item, holder)
-                }
-            }
-        }
-
-        fun <H: DynamicHolder<*>> create(name: String, func: (
-            slot: Int,
-            item: InventoryData.InventoryItem,
-        ) -> ItemStack?): SimpleAction<H> {
-            return object : SimpleAction<H>(name) {
-                override fun parseAction(slot: Int, item: InventoryData.InventoryItem, holder: H): ItemStack? {
-                    return func(slot, item)
-                }
+        fun create(name: String, func: (User) -> Unit) = object : SimpleAction(name) {
+            override fun handle(user: User) {
+                func(user)
             }
         }
     }

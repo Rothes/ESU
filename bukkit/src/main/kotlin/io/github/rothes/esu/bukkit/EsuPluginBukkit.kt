@@ -4,6 +4,7 @@ import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AntiCommandSpamModule
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
@@ -27,6 +28,8 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
+import io.github.rothes.esu.core.configuration.ConfigLoader
+import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager

@@ -27,8 +27,8 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
         fun setItem(slot: Int, char: Char) {
             val item = inventoryData.icons[char]
             if (item != null)
-                inv.setItem(slot, parseAction(slot, item))
-            else if (char != ' ')
+                inv.setItem(slot, parseType(slot, item))
+            else if (char != ' ' && char != '.')
                 plugin.warn("Icon $char in layout ${inventoryData.layout} is not set!")
         }
         if (inventoryData.size != null) {
@@ -72,7 +72,7 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
             e.isCancelled = true
     }
 
-    protected open fun parseAction(slot: Int, item: InventoryData.InventoryItem): ItemStack? {
+    protected open fun parseType(slot: Int, item: InventoryData.InventoryItem): ItemStack? {
         return item.item.item
     }
 

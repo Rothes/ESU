@@ -1,32 +1,33 @@
 package io.github.rothes.esu.bukkit.config.data
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryType
 import org.spongepowered.configurate.objectmapping.meta.NodeKey
 import org.spongepowered.configurate.objectmapping.meta.Setting
 
-data class InventoryData<T>(
+open class InventoryData<T>(
     val inventoryType: InventoryType? = null,
     val size: Int? = 6 * 9,
     val title: String = "Menu",
     val layout: String = """
-        |         
-        |         
-        |         
-        |         
-        |         
-        |         
-    """.trimIndent().trim(),
+        .........
+        .........
+        .........
+        .........
+        .........
+        .........
+    """.trimIndent(),
     val icons: Map<Char, InventoryItem> = linkedMapOf(
-        ' ' to InventoryItem()
+        '.' to InventoryItem()
     ),
 ): ConfigurationPart {
 
-    @Setting("extra")
-    private var extraInternal: T? = null
-    val extra: T
-        get() = extraInternal ?: error("extra is not set!")
+    @Setting("fallback")
+    private var fallbackInternal: T? = null
+    val fallback: T
+        get() = fallbackInternal ?: error("Fallback is not set!")
 
     constructor(
         inventoryType: InventoryType? = null,
@@ -36,12 +37,14 @@ data class InventoryData<T>(
         icons: Map<Char, InventoryItem> = linkedMapOf(' ' to InventoryItem()),
         extra: T
     ): this(inventoryType, size, title, layout, icons) {
-        this.extraInternal = extra
+        this.fallbackInternal = extra
     }
 
     data class InventoryItem(
         val item: ItemData = ItemData(Material.AIR),
-        val action: String? = null,
+        val type: String? = null,
+        @NoDeserializeNull
+        val actions: List<String>? = null,
         @field:NodeKey
         val key: Char = '\u0000',
     ): ConfigurationPart

@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.configuration
 
-import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
@@ -21,12 +21,7 @@ import java.lang.reflect.Type
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import kotlin.io.path.createDirectories
-import kotlin.io.path.forEachDirectoryEntry
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.nameWithoutExtension
-import kotlin.io.path.notExists
+import kotlin.io.path.*
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
@@ -162,6 +157,7 @@ object ConfigLoader {
                             .register(TypeToken.get(List::class.java), ListSerializer)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
+                            .register(TypeToken.get(Unit::class.java), EmptySerializer())
                             .register(CaptionSerializer)
                             .register(ComponentSerializer)
                             .register(DurationSerializer)

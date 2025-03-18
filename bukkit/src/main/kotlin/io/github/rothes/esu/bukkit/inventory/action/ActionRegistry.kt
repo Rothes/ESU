@@ -1,37 +1,49 @@
 package io.github.rothes.esu.bukkit.inventory.action
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
-import io.github.rothes.esu.bukkit.inventory.DynamicHolder
 import io.github.rothes.esu.bukkit.plugin
-import org.bukkit.inventory.ItemStack
+import java.lang.reflect.Modifier
 
-open class ActionRegistry<H: DynamicHolder<*>> {
+object ActionRegistry {
 
-    open val actions = hashMapOf<String, InventoryAction<H>>()
+    private val registry = hashMapOf<String, Action>()
 
-    open fun register(vararg actions: InventoryAction<H>): ActionRegistry<H> {
+    init {
+        CommonActions::class.java.declaredFields.filter {
+            it.type.isAssignableFrom(Action::class.java) && it.modifiers and Modifier.STATIC != 0
+        }.forEach {
+            it.isAccessible = true
+            register(it.get(null) as Action)
+        }
+    }
+
+    fun register(vararg actions: Action): ActionRegistry {
         actions.forEach { register(action = it) }
         return this
     }
 
-    open fun register(action: InventoryAction<H>): ActionRegistry<H> {
-        actions[action.id] = action
+    fun register(action: Action): ActionRegistry {
+        registry[action.id.lowercase()] = action
         return this
     }
 
-    fun parseAction(slot: Int, item: InventoryData.InventoryItem, holder: H): ItemStack? {
-        val id = item.action?.split(' ', limit = 2)?.first() ?: error("InventoryItem action is null")
-        val action = actions[id.lowercase()] ?: return item.item.item.also {
-            plugin.warn("Unknown action ${item.action}")
-        }
-        return action.parseAction(slot, item, holder)
+    fun parseActions(string: List<String>): List<ParsedAction> {
+        return string.mapNotNull { parseAction(it) }
     }
 
-    companion object {
-
-        fun <H: DynamicHolder<*>> base(): ActionRegistry<H> {
-            return ActionRegistry<H>().register(CommonActions.close(), CommonActions.command())
+    fun parseAction(string: String?): ParsedAction? {
+        string ?: return null
+        if (string.isEmpty() || string.first() != '[')
+            return null
+        val index = string.indexOf(']')
+        if (index == -1)
+            return null
+        val name = string.substring(1, index).lowercase()
+        val action = registry[name]
+        if (action == null) {
+            plugin.warn("Unknown action '$string'")
+            return null
         }
+        return ParsedAction(action, string.substring(index + 1).removePrefix(" ").ifEmpty { null })
     }
 
 }
