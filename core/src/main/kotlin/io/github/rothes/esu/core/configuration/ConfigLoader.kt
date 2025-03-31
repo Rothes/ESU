@@ -31,7 +31,7 @@ object ConfigLoader {
                       create: Array<String>? = null, loadSubDir: Boolean = false,
                       nameMapper: (Path) -> String = { it.nameWithoutExtension },
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      modifier: (D) -> D = { it }): T {
+                      modifier: (D, Path) -> D = { it, _ -> it }): T {
         return loadMulti(path, D::class.java, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, modifier)
     }
 
@@ -40,7 +40,7 @@ object ConfigLoader {
                       create: Array<String>? = null, loadSubDir: Boolean = false,
                       nameMapper: (Path) -> String = { it.nameWithoutExtension },
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      modifier: (D) -> D = { it }): T {
+                      modifier: (D, Path) -> D = { it, _ -> it }): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return T::class.java.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
@@ -84,13 +84,13 @@ object ConfigLoader {
 
     inline fun <reified T> load(path: Path,
                                 builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                                modifier: (T) -> T = { it }): T {
+                                modifier: (T, Path) -> T = { it, _ -> it }): T {
         return load(path, T::class.java, builder, modifier)
     }
 
     inline fun <T> load(path: Path, clazz: Class<T>,
                         builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                        modifier: (T) -> T = { it }): T {
+                        modifier: (T, Path) -> T = { it, _ -> it }): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return clazz.cast(EmptyConfiguration)
         }
@@ -99,7 +99,7 @@ object ConfigLoader {
         }
         val loader = createBuilder().path(path).let(builder).build()
         val node = loader.load()
-        val t = modifier.invoke(node.require(clazz))
+        val t = modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
         loader.save(node)
         return t

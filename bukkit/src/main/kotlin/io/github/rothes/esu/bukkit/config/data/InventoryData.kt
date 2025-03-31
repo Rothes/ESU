@@ -24,10 +24,10 @@ open class InventoryData<T>(
     ),
 ): ConfigurationPart {
 
-    @Setting("fallback")
-    private var fallbackInternal: T? = null
-    val fallback: T
-        get() = fallbackInternal ?: error("Fallback is not set!")
+    @Setting("substitute")
+    private var substituteInternal: T? = null
+    val substitute: T
+        get() = substituteInternal ?: error("Fallback is not set!")
 
     constructor(
         inventoryType: InventoryType? = null,
@@ -37,7 +37,7 @@ open class InventoryData<T>(
         icons: Map<Char, InventoryItem> = linkedMapOf(' ' to InventoryItem()),
         extra: T
     ): this(inventoryType, size, title, layout, icons) {
-        this.fallbackInternal = extra
+        this.substituteInternal = extra
     }
 
     data class InventoryItem(

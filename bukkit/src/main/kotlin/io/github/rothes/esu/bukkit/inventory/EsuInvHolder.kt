@@ -4,18 +4,21 @@ import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
+import io.github.rothes.esu.core.util.VarLazy
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.HumanEntity
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 
 abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHolder {
 
-    private val inv: Inventory by lazy {
+    private var inv: Inventory by VarLazy {
         val inv = if (inventoryData.size != null) {
             Bukkit.createInventory(this, inventoryData.size, inventoryData.title.miniMessage)
         } else if (inventoryData.inventoryType != null) {
@@ -43,6 +46,16 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
         }
         postInventoryBuild(inv)
         inv
+    }
+
+    fun setTitle(component: Component) {
+        val old = inv
+        inv =
+            if (old.type == InventoryType.CHEST) Bukkit.createInventory(this, old.size, component)
+            else Bukkit.createInventory(this, old.type, component)
+        for (i in 0 until old.size)
+            inv.setItem(i, old.getItem(i))
+        old.viewers.forEach { open(it) }
     }
 
     fun open(humanEntity: HumanEntity) {

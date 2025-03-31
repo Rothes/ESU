@@ -27,7 +27,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                         click(slot) { e -> prevPage().open(e.whoClicked) }
                         setItem(slot, item.item.item)
                     } else {
-                        setItem(slot, inventoryData.fallback.noPreviousPage.itemUnsafe)
+                        setItem(slot, inventoryData.substitute.noPreviousPage.itemUnsafe)
                     }
                 }
             }, SimpleType.create("NextPage") { slot, item ->
@@ -36,7 +36,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                         click(slot) { e -> nextPage().open(e.whoClicked) }
                         setItem(slot, item.item.item)
                     } else {
-                        setItem(slot, inventoryData.fallback.noNextPage.itemUnsafe)
+                        setItem(slot, inventoryData.substitute.noNextPage.itemUnsafe)
                     }
                 }
             },
@@ -48,7 +48,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                     val entry = entries[i++]
                     setItem(slot, setEntryItem(slot, item, entry))
                 } else {
-                    setItem(slot, inventoryData.fallback.noEntry.itemUnsafe)
+                    setItem(slot, inventoryData.substitute.noEntry.itemUnsafe)
                 }
             }
         }

@@ -7,6 +7,10 @@ import org.bukkit.Bukkit
 
 object CommonActions {
 
+    val CHAT = ArgumentAction.create("Chat") { user, arg ->
+        arg ?: return@create
+        (user as PlayerUser).player.chat(arg)
+    }
     val CLOSE = SimpleAction.create("Close") { user ->
         (user as? PlayerUser)?.player?.closeInventory()
     }

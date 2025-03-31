@@ -9,7 +9,7 @@ object ActionRegistry {
 
     init {
         CommonActions::class.java.declaredFields.filter {
-            it.type.isAssignableFrom(Action::class.java) && it.modifiers and Modifier.STATIC != 0
+            Action::class.java.isAssignableFrom(it.type) && it.modifiers and Modifier.STATIC != 0
         }.forEach {
             it.isAccessible = true
             register(it.get(null) as Action)

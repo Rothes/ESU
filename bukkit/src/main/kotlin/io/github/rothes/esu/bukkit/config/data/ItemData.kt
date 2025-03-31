@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.config.data
 
 import dev.lone.itemsadder.api.CustomStack
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
@@ -11,6 +12,8 @@ import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 
 data class ItemData(
@@ -23,6 +26,8 @@ data class ItemData(
     val displayName: String? = null,
     @NoDeserializeNull
     val lore: List<String>? = null,
+    @NoDeserializeNull
+    val enchantments: Map<String, Int>? = null,
     @NoDeserializeIf("1")
     val amount: Int = 1,
     val customModelData: Int? = null,
@@ -32,11 +37,23 @@ data class ItemData(
     val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
     val create: ItemStack
         get() = createItemByType().also {
-            it.editMeta { meta -> customModelData?.let { meta.setCustomModelData(customModelData) } }
+            it.editMeta { meta ->
+                customModelData?.let { meta.setCustomModelData(customModelData) }
+                enchantments?.let {
+                    for ((key, level) in enchantments) {
+                        val enchantment = Enchantment.getByKey(NamespacedKey.fromString(key))
+                        if (enchantment == null) {
+                            plugin.err("Unknown enchantment $key")
+                            continue
+                        }
+                        meta.addEnchant(enchantment, level, true)
+                    }
+                }
+            }
         }
     val itemUnsafe: ItemStack by lazy {
-        create.apply {
-            editMeta { meta ->
+        create.also { item ->
+            item.editMeta { meta ->
                 displayNameComponent?.let { meta.displayName(it) }
                 loreComponent?.let { meta.lore(it) }
             }
