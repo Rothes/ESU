@@ -31,6 +31,7 @@ data class ItemData(
     @NoDeserializeIf("1")
     val amount: Int = 1,
     val customModelData: Int? = null,
+    val itemModel: String? = null,
 ): ConfigurationPart {
 
     val displayNameComponent: Component? by lazy { displayName?.let(ComponentUtils::fromMiniMessage) }
@@ -39,6 +40,7 @@ data class ItemData(
         get() = createItemByType().also {
             it.editMeta { meta ->
                 customModelData?.let { meta.setCustomModelData(customModelData) }
+                itemModel?.let { meta.itemModel = NamespacedKey.fromString(itemModel) }
                 enchantments?.let {
                     for ((key, level) in enchantments) {
                         val enchantment = Enchantment.getByKey(NamespacedKey.fromString(key))
