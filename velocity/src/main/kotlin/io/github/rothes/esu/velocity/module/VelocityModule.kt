@@ -37,9 +37,8 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
         with(plugin.commandManager) {
             val annotationParser = AnnotationParser(this, VelocityUser::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
-                val value = perm(a.value)
-                val perm = if (value.isNotEmpty()) "command.$value" else "command"
-                b.permission(perm)
+                val perm = if (a.value.isNotEmpty()) "command.${a.value}" else "command"
+                b.permission(perm(perm))
             }
             modifier?.invoke(annotationParser)
 
