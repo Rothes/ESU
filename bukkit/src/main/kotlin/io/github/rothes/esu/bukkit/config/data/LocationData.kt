@@ -19,4 +19,12 @@ data class LocationData(
     val bukkit: Location
         get() = Location(world?.let { Bukkit.getWorld(it) }, x, y, z, yaw, pitch)
 
+    operator fun plus(other: LocationData): LocationData {
+        return LocationData(world, x + other.x, y + other.y, z + other.z, yaw, pitch)
+    }
+
+    operator fun minus(other: LocationData): LocationData {
+        return LocationData(world, x - other.x, y - other.y, z - other.z, yaw, pitch)
+    }
+
 }
