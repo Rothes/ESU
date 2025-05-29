@@ -1,6 +1,5 @@
 package io.github.rothes.esu.velocity
 
-import cc.carm.lib.easysql.hikari.HikariDataSource
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.velocitypowered.api.event.PostOrder
@@ -173,7 +172,7 @@ class EsuPluginVelocity @Inject constructor(
                 VelocityUserManager.unload(it)
             }
         }
-        (StorageManager.sqlManager.dataSource as HikariDataSource).close()
+        StorageManager.shutdown()
     }
 
     @Subscribe(order = PostOrder.LAST)
