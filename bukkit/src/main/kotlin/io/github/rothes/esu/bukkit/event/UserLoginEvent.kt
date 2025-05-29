@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
@@ -27,23 +28,24 @@ class UserLoginEvent(
         fun getHandlerList(): HandlerList = handlers
 
         init {
+            fun reg(listener: Listener, filter: (Player) -> Boolean) {
+                Bukkit.getPluginManager().registerEvents(listener, plugin)
+                Bukkit.getOnlinePlayers().filter(filter).forEach { it.user.logonBefore = true }
+            }
             if (Bukkit.getPluginManager().isPluginEnabled("Authme")) {
-                Bukkit.getPluginManager().registerEvents(object : Listener {
+                reg(object : Listener {
                     @EventHandler
                     fun onLogin(e: LoginEvent) {
                         Bukkit.getPluginManager().callEvent(UserLoginEvent(e.player.user))
                     }
-                }, plugin)
-                Bukkit.getOnlinePlayers()
-                    .filter { AuthMeApi.getInstance().isAuthenticated(it) }
-                    .forEach { it.user.logonBefore = true }
+                }) { AuthMeApi.getInstance().isAuthenticated(it) }
             } else {
-                Bukkit.getPluginManager().registerEvents(object : Listener {
+                reg(object : Listener {
                     @EventHandler
                     fun onLogin(e: PlayerJoinEvent) {
                         Bukkit.getPluginManager().callEvent(UserLoginEvent(e.player.user))
                     }
-                }, plugin)
+                }) { true }
             }
             // Internal event
             Bukkit.getPluginManager().registerEvents(object : Listener {
