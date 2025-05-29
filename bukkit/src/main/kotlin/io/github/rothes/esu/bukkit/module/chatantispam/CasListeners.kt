@@ -243,7 +243,8 @@ object CasListeners: Listener {
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         val playerUser = event.player.user
-        CasDataManager.saveSpamDataAsync(playerUser)
+        if (playerUser.logonBefore)
+            CasDataManager.saveSpamDataAsync(playerUser)
         notifyUsers.remove(playerUser)
     }
 
