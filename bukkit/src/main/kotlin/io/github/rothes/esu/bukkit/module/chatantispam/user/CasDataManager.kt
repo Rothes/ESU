@@ -24,7 +24,7 @@ import org.jetbrains.exposed.v1.json.jsonb
 
 object CasDataManager {
 
-    object ChatSpam: Table() {
+    object ChatSpam: Table("chat_spam_data") {
         val user = integer("user").uniqueIndex()
         val ip = varchar("ip", 45).uniqueIndex()
         val lastAccess = datetime("last_access")
