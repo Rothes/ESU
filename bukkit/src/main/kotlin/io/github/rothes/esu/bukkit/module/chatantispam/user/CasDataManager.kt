@@ -18,9 +18,12 @@ import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.datetime.datetime
-import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.replace
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.json.jsonb
+import org.jetbrains.exposed.v1.json.json
 
 object CasDataManager {
 
@@ -28,7 +31,7 @@ object CasDataManager {
         val user = integer("user").uniqueIndex()
         val ip = varchar("ip", 45).uniqueIndex()
         val lastAccess = datetime("last_access")
-        val data = jsonb<SpamData>("data", { it.serialize() }, { it.deserialize() })
+        val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
 
         init {
             transaction {
