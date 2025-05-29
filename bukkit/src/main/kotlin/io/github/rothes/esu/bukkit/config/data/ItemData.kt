@@ -32,10 +32,12 @@ data class ItemData(
     val amount: Int = 1,
     val customModelData: Int? = null,
     val itemModel: String? = null,
+    val tooltipStyle: String? = null,
 ): ConfigurationPart {
 
     val displayNameComponent: Component? by lazy { displayName?.let(ComponentUtils::fromMiniMessage) }
     val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
+    val tooltipStyleObj by lazy { tooltipStyle?.let(NamespacedKey::fromString) }
     val create: ItemStack
         get() = createItemByType().also {
             it.editMeta { meta ->
@@ -58,6 +60,7 @@ data class ItemData(
             item.editMeta { meta ->
                 displayNameComponent?.let { meta.displayName(it) }
                 loreComponent?.let { meta.lore(it) }
+                tooltipStyleObj?.let { meta.tooltipStyle = tooltipStyleObj }
             }
         }
     }
@@ -101,11 +104,15 @@ data class ItemData(
             } ?: ItemStack(material ?: Material.AIR, amount)
 
     private fun checkProp(itemStack: ItemStack): Boolean {
+        val meta = itemStack.itemMeta
         displayNameComponent?.let {
-            if (itemStack.displayName() != it) return false
+            if (meta.displayName() != it) return false
         }
         loreComponent?.let {
-            if (itemStack.lore() != it) return false
+            if (meta.lore() != it) return false
+        }
+        tooltipStyleObj?.let {
+            if (meta.tooltipStyle != it) return false
         }
         return true
     }
