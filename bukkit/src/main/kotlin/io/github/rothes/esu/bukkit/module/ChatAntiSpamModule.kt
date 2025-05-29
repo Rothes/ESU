@@ -115,8 +115,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             }
         }
         // Try save one data
-        Bukkit.getOnlinePlayers().firstOrNull()?.let {
-            CasDataManager.saveSpamDataAsync(it.user)
+        Bukkit.getOnlinePlayers().map { it.user }.firstOrNull { it.logonBefore }?.let {
+            CasDataManager.saveSpamDataAsync(it)
         }
     }
 
