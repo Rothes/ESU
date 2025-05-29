@@ -2,22 +2,22 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.addr
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.tableName
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
 import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.storage.StorageManager.TableUpgrader
 import io.github.rothes.esu.core.storage.StorageManager.database
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.bukkit.Bukkit
-import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.between
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -28,20 +28,11 @@ import org.jetbrains.exposed.v1.json.json
 
 object CasDataManager {
 
-    object ChatSpam: Table("chat_spam_data") {
-        val user = integer("user").uniqueIndex()
-        val ip = varchar("ip", 45).uniqueIndex()
+    object ChatSpamTable: Table("chat_spam_data") {
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.NO_ACTION).uniqueIndex()
+        val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex()
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
-
-        init {
-            transaction(database) {
-                SchemaUtils.create(ChatSpam)
-                ChatSpam.deleteWhere {
-                    lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter).localDateTime)
-                }
-            }
-        }
     }
     val cacheById = hashMapOf<Int, SpamData>()
     val cacheByIp = hashMapOf<String, SpamData>()
@@ -57,6 +48,26 @@ object CasDataManager {
     }
 
     init {
+        transaction(database) {
+            // <editor-fold desc="TableUpgrader">
+            TableUpgrader(ChatSpamTable, 2, {
+                println("Upgrading ChatSpamDataTable")
+                fun alter(column: String, type: String) {
+                    exec("ALTER TABLE `$tableName` MODIFY COLUMN `$column` $type")
+                }
+                exec("ALTER TABLE `$tableName` CHANGE COLUMN `lastAccess` `last_access` DATETIME(6) NOT NULL")
+                alter("user", "INT(11) NOT NULL")
+                alter("ip", "VARCHAR(45) NOT NULL COLLATE ascii_general_ci")
+                alter("data", "TEXT NOT NULL COLLATE utf8mb4_bin")
+                exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE NO ACTION")
+                exec("ALTER TABLE `$tableName` ADD CONSTRAINT `data` CHECK (json_valid(`data`))")
+            })
+            // </editor-fold>
+            SchemaUtils.create(ChatSpamTable)
+            ChatSpamTable.deleteWhere {
+                lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter).localDateTime)
+            }
+        }
         Bukkit.getOnlinePlayers().forEach { loadSpamData(it.user) }
     }
 
@@ -66,7 +77,7 @@ object CasDataManager {
 
         fun func() {
             var spamData = latest(cacheById[dbId], cacheByIp[addr]) // Current cached
-            with(ChatSpam) {
+            with(ChatSpamTable) {
                 transaction(database) {
                     selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
                         .limit(1).singleOrNull()?.let { row ->
@@ -105,7 +116,7 @@ object CasDataManager {
 
     fun saveSpamData(where: PlayerUser) {
         val spamData = cacheById[where.dbId] ?: return
-        with(ChatSpam) {
+        with(ChatSpamTable) {
             transaction(database) {
                 replace {
                     it[user] = where.dbId
@@ -128,12 +139,12 @@ object CasDataManager {
             when (key) {
                 is Int    -> {
                     transaction(database) {
-                        ChatSpam.deleteWhere { user eq key }
+                        ChatSpamTable.deleteWhere { user eq key }
                     }
                 }
                 is String -> {
                     transaction(database) {
-                        ChatSpam.deleteWhere { ip   eq key }
+                        ChatSpamTable.deleteWhere { ip   eq key }
                     }
                 }
             }

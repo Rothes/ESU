@@ -39,8 +39,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     private var purgeTask: ScheduledTask? = null
 
     override fun enable() {
-        purgeTask = Scheduler.async(20, 5 * 60 * 20) { purgeCache(true) }
         CasDataManager
+        purgeTask = Scheduler.async(20, 5 * 60 * 20) { purgeCache(true) }
         Bukkit.getPluginManager().registerEvents(CasListeners, plugin)
         Bukkit.getOnlinePlayers().map { it.user }.forEach {
             if (it.hasPerm("notify"))
