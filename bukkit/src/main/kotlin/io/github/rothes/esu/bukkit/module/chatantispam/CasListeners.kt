@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.chatantispam
 
+import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
@@ -230,9 +231,13 @@ object CasListeners: Listener {
     fun onJoin(event: PlayerJoinEvent) {
         val playerUser = event.player.user
         CasDataManager.loadSpamData(playerUser)
+    }
 
-        if (playerUser.hasPerm("notify"))
-            notifyUsers.add(playerUser)
+    @EventHandler
+    fun onJoin(event: UserLoginEvent) {
+        val user = event.user
+        if (user.hasPerm("notify"))
+            notifyUsers.add(user)
     }
 
     @EventHandler
