@@ -37,9 +37,9 @@ object StorageManager {
     private val datasource = HikariDataSource(HikariConfig().apply {
         poolName = "ESU-HikariPool"
         driverClassName = EsuConfig.get().database.jdbcDriver
-        jdbcUrl = EsuConfig.get().database.jdbcUrl
-        username = EsuConfig.get().database.username
-        password = EsuConfig.get().database.password
+        jdbcUrl         = EsuConfig.get().database.jdbcUrl
+        username        = EsuConfig.get().database.username
+        password        = EsuConfig.get().database.password
     })
     val database: Database = try {
         Database.connect(datasource).also {
@@ -54,7 +54,7 @@ object StorageManager {
     }
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    object UsersTable : Table() {
+    object UsersTable : Table("users") {
         val dbId = integer("id").autoIncrement()
         val uuid = uuid("uuid").uniqueIndex()
         val name = varchar("name", 16).nullable().uniqueIndex()
