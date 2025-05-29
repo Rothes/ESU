@@ -98,6 +98,7 @@ abstract class BukkitUser: User {
                 }
                 meta.lore(list)
             }
+            itemData.tooltipStyleObj?.let { meta.tooltipStyle = it }
         }
         return item
     }

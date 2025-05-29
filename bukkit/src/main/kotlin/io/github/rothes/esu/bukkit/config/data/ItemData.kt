@@ -63,7 +63,7 @@ data class ItemData(
             item.editMeta { meta ->
                 displayNameComponent?.let { meta.displayName(it) }
                 loreComponent?.let { meta.lore(it) }
-                tooltipStyleObj?.let { meta.tooltipStyle = tooltipStyleObj }
+                tooltipStyleObj?.let { meta.tooltipStyle = it }
             }
         }
     }
