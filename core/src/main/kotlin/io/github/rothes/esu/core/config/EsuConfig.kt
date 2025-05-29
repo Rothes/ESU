@@ -30,9 +30,15 @@ object EsuConfig {
     ): ConfigurationPart {
 
         data class Database(
-            @field:Comment("If you have a MySQL/MariaDB server, and want to use it,\n" +
-                    "set 'jdbc-driver' to 'com.mysql.jdbc.Driver'\n" +
-                    "and 'jdbc-url' to 'jdbc:mysql://127.0.0.1:3306/esu'")
+            @field:Comment(
+                """
+By default, we use a H2 database.
+If you have a MySQL server, and want to use it,
+    set 'jdbc-driver' to 'com.mysql.jdbc.Driver'
+    and 'jdbc-url' to 'jdbc:mysql://127.0.0.1:3306/esu'
+For MariaDB:
+    set 'jdbc-driver' to 'org.mariadb.jdbc.Driver'
+    and 'jdbc-url' to 'jdbc:mariadb://127.0.0.1:3306/esu'""")
             val jdbcDriver: String = "org.h2.Driver",
             val jdbcUrl: String = "jdbc:h2:file:./plugins/ESU/h2;MODE=MYSQL",
             val username: String = "root",

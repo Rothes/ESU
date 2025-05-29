@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit
 
-import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
