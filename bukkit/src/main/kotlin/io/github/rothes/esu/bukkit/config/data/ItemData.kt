@@ -11,6 +11,8 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.text.Component
+import net.momirealms.craftengine.bukkit.api.CraftEngineItems
+import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
@@ -22,6 +24,7 @@ data class ItemData(
     val mythicMobsItemId: String? = null,
     val mmoItemsItemType: String? = null,
     val mmoItemsItemId: String? = null,
+    val craftEngineItemId: String? = null,
 
     val displayName: String? = null,
     @NoDeserializeNull
@@ -71,6 +74,10 @@ data class ItemData(
         if (material == null && itemsAdderId == null && mythicMobsItemId == null && itemStack.type != Material.AIR) {
             return false
         }
+        craftEngineItemId?.let {
+            val key = CraftEngineItems.getCustomItemId(itemStack) ?: return false
+            return if (key.toString() != craftEngineItemId) false else checkProp(itemStack)
+        }
         itemsAdderId?.let {
             val ia = CustomStack.byItemStack(itemStack) ?: return false
             return if (ia.id != itemsAdderId) false else checkProp(itemStack)
@@ -92,16 +99,19 @@ data class ItemData(
     }
 
     private fun createItemByType() =
-        itemsAdderId?.let { ia -> CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount } }
-            ?: mythicMobsItemId?.let {
-                BukkitAdapter.adapt(
-                    MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
-                        .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
-                        .generateItemStack(DropMetadataImpl(null, null), amount))
-            } ?: mmoItemsItemId?.let {
-                MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
-                    ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
-            } ?: ItemStack(material ?: Material.AIR, amount)
+        craftEngineItemId?.let { ce ->
+            CraftEngineItems.byId(Key.of(ce))?.buildItemStack() ?: error("CraftEngine item '$ce' does not exist")
+        } ?: itemsAdderId?.let { ia ->
+            CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount }
+        } ?: mythicMobsItemId?.let {
+            BukkitAdapter.adapt(
+                MythicBukkit.inst().itemManager.getItem(mythicMobsItemId)
+                    .orElseThrow { IllegalStateException("MM Item \"$mythicMobsItemId\" does not exist") }
+                    .generateItemStack(DropMetadataImpl(null, null), amount))
+        } ?: mmoItemsItemId?.let {
+            MMOItems.plugin.getItem(mmoItemsItemType, mmoItemsItemId)?.also { it.amount = amount }
+                ?: error("MMOItem \"$mmoItemsItemType:$mythicMobsItemId\" does not exist")
+        } ?: ItemStack(material ?: Material.AIR, amount)
 
     private fun checkProp(itemStack: ItemStack): Boolean {
         val meta = itemStack.itemMeta

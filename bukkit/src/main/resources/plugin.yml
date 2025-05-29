@@ -6,6 +6,7 @@ author: Rothes
 folia-supported: true
 softdepend:
   - Authme
+  - CraftEngine
   - PlugMan
   - packetevents
 
