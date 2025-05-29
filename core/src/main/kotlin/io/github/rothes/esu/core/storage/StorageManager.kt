@@ -64,7 +64,7 @@ object StorageManager {
         override val primaryKey: PrimaryKey = PrimaryKey(dbId)
 
         init {
-            transaction {
+            transaction(database) {
                 SchemaUtils.create(UsersTable)
                 insertIgnore {
                     it[dbId] = ConsoleConst.DATABASE_ID

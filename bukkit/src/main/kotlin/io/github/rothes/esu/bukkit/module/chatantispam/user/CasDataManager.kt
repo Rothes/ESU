@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
 import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.storage.StorageManager.database
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -34,7 +35,7 @@ object CasDataManager {
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
 
         init {
-            transaction {
+            transaction(database) {
                 SchemaUtils.create(ChatSpam)
                 ChatSpam.deleteWhere {
                     lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter).localDateTime)
@@ -66,7 +67,7 @@ object CasDataManager {
         fun func() {
             var spamData = latest(cacheById[dbId], cacheByIp[addr]) // Current cached
             with(ChatSpam) {
-                transaction {
+                transaction(database) {
                     selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
                         .limit(1).singleOrNull()?.let { row ->
                             spamData = latest(spamData, row[data])!!.also { sd ->
@@ -105,7 +106,7 @@ object CasDataManager {
     fun saveSpamData(where: PlayerUser) {
         val spamData = cacheById[where.dbId] ?: return
         with(ChatSpam) {
-            transaction {
+            transaction(database) {
                 replace {
                     it[user] = where.dbId
                     it[ip] = where.addr
@@ -126,12 +127,12 @@ object CasDataManager {
         StorageManager.coroutineScope.launch {
             when (key) {
                 is Int    -> {
-                    transaction {
+                    transaction(database) {
                         ChatSpam.deleteWhere { user eq key }
                     }
                 }
                 is String -> {
-                    transaction {
+                    transaction(database) {
                         ChatSpam.deleteWhere { ip   eq key }
                     }
                 }
