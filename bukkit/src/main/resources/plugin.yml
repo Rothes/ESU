@@ -5,6 +5,7 @@ api-version: 1.19
 author: Rothes
 folia-supported: true
 softdepend:
+  - Authme
   - PlugMan
   - packetevents
 

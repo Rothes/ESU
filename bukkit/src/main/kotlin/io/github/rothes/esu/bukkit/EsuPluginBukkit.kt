@@ -2,23 +2,10 @@ package io.github.rothes.esu.bukkit
 
 import cc.carm.lib.easysql.hikari.HikariDataSource
 import io.github.rothes.esu.bukkit.command.parser.UserParser
-import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
-import io.github.rothes.esu.bukkit.config.data.InventoryData
+import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
-import io.github.rothes.esu.bukkit.module.AntiCommandSpamModule
-import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule
-import io.github.rothes.esu.bukkit.module.AutoRestartModule
-import io.github.rothes.esu.bukkit.module.BetterEventMessagesModule
-import io.github.rothes.esu.bukkit.module.BlockedCommandsModule
-import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule
-import io.github.rothes.esu.bukkit.module.EsuChatModule
-import io.github.rothes.esu.bukkit.module.ExploitFixModule
-import io.github.rothes.esu.bukkit.module.ItemEditModule
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
-import io.github.rothes.esu.bukkit.module.NewbieProtectModule
-import io.github.rothes.esu.bukkit.module.SpoofServerSettingsModule
-import io.github.rothes.esu.bukkit.module.UtilCommandsModule
+import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -28,8 +15,7 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
-import io.github.rothes.esu.core.configuration.ConfigLoader
-import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
@@ -187,6 +173,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 }
             }
         }, this)
+        UserLoginEvent // Init
 
         Metrics(this, 24645) // bStats
         Scheduler.global {

@@ -47,6 +47,8 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
 
     override val isOnline: Boolean
         get() = playerCache?.isOnline == true
+    var logonBefore: Boolean = false
+        internal set
 
     init {
         val userData = StorageManager.getUserData(uuid)

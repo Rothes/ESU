@@ -49,6 +49,8 @@ dependencies {
     compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
     compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
 
+    compileOnly("fr.xephi:authme:5.6.1-SNAPSHOT")
+
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude("org.bukkit")
