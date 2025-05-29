@@ -45,6 +45,7 @@ class UserLoginEvent(
                     }
                 }, plugin)
             }
+            // Internal event
             Bukkit.getPluginManager().registerEvents(object : Listener {
                 @EventHandler
                 fun onLogin(e: UserLoginEvent) {
