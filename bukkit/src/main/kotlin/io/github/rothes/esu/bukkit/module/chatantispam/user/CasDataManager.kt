@@ -1,30 +1,43 @@
 package io.github.rothes.esu.bukkit.module.chatantispam.user
 
-import cc.carm.lib.easysql.api.SQLQuery
-import cc.carm.lib.easysql.api.SQLTable
-import cc.carm.lib.easysql.api.action.PreparedSQLUpdateAction
-import cc.carm.lib.easysql.api.enums.IndexType
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.addr
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.DataSerializer.decode
-import io.github.rothes.esu.bukkit.util.DataSerializer.encode
+import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
+import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.core.storage.StorageManager
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.bukkit.Bukkit
-import java.sql.ResultSet
-import java.sql.Timestamp
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.between
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.datetime.datetime
+import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.json.jsonb
 
 object CasDataManager {
 
-    val TABLE = SQLTable.of("chat_spam_data") {
-        it.addColumn("user INT UNSIGNED NOT NULL")
-            .addColumn("ip VARCHAR(45) NOT NULL")
-            .addColumn("lastAccess DATETIME NOT NULL")
-            .addColumn("data BLOB NOT NULL")
-            .setIndex("user", IndexType.UNIQUE_KEY)
-            .setIndex("ip", IndexType.UNIQUE_KEY)
-//                .addForeignKey("user", "users", "id")
+    object ChatSpam: Table() {
+        val user = integer("user").uniqueIndex()
+        val ip = varchar("ip", 45).uniqueIndex()
+        val lastAccess = datetime("last_access")
+        val data = jsonb<SpamData>("data", { it.serialize() }, { it.deserialize() })
+
+        init {
+            transaction {
+                SchemaUtils.create(ChatSpam)
+                ChatSpam.deleteWhere {
+                    lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter).localDateTime)
+                }
+            }
+        }
     }
     val cacheById = hashMapOf<Int, SpamData>()
     val cacheByIp = hashMapOf<String, SpamData>()
@@ -40,47 +53,41 @@ object CasDataManager {
     }
 
     init {
-        TABLE.create(StorageManager.sqlManager)
-        TABLE.createDelete(StorageManager.sqlManager)
-            .addTimeCondition("lastAccess", -1, System.currentTimeMillis() - config.userDataExpiresAfter)
-            .build().execute()
         Bukkit.getOnlinePlayers().forEach { loadSpamData(it.user) }
     }
 
-    fun loadSpamData(user: PlayerUser, async: Boolean = true) {
-        val dbId = user.dbId
-        val addr = user.addr
+    fun loadSpamData(where: PlayerUser, async: Boolean = true) {
+        val dbId = where.dbId
+        val addr = where.addr
 
-        val query = TABLE.createQuery(StorageManager.sqlManager)
-            .selectColumns("user", "ip", "lastAccess", "data")
-            .addCondition(" ip = ? OR user = ? ")
-            .orderBy("lastAccess", false).setLimit(1)
-            .build().setParams(addr, dbId)
-
-        val handler: (SQLQuery) -> Unit = { res ->
-            var spamData = latest(cacheById[dbId], cacheByIp[addr])
-            val resultSet = res.resultSet
-            if (resultSet.next()) {
-                val id = resultSet.getInt("user")
-                val ip = resultSet.getString("ip")
-                spamData = latest(spamData, resultSet.spamData)!!
-
-                cacheById[id] = spamData
-                cacheByIp[ip] = spamData
-                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == ip }.forEach { cacheById[it.user.dbId] = spamData }
+        fun func() {
+            var spamData = latest(cacheById[dbId], cacheByIp[addr]) // Current cached
+            with(ChatSpam) {
+                transaction {
+                    selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
+                        .limit(1).singleOrNull()?.let { row ->
+                            spamData = latest(spamData, row[data])!!.also { sd ->
+                                val ip = row[ip]
+                                cacheById[row[user]] = sd
+                                cacheByIp[ip] = sd
+                                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == ip }.forEach { cacheById[it.user.dbId] = sd }
+                            }
+                        }
+                }
             }
-            spamData?.let {
-                cacheById[dbId] = spamData
-                cacheByIp[addr] = spamData
-                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == addr }.forEach { cacheById[it.user.dbId] = spamData }
+            spamData?.let { sd ->
+                cacheById[dbId] = sd
+                cacheByIp[addr] = sd
+                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == addr }.forEach { cacheById[it.user.dbId] = sd }
             }
         }
+
         if (async) {
-            query.executeAsync(handler)
-        } else {
-            query.execute().use {
-                handler(it)
+            StorageManager.coroutineScope.launch {
+                func()
             }
+        } else {
+            func()
         }
     }
 
@@ -92,32 +99,43 @@ object CasDataManager {
         return if (o1.lastAccess > o2.lastAccess) o1 else o2
     }
 
-    private fun buildSaveSpamData(user: PlayerUser): PreparedSQLUpdateAction<Int>? {
-        val spamData = cacheById[user.dbId] ?: return null
-        val data = spamData.encode()
-        return TABLE.createReplace(StorageManager.sqlManager)
-            .setColumnNames("user", "ip", "lastAccess", "data")
-            .setParams(user.dbId, user.addr, Timestamp(kotlin.math.max(spamData.lastAccess, spamData.muteUntil)), data)
+    fun saveSpamData(where: PlayerUser) {
+        val spamData = cacheById[where.dbId] ?: return
+        with(ChatSpam) {
+            transaction {
+                replace {
+                    it[user] = where.dbId
+                    it[ip] = where.addr
+                    it[lastAccess] = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
+                    it[data] = spamData
+                }
+            }
+        }
     }
 
-    fun saveSpamDataAsync(user: PlayerUser) {
-        buildSaveSpamData(user)?.executeAsync()
-    }
-
-    fun saveSpamData(user: PlayerUser) {
-        buildSaveSpamData(user)?.execute()
+    fun saveSpamDataAsync(where: PlayerUser) {
+        StorageManager.coroutineScope.launch {
+            saveSpamData(where)
+        }
     }
 
     fun deleteAsync(key: Any?) {
-        val dbId = key as? Int ?: return
-        TABLE.createDelete(StorageManager.sqlManager)
-            .addCondition("user", dbId)
-            .build().executeAsync()
+        StorageManager.coroutineScope.launch {
+            when (key) {
+                is Int    -> {
+                    transaction {
+                        ChatSpam.deleteWhere { user eq key }
+                    }
+                }
+                is String -> {
+                    transaction {
+                        ChatSpam.deleteWhere { ip   eq key }
+                    }
+                }
+            }
+        }
     }
 
-    private val ResultSet.spamData: SpamData
-        get() = getBytes("data").decode<SpamData>().also {
-            it.lastAccess = getTimestamp("lastAccess").time
-        }
-
+    private val Long.localDateTime
+        get() = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
 }

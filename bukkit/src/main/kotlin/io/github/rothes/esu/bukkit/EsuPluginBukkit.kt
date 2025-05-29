@@ -196,7 +196,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 BukkitUserManager.unload(it)
             }
         }
-        (StorageManager.sqlManager.dataSource as HikariDataSource).close()
+        StorageManager.shutdown()
     }
 
     override fun info(message: String) {

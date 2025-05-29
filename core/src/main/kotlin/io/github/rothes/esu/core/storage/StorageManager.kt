@@ -1,90 +1,122 @@
 package io.github.rothes.esu.core.storage
 
 import cc.carm.lib.easysql.EasySQL
-import cc.carm.lib.easysql.api.SQLTable
-import cc.carm.lib.easysql.api.action.PreparedSQLUpdateAction
-import cc.carm.lib.easysql.api.builder.ReplaceBuilder
-import cc.carm.lib.easysql.api.enums.IndexType
+import cc.carm.lib.easysql.hikari.HikariConfig
+import cc.carm.lib.easysql.hikari.HikariDataSource
 import cc.carm.lib.easysql.manager.SQLManagerImpl
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.*
 
 object StorageManager {
 
-    private val userTable = SQLTable.of("users") {
-        it.addAutoIncrementColumn("id")
-            .addColumn("uuid", "VARCHAR(36) NOT NULL")
-            .addColumn("name", "VARCHAR(16)")
-            .addColumn("language", "VARCHAR(12)")
-            .addColumn("color_scheme", "VARCHAR(32)")
-            .setIndex("uuid", IndexType.UNIQUE_KEY)
-            .setIndex("name", IndexType.UNIQUE_KEY)
+    private var legacyManager = false
+    @Deprecated("Migrating to Exposed")
+    val sqlManager: SQLManagerImpl by lazy {
+        try {
+            legacyManager = true
+            EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!.apply {
+                if (EsuConfig.get().database.jdbcUrl.startsWith("jdbc:h2:")) {
+                    executeSQL("SET MODE=MYSQL")
+                }
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to connect to database", e)
+        }
     }
 
-    val sqlManager: SQLManagerImpl = try {
-        EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!.apply {
+    private val datasource = HikariDataSource(HikariConfig().apply {
+        poolName = "ESU-HikariPool"
+        driverClassName = EsuConfig.get().database.jdbcDriver
+        jdbcUrl = EsuConfig.get().database.jdbcUrl
+        username = EsuConfig.get().database.username
+        password = EsuConfig.get().database.password
+    })
+    val database: Database = try {
+        Database.connect(datasource).also {
             if (EsuConfig.get().database.jdbcUrl.startsWith("jdbc:h2:")) {
-                executeSQL("SET MODE=MYSQL")
+                transaction(it) {
+                    exec("SET MODE=MYSQL")
+                }
             }
         }
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)
     }
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    init {
-        userTable.create(sqlManager)
-        userTable.createInsert(sqlManager)
-            .setColumnNames("id", "uuid", "name")
-            .setParams(ConsoleConst.DATABASE_ID, ConsoleConst.UUID, ConsoleConst.NAME)
-            .execute()
-    }
+    object UsersTable : Table() {
+        val dbId = integer("id").autoIncrement()
+        val uuid = uuid("uuid").uniqueIndex()
+        val name = varchar("name", 16).nullable().uniqueIndex()
+        val language = varchar("language", 12).nullable()
+        val colorScheme = varchar("colorScheme", 32).nullable()
 
-    fun getUserData(uuid: UUID): UserData {
-        userTable.createQuery(sqlManager)
-            .selectColumns("id", "language", "color_scheme")
-            .addCondition("uuid", uuid)
-            .build().execute().use { sqlQuery ->
-                val resultSet = sqlQuery.resultSet
-                return if (resultSet.next()) {
-                    UserData(resultSet.getInt("id"),
-                        uuid, resultSet.getString("language"), resultSet.getString("color_scheme"))
-                } else {
-                    val id = userTable.createInsert(sqlManager)
-                        .setColumnNames("uuid")
-                        .setParams(uuid)
-                        .returnGeneratedKey().execute()
-                    UserData(id, uuid, null, null)
+        override val primaryKey: PrimaryKey = PrimaryKey(dbId)
+
+        init {
+            transaction {
+                SchemaUtils.create(UsersTable)
+                insertIgnore {
+                    it[dbId] = ConsoleConst.DATABASE_ID
+                    it[uuid] = ConsoleConst.UUID
+                    it[name] = ConsoleConst.NAME
                 }
             }
+        }
+    }
+
+    fun getUserData(where: UUID): UserData {
+        return with(UsersTable) {
+            transaction(database) {
+                select(dbId, language, colorScheme).where(uuid eq where).singleOrNull()?.let {
+                    UserData(it[dbId], where, it[language], it[colorScheme])
+                } ?: UserData(insert { it[uuid] = where }[dbId], where, null, null)
+            }
+        }
     }
 
     fun getConsoleUserData(): UserData {
-        userTable.createQuery(sqlManager)
-            .selectColumns("language", "color_scheme")
-            .addCondition("id", ConsoleConst.DATABASE_ID)
-            .build().execute().use { sqlQuery ->
-                val resultSet = sqlQuery.resultSet
-                resultSet.next()
-                return UserData(ConsoleConst.DATABASE_ID, ConsoleConst.UUID,
-                        resultSet.getString("language"), resultSet.getString("color_scheme"))
+        return with(UsersTable) {
+            transaction(database) {
+                select(dbId, language, colorScheme).where(dbId eq ConsoleConst.DATABASE_ID).single().let {
+                    UserData(ConsoleConst.DATABASE_ID, ConsoleConst.UUID, it[language], it[colorScheme])
+                }
             }
+        }
     }
 
     fun updateUserNow(user: User) {
-        buildUpdateUser(user).execute()
+        with(UsersTable) {
+            transaction(database) {
+                update({ dbId eq user.dbId }) {
+                    it[name] = user.nameUnsafe
+                    it[language] = user.languageUnsafe
+                    it[colorScheme] = user.colorSchemeUnsafe
+                }
+            }
+        }
     }
 
     fun updateUserAsync(user: User) {
-        buildUpdateUser(user).executeAsync()
+        coroutineScope.launch {
+            updateUserNow(user)
+        }
     }
 
-    private fun buildUpdateUser(user: User): PreparedSQLUpdateAction<Int> {
-        val id = user.dbId
-        return userTable.createReplace(sqlManager)
-            .setColumnNames("id", "uuid", "name", "language", "color_scheme")
-            .setParams(id, user.uuid, user.nameUnsafe, user.languageUnsafe, user.colorSchemeUnsafe)
+    fun shutdown() {
+        if (legacyManager) (sqlManager.dataSource as HikariDataSource).close()
+        datasource.close()
+        TransactionManager.closeAndUnregister(database)
     }
 
     data class UserData(

@@ -17,17 +17,21 @@ object DataSerializer {
     val GSON = GsonBuilder().disableHtmlEscaping().enableComplexMapKeySerialization()
         .registerTypeAdapter(Location::class.java, BukkitLocationAdapter()).create()!!
 
-    inline fun <reified T> serialize(data: T): ByteArray {
-        return GSON.toJson(data, T::class.java).toByteArray(Charsets.UTF_8)
+    inline fun <reified T> serializeObj(data: T): String {
+        return GSON.toJson(data, T::class.java)
     }
 
-    inline fun <reified T> deserialize(bytes: ByteArray, typeToken: TypeToken<T> = TypeToken.get(T::class.java)): T {
-        return GSON.fromJson(bytes.toString(Charsets.UTF_8), typeToken.type)
+    inline fun <reified T> deserializeObj(str: String, typeToken: TypeToken<T> = TypeToken.get(T::class.java)): T {
+        return GSON.fromJson(str, typeToken.type)
     }
 
-    fun Any.encode(): ByteArray = serialize(this)
-    inline fun <reified T> ByteArray.decode(): T = deserialize(this)
-    inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = deserialize(this, typeToken)
+    fun Any.serialize(): String = serializeObj(this)
+    inline fun <reified T> String.deserialize(): T = deserializeObj(this)
+    inline fun <reified T> String.deserialize(typeToken: TypeToken<T>): T = deserializeObj(this, typeToken)
+
+    fun Any.encode(): ByteArray = this.serialize().toByteArray(Charsets.UTF_8)
+    inline fun <reified T> ByteArray.decode(): T = this.toString(Charsets.UTF_8).deserialize()
+    inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = this.toString(Charsets.UTF_8).deserialize(typeToken)
 
     private class BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
 
