@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.google.common.cache.CacheBuilder
+import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
@@ -280,8 +281,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         @EventHandler
-        fun onPlayerJoin(e: PlayerJoinEvent) {
-            ChatHandler.Whisper.checkSpyOnJoin(e.player.user)
+        fun onPlayerJoin(e: UserLoginEvent) {
+            ChatHandler.Whisper.checkSpyOnJoin(e.user)
         }
 
         @EventHandler
