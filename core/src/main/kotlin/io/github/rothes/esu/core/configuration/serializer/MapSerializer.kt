@@ -167,13 +167,13 @@ object MapSerializer: TypeSerializer<Map<*, *>> {
     class DefaultedLinkedHashMap<K, V>(override var default: V?): LinkedHashMap<K, V>(), Defaulted<V> {
 
         override fun get(key: K) = getOrDefault(key)
-        fun getOrDefault(key: K): V? = getOrDefault(key, default)
+        fun getOrDefault(key: K): V? = super.get(key) ?: default
 
     }
     class DefaultedEnumMap<K: Enum<K>, V>(keyType : Class<K>, override var default: V?): EnumMap<K, V>(keyType), Defaulted<V> {
 
         override fun get(key: K) = getOrDefault(key)
-        fun getOrDefault(key: K): V? = getOrDefault(key, default)
+        fun getOrDefault(key: K): V? = super.get(key) ?: default
 
     }
 
