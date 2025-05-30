@@ -16,14 +16,20 @@ object ActionRegistry {
         }
     }
 
-    fun register(vararg actions: Action): ActionRegistry {
+    fun register(vararg actions: Action) {
         actions.forEach { register(action = it) }
-        return this
     }
 
-    fun register(action: Action): ActionRegistry {
+    fun register(action: Action): Boolean {
+        if (registry.containsKey(action.name)) {
+            return false
+        }
         registry[action.id.lowercase()] = action
-        return this
+        return true
+    }
+
+    fun unregister(action: Action): Boolean {
+        return registry.remove(action.id, action)
     }
 
     fun parseActions(string: List<String>): List<ParsedAction> {
