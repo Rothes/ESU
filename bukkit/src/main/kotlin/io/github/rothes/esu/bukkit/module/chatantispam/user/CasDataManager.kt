@@ -135,19 +135,17 @@ object CasDataManager {
     }
 
     fun deleteAsync(key: Any?) {
-        StorageManager.coroutineScope.launch {
-            when (key) {
-                is Int    -> {
-                    transaction(database) {
-                        ChatSpamTable.deleteWhere { user eq key }
-                    }
-                }
-                is String -> {
-                    transaction(database) {
-                        ChatSpamTable.deleteWhere { ip   eq key }
-                    }
+        fun <T> delByColumn(column: Column<T>, key: T) {
+            StorageManager.coroutineScope.launch {
+                transaction(database) {
+                    ChatSpamTable.deleteWhere { column eq key }
                 }
             }
+        }
+        when (key) {
+            is Int    -> { delByColumn(ChatSpamTable.user, key) }
+            is String -> { delByColumn(ChatSpamTable.ip,   key) }
+            else      -> error("Unknown key type ${key?.javaClass?.name} ($key)")
         }
     }
 
