@@ -15,6 +15,8 @@ dependencies {
     api("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-kotlin-datetime:${exposedVersion}")
+    api("org.jetbrains.exposed:exposed-json:${exposedVersion}")
 
     api("org.incendo:cloud-core:2.0.0")
     api("org.incendo:cloud-annotations:2.0.0")

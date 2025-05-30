@@ -38,10 +38,6 @@ dependencies {
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
 
-    val exposedVersion: String by project
-    api("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-    api("org.jetbrains.exposed:exposed-json:$exposedVersion")
-
     implementation("com.h2database:h2:2.3.232")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
 

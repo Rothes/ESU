@@ -10,10 +10,8 @@ import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.TableUpgrader
 import io.github.rothes.esu.core.storage.StorageManager.database
+import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.between
@@ -170,6 +168,4 @@ object CasDataManager {
         }
     }
 
-    private val Long.localDateTime
-        get() = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
 }
