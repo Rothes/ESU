@@ -64,6 +64,7 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.uuid.toKotlinUuid
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
