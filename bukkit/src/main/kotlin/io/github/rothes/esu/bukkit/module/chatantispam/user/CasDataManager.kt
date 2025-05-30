@@ -18,6 +18,7 @@ import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.between
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -134,18 +135,38 @@ object CasDataManager {
         }
     }
 
-    fun deleteAsync(key: Any?) {
-        fun <T> delByColumn(column: Column<T>, key: T) {
-            StorageManager.coroutineScope.launch {
-                transaction(database) {
-                    ChatSpamTable.deleteWhere { column eq key }
+    fun deleteAsync(keys: List<Any?>) {
+        val byId = mutableListOf<Int>()
+        val byIp = mutableListOf<String>()
+        for (any in keys) {
+            when (any) {
+                is Int    -> byId.add(any)
+                is String -> byIp.add(any)
+                else      -> error("Unknown key type ${any?.javaClass?.name} ($any)")
+            }
+        }
+        StorageManager.coroutineScope.launch {
+            transaction(database) {
+                ChatSpamTable.deleteWhere {
+                    buildList {
+                        if (byId.isNotEmpty()) add(user inList byId)
+                        if (byIp.isNotEmpty()) add(ip   inList byIp)
+                    }.compoundOr()
                 }
             }
         }
-        when (key) {
-            is Int    -> { delByColumn(ChatSpamTable.user, key) }
-            is String -> { delByColumn(ChatSpamTable.ip,   key) }
+    }
+
+    fun deleteAsync(key: Any?) {
+        val where = when (key) {
+            is Int    -> ChatSpamTable.user eq key
+            is String -> ChatSpamTable.ip   eq key
             else      -> error("Unknown key type ${key?.javaClass?.name} ($key)")
+        }
+        StorageManager.coroutineScope.launch {
+            transaction(database) {
+                ChatSpamTable.deleteWhere { where }
+            }
         }
     }
 

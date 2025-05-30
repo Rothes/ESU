@@ -145,17 +145,21 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
     private fun purgeCache(deleteDb: Boolean) {
         val time = System.currentTimeMillis()
+        val toDel = mutableListOf<Any?>()
         val handler = Consumer<MutableMap<*, SpamData>> { map ->
             map.entries
                 .filter { time - it.value.lastAccess > config.userDataExpiresAfter }
                 .forEach {
                     map.remove(it.key)
                     if (deleteDb)
-                        CasDataManager.deleteAsync(it.key)
+                        toDel.add(it.key)
                 }
         }
         handler.accept(CasDataManager.cacheById)
         handler.accept(CasDataManager.cacheByIp)
+        if (toDel.isNotEmpty()) {
+            CasDataManager.deleteAsync(keys = toDel)
+        }
     }
 
     val PlayerUser.spamData
