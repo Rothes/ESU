@@ -201,6 +201,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         get() = this@ChunkDataThrottle.minimalChunks.getOrPut(this) { Long2ObjectOpenHashMap() }
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
+        if (event.isCancelled) return
         when (event.packetType) {
             PacketType.Play.Client.PLAYER_DIGGING -> {
                 val wrapper = WrapperPlayClientPlayerDigging(event)
@@ -213,6 +214,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     override fun onPacketSend(event: PacketSendEvent) {
+        if (event.isCancelled) return
         when (event.packetType) {
             PacketType.Play.Server.UNLOAD_CHUNK -> {
                 val wrapper = WrapperPlayServerUnloadChunk(event)
