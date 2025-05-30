@@ -37,12 +37,13 @@ dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
-    implementation("com.h2database:h2:2.3.232")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
 
     val exposedVersion: String by project
-    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-json:$exposedVersion")
+
+    implementation("com.h2database:h2:2.3.232")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
 
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("org.bstats:bstats-bukkit:3.1.0")
@@ -78,8 +79,7 @@ tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
 
     kotlinRelocate("kotlin.", "io.github.rothes.esu.lib.kotlin.") {
-        // TODO: Confirm if mergeServiceFiles() fixes it
-//        exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
+        exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
     }
     kotlinRelocate("org.jetbrains.exposed.", "io.github.rothes.esu.lib.org.jetbrains.exposed.")
     kotlinRelocate("kotlinx.", "io.github.rothes.esu.lib.kotlinx.")
