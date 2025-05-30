@@ -185,9 +185,13 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {
-            val inventoryHolder = player.openInventory.topInventory.holder
-            if (inventoryHolder is EsuInvHolder<*>) {
-                inventoryHolder.close()
+            try {
+                val inventoryHolder = player.openInventory.topInventory.holder
+                if (inventoryHolder is EsuInvHolder<*>) {
+                    inventoryHolder.close()
+                }
+            } catch (_: IllegalStateException) {
+                // Cannot read world asynchronously on Folia, when player is opening a world inv
             }
 
             BukkitUserManager.getCache(player.uniqueId)?.let {
