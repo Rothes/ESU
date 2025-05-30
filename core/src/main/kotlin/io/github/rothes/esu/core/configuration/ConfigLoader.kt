@@ -102,6 +102,9 @@ object ConfigLoader {
         val t = modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
         loader.save(node)
+        if (t is SavableConfiguration) {
+            t.path = path
+        }
         return t
     }
 
