@@ -9,9 +9,8 @@ val exposedVersion: String by project
 
 dependencies {
     api(kotlin("reflect"))
-    api("cc.carm.lib:easysql-hikaricp:0.4.7")
 
-//    api("com.zaxxer:HikariCP:6.3.0")
+    api("com.zaxxer:HikariCP:6.3.0")
     api("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")

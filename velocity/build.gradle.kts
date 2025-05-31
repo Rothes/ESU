@@ -52,8 +52,9 @@ tasks.shadowJar {
         exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
     }
     kotlinRelocate("kotlinx.", "io.github.rothes.esu.lib.kotlinx.")
+    kotlinRelocate("org.jetbrains.exposed.", "io.github.rothes.esu.lib.org.jetbrains.exposed.")
     kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
-    relocate("cc.carm.lib", "io.github.rothes.esu.lib.cc.carm.lib")
+    relocate("com.zaxxer", "io.github.rothes.esu.lib.com.zaxxer")
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
 
     relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")

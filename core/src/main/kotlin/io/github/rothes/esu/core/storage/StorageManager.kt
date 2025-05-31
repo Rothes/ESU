@@ -1,9 +1,7 @@
 package io.github.rothes.esu.core.storage
 
-import cc.carm.lib.easysql.EasySQL
-import cc.carm.lib.easysql.hikari.HikariConfig
-import cc.carm.lib.easysql.hikari.HikariDataSource
-import cc.carm.lib.easysql.manager.SQLManagerImpl
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.colorScheme
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.dbId
@@ -24,21 +22,6 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.*
 
 object StorageManager {
-
-    private var legacyManager = false
-    @Deprecated("Migrating to Exposed")
-    val sqlManager: SQLManagerImpl by lazy {
-        try {
-            legacyManager = true
-            EasySQL.createManager(EsuConfig.get().database.jdbcDriver, EsuConfig.get().database.jdbcUrl, EsuConfig.get().database.username, EsuConfig.get().database.password)!!.apply {
-                if (EsuConfig.get().database.jdbcUrl.startsWith("jdbc:h2:")) {
-                    executeSQL("SET MODE=MYSQL")
-                }
-            }
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to connect to database", e)
-        }
-    }
 
     private val datasource = HikariDataSource(HikariConfig().apply {
         poolName = "ESU-HikariPool"
@@ -150,7 +133,6 @@ object StorageManager {
     }
 
     fun shutdown() {
-        if (legacyManager) (sqlManager.dataSource as HikariDataSource).close()
         datasource.close()
         TransactionManager.closeAndUnregister(database)
     }
