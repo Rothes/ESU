@@ -29,8 +29,10 @@ dependencies {
     // Project
     api(project(":core"))
     api("org.incendo:cloud-velocity:2.0.0-beta.10")
+
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:8.4.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
 
     implementation("org.bstats:bstats-velocity:3.1.0")
 
@@ -58,6 +60,8 @@ tasks.shadowJar {
     relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
 
     relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")
+
+    mergeServiceFiles()
 }
 
 buildConfig {
