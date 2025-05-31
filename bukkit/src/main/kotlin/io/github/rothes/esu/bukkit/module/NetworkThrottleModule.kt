@@ -141,7 +141,11 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "Set it to -1 will never resent chunk but keep updating nearby blocks, \n" +
                     " 0 to always resent chunks.")
             val thresholdToResentWholeChunk: Int = 448,
-            @field:Comment("How many distance of blocks to update while necessary.")
+            @field:Comment("We updates the nearby blocks when a player digs a block immediately.\n" +
+                    "If this is enabled, we will check if the block is in the interaction range\n" +
+                    " of the player with a rough calculation.")
+            val updateOnLegalInteractOnly: Boolean = true,
+            @field:Comment("How many distance of blocks to update from the center while necessary.")
             val updateDistance: Int = 2,
             @field:Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
                     "We would skip the check, and if you don't like it you can enable it.")

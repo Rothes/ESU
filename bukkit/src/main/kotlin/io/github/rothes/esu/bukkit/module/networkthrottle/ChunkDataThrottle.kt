@@ -41,11 +41,7 @@ import net.minecraft.server.network.PlayerChunkSender
 import net.minecraft.util.BitStorage
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.chunk.HashMapPalette
-import net.minecraft.world.level.chunk.LinearPalette
-import net.minecraft.world.level.chunk.Palette
-import net.minecraft.world.level.chunk.PalettedContainer
-import net.minecraft.world.level.chunk.SingleValuePalette
+import net.minecraft.world.level.chunk.*
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
 import org.bukkit.World.Environment
@@ -63,8 +59,8 @@ import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.uuid.toKotlinUuid
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -207,8 +203,16 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
             PacketType.Play.Client.PLAYER_DIGGING -> {
                 val wrapper = WrapperPlayClientPlayerDigging(event)
                 if (wrapper.action == DiggingAction.START_DIGGING) {
-                    wrapper.blockPosition
-                    checkBlockUpdate(event.getPlayer<Player>(), wrapper.blockPosition)
+                    val player = event.getPlayer<Player>()
+                    val pos = wrapper.blockPosition
+                    if (config.chunkDataThrottle.updateOnLegalInteractOnly) {
+                        val eye = player.eyeLocation
+                        val dist = (eye.x - pos.x).pow(2) + (eye.y - pos.y).pow(2) + (eye.z - pos.z).pow(2)
+                        if (dist > 6.0 * 6.0) {
+                            return
+                        }
+                    }
+                    checkBlockUpdate(player, wrapper.blockPosition)
                 }
             }
         }
