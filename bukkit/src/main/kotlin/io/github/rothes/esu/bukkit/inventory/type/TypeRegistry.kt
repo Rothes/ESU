@@ -20,7 +20,11 @@ open class TypeRegistry<H: DynamicHolder<*>> {
     }
 
     fun parseType(slot: Int, item: InventoryData.InventoryItem, holder: H): ItemStack? {
-        val id = item.type?.lowercase() ?: error("InventoryItem type is null")
+        val idRaw = item.type?.lowercase() ?: error("InventoryItem type is null")
+        if (idRaw.isEmpty()) error("InventoryItem type is empty")
+        val id = if (idRaw.first() == '[') {
+            idRaw.substringBefore(']').substring(1)
+        } else idRaw
         val type = registry[id] ?: return item.item.item.also {
             plugin.warn("Unknown type '${item.type}'")
         }
