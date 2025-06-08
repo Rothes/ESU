@@ -74,17 +74,18 @@ val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
 
-    kotlinRelocate("kotlin.", "io.github.rothes.esu.lib.kotlin.") {
+    val pkg = "io.github.rothes.${rootProject.name.lowercase()}.${project.name.lowercase()}.lib"
+    kotlinRelocate("kotlin.", "$pkg.kotlin.") {
         exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
     }
-    kotlinRelocate("kotlinx.", "io.github.rothes.esu.lib.kotlinx.")
-    kotlinRelocate("org.jetbrains.exposed.", "io.github.rothes.esu.lib.org.jetbrains.exposed.")
-    kotlinRelocate("org.incendo", "io.github.rothes.esu.lib.org.incendo")
-    relocate("com.zaxxer", "io.github.rothes.esu.lib.com.zaxxer")
-    relocate("org.spongepowered", "io.github.rothes.esu.lib.org.spongepowered")
+    kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
+    kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
+    kotlinRelocate("org.incendo", "$pkg.org.incendo")
+    relocate("com.zaxxer", "$pkg.com.zaxxer")
+    relocate("org.spongepowered", "$pkg.org.spongepowered")
 
-    relocate("info.debatty", "io.github.rothes.esu.lib.info.debatty")
-    relocate("org.bstats", "io.github.rothes.esu.lib.org.bstats")
+    relocate("info.debatty", "$pkg.info.debatty")
+    relocate("org.bstats", "$pkg.org.bstats")
 
     mergeServiceFiles()
 }
