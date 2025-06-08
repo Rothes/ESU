@@ -1,0 +1,4 @@
+name: ESU
+main: io.github.rothes.esu.bungee.EsuPluginBungee
+version: @versionName@
+author: Rothes
