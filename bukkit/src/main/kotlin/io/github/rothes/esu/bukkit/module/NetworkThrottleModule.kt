@@ -151,7 +151,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,
             @field:Comment("Same with minimal-height but it's for nether roof.")
-            val netherRoofInvisibleCheck: Boolean = false,
+            val netherRoofInvisibleCheck: Boolean = true,
             @field:Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
                     "However the mapping is not created based on the amount of blocks.\n" +
                     "If this option is enabled, we will rebuild the mapping by sorted blocks amount.\n" +
