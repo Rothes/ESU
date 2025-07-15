@@ -34,6 +34,9 @@ object ComponentUtils {
     val String.miniMessage
         get() = fromMiniMessage(this)
 
+    val Component.legacy
+        get() = LegacyComponentSerializer.legacySection().serialize(this)
+
     fun unparsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.unparsed(key, value.toString())
     }
