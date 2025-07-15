@@ -44,6 +44,8 @@ dependencies {
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
+    implementation("de.tr7zw:item-nbt-api:2.15.1")
+
     compileOnly("com.rylinaux:PlugManX:2.4.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 
@@ -86,6 +88,7 @@ tasks.shadowJar {
 
     relocate("info.debatty", "$pkg.info.debatty")
     relocate("org.bstats", "$pkg.org.bstats")
+    relocate("de.tr7zw.changeme.nbtapi", "$pkg.nbtapi")
 
     mergeServiceFiles()
 }

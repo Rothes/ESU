@@ -5,17 +5,22 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
+import de.tr7zw.changeme.nbtapi.NBT
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.inventory.ItemStack
 import java.lang.reflect.Type
 
 object DataSerializer {
 
     val GSON = GsonBuilder().disableHtmlEscaping().enableComplexMapKeySerialization()
-        .registerTypeAdapter(Location::class.java, BukkitLocationAdapter()).create()!!
+        .registerTypeAdapter(Location::class.java, BukkitLocationAdapter)
+        .registerTypeAdapter(ItemStack::class.java, ItemStackAdapter)
+        .create()!!
 
     inline fun <reified T> serializeObj(data: T): String {
         return GSON.toJson(data, T::class.java)
@@ -33,7 +38,7 @@ object DataSerializer {
     inline fun <reified T> ByteArray.decode(): T = this.toString(Charsets.UTF_8).deserialize()
     inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = this.toString(Charsets.UTF_8).deserialize(typeToken)
 
-    private class BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
+    private object BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
 
         override fun serialize(location: Location, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             return JsonObject().apply {
@@ -53,4 +58,18 @@ object DataSerializer {
         }
 
     }
+
+    private object ItemStackAdapter : JsonSerializer<ItemStack>, JsonDeserializer<ItemStack> {
+
+        override fun serialize(item: ItemStack, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            return JsonPrimitive(NBT.itemStackToNBT(item).toString())
+        }
+
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ItemStack {
+            val nbt = json.asJsonPrimitive.asString
+            return NBT.itemStackFromNBT(NBT.parseNBT(nbt)) ?: error("Could not deserialize $nbt")
+        }
+
+    }
+
 }
