@@ -94,6 +94,14 @@ object StorageManager {
         }
     }
 
+    fun getUuid(userId: Int): UUID? {
+        return with(UsersTable) {
+            transaction(database) {
+                select(uuid).where(dbId eq userId).singleOrNull()?.get(uuid)
+            }
+        }
+    }
+
     fun getUserData(where: UUID): UserData {
         return with(UsersTable) {
             transaction(database) {
