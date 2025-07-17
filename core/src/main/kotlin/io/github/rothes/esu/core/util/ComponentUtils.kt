@@ -10,6 +10,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Formatter
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -36,6 +37,9 @@ object ComponentUtils {
 
     val Component.legacy
         get() = LegacyComponentSerializer.legacySection().serialize(this)
+
+    val Component.plainText
+        get() = PlainTextComponentSerializer.plainText().serialize(this)
 
     fun unparsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.unparsed(key, value.toString())
