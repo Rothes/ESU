@@ -62,4 +62,6 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
+    override fun perm(shortPerm: String): String = "vesu.${name.lowercase()}.${shortPerm.lowercase()}"
+
 }
