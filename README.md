@@ -8,6 +8,8 @@ You have the ability to set the message location(chat, actionbar, title), and so
 
 Custom color scheme feature, allowing your players to choose a theme they like!
 
+[!] Learn more and download at [**Modrinth** page](https://modrinth.com/plugin/esu).
+
 ### Currently available modules
 #### ESU-Bukkit
 - AntiCommandSpamModule
