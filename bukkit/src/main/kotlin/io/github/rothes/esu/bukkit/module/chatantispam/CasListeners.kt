@@ -7,7 +7,6 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.EsuChatModule
-import io.github.rothes.esu.bukkit.module.chatantispam.check.*
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
@@ -38,8 +37,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object CasListeners: Listener {
 
-    private val checks = listOf(WhisperTargets, Muting, FixedRequest, IllegalCharacters, LongMessage, Frequency,
-        SpacesFilter, LetterCaseFilter, RandomCharactersFilter, Similarity)
     val notifyUsers = hashSetOf<User>()
 
     private val emoteCommands = EsuChatModule.EMOTE_COMMANDS.split('|').toSet()
@@ -117,7 +114,7 @@ object CasListeners: Listener {
         var scoreValue = 0.0
         var scoreBy = "pass"
         var mergeScoreValue = false
-        for (check in checks) {
+        for (check in ChecksMan.checks) {
             val (filter, score, mergeScore, notify, addFilter, mute, block, endChecks) = check.check(request)
             if (filter != null) {
                 val shouldNotify = notify ?: spamCheck.notifyFiltered

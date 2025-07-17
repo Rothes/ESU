@@ -3,10 +3,13 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 import info.debatty.java.stringsimilarity.RatcliffObershelp
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import kotlin.math.max
 import kotlin.math.pow
 
-object Similarity: Check() {
+object Similarity: Check("similarity") {
+
+    override val defaultBlockedMessage = "<ec>You are sending messages that are too similar.".message
 
     private val ro = RatcliffObershelp() // https://github.com/tdebatty/java-string-similarity
 
@@ -27,8 +30,11 @@ object Similarity: Check() {
                         hit.add(similarity)
                         if (hit.size == allowCount) {
                             val avg = hit.average()
+                            val notify = request.messageMeta.type != MessageType.DEATH
+                            if (notify)
+                                notifyBlocked(request.user)
                             return CheckResult("sim " + String.format("%.2f", avg), avg.pow(2), false,
-                                addFilter = request.messageMeta.type != MessageType.DEATH)
+                                addFilter = notify)
                         }
                     }
                 }

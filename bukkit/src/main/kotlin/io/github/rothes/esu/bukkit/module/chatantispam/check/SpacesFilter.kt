@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 
-object SpacesFilter: Check() {
+object SpacesFilter: Check("spaces-filter") {
 
     private val duplicateSpaceRegex = "[\\s\\u00A0\\u1680\\u180E\\u2000-\\u200B\\u202F\\u205F\\u3000\\uFEFF]+".toRegex()
 

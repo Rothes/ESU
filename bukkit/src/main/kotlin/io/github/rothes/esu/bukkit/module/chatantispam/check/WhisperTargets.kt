@@ -4,8 +4,11 @@ import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.sizedAdd
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 
-object WhisperTargets: Check() {
+object WhisperTargets: Check("whisper-targets") {
+
+    override val defaultBlockedMessage = "<ec>You are whispering too many players!".message
 
     override fun check(request: MessageRequest): CheckResult {
         val messageMeta = request.messageMeta
@@ -26,6 +29,7 @@ object WhisperTargets: Check() {
             } else if (spamData.muteUntil <= time) {
                 // Not muted
                 if (index >= conf.maxTargets) {
+                    notifyBlocked(request.user)
                     return CheckResult("wide msg", 0.25)
                 }
                 spamData.whisperTargets[index].lastTime = time
@@ -36,6 +40,7 @@ object WhisperTargets: Check() {
                 return CheckResult(endChecks = true, score = -1.0)
             } else if (spamData.muteUntil <= time) {
                 if (spamData.whisperTargets.size >= conf.maxTargets) {
+                    notifyBlocked(request.user)
                     return CheckResult("wide msg", 0.25)
                 }
             }

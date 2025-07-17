@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 
-object RandomCharactersFilter: Check() {
+object RandomCharactersFilter: Check("random-characters-filter") {
 
     override fun check(request: MessageRequest): CheckResult {
         if (request.spamCheck.randomCharacters.removeRandomCharactersOnCheck) {

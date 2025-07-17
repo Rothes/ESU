@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.notifyUsers
+import io.github.rothes.esu.bukkit.module.chatantispam.ChecksMan
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
@@ -27,6 +28,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.incendo.cloud.component.DefaultValue
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import org.spongepowered.configurate.objectmapping.meta.PostProcess
 import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.pow
@@ -330,6 +332,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         val prefix: String = "<sc><b>AS </b><pdc>» ",
         val notify: Notify = Notify(),
         val command: Command = Command(),
+        val blockedMessage: MutableMap<String, MessageData> = linkedMapOf(),
     ): ConfigurationPart {
 
         data class Notify(
@@ -372,6 +375,15 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val resetPlayer: MessageData = "<prefix><pc>Reset data for player <pdc><player></pdc>.".message,
             ): ConfigurationPart
 
+        }
+
+        @PostProcess
+        private fun postProcess() {
+            for (check in ChecksMan.checks) {
+                check.defaultBlockedMessage?.let {
+                    blockedMessage.putIfAbsent(check.type, it)
+                }
+            }
         }
 
     }
