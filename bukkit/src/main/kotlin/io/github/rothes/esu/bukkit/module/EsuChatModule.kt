@@ -18,6 +18,8 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.enabled
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
+import io.github.rothes.esu.core.util.ComponentUtils.plainText
+import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -29,7 +31,6 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
@@ -49,7 +50,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     const val EMOTE_COMMANDS = "emote|me"
 
     override fun enable() {
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.enable()
         if (config.whisper.enabled)
             registerCommands(ChatHandler.Whisper)
         if (config.emote.enabled)
@@ -62,7 +63,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     override fun disable() {
         super.disable()
-        HandlerList.unregisterAll(Listeners)
+        Listeners.disable()
     }
 
     object ChatHandler {
@@ -229,6 +230,16 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             fun chat(sender: User, message: String) {
                 val msg = parseMessage(sender, message, config.chat.prefixedMessageModifiers)
 
+                broadcastMessage(sender, msg)
+            }
+
+            fun chat(sender: User, message: Component) {
+                val msg = parseMessage(sender, message, config.chat.prefixedMessageModifiers)
+
+                broadcastMessage(sender, msg)
+            }
+
+            private fun broadcastMessage(sender: User, msg: Component) {
                 for (user in Bukkit.getOnlinePlayers().map { it.user }) {
                     user.message(
                         locale, { chat.format },
@@ -247,14 +258,41 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     object Listeners: Listener {
 
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onPlayerChat(event: AsyncPlayerChatEvent) {
-            if (!config.chat.enableChatFormatting)
-                return
+        private val chatListener = try {
+            AsyncChatEvent::class.java
+            object : Listener {
+                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+                fun onChat(event: AsyncChatEvent) {
+                    if (!config.chat.enableChatFormatting)
+                        return
 
-            ChatHandler.Chat.chat(event.player.user, event.message)
+                    ChatHandler.Chat.chat(event.player.user, event.message())
 
-            event.isCancelled = true
+                    event.isCancelled = true
+                }
+            }
+        } catch (e: ClassNotFoundException) {
+            object : Listener {
+                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+                fun onPlayerChat(event: AsyncPlayerChatEvent) {
+                    if (!config.chat.enableChatFormatting)
+                        return
+
+                    ChatHandler.Chat.chat(event.player.user, event.message)
+
+                    event.isCancelled = true
+                }
+            }
+        }
+
+        fun enable() {
+            Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+            Bukkit.getPluginManager().registerEvents(chatListener, plugin)
+        }
+
+        fun disable() {
+            HandlerList.unregisterAll(Listeners)
+            HandlerList.unregisterAll(chatListener)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -294,12 +332,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     }
 
     fun parseMessage(sender: User, raw: String, modifiers: List<PrefixedMessageModifier>): Component {
-        val modifier = modifiers.find {
-            val perm = it.permission
-            (!it.removePrefix || raw.length > it.messagePrefix.length) // No blank message, thanks
-                    && raw.startsWith(it.messagePrefix)
-                    && (perm == null || perm.isEmpty() || sender.hasPermission(perm))
-        }
+        val modifier = matchModifier(sender, raw, modifiers)
 
         return MiniMessage.miniMessage().deserialize("<head><message><foot>",
             component("message", Component.text(
@@ -312,6 +345,33 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             parsed("head", modifier?.head ?: ""),
             parsed("foot", modifier?.foot ?: ""),
         )
+    }
+
+    fun parseMessage(sender: User, raw: Component, modifiers: List<PrefixedMessageModifier>): Component {
+        val modifier = matchModifier(sender, raw.plainText, modifiers)
+
+        return MiniMessage.miniMessage().deserialize("<head><message><foot>",
+            component("message",
+                if (modifier != null && modifier.removePrefix) {
+                    raw.replaceText {
+                        it.match("[\\s\\S]".toPattern()).replacement("").once()
+                    }
+                } else {
+                    raw
+                }
+            ),
+            parsed("head", modifier?.head ?: ""),
+            parsed("foot", modifier?.foot ?: ""),
+        )
+    }
+
+    private fun matchModifier(sender: User, text: String, modifiers: List<PrefixedMessageModifier>): PrefixedMessageModifier? {
+        return modifiers.find {
+            val perm = it.permission
+            (!it.removePrefix || text.length > it.messagePrefix.length) // No blank message, thanks
+                    && text.startsWith(it.messagePrefix)
+                    && (perm.isNullOrEmpty() || sender.hasPermission(perm))
+        }
     }
 
     fun playerDisplay(viewer: User, key: String, user: User): TagResolver {

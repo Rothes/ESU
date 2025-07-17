@@ -7,29 +7,26 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.EsuChatModule
-import io.github.rothes.esu.bukkit.module.chatantispam.check.FixedRequest
-import io.github.rothes.esu.bukkit.module.chatantispam.check.Frequency
-import io.github.rothes.esu.bukkit.module.chatantispam.check.IllegalCharacters
-import io.github.rothes.esu.bukkit.module.chatantispam.check.LetterCaseFilter
-import io.github.rothes.esu.bukkit.module.chatantispam.check.LongMessage
-import io.github.rothes.esu.bukkit.module.chatantispam.check.Muting
-import io.github.rothes.esu.bukkit.module.chatantispam.check.RandomCharactersFilter
-import io.github.rothes.esu.bukkit.module.chatantispam.check.Similarity
-import io.github.rothes.esu.bukkit.module.chatantispam.check.SpacesFilter
-import io.github.rothes.esu.bukkit.module.chatantispam.check.WhisperTargets
+import io.github.rothes.esu.bukkit.module.chatantispam.check.*
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerChatEvent
@@ -47,6 +44,36 @@ object CasListeners: Listener {
 
     private val emoteCommands = EsuChatModule.EMOTE_COMMANDS.split('|').toSet()
     private val whisperCommands = EsuChatModule.WHISPER_COMMANDS.split('|').toSet()
+    private val chatListener = try {
+        AsyncChatEvent::class.java
+        object : Listener {
+            @EventHandler(priority = EventPriority.HIGH)
+            fun onChat(event: AsyncChatEvent) {
+                if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(event.message()), Chat)) {
+                    event.isCancelled = true
+                }
+            }
+        }
+    } catch (e: ClassNotFoundException) {
+        object : Listener {
+            @EventHandler(priority = EventPriority.HIGH)
+            fun onChat(event: AsyncPlayerChatEvent) {
+                if (checkBlocked(event.player, event.message, Chat)) {
+                    event.isCancelled = true
+                }
+            }
+        }
+    }
+
+    fun enable() {
+        Bukkit.getPluginManager().registerEvents(CasListeners, plugin)
+        Bukkit.getPluginManager().registerEvents(chatListener, plugin)
+    }
+
+    fun disable() {
+        HandlerList.unregisterAll(CasListeners)
+        HandlerList.unregisterAll(chatListener)
+    }
 
     @EventHandler
     fun onChatCommand(event: PlayerCommandPreprocessEvent) {
@@ -61,13 +88,6 @@ object CasListeners: Listener {
             if (split.size >= 3 && checkBlocked(event.player, split[2], Whisper(split[1]))) {
                 event.isCancelled = true
             }
-        }
-    }
-
-    @EventHandler
-    fun onChat(event: AsyncPlayerChatEvent) {
-        if (checkBlocked(event.player, event.message, Chat)) {
-            event.isCancelled = true
         }
     }
 
@@ -202,7 +222,7 @@ object CasListeners: Listener {
         notifyUsers.forEach {
             it.message(locale, { this.notify.muted },
                 player(player), it.msgPrefix,
-                unparsed("duration", duration.milliseconds),
+                duration(duration.milliseconds, it),
                 unparsed("multiplier", String.format("%.1f", spamData.muteMultiplier)),
             )
         }

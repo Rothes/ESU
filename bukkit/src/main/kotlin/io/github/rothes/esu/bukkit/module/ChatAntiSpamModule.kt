@@ -20,11 +20,11 @@ import io.github.rothes.esu.core.configuration.serializer.MapSerializer.Defaulte
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
+import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
-import org.bukkit.event.HandlerList
 import org.incendo.cloud.component.DefaultValue
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.function.Consumer
@@ -41,7 +41,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     override fun enable() {
         CasDataManager
         purgeTask = Scheduler.async(20, 5 * 60 * 20) { purgeCache(true) }
-        Bukkit.getPluginManager().registerEvents(CasListeners, plugin)
+        CasListeners.enable()
         Bukkit.getOnlinePlayers().map { it.user }.forEach {
             if (it.hasPerm("notify"))
                 notifyUsers.add(it)
@@ -95,7 +95,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val duration = playerUser.spamData.mute()
                 context.sender().message(locale, { command.mute.mutedPlayer },
                     context.sender().msgPrefix,
-                    user(playerUser), unparsed("duration", duration.milliseconds)
+                    user(playerUser),
+                    duration(duration.milliseconds, playerUser),
                 )
                 CasDataManager.saveSpamDataAsync(playerUser)
             }
@@ -124,7 +125,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         super.disable()
         purgeTask?.cancel()
         purgeTask = null
-        HandlerList.unregisterAll(CasListeners)
+        CasListeners.disable()
         try {
             purgeCache(false)
         } catch (e: NoClassDefFoundError) {
