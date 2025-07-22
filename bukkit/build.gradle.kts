@@ -86,6 +86,7 @@ tasks.shadowJar {
     kotlinRelocate("org.incendo", "$pkg.org.incendo")
     relocate("com.zaxxer", "$pkg.com.zaxxer")
     relocate("org.spongepowered", "$pkg.org.spongepowered")
+    relocate("net.kyori.option", "$pkg.net.kyori.option")
 
     relocate("info.debatty", "$pkg.info.debatty")
     relocate("org.bstats", "$pkg.org.bstats")
