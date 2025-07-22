@@ -31,7 +31,6 @@ repositories {
 
 
 dependencies {
-    compileOnly(project(":bukkit:compat:bukkit_1_12_5", configuration = "shadow"))
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     api("org.incendo:cloud-paper:2.0.0-beta.10")
