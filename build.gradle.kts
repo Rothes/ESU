@@ -4,8 +4,8 @@ plugins {
     id("java")
     kotlin("jvm") version "2.2.0"
     `maven-publish`
-    id("com.gradleup.shadow") version "9.0.0-beta12" // Lock on beta12, which kotlin-shadow-relocator supports.
-    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-beta.1"
+    id("com.gradleup.shadow") version "9.0.0-rc1"
+    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
 }
 
 repositories {
