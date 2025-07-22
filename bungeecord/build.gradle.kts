@@ -7,6 +7,7 @@ repositories {
 
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://libraries.minecraft.net")
     maven("https://repo.codemc.org/repository/maven-public/")
 
 }
