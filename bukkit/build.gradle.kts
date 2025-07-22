@@ -19,8 +19,6 @@ repositories {
         name = "PlugManX"
         url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
     }
-
-    maven("https://jitpack.io")
     maven("https://repo.codemc.org/repository/maven-public/")
 
     maven("https://mvn.lumine.io/repository/maven-public")
@@ -102,4 +100,10 @@ tasks.processResources {
     val properties = rootProject.ext.properties.filter { keys.contains(it.key) }
     inputs.properties(properties)
     filter<ReplaceTokens>("tokens" to properties)
+}
+
+allprojects {
+    repositories {
+        maven("https://jitpack.io")
+    }
 }

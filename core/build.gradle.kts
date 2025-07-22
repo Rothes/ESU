@@ -23,7 +23,7 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
-    api("org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT")
+    api("com.github.Rothes.Configurate:configurate-yaml:master-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:4.17.0")
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.17.0")
     compileOnly("net.kyori:adventure-text-serializer-plain:4.17.0")
