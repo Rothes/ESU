@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.Analyser
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -19,6 +20,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import org.spongepowered.configurate.objectmapping.meta.PostProcess
 import java.time.Duration
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -164,17 +166,17 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
                     "We choose a random block from the list and make it of a 16*16*16 chunk section.")
-            val singleValuedSectionBlockList: DefaultedLinkedHashMap<String, List<Material>> = DefaultedLinkedHashMap<String, List<Material>>(
-                listOf(Material.BEDROCK)
+            val singleValuedSectionBlockList: DefaultedLinkedHashMap<String, MutableList<Material>> = DefaultedLinkedHashMap<String, MutableList<Material>>(
+                mutableListOf(Material.BEDROCK)
             ).apply {
-                put("world", listOf(
+                put("world", mutableListOf(
                     Material.COAL_ORE, Material.COPPER_ORE, Material.IRON_ORE, Material.GOLD_ORE,
                     Material.EMERALD_ORE, Material.DIAMOND_ORE, Material.REDSTONE_ORE, Material.LAPIS_ORE,
                     Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE,
                     Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
                 ))
-                put("world_nether", listOf(Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE))
-                put("world_the_end", listOf(Material.END_STONE))
+                put("world_nether", mutableListOf(Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE))
+                put("world_the_end", mutableListOf(Material.END_STONE))
             }
         ) {
             val singleValuedSectionBlockIds by lazy {
@@ -187,6 +189,22 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
             private val Material.globalId
                 get() = if (!this.isBlock) error("Material $this is not a block type!") else SpigotConversionUtil.fromBukkitBlockData(createBlockData()).globalId
+
+            @PostProcess
+            private fun postProcess() {
+                fun checkEmptyBlockList(key: String, list: MutableList<Material>) {
+                    if (list.isEmpty()) {
+                        list.add(Material.BEDROCK)
+                        plugin.warn("[ChunkDataThrottle] SingleValued section block list of '$key' is empty! We have added bedrock to it.")
+                    }
+                }
+                singleValuedSectionBlockList.default?.let {
+                    checkEmptyBlockList("default", it)
+                }
+                singleValuedSectionBlockList.entries.toList().forEach {
+                    checkEmptyBlockList(it.key, it.value)
+                }
+            }
         }
 
         data class DynamicChunkSendRate(
