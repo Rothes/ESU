@@ -91,6 +91,10 @@ tasks.shadowJar {
     relocate("de.tr7zw.changeme.nbtapi", "$pkg.nbtapi")
 
     mergeServiceFiles()
+
+    project(":bukkit:version").subprojects.forEach {
+        from(it.sourceSets.main.get().output)
+    }
 }
 
 tasks.processResources {

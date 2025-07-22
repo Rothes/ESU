@@ -28,6 +28,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
@@ -64,6 +65,8 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 @Suppress("NOTHING_TO_INLINE")
 object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
+
+    private val versioned by Versioned(LevelHandler::class.java)
 
     // The block B is in center. if Y_MINUS, block in B's bottom is occluding(i.e. blocking) .
     private const val X_PLUS    = 0b00001.toByte()
@@ -265,7 +268,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                 }
 
                 val nms = player.nms
-                val level = nms.serverLevel()
+                val level = versioned.level(nms)
                 val rebuildPaletteMappings = config.rebuildPaletteMappings
                 val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
                 val randomBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.serverLevelData.levelName)!!
@@ -544,7 +547,7 @@ object ChunkDataThrottle: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         }
 
         val nms = player.nms
-        val level = nms.serverLevel()
+        val level = versioned.level(nms)
 
         for ((chunkKey, blocks) in groups) {
             checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, miniChunks, chunkKey, blocks, minHeight)
