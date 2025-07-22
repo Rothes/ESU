@@ -27,7 +27,7 @@ jobs:
         run: gradle shadowJar
       
       - name: Locate built jars
-        run: mkdir ESU && cp bukkit/build/ESU-*.jar ESU && cp velocity/build/ESU-*.jar ESU
+        run: mkdir ESU && cp bukkit/build/libs/ESU-*.jar ESU && cp velocity/build/libs/ESU-*.jar ESU
       
       - name: Upload built jars
         uses: actions/upload-artifact@v4
