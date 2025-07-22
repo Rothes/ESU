@@ -59,17 +59,19 @@ subprojects {
         options.encoding = "UTF-8"
     }
 
-    publishing {
-        repositories {
-            mavenLocal()
-        }
-        publications {
-            create<MavenPublication>("mavenJar") {
-                from(components["java"])
+    if (project.parent == rootProject) {
+        publishing {
+            repositories {
+                mavenLocal()
+            }
+            publications {
+                create<MavenPublication>("mavenJar") {
+                    from(components["java"])
 
-                artifactId = project.name
-                groupId = project.group as String?
-                version = project.version as String?
+                    artifactId = project.name
+                    groupId = project.group as String?
+                    version = project.version as String?
+                }
             }
         }
     }
