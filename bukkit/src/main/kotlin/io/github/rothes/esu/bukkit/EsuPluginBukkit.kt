@@ -19,6 +19,7 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
+import io.github.rothes.esu.core.util.version.Version
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
@@ -43,6 +44,8 @@ import java.nio.file.Path
 import java.util.logging.Level
 
 class EsuPluginBukkit: JavaPlugin(), EsuCore {
+
+    val serverVersion: Version = Version.fromString(Bukkit.getServer().bukkitVersion.split('-')[0])
 
     override var initialized: Boolean = false
         private set
