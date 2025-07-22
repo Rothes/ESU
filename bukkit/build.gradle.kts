@@ -19,6 +19,10 @@ repositories {
         name = "PlugManX"
         url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
     }
+    maven {
+        name = "PlaceholderAPI"
+        url = uri("https://repo.extendedclip.com/releases/")
+    }
     maven("https://repo.codemc.org/repository/maven-public/")
 
     maven("https://mvn.lumine.io/repository/maven-public")
