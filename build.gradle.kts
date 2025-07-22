@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("java")
-    kotlin("jvm") version "2.1.21"
+    kotlin("jvm") version "2.2.0"
     `maven-publish`
     id("com.gradleup.shadow") version "9.0.0-beta12" // Lock on beta12, which kotlin-shadow-relocator supports.
     id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-beta.1"
