@@ -5,12 +5,13 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
+import io.github.rothes.esu.core.user.LogUser
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import java.util.*
 
-object ConsoleUser: BukkitUser() {
+object ConsoleUser: BukkitUser(), LogUser {
 
     override val commandSender: CommandSender = Bukkit.getConsoleSender()
     override val dbId: Int
