@@ -106,6 +106,11 @@ tasks.processResources {
     filter<ReplaceTokens>("tokens" to properties)
 }
 
+buildConfig {
+    buildConfigField("PLUGIN_PLATFORM", "bukkit")
+}
+
+
 allprojects {
     repositories {
         maven("https://jitpack.io")

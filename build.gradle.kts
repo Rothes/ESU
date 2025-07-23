@@ -6,6 +6,7 @@ plugins {
     `maven-publish`
     id("com.gradleup.shadow") version "9.0.0-rc1"
     id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
+    id("com.github.gmazzo.buildconfig") version "5.5.1"
 }
 
 repositories {
@@ -72,6 +73,15 @@ subprojects {
                     groupId = project.group as String?
                     version = project.version as String?
                 }
+            }
+        }
+
+        if (project.name != "core") {
+            apply(plugin = "com.github.gmazzo.buildconfig")
+            buildConfig {
+                buildConfigField("VERSION_NAME", project.property("versionName").toString())
+                buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
+                buildConfigField("VERSION_ID", project.property("versionId").toString())
             }
         }
     }

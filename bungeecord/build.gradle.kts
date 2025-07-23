@@ -62,3 +62,7 @@ tasks.processResources {
     inputs.properties(properties)
     filter<ReplaceTokens>("tokens" to properties)
 }
+
+buildConfig {
+    buildConfigField("PLUGIN_PLATFORM", "bungeecord")
+}

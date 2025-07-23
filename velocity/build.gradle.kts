@@ -2,7 +2,6 @@ import com.xpdustry.ksr.kotlinRelocate
 
 plugins {
     kotlin("kapt")
-    id("com.github.gmazzo.buildconfig") version "5.5.1"
 }
 
 repositories {
@@ -67,7 +66,5 @@ tasks.shadowJar {
 }
 
 buildConfig {
-    buildConfigField("VERSION_NAME", project.property("versionName").toString())
-    buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
-    buildConfigField("VERSION_ID", project.property("versionId").toString())
+    buildConfigField("PLUGIN_PLATFORM", "velocity")
 }
