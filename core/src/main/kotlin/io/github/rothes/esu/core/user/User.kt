@@ -71,7 +71,7 @@ interface User {
 
     fun message(messageData: ParsedMessageData) {
         with(messageData) {
-            chat?.let { message(it) }
+            chat?.let { it.forEach { msg -> message(msg) } }
             actionBar?.let { actionBar(it) }
             title?.let { title(it) }
             sound?.let { playSound(it) }

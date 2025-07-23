@@ -16,7 +16,7 @@ const val SUBTITLE = "subtitle"
 const val SOUND = "sound"
 
 data class MessageData(
-    val chat: String? = null,
+    val chat: List<String>? = null,
     val actionBar: String? = null,
     val title: TitleData? = null,
     val sound: SoundData? = null,
@@ -28,7 +28,7 @@ data class MessageData(
 
     fun parsed(user: User, vararg params: TagResolver): ParsedMessageData {
         return ParsedMessageData(
-            chat?.let { user.buildMinimessage(it, params = params) },
+            chat?.map { user.buildMinimessage(it, params = params) },
             actionBar?.let { user.buildMinimessage(it, params = params) },
             title?.parsed(user, params = params),
             sound,
@@ -204,7 +204,11 @@ data class MessageData(
 
         private fun setMessage(messageType: MessageType, builder: MessageDataBuilder, message: String) {
             when (messageType) {
-                MessageType.CHAT -> builder.chat = message
+                MessageType.CHAT -> {
+                    if (builder.chat == null)
+                        builder.chat = mutableListOf()
+                    builder.chat!!.add(message)
+                }
                 MessageType.ACTIONBAR -> builder.actionbar = message
                 MessageType.TITLE -> builder.title = message
                 MessageType.SUBTITLE -> builder.subTitle = message
@@ -214,7 +218,7 @@ data class MessageData(
 
         private data class MessageDataBuilder(
             val pattern: String,
-            var chat: String? = null,
+            var chat: MutableList<String>? = null,
             var actionbar: String? = null,
             var title: String? = null,
             var subTitle: String? = null,

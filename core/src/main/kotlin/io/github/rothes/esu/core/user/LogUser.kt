@@ -28,7 +28,7 @@ interface LogUser: User {
         if (message.chat.isNullOrEmpty())
             message(message, params = params)
         else
-            message(message.copy(chat = "[ESU] " + message.chat), params = params)
+            message(message.copy(chat = message.chat.map { "[ESU] $it" }), params = params)
     }
 
 }

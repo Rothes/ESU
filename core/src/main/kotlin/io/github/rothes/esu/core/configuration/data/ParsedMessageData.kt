@@ -3,7 +3,7 @@ package io.github.rothes.esu.core.configuration.data
 import net.kyori.adventure.text.Component
 
 data class ParsedMessageData(
-    val chat: Component? = null,
+    val chat: List<Component>? = null,
     val actionBar: Component? = null,
     val title: ParsedTitleData? = null,
     val sound: SoundData? = null,
