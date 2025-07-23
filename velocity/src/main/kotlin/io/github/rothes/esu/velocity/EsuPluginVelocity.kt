@@ -6,6 +6,7 @@ import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.connection.PreLoginEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
@@ -99,10 +100,11 @@ class EsuPluginVelocity @Inject constructor(
     fun onProxyInitialization(e: ProxyInitializeEvent) {
         EsuCore.instance = this
         enabledHot = byServerUtils()
-        EsuConfig // Load global config
-        VelocityEsuLocale // Load global locale
-        StorageManager // Load database
-        ColorSchemes // Load color schemes
+        EsuConfig           // Load global config
+        VelocityEsuLocale   // Load global locale
+        StorageManager      // Load database
+        ColorSchemes        // Load color schemes
+        UpdateCheckerMan    // Init update checker
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(NetworkThrottleModule)
@@ -117,6 +119,7 @@ class EsuPluginVelocity @Inject constructor(
                         EsuConfig.reloadConfig()
                         VelocityEsuLocale.reloadConfig()
                         ColorSchemes.reload()
+                        UpdateCheckerMan.reload()
                         ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
                         context.sender().message("§aReloaded global & module configs.")
                     }
@@ -172,6 +175,7 @@ class EsuPluginVelocity @Inject constructor(
                 VelocityUserManager.unload(it)
             }
         }
+        UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
     }
 
@@ -183,6 +187,11 @@ class EsuPluginVelocity @Inject constructor(
     @Subscribe(order = PostOrder.LAST)
     fun onLogin(event: LoginEvent) {
         VelocityUserManager[event.player]
+    }
+
+    @Subscribe(order = PostOrder.LAST)
+    fun onLogin(event: PostLoginEvent) {
+        UpdateCheckerMan.onJoin(VelocityUserManager[event.player])
     }
 
     @Subscribe(order = PostOrder.LAST)

@@ -75,10 +75,11 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     override fun onEnable() {
         EsuCore.instance = this
         enabledHot = byPluginMan()
-        EsuConfig // Load global config
-        BukkitEsuLocale // Load global locale
-        StorageManager // Load database
-        ColorSchemes // Load color schemes
+        EsuConfig           // Load global config
+        BukkitEsuLocale     // Load global locale
+        StorageManager      // Load database
+        ColorSchemes        // Load color schemes
+        UpdateCheckerMan    // Init update checker
 
         ModuleManager.addModule(AntiCommandSpamModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
@@ -103,6 +104,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                         EsuConfig.reloadConfig()
                         BukkitEsuLocale.reloadConfig()
                         ColorSchemes.reload()
+                        UpdateCheckerMan.reload()
                         ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
                         context.sender().message("§aReloaded global & module configs.")
                     }
@@ -150,7 +152,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             }
             @EventHandler(priority = EventPriority.LOWEST)
             fun onLogin(event: PlayerJoinEvent) {
-                BukkitUserManager[event.player]
+                val user = BukkitUserManager[event.player]
+                UpdateCheckerMan.onJoin(user)
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun onQuit(event: PlayerQuitEvent) {
@@ -202,6 +205,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 BukkitUserManager.unload(it)
             }
         }
+        UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
     }
 

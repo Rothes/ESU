@@ -27,6 +27,7 @@ object EsuConfig {
         val localeSoftLinkPath: Optional<Path> = Optional.empty(),
         val database: Database = Database(),
         val defaultColorScheme: String = "amethyst",
+        val updateChecker: Boolean = true,
     ): ConfigurationPart {
 
         data class Database(

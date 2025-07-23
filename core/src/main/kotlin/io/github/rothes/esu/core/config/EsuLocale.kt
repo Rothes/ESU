@@ -3,7 +3,10 @@ package io.github.rothes.esu.core.config
 import io.github.rothes.esu.core.config.EsuLocale.BaseEsuLocaleData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.util.InitOnce
+import jdk.javadoc.internal.doclint.Checker
 import org.incendo.cloud.caption.Caption
 
 abstract class EsuLocale<T: BaseEsuLocaleData> {
@@ -19,10 +22,21 @@ abstract class EsuLocale<T: BaseEsuLocaleData> {
     protected abstract fun load(): MultiLocaleConfiguration<T>
 
     open class BaseEsuLocaleData(
+        val updater: Updater = Updater(),
         val booleans: Booleans = Booleans(),
         val format: Format = Format(),
-        val commandCaptions: LinkedHashMap<Caption, String> = LinkedHashMap()
+        val commandCaptions: LinkedHashMap<Caption, String> = LinkedHashMap(),
     ): ConfigurationPart {
+
+        data class Updater(
+            val checker: Checker = Checker(),
+        ) {
+            data class Checker(
+                val networkError: String = "<ec>Failed to check for update: <message>",
+                val unknownChannel: String = "<ec>Failed to check for update, unknown current channel: <channel>",
+                val unknownPlatform: String = "<ec>Failed to check for update, unknown current platform: <platform>",
+            )
+        }
 
         data class Booleans(
             val enabled: String = "enabled",

@@ -6,11 +6,12 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
+import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.velocity.plugin
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import java.util.UUID
 
-object ConsoleUser: VelocityUser() {
+object ConsoleUser: VelocityUser(), LogUser {
 
     override val commandSender: CommandSource = plugin.server.consoleCommandSource
     override val dbId: Int

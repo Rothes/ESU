@@ -29,6 +29,7 @@ dependencies {
     compileOnly("net.kyori:adventure-text-serializer-plain:4.17.0")
     compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
 //    compileOnly("org.spongepowered:configurate-yaml:4.1.2")
+    compileOnly("com.google.code.gson:gson:2.11.0")
 }
 
 tasks.test {
