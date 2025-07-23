@@ -37,19 +37,19 @@ abstract class BungeeUser: User {
         adventure.sender(commandSender).sendActionBar(message)
     }
 
-    override fun title(parsed: ParsedMessageData.ParsedTitleData) {
-        val title = parsed.title
-        val subTitle = parsed.subTitle
-        val times = parsed.times
+    override fun title(title: ParsedMessageData.ParsedTitleData) {
+        val mainTitle = title.title
+        val subTitle = title.subTitle
+        val times = title.times
 
-        if (title != null && subTitle != null) {
-            adventure.sender(commandSender).showTitle(Title.title(title, subTitle, times?.adventure))
+        if (mainTitle != null && subTitle != null) {
+            adventure.sender(commandSender).showTitle(Title.title(mainTitle, subTitle, times?.adventure))
         } else {
             if (times != null) {
                 adventure.sender(commandSender).sendTitlePart(TitlePart.TIMES, times.adventure)
             }
-            if (title != null) {
-                adventure.sender(commandSender).sendTitlePart(TitlePart.TITLE, title)
+            if (mainTitle != null) {
+                adventure.sender(commandSender).sendTitlePart(TitlePart.TITLE, mainTitle)
             }
             if (subTitle != null) {
                 adventure.sender(commandSender).sendTitlePart(TitlePart.SUBTITLE, subTitle)

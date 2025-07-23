@@ -36,19 +36,19 @@ abstract class VelocityUser: User {
         commandSender.sendActionBar(message)
     }
 
-    override fun title(parsed: ParsedMessageData.ParsedTitleData) {
-        val title = parsed.title
-        val subTitle = parsed.subTitle
-        val times = parsed.times
+    override fun title(title: ParsedMessageData.ParsedTitleData) {
+        val mainTitle = title.title
+        val subTitle = title.subTitle
+        val times = title.times
 
-        if (title != null && subTitle != null) {
-            commandSender.showTitle(Title.title(title, subTitle, times?.adventure))
+        if (mainTitle != null && subTitle != null) {
+            commandSender.showTitle(Title.title(mainTitle, subTitle, times?.adventure))
         } else {
             if (times != null) {
                 commandSender.sendTitlePart(TitlePart.TIMES, times.adventure)
             }
-            if (title != null) {
-                commandSender.sendTitlePart(TitlePart.TITLE, title)
+            if (mainTitle != null) {
+                commandSender.sendTitlePart(TitlePart.TITLE, mainTitle)
             }
             if (subTitle != null) {
                 commandSender.sendTitlePart(TitlePart.SUBTITLE, subTitle)
