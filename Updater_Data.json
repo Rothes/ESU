@@ -1,0 +1,41 @@
+{
+  "version_channel": {
+    "stable": {
+      "bukkit": {
+        "latest_version_id": 2,
+        "notification": {
+          "actions": [],
+          "message_times": -1,
+          "notify_in_game": true,
+          "message": {
+            "en-us": "<pc>A new version of ESU-bukkit (<pdc>\"0.5.1\"</pdc>) is available!<br>Download at: <pdc>https://modrinth.com/plugin/esu"
+          }
+        }
+      },
+      "velocity": {
+        "latest_version_id": 2,
+        "notification": {
+          "actions": [],
+          "message_times": -1,
+          "notify_in_game": true,
+          "message": {
+            "en-us": "<pc>A new version of ESU-velocity (<pdc>\"0.5.1\"</pdc>) is available!<br>Download at: <pdc>https://modrinth.com/plugin/esu"
+          }
+        }
+      }
+    }
+  },
+  "version_action": {
+    "bukkit": {
+      "0-999": {
+        "actions": [],
+        "message_times": 1,
+        "notify_in_game": true,
+        "message": {
+          "en-us": "<pc>Welcome to ESU! Discuss and support at <pdc>https://discord.gg/zwzzkmYCBb"
+        }
+      }
+    },
+    "velocity": {}
+  }
+}
