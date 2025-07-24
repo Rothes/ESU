@@ -90,8 +90,8 @@ abstract class BukkitUser: User {
                 val list = arrayListOf<Component>()
                 built.forEach { component ->
                     val serialize = MiniMessage.miniMessage().serialize(component)
-                    if (serialize.contains('\n')) {
-                        list.addAll(serialize.split("\n").map { MiniMessage.miniMessage().deserialize(it) })
+                    if (serialize.contains('\n') || serialize.contains("<br>")) {
+                        list.addAll(serialize.split("<br>", "\n").map { MiniMessage.miniMessage().deserialize(it) })
                     } else {
                         list.add(component)
                     }
