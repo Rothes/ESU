@@ -353,7 +353,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         return MiniMessage.miniMessage().deserialize("<head><message><foot>",
             component("message",
                 if (modifier != null && modifier.removePrefix) {
-                    val times = modifier.head.length
+                    val times = modifier.messagePrefix.length
                     raw.replaceText {
                         it.match(".".toPattern()).replacement("").times(times)
                     }
