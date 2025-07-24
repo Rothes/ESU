@@ -49,7 +49,7 @@ val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}.jar"
 
-    val pkg = "io.github.rothes.${rootProject.name.lowercase()}.${project.name.lowercase()}.lib"
+    val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
     kotlinRelocate("kotlin.", "$pkg.kotlin.") {
         exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
     }
