@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.storage
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.colorScheme
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.dbId
@@ -19,6 +20,7 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.sql.SQLException
 import java.util.*
 
 object StorageManager {
@@ -123,14 +125,18 @@ object StorageManager {
     }
 
     fun updateUserNow(user: User) {
-        with(UsersTable) {
-            transaction(database) {
-                update({ dbId eq user.dbId }) {
-                    it[name] = user.nameUnsafe
-                    it[language] = user.languageUnsafe
-                    it[colorScheme] = user.colorSchemeUnsafe
+        try {
+            with(UsersTable) {
+                transaction(database) {
+                    update({ dbId eq user.dbId }) {
+                        it[name] = user.nameUnsafe
+                        it[language] = user.languageUnsafe
+                        it[colorScheme] = user.colorSchemeUnsafe
+                    }
                 }
             }
+        } catch (e: SQLException) {
+            EsuCore.instance.err("Failed to update user data ${user.nameUnsafe} (${user.uuid}): " + e.message)
         }
     }
 
