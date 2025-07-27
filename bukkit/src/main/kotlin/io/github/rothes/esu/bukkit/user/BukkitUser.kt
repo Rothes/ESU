@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.user.User
+import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -101,6 +102,14 @@ abstract class BukkitUser: User {
             itemData.tooltipStyleObj?.let { meta.tooltipStyle = it }
         }
         return item
+    }
+
+    fun openBook(book: Book.Builder) {
+        openBook(book.build())
+    }
+
+    fun openBook(book: Book) {
+        commandSender.openBook(book)
     }
 
 }
