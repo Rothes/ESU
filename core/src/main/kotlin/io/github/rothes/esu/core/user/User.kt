@@ -1,12 +1,14 @@
 package io.github.rothes.esu.core.user
 
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
+import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -60,7 +62,14 @@ interface User {
         return buildMinimessage(localed(locales, block), params = params)
     }
     fun buildMinimessage(message: String, vararg params: TagResolver): Component {
-        return MiniMessage.miniMessage().deserialize(message, *params,
+        return MiniMessage.miniMessage().deserialize(
+            message.let {
+                if (EsuConfig.get().legacyColorChar)
+                    it.legacyColorCharParsed
+                else
+                    it
+            },
+            *params,
             ColorSchemes.schemes.get(colorScheme) { tagResolver }!!, capitalize
         )
     }

@@ -3,6 +3,7 @@ package io.github.rothes.esu.core.config
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.nio.file.Path
 import java.util.*
@@ -21,6 +22,9 @@ object EsuConfig {
 
     data class ConfigData(
         val locale: String = Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase(),
+        @field:Comment("By setting this to true, you can enable legacy color char support.\n" +
+                "You will able to use `&` char to set color/formats.")
+        val legacyColorChar: Boolean = false,
         @field:Comment("Automatically create soft link for locale directories. " +
                 "You can specify the path to ESU plugin directory from another server.\n" +
                 "Example: /home/user/server/plugins/ESU")
