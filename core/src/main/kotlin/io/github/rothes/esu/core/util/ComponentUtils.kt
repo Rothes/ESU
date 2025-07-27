@@ -35,6 +35,30 @@ object ComponentUtils {
     val String.miniMessage
         get() = fromMiniMessage(this)
 
+    val String.legacyColorCharParsed
+        get() = replace("&0", "<black>")
+        .replace("&1", "<dark_blue>")
+        .replace("&2", "<dark_green>")
+        .replace("&3", "<dark_aqua>")
+        .replace("&4", "<dark_red>")
+        .replace("&5", "<dark_purple>")
+        .replace("&6", "<gold>")
+        .replace("&7", "<gray>")
+        .replace("&8", "<dark_gray>")
+        .replace("&9", "<blue>")
+        .replace("&[Aa]".toRegex(), "<green>")
+        .replace("&[Bb]".toRegex(), "<aqua>")
+        .replace("&[Cc]".toRegex(), "<red>")
+        .replace("&[Dd]".toRegex(), "<light_purple>")
+        .replace("&[Ee]".toRegex(), "<yellow>")
+        .replace("&[Ff]".toRegex(), "<white>")
+        .replace("&[Kk]".toRegex(), "<obf>")
+        .replace("&[Ll]".toRegex(), "<b>")
+        .replace("&[Mm]".toRegex(), "<st>")
+        .replace("&[Nn]".toRegex(), "<u>")
+        .replace("&[Oo]".toRegex(), "<i>")
+        .replace("&[Rr]".toRegex(), "<reset>")
+
     val Component.legacy
         get() = LegacyComponentSerializer.legacySection().serialize(this)
 
