@@ -8,6 +8,7 @@ import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -85,7 +86,9 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val checked = NewsDataManager.getChecked(user)
             checkedCache[user] = checked
             if (checked < news.first().id)
-                Commands.news(user)
+                Scheduler.schedule(user.player, 1) {
+                    Commands.news(user)
+                }
         }
         @EventHandler
         fun onQuit(e: PlayerQuitEvent) {
