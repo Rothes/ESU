@@ -32,6 +32,9 @@ interface User {
 
     val isOnline: Boolean
 
+    val colorSchemeInstance
+        get() = ColorSchemes.schemes.get(colorScheme) { tagResolver }!!
+
     fun hasPermission(permission: String): Boolean
 
     fun <T: ConfigurationPart, R> localedOrNull(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R? {
@@ -69,8 +72,7 @@ interface User {
                 else
                     it
             },
-            *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!, capitalize
+            *params, colorSchemeInstance, capitalize
         )
     }
 

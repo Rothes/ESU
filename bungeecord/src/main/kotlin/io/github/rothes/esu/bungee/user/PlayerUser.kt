@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bungee.user
 
-import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
@@ -56,8 +55,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: ProxiedPlayer? = null): Bu
     }
 
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!).bungee)
+        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params, colorSchemeInstance).bungee)
     }
 
     override fun equals(other: Any?): Boolean {
