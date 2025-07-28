@@ -118,6 +118,7 @@ object EditorManager {
                     val wrapper = WrapperPlayClientEditBook(event)
                     if (wrapper.slot != data.slot) return
                     completeEdit(player, wrapper.pages)
+                    event.isCancelled = true
                 }
             }
         }
