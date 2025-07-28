@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.Bukkit
+import org.jetbrains.exposed.v1.core.statements.UpdateStatement
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 
 object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>(
@@ -80,6 +81,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         org.incendo.cloud.parser.flag.FlagContext::class.java.toString()
         Charsets::class.java.toString()
         EsuInvHolder::class.java.toString()
+        UpdateStatement::class.java.toString()
     }
 
     data class ModuleData(
