@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.config.data
 
+import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -13,10 +14,13 @@ import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.text.Component
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
 import net.momirealms.craftengine.core.util.Key
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.SkullMeta
+import java.util.UUID
 
 data class ItemData(
     val material: Material? = null,
@@ -33,6 +37,7 @@ data class ItemData(
     val enchantments: Map<String, Int>? = null,
     @NoDeserializeIf("1")
     val amount: Int = 1,
+    val playerTexture: String? = null,
     val customModelData: Int? = null,
     val itemModel: String? = null,
     val tooltipStyle: String? = null,
@@ -42,8 +47,8 @@ data class ItemData(
     val loreComponent: List<Component>? by lazy { lore?.map(ComponentUtils::fromMiniMessage) }
     val tooltipStyleObj by lazy { tooltipStyle?.let(NamespacedKey::fromString) }
     val create: ItemStack
-        get() = createItemByType().also {
-            it.editMeta { meta ->
+        get() = createItemByType().also { item ->
+            item.editMeta { meta ->
                 customModelData?.let { meta.setCustomModelData(customModelData) }
                 itemModel?.let { meta.itemModel = NamespacedKey.fromString(itemModel) }
                 enchantments?.let {
@@ -56,6 +61,13 @@ data class ItemData(
                         meta.addEnchant(enchantment, level, true)
                     }
                 }
+                playerTexture?.let {
+                    if (meta !is SkullMeta) return@let
+                    meta.playerProfile = Bukkit.createProfile(UUID.randomUUID()).apply {
+                        setProperty(ProfileProperty("textures", playerTexture))
+                    }
+                }
+                tooltipStyleObj?.let { meta.tooltipStyle = it }
             }
         }
     val itemUnsafe: ItemStack by lazy {
@@ -63,7 +75,6 @@ data class ItemData(
             item.editMeta { meta ->
                 displayNameComponent?.let { meta.displayName(it) }
                 loreComponent?.let { meta.lore(it) }
-                tooltipStyleObj?.let { meta.tooltipStyle = it }
             }
         }
     }
