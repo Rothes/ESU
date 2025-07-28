@@ -264,6 +264,8 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             user as PlayerUser
             if (!EditorManager.cancel(user.player))
                 user.message(locale, { bookNews.editor.nothingToConfirm })
+            else
+                user.message(locale, { bookNews.editor.editCancelled })
         }
 
         @ShortPerm("editor")
