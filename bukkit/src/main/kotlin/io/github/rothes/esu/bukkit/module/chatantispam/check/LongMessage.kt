@@ -12,7 +12,7 @@ object LongMessage: Check("long-message") {
     override fun check(request: MessageRequest): CheckResult {
         val maxMessageSize = request.spamCheck.longMessage.maxMessageSize
         val length = request.message.sumOf { max(it.toString().toByteArray().size, 2) }
-        if (maxMessageSize in 0..length) {
+        if (maxMessageSize in 0..< length) {
             notifyBlocked(request.user)
             return CheckResult("long", max(0.2, min((length - maxMessageSize) * 0.015, 0.6)))
         }
