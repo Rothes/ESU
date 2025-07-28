@@ -53,6 +53,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     }
 
     override fun enable() {
+        EditorManager.enable()
         NewsDataManager.start()
         registerCommands(Commands)
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)
@@ -65,7 +66,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         super.disable()
         checkedCache.clear()
         HandlerList.unregisterAll(Listeners)
-        EditorManager.shutdown()
+        EditorManager.disable()
         NewsDataManager.shutdown()
     }
 

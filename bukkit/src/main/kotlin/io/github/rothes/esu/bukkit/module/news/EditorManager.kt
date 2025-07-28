@@ -24,12 +24,12 @@ object EditorManager {
     private val editing = mutableMapOf<Player, EditData>()
     private val confirming = mutableMapOf<Player, () -> Unit>()
 
-    init {
+    fun enable() {
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)
     }
 
-    fun shutdown() {
+    fun disable() {
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListeners)
         HandlerList.unregisterAll(Listeners)
     }
