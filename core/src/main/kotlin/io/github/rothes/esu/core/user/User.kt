@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
+import io.github.rothes.esu.core.storage.StorageManager.UsersTable.language
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import net.kyori.adventure.text.Component
@@ -14,7 +15,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import java.util.*
+import kotlin.collections.get
 import kotlin.experimental.ExperimentalTypeInference
+import kotlin.text.startsWith
 
 interface User {
 
@@ -37,8 +40,36 @@ interface User {
 
     fun hasPermission(permission: String): Boolean
 
+    fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? {
+        val lang = language
+        return langMap[lang]?.let(block)
+        // If this locale is not found, try the same language.
+            ?: lang?.split('_')?.get(0)?.let { language ->
+                val lang = language + '_'
+                langMap.entries.filter { it.key.startsWith(lang) }.firstNotNullOfOrNull { block(it.value) }
+            }
+            // Still? Use the server default locale instead.
+            ?: langMap[EsuConfig.get().locale]?.let(block)
+            // Use the default value.
+            ?: langMap["en_us"]?.let(block)
+            // Maybe it doesn't provide en_us locale...?
+            ?: langMap.values.firstNotNullOfOrNull { block(it) }
+    }
+
+    fun <V> localedOrNull(langMap: Map<String, V>): V? {
+        return localedOrNull(langMap) { it }
+    }
+
     fun <T: ConfigurationPart, R> localedOrNull(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R? {
-        return locales.get(language, block)
+        return localedOrNull(locales.configs, block)
+    }
+
+    fun <V, R> localed(langMap: Map<String, V>, block: (V) -> R?): R {
+        return localedOrNull(langMap, block) ?: throw NullPointerException()
+    }
+
+    fun <V> localed(langMap: Map<String, V>): V {
+        return localed(langMap) { it }
     }
 
     fun <T: ConfigurationPart, R> localed(locales: MultiLocaleConfiguration<T>, block: T.() -> R?): R {
