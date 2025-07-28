@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.config.data
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
+import net.minecraft.world.entity.variant.SpawnPrioritySelectors.fallback
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryType
 import org.spongepowered.configurate.objectmapping.meta.NodeKey
@@ -24,10 +25,10 @@ open class InventoryData<T>(
     ),
 ): ConfigurationPart {
 
-    @Setting("fallback")
-    private var fallbackInternal: T? = null
-    val fallback: T
-        get() = fallbackInternal ?: error("Fallback is not set!")
+    @Setting("type-icons")
+    private var typeIconsInternal: T? = null
+    val typeIcons: T
+        get() = typeIconsInternal ?: error("Fallback is not set!")
 
     constructor(
         inventoryType: InventoryType? = null,
@@ -35,9 +36,9 @@ open class InventoryData<T>(
         title: String = "Menu",
         layout: String,
         icons: Map<Char, InventoryItem> = linkedMapOf(' ' to InventoryItem()),
-        fallback: T
+        typeIcons: T
     ): this(inventoryType, size, title, layout, icons) {
-        this.fallbackInternal = fallback
+        this.typeIconsInternal = typeIcons
     }
 
     data class InventoryItem(

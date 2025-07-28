@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceLinkedOpenHashMap
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
-abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
+abstract class PagedHolder<T: PagedHolder.PagedIcons, E>(
     inventoryData: InventoryData<T>,
     val page: Int,
     entries: List<E>,
@@ -27,7 +27,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                         click(slot) { e -> prevPage().open(e.whoClicked) }
                         setItem(slot, item.item.item)
                     } else {
-                        setItem(slot, inventoryData.fallback.noPreviousPage.itemUnsafe)
+                        setItem(slot, inventoryData.typeIcons.noPreviousPage.itemUnsafe)
                     }
                 }
             }, SimpleType.create("NextPage") { slot, item ->
@@ -36,7 +36,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                         click(slot) { e -> nextPage().open(e.whoClicked) }
                         setItem(slot, item.item.item)
                     } else {
-                        setItem(slot, inventoryData.fallback.noNextPage.itemUnsafe)
+                        setItem(slot, inventoryData.typeIcons.noNextPage.itemUnsafe)
                     }
                 }
             },
@@ -48,7 +48,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
                     val entry = entries[i++]
                     setItem(slot, setEntryItem(slot, item, entry))
                 } else {
-                    setItem(slot, inventoryData.fallback.noEntry.itemUnsafe)
+                    setItem(slot, inventoryData.typeIcons.noEntry.itemUnsafe)
                 }
             }
         }
@@ -58,7 +58,7 @@ abstract class PagedHolder<T: PagedHolder.PagedFallback, E>(
     abstract fun prevPage(): PagedHolder<T, E>
     abstract fun setEntryItem(slot: Int, item: InventoryData.InventoryItem, entry: E): ItemStack?
 
-    open class PagedFallback (
+    open class PagedIcons (
         val noPreviousPage: ItemData = ItemData(Material.GRAY_STAINED_GLASS_PANE, displayName = ""),
         val noNextPage: ItemData = ItemData(Material.GRAY_STAINED_GLASS_PANE, displayName = ""),
         val noEntry: ItemData = ItemData(Material.AIR),
