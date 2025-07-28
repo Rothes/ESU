@@ -77,6 +77,8 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     private object Listeners: Listener {
         @EventHandler
         fun onJoin(e: UserLoginEvent) {
+            if (!config.bookNews.showUnreadNewsOnJoin)
+                return
             val user = e.user
             val news = NewsDataManager.news
             if (news.isEmpty()) return
@@ -86,7 +88,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 Commands.news(user)
         }
         @EventHandler
-        fun onJoin(e: PlayerQuitEvent) {
+        fun onQuit(e: PlayerQuitEvent) {
             checkedCache.remove(e.player.user)
         }
     }
