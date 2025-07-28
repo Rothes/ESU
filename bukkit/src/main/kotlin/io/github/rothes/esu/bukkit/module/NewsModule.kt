@@ -79,14 +79,12 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     private object Listeners: Listener {
         @EventHandler
         fun onJoin(e: UserLoginEvent) {
-            if (!config.bookNews.showUnreadNewsOnJoin)
-                return
             val user = e.user
             val news = NewsDataManager.news
             if (news.isEmpty()) return
             val checked = NewsDataManager.getChecked(user)
             checkedCache[user] = checked
-            if (checked < news.first().id)
+            if (config.bookNews.showUnreadNewsOnJoin && checked < news.first().id)
                 Scheduler.schedule(user.player, 1) {
                     Commands.news(user)
                 }
