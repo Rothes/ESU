@@ -69,7 +69,8 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
 
     override fun reloadConfig() {
         super.reloadConfig()
-        NewsDataManager.onReload()
+        if (enabled)
+            NewsDataManager.onReload()
     }
 
     private object Listeners: Listener {
