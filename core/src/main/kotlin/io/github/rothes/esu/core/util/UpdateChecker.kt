@@ -3,9 +3,8 @@ package io.github.rothes.esu.core.util
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.config.EsuLocale
-import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -33,7 +32,7 @@ class UpdateChecker(
     fun onJoin(user: User) {
         if (user.hasPermission(perm)) {
             for (msg in messages) {
-                user.message(user.localed(msg))
+                user.message(user.localed(msg) { it.message })
             }
         }
     }
@@ -62,12 +61,12 @@ class UpdateChecker(
                 }
             }
 
-            console.log(console.localed(notification.message))
+            console.log(console.localed(notification.message) { it.message })
             if (notification.notifyInGame) {
                 allUsers()
                     .filter { it.hasPermission(perm) }
-                    .forEach {
-                        it.message(it.localed(notification.message))
+                    .forEach { user ->
+                        user.message(user.localed(notification.message) { it.message })
                     }
             }
 
@@ -107,23 +106,6 @@ class UpdateChecker(
             },
             errors
         )
-    }
-
-    private fun User.localed(map: Map<String, String>): MessageData {
-        val key = language
-        val raw = map[key]
-            // If this locale is not found, try the same language.
-            ?: key?.split('_')?.get(0)?.let { language ->
-                val lang = language + '_'
-                map.entries.firstOrNull { it.key.startsWith(lang) }?.value
-            }
-            // Still? Use the server default locale instead.
-            ?: map[EsuConfig.get().locale]
-            // Use the default value.
-            ?: map["en_us"]
-            // Maybe it doesn't provide en_us locale...?
-            ?: map.values.first()
-        return MessageData(raw)
     }
 
     private fun getResponse(domain: String, tryTimes: Int = 0): FetchedResponse {
