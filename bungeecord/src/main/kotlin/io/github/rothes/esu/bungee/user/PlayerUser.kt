@@ -55,7 +55,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: ProxiedPlayer? = null): Bu
     }
 
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params, colorSchemeInstance).bungee)
+        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params, colorSchemeTagResolver).bungee)
     }
 
     override fun equals(other: Any?): Boolean {

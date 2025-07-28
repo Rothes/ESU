@@ -7,7 +7,6 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
-import io.github.rothes.esu.core.storage.StorageManager.UsersTable.language
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import net.kyori.adventure.text.Component
@@ -35,8 +34,10 @@ interface User {
 
     val isOnline: Boolean
 
-    val colorSchemeInstance
-        get() = ColorSchemes.schemes.get(colorScheme) { tagResolver }!!
+    val colorSchemeTagInstance
+        get() = ColorSchemes.schemes.get(colorScheme) { this }!!
+    val colorSchemeTagResolver
+        get() = colorSchemeTagInstance.tagResolver
 
     fun hasPermission(permission: String): Boolean
 
@@ -103,7 +104,7 @@ interface User {
                 else
                     it
             },
-            *params, colorSchemeInstance, capitalize
+            *params, colorSchemeTagResolver, capitalize
         )
     }
 
