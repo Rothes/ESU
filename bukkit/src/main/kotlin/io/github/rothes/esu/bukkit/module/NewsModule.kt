@@ -10,6 +10,7 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.config.EsuConfig
+import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
@@ -334,7 +335,7 @@ All news data are stored in database, so if you have multiple
 
     data class ModuleLang(
         val bookNews: BookNews = BookNews(),
-    ): BaseModuleConfiguration() {
+    ): ConfigurationPart {
 
         data class BookNews(
             val noNewsSet: MessageData = "<ec>This server has no news set.".message,
