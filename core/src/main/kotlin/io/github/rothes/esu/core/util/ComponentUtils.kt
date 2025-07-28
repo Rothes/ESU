@@ -97,7 +97,7 @@ object ComponentUtils {
         })
     }
 
-    fun time(epochMilli: Long, key: String = "time"): TagResolver {
+    fun time(epochMilli: Long = System.currentTimeMillis(), key: String = "time"): TagResolver {
         return Formatter.date(key, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneId.systemDefault()))
     }
 
