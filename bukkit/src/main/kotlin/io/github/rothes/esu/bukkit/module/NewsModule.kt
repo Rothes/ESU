@@ -369,8 +369,8 @@ All news data are stored in database, so if you have multiple
                         <reset><content>
                     """.trimIndent(),
                     val previewLayout: String = """
-                        <pdc><b>Previewing</b> <id> <pc><lang>
-                        <confirm> <cancel>
+                        <pdc><b>Preview</b> <id> <pc><lang>
+                          <confirm>   <cancel>
                         <reset><content>
                     """.trimIndent(),
                     val button: Button = Button(),
