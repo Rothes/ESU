@@ -1,9 +1,15 @@
 package io.github.rothes.esu.core.colorscheme
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import net.kyori.adventure.text.format.StyleBuilderApplicable
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.minimessage.Context
+import net.kyori.adventure.text.minimessage.internal.serializer.SerializableResolver
+import net.kyori.adventure.text.minimessage.internal.serializer.StyleClaim
+import net.kyori.adventure.text.minimessage.internal.serializer.TokenEmitter
 import net.kyori.adventure.text.minimessage.tag.Tag
+import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 /**
@@ -24,33 +30,78 @@ data class ColorScheme(
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
+    private val colors = listOf(primary, primaryDim, secondary, secondaryDim, tertiary, tertiaryDim, valuePositive, valuePositiveDim, valueNegative, valueNegativeDim, error, errorDim)
+
     @Suppress("SpellCheckingInspection")
     val tagResolver: TagResolver by lazy {
         TagResolver.builder()
-            .styling(primary, "primary_color", "pc")
-            .styling(primaryDim, "primary_dim_color", "pdc")
-            .styling(secondary, "secondary_color", "sc")
-            .styling(secondaryDim, "secondary_dim_color", "sdc")
-            .styling(tertiary, "tertiary_color", "tc")
-            .styling(tertiaryDim, "tertiary_dim_color", "tdc")
-            .styling(valuePositive, "value_positive_color", "vpc")
-            .styling(valuePositiveDim, "value_positive_dim_color", "vpdc")
-            .styling(valueNegative, "value_negative_color", "vnc")
-            .styling(valueNegativeDim, "value_negative_dim_color", "vndc")
-            .styling(error, "error_color", "ec")
-            .styling(errorDim, "error_dim_color", "edc")
+            .color(primary, "pc", "primary_color")
+            .color(primaryDim, "pdc", "primary_dim_color")
+            .color(secondary, "sc", "secondary_color")
+            .color(secondaryDim, "sdc", "secondary_dim_color")
+            .color(tertiary, "tc", "tertiary_color")
+            .color(tertiaryDim, "tdc", "tertiary_dim_color")
+            .color(valuePositive, "vpc", "value_positive_color")
+            .color(valuePositiveDim, "vpdc", "value_positive_dim_color")
+            .color(valueNegative, "vnc", "value_negative_color")
+            .color(valueNegativeDim, "vndc", "value_negative_dim_color")
+            .color(error, "ec", "error_color")
+            .color(errorDim, "edc", "error_dim_color")
+            .resolver(ColorTagResolver())
             .build()
     }
 
-    private fun TagResolver.Builder.styling(style: StyleBuilderApplicable, vararg keys: String): TagResolver.Builder {
-        keys.forEach { key ->
-            resolver(TagResolver.resolver(key, Tag.styling(style)))
-        }
+    private fun TagResolver.Builder.color(color: TextColor, vararg keys: String): TagResolver.Builder {
+        resolver(EsuColorTagResolver(keys.toList(), color))
         return this
     }
 
     companion object {
         private fun hex(hexString: String): TextColor = TextColor.fromHexString(hexString)!!
+    }
+
+    private class EsuColorTagResolver(
+        val keys: List<String>,
+        val color: TextColor,
+    ): TagResolver, SerializableResolver.Single {
+
+        override fun resolve(name: String, arguments: ArgumentQueue, ctx: Context): Tag? {
+            return if (has(name)) Tag.styling(color) else null
+        }
+
+        override fun has(name: String): Boolean {
+            return keys.find { it.equals(name, ignoreCase = true) } != null
+        }
+
+        override fun claimStyle(): StyleClaim<*>? {
+            return StyleClaim.claim(
+                keys.first(), { obj: Style -> obj.color() }, { color: TextColor, emitter: TokenEmitter ->
+                    if (color == this@EsuColorTagResolver.color)
+                        emitter.tag(keys.first())
+                    else
+                        null
+                })
+        }
+
+    }
+
+    private inner class ColorTagResolver: TagResolver, SerializableResolver.Single {
+
+        override fun resolve(name: String, arguments: ArgumentQueue, ctx: Context) = null
+        override fun has(name: String): Boolean = false
+
+        override fun claimStyle(): StyleClaim<*>? {
+            return StyleClaim.claim(
+                "color", { obj: Style -> obj.color() }, { color: TextColor, emitter: TokenEmitter ->
+                    if (colors.contains(color))
+                        null
+                    else if (color is NamedTextColor)
+                        emitter.tag(NamedTextColor.NAMES.key(color)!!)
+                    else
+                        emitter.tag(color.asHexString())
+                })
+        }
+
     }
 
 }
