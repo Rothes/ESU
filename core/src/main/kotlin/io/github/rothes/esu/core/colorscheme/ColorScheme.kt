@@ -30,7 +30,23 @@ data class ColorScheme(
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
-    private val colors = listOf(primary, primaryDim, secondary, secondaryDim, tertiary, tertiaryDim, valuePositive, valuePositiveDim, valueNegative, valueNegativeDim, error, errorDim)
+    @Suppress("SpellCheckingInspection")
+    private val colors by lazy {
+        listOf(
+            primary to "pc",
+            primaryDim to "pdc",
+            secondary to "sc",
+            secondaryDim to "sdc",
+            tertiary to "tc",
+            tertiaryDim to "tdc",
+            valuePositive to "vpc",
+            valuePositiveDim to "vpdc",
+            valueNegative to "vnc",
+            valueNegativeDim to "vndc",
+            error to "ec",
+            errorDim to "edc",
+        )
+    }
 
     @Suppress("SpellCheckingInspection")
     val tagResolver: TagResolver by lazy {
@@ -63,7 +79,7 @@ data class ColorScheme(
     private class EsuColorTagResolver(
         val keys: List<String>,
         val color: TextColor,
-    ): TagResolver, SerializableResolver.Single {
+    ): TagResolver {
 
         override fun resolve(name: String, arguments: ArgumentQueue, ctx: Context): Tag? {
             return if (has(name)) Tag.styling(color) else null
@@ -71,16 +87,6 @@ data class ColorScheme(
 
         override fun has(name: String): Boolean {
             return keys.find { it.equals(name, ignoreCase = true) } != null
-        }
-
-        override fun claimStyle(): StyleClaim<*>? {
-            return StyleClaim.claim(
-                keys.first(), { obj: Style -> obj.color() }, { color: TextColor, emitter: TokenEmitter ->
-                    if (color == this@EsuColorTagResolver.color)
-                        emitter.tag(keys.first())
-                    else
-                        null
-                })
         }
 
     }
@@ -93,8 +99,10 @@ data class ColorScheme(
         override fun claimStyle(): StyleClaim<*>? {
             return StyleClaim.claim(
                 "color", { obj: Style -> obj.color() }, { color: TextColor, emitter: TokenEmitter ->
-                    if (colors.contains(color))
-                        null
+                    val find = colors.find { it.first == color }
+                    if (find != null)
+                        emitter.tag(find.second)
+                    // adventure 4.23.0
                     else if (color is NamedTextColor)
                         emitter.tag(NamedTextColor.NAMES.key(color)!!)
                     else
