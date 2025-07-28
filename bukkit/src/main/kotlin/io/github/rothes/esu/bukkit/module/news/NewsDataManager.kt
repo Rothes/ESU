@@ -27,6 +27,8 @@ object NewsDataManager {
         val channel = varchar("channel", 32).index()
         val time = datetime("time")
         val data = json<NewsItem>("data", { it.serialize() }, { it.deserialize() })
+
+        override val primaryKey = PrimaryKey(id)
     }
 
     object NewsCheckedTable: Table("news_checked") {
