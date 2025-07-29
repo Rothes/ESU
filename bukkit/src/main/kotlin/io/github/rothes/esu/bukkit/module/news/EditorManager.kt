@@ -70,7 +70,7 @@ object EditorManager {
     fun completeEdit(player: Player, content: List<String>) {
         val data = editing.remove(player) ?: return
         restoreSlot(player, data.slot)
-        data.complete(EditorResult(data.newsId, data.lang, content.joinToString("\n"), data.time))
+        data.complete(EditorResult(data.newsId, data.lang, content, data.time))
     }
 
     fun toConfirm(player: Player, block: () -> Unit) {
@@ -163,7 +163,7 @@ object EditorManager {
     data class EditorResult(
         val newsId: Int,
         val lang: String,
-        val content: String,
+        val content: List<String>,
         val time: Long,
     )
 }

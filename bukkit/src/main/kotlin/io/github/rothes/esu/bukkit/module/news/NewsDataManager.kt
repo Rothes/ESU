@@ -158,7 +158,7 @@ object NewsDataManager {
 
 
     data class NewsItem(
-        val msg: Map<String, String>,
+        val msg: Map<String, List<String>>,
         @Transient val time: LocalDateTime,
         @Transient val id: Int = -1,
     )

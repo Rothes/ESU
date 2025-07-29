@@ -110,7 +110,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val checked = checkedCache[user] ?: -1
             user.openBook(Book.builder().pages(
                 news.map { item ->
-                    val content = user.localed(item.msg)
+                    val content = user.localed(item.msg).joinToString("\n")
                     user.buildMinimessage(page, check,
                         component("content", user.buildMinimessage(content)),
                         component("new-placeholder",
@@ -143,7 +143,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 } else {
                     val page = user.localed(locale) { bookNews.editor.bookLayout.pageLayout }
                     news.map { item ->
-                        val content = user.localed(item.msg)
+                        val content = user.localed(item.msg).joinToString("\n")
                         user.buildMinimessage(page, new,
                             unparsed("id", item.id),
                             component("edit", user.buildMinimessage(locale, { bookNews.editor.bookLayout.button.edit })
@@ -190,7 +190,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 return
             }
 
-            val content = item.msg[lang] ?: config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: ""
+            val content = item.msg[lang] ?: listOf(config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: "")
             val editorItem = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
             user.message(locale, { bookNews.editor.editStart })
             EditorManager.startEdit(player, content, id, lang, editorItem, {
@@ -249,7 +249,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val id = editing.newsId
             val item = NewsDataManager.news.find { it.id == id }
 
-            val content = item?.msg[lang] ?: config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: ""
+            val content = item?.msg[lang] ?: listOf(config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: "")
             val editorItem = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
             EditorManager.startEdit(player, content, editing.newsId, lang, editorItem, editing.cancel, editing.complete)
             user.message(locale, { bookNews.editor.changeLang.changedLang }, unparsed("lang", lang))
@@ -301,7 +301,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                         .clickEvent(ClickEvent.runCommand("/news editor confirm"))),
                     component("cancel", buildMinimessage(locale, { bookNews.editor.bookLayout.button.cancel })
                         .clickEvent(ClickEvent.runCommand("/news editor cancel"))),
-                    component("content", buildMinimessage(item.msg[lang]!!)))
+                    component("content", buildMinimessage(item.msg[lang]!!.joinToString("\n"))))
             ))
         }
 
