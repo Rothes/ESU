@@ -21,6 +21,7 @@ import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.SQLException
+import java.sql.SQLIntegrityConstraintViolationException
 import java.util.*
 
 object StorageManager {
@@ -114,6 +115,16 @@ object StorageManager {
         }
     }
 
+    fun getUserDataByName(where: String): UserData? {
+        return with(UsersTable) {
+            transaction(database) {
+                select(uuid, dbId, language, colorScheme).where(name eq where).singleOrNull()?.let {
+                    UserData(it[dbId], it[uuid], it[language], it[colorScheme])
+                }
+            }
+        }
+    }
+
     fun getConsoleUserData(): UserData {
         return with(UsersTable) {
             transaction(database) {
@@ -125,18 +136,28 @@ object StorageManager {
     }
 
     fun updateUserNow(user: User) {
-        try {
-            with(UsersTable) {
-                transaction(database) {
+        transaction(database) {
+            try {
+                with(UsersTable) {
                     update({ dbId eq user.dbId }) {
                         it[name] = user.nameUnsafe
                         it[language] = user.languageUnsafe
                         it[colorScheme] = user.colorSchemeUnsafe
                     }
                 }
+            } catch (e: SQLException) {
+                if (e is SQLIntegrityConstraintViolationException) {
+                    EsuCore.instance.err("Failed to update user ${user.dbId} data ${user.nameUnsafe} (${user.uuid}): " + e.message)
+                    user.nameUnsafe?.let { name ->
+                        val get = getUserDataByName(name)
+                        if (get != null) {
+                            EsuCore.instance.err("Current in db user ${get.dbId}: ${user.nameUnsafe} (${get.uuid})")
+                        }
+                    }
+                } else {
+                    throw e
+                }
             }
-        } catch (e: SQLException) {
-            EsuCore.instance.err("Failed to update user data ${user.nameUnsafe} (${user.uuid}): " + e.message)
         }
     }
 
