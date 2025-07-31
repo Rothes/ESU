@@ -16,7 +16,7 @@ abstract class BukkitUser: User {
 
     abstract val commandSender: CommandSender
     override val audience: Audience by lazy {
-        commandSender
+        commandSender.audience
     }
 
     override var language: String?

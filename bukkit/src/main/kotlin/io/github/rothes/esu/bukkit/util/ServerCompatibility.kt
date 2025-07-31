@@ -1,11 +1,20 @@
 package io.github.rothes.esu.bukkit.util
 
+import io.github.rothes.esu.bukkit.plugin
 import io.papermc.paper.configuration.GlobalConfiguration
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
+
+    val paper = try {
+        Class.forName("com.destroystokyo.paper.VersionHistoryManager\$VersionData")
+        true
+    } catch (_: ClassNotFoundException) {
+        false
+    }
 
     val folia = try {
         Class.forName("io.papermc.paper.threadedregions.RegionizedServer")
@@ -41,6 +50,10 @@ object ServerCompatibility {
                 then(success)
             }
         }
+    }
+
+    object Bukkit {
+        val adventure = BukkitAudiences.create(plugin)
     }
 
 }

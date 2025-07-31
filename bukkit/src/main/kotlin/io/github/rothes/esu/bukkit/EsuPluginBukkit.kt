@@ -9,6 +9,8 @@ import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -53,6 +55,25 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     var enabledHot: Boolean by InitOnce()
     var disabledHot: Boolean by InitOnce()
 
+    init {
+        EsuCore.instance = this
+        if (!ServerCompatibility.paper) {
+            info("You are not running a Paper server, loading necessary libraries...")
+            MavenResolver.loadDependencies(
+                listOf(
+                    "net.kyori:adventure-platform-bukkit:4.4.1",
+                    "net.kyori:adventure-api:4.24.0",
+                    "net.kyori:adventure-text-minimessage:4.24.0",
+                    "net.kyori:adventure-text-serializer-ansi:4.24.0",
+                    "net.kyori:adventure-text-serializer-gson:4.24.0",
+                    "net.kyori:adventure-text-serializer-legacy:4.24.0",
+                    "net.kyori:adventure-text-serializer-plain:4.24.0",
+                )
+            )
+        }
+        enabledHot = byPluginMan()
+    }
+
     override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
         LegacyPaperCommandManager(this, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
@@ -73,8 +94,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
     }
     override fun onEnable() {
-        EsuCore.instance = this
-        enabledHot = byPluginMan()
         EsuConfig           // Load global config
         BukkitEsuLocale     // Load global locale
         StorageManager      // Load database
