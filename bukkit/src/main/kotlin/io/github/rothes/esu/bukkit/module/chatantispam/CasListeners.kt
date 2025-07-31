@@ -42,7 +42,7 @@ object CasListeners: Listener {
     private val emoteCommands = EsuChatModule.EMOTE_COMMANDS.split('|').toSet()
     private val whisperCommands = EsuChatModule.WHISPER_COMMANDS.split('|').toSet()
     private val chatListener = try {
-        AsyncChatEvent::class.java
+        AsyncChatEvent::class.java.toString()
         object : Listener {
             @EventHandler(priority = EventPriority.HIGH)
             fun onChat(event: AsyncChatEvent) {
@@ -51,7 +51,7 @@ object CasListeners: Listener {
                 }
             }
         }
-    } catch (e: ClassNotFoundException) {
+    } catch (e: NoClassDefFoundError) {
         object : Listener {
             @EventHandler(priority = EventPriority.HIGH)
             fun onChat(event: AsyncPlayerChatEvent) {

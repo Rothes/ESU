@@ -260,7 +260,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     object Listeners: Listener {
 
         private val chatListener = try {
-            AsyncChatEvent::class.java
+            AsyncChatEvent::class.java.toString()
             object : Listener {
                 @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
                 fun onChat(event: AsyncChatEvent) {
@@ -272,7 +272,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     event.isCancelled = true
                 }
             }
-        } catch (e: ClassNotFoundException) {
+        } catch (e: NoClassDefFoundError) {
             object : Listener {
                 @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
                 fun onPlayerChat(event: AsyncPlayerChatEvent) {
