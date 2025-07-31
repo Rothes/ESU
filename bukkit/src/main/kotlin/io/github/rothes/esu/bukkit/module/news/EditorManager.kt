@@ -18,7 +18,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.WritableBookMeta
+import org.bukkit.inventory.meta.BookMeta
 
 object EditorManager {
 
@@ -50,7 +50,7 @@ object EditorManager {
         val slot = player.inventory.heldItemSlot
         editing[player] = EditData(slot, newsId, lang, cancel, complete)
 
-        item.meta<WritableBookMeta> { meta ->
+        item.meta<BookMeta> { meta ->
             meta.pages = content
         }
         val packet = WrapperPlayServerSetSlot(
