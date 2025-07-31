@@ -95,6 +95,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
     }
     override fun onEnable() {
+        checkSpigotSupport()
         EsuConfig           // Load global config
         BukkitEsuLocale     // Load global locale
         StorageManager      // Load database
@@ -228,8 +229,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
-        if (!ServerCompatibility.paper)
-            ServerCompatibility.Bukkit.adventure.close()
+        disableSpigotSupport()
     }
 
     override fun info(message: String) {
@@ -250,6 +250,18 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     override fun baseConfigPath(): Path {
         return dataFolder.toPath()
+    }
+
+    private fun checkSpigotSupport() {
+        if (ServerCompatibility.paper)
+            return
+        ServerCompatibility.CB
+    }
+
+    private fun disableSpigotSupport() {
+        if (ServerCompatibility.paper)
+            return
+        ServerCompatibility.CB.adventure.close()
     }
 
     private fun byPluginMan(): Boolean {

@@ -52,7 +52,7 @@ object ServerCompatibility {
         }
     }
 
-    object Bukkit {
+    object CB {
         val adventure = BukkitAudiences.create(plugin)
     }
 

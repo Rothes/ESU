@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.ServerCompatibility.Bukkit.adventure
+import io.github.rothes.esu.bukkit.util.ServerCompatibility.CB.adventure
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.util.ComponentUtils
 import net.kyori.adventure.audience.Audience
