@@ -12,6 +12,7 @@ import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -212,7 +213,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
         for (player in Bukkit.getOnlinePlayers()) {
             try {
-                val inventoryHolder = player.openInventory.topInventory.holder
+                val inventoryHolder = player.openInventory.topInv.holder
                 if (inventoryHolder is EsuInvHolder<*>) {
                     inventoryHolder.close()
                 }
