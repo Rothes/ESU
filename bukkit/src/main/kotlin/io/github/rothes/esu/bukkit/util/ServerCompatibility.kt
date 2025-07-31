@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.util
 
 import io.github.rothes.esu.bukkit.plugin
 import io.papermc.paper.configuration.GlobalConfiguration
+import io.papermc.paper.util.MappingEnvironment
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -20,6 +21,12 @@ object ServerCompatibility {
         Class.forName("io.papermc.paper.threadedregions.RegionizedServer")
         true
     } catch (_: ClassNotFoundException) {
+        false
+    }
+
+    val mojmap = try {
+        !MappingEnvironment.reobf()
+    } catch (_: NoClassDefFoundError) {
         false
     }
 
