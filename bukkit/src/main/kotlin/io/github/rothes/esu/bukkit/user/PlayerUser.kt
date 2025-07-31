@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.user
 
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
@@ -20,7 +21,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
             val cache = field
             if (cache != null) {
                 // Check if the instance is as it is.
-                if (cache.isOnline && cache.isConnected) {
+                if (cache.isOnline && (!ServerCompatibility.paper || cache.isConnected)) {
                     return cache
                 }
             }
@@ -40,7 +41,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     override val nameUnsafe: String?
         get() = playerCache?.name
     override val clientLocale: String
-        get() = with(player.locale()) { language + '_' + country.lowercase() }
+        get() = player.locale
 
     override var languageUnsafe: String?
     override var colorSchemeUnsafe: String?
