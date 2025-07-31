@@ -9,16 +9,21 @@ import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.title.Title
+import net.kyori.adventure.title.TitlePart
 import java.util.*
-import kotlin.collections.get
 import kotlin.experimental.ExperimentalTypeInference
-import kotlin.text.startsWith
 
 interface User {
+
+    val audience: Audience
 
     val name: String
     val nameUnsafe: String?
@@ -124,17 +129,51 @@ interface User {
     fun message(message: String) {
         message(LegacyComponentSerializer.legacySection().deserialize(message))
     }
-    fun message(message: Component)
+    fun message(message: Component) {
+        audience.sendMessage(message)
+    }
 
     fun <T: ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
 
-    fun actionBar(message: Component)
-    fun title(title: ParsedMessageData.ParsedTitleData)
-    fun playSound(sound: SoundData)
+    fun actionBar(message: Component) {
+        audience.sendActionBar(message)
+    }
+    fun title(title: ParsedMessageData.ParsedTitleData) {
+        val mainTitle = title.title
+        val subTitle = title.subTitle
+        val times = title.times
 
-    fun clearTitle()
+        if (mainTitle != null && subTitle != null) {
+            audience.showTitle(Title.title(mainTitle, subTitle, times?.adventure))
+        } else {
+            if (times != null) {
+                audience.sendTitlePart(TitlePart.TIMES, times.adventure)
+            }
+            if (mainTitle != null) {
+                audience.sendTitlePart(TitlePart.TITLE, mainTitle)
+            }
+            if (subTitle != null) {
+                audience.sendTitlePart(TitlePart.SUBTITLE, subTitle)
+            }
+        }
+    }
+    fun playSound(sound: SoundData) {
+        audience.playSound(sound.adventure, Sound.Emitter.self())
+    }
+
+    fun clearTitle() {
+        audience.clearTitle()
+    }
     fun clearActionBar() {
         actionBar(Component.empty())
+    }
+
+    fun openBook(book: Book.Builder) {
+        openBook(book.build())
+    }
+
+    fun openBook(book: Book) {
+        audience.openBook(book)
     }
 
 }
