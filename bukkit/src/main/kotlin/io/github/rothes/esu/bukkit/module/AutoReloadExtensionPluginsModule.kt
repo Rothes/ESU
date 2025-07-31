@@ -4,6 +4,7 @@ import com.rylinaux.plugman.PlugMan
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
@@ -80,6 +81,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
         org.incendo.cloud.parser.flag.FlagContext::class.java.toString()
         Charsets::class.java.toString()
+        InventoryAdapter.instance
         EsuInvHolder::class.java.toString()
         UpdateStatement::class.java.toString()
     }
