@@ -47,6 +47,11 @@ dependencies {
 
     implementation("de.tr7zw:item-nbt-api:2.15.1")
 
+    compileOnly("net.kyori:adventure-platform-bukkit:4.4.1")
+    compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")
+    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
+    compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.18")
+
     compileOnly("com.rylinaux:PlugManX:2.4.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 
