@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -20,7 +21,7 @@ object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.Modu
             @Command("itemEdit customModelData clear")
             fun customModelData(sender: User) {
                 val item = sender.hand ?: return
-                item.editMeta { meta ->
+                item.meta { meta ->
                     meta.setCustomModelData(null)
                 }
                 sender.cleared("customModelData")
@@ -29,7 +30,7 @@ object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.Modu
             @Command("itemEdit customModelData <value>")
             fun customModelData(sender: User, value: Int) {
                 val item = sender.hand ?: return
-                item.editMeta { meta ->
+                item.meta { meta ->
                     meta.setCustomModelData(value)
                 }
                 sender.set("customModelData", value)

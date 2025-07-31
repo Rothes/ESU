@@ -3,6 +3,9 @@ package io.github.rothes.esu.bukkit.config.data
 import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayNameV
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.loreV
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
@@ -48,7 +51,7 @@ data class ItemData(
     val tooltipStyleObj by lazy { tooltipStyle?.let(NamespacedKey::fromString) }
     val create: ItemStack
         get() = createItemByType().also { item ->
-            item.editMeta { meta ->
+            item.meta { meta ->
                 customModelData?.let { meta.setCustomModelData(customModelData) }
                 itemModel?.let { meta.itemModel = NamespacedKey.fromString(itemModel) }
                 enchantments?.let {
@@ -72,9 +75,9 @@ data class ItemData(
         }
     val itemUnsafe: ItemStack by lazy {
         create.also { item ->
-            item.editMeta { meta ->
-                displayNameComponent?.let { meta.displayName(it) }
-                loreComponent?.let { meta.lore(it) }
+            item.meta { meta ->
+                displayNameComponent?.let { meta.displayNameV = it }
+                loreComponent?.let { meta.loreV = it }
             }
         }
     }

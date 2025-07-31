@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEd
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -49,8 +50,7 @@ object EditorManager {
         val slot = player.inventory.heldItemSlot
         editing[player] = EditData(slot, newsId, lang, cancel, complete)
 
-        item.editMeta { meta ->
-            meta as WritableBookMeta
+        item.meta<WritableBookMeta> { meta ->
             meta.pages = content
         }
         val packet = WrapperPlayServerSetSlot(
