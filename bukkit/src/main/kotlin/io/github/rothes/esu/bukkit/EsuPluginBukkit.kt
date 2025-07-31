@@ -228,6 +228,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
+        if (!ServerCompatibility.paper)
+            ServerCompatibility.Bukkit.adventure.close()
     }
 
     override fun info(message: String) {
