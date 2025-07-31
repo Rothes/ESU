@@ -1,10 +1,12 @@
 package io.github.rothes.esu.bukkit.user
 
+import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
@@ -15,6 +17,9 @@ import java.util.*
 class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUser() {
 
     constructor(player: Player): this(player.uniqueId, player)
+
+    override val audience: Audience
+        get() = player.audience
 
     var playerCache: Player? = initPlayer
         get() {
