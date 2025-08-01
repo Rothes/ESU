@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.util.version
 
 import com.google.common.reflect.ClassPath
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.version.Version
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 class Versioned<T, V>(
     target: Class<V>,
     type: String? = null,
-    version: Version = plugin.serverVersion,
+    version: Version = ServerCompatibility.serverVersion,
 ): ReadOnlyProperty<T, V> {
 
     val handle =

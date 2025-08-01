@@ -1,14 +1,18 @@
 package io.github.rothes.esu.bukkit.util
 
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.core.util.version.Version
 import io.papermc.paper.configuration.GlobalConfiguration
 import io.papermc.paper.util.MappingEnvironment
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
+
+    val serverVersion: Version = Version.fromString(Bukkit.getServer().bukkitVersion.split('-')[0])
 
     val paper = try {
         Class.forName("com.destroystokyo.paper.VersionHistoryManager\$VersionData")
