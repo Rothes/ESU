@@ -40,7 +40,7 @@ object MappingsLoader {
                 add(Transformer.renamerFactory(it, false))
             }
             add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
-            lib(File(javaClass.protectionDomain.codeSource.location.path))
+            lib(File(plugin.javaClass.protectionDomain.codeSource.location.path))
             loadedFiles.servers.values.forEach {
                 lib(it)
             }
