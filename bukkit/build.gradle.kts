@@ -31,6 +31,11 @@ repositories {
         url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
     }
     maven("https://repo.momirealms.net/releases/")
+
+    maven {
+        name = "NeoForged"
+        url = uri("https://maven.neoforged.net/releases/")
+    }
 }
 
 
@@ -51,6 +56,7 @@ dependencies {
     compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")
     compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
     compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.18")
+    compileOnly("net.neoforged:AutoRenamingTool:2.0.13")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
@@ -100,7 +106,9 @@ tasks.shadowJar {
     mergeServiceFiles()
 
     project(":bukkit:version").subprojects.forEach {
-        from(it.sourceSets.main.get().output)
+        from(it.tasks.shadowJar) {
+            into("esu_minecraft_versions")
+        }
     }
 }
 

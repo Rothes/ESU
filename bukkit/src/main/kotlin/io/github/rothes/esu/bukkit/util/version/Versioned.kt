@@ -1,10 +1,14 @@
 package io.github.rothes.esu.bukkit.util.version
 
-import com.google.common.reflect.ClassPath
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
+import java.io.File
+import java.net.URL
+import java.util.jar.JarFile
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+import kotlin.text.dropLast
 
 
 class Versioned<T, V>(
@@ -19,12 +23,10 @@ class Versioned<T, V>(
                 error("${target.canonicalName} is not an interface.")
 
             val prefix = target.packageName + ".v"
-            val find = ClassPath.from(target.classLoader)
-                .allClasses
-                .filter { it.packageName.startsWith(prefix) && (type == null || it.name.endsWith(type)) }
+            val find = classes.filter { it.startsWith(prefix) && (type == null || it.endsWith(type)) }
                 .map {
                     it to Version.fromString(
-                        it.packageName.substring(prefix.length).substringBefore('.').replace('_', '.')
+                        it.substring(prefix.length).substringBefore('.').replace('_', '.')
                     )
                 }
                 .sortedByDescending { it.second }
@@ -33,7 +35,7 @@ class Versioned<T, V>(
             if (find == null)
                 error("${target.canonicalName} is not implemented for version $version, type $type")
 
-            val clazz = find.first.load()
+            val clazz = Class.forName(find.first)
             if (!target.isAssignableFrom(clazz))
                 error("Found ${clazz.canonicalName}, but it is not an instance of ${target.canonicalName}")
 
@@ -45,6 +47,26 @@ class Versioned<T, V>(
 
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         return handle
+    }
+
+    companion object {
+        private val versions = mutableListOf<URL>()
+        private var classes = mutableListOf<String>()
+
+        fun loadVersion(file: File) {
+            val url = file.toURI().toURL()
+            MavenResolver.loadUrl(url)
+            versions.add(url)
+
+            val entries = JarFile(file).entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                if (entry.name.endsWith(".class")) {
+                    classes.add(entry.name.dropLast(".class".length).replace('/', '.'))
+                }
+            }
+        }
+
     }
 
 }

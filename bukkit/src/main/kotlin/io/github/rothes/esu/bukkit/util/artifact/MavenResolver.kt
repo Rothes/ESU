@@ -22,6 +22,7 @@ import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
 import java.lang.reflect.InaccessibleObjectException
+import java.net.URL
 
 object MavenResolver {
 
@@ -29,8 +30,6 @@ object MavenResolver {
         addService(RepositoryConnectorFactory::class.java, BasicRepositoryConnectorFactory::class.java)
         addService(TransporterFactory::class.java, HttpTransporterFactory::class.java)
     }.getService(RepositorySystem::class.java)
-    private var injecter: URLInjector = ReflectURLInjector
-
     private val session: RepositorySystemSession = MavenRepositorySystemUtils.newSession().apply {
         setSystemProperties(System.getProperties())
         setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL)
@@ -45,13 +44,30 @@ object MavenResolver {
     private val repositories: List<RemoteRepository> =
         repository.newResolutionRepositories(session, createRepositoriesWithMirrors())
 
+    private var injecter: URLInjector = UnsafeURLInjector
+
     private fun createRepositoriesWithMirrors(): List<RemoteRepository> {
         return listOf(
             RemoteRepository.Builder("central", "default", "https://maven-central.storage-download.googleapis.com/maven2").build(),
             // Chinese mirrors
             RemoteRepository.Builder("aliyun", "default", "https://maven.aliyun.com/repository/public/").build(),
             RemoteRepository.Builder("huawei", "default", "https://repo.huaweicloud.com/repository/maven/").build(),
+            // NeoForged
+            RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build(),
         )
+    }
+
+    fun loadUrl(url: URL) {
+        try {
+            injecter.addURL(url)
+        } catch (e: InaccessibleObjectException) {
+            if (injecter == UnsafeURLInjector) {
+                injecter = ReflectURLInjector
+                injecter.addURL(url)
+            } else {
+                throw e
+            }
+        }
     }
 
     fun loadDependencies(libraries: List<String>) {
@@ -69,16 +85,7 @@ object MavenResolver {
         result.artifactResults.forEach {
             val file = it.artifact.file
             val url = file.toURI().toURL()
-            try {
-                injecter.addURL(url)
-            } catch (e: InaccessibleObjectException) {
-                if (injecter == ReflectURLInjector) {
-                    injecter = UnsafeURLInjector
-                    injecter.addURL(url)
-                } else {
-                    throw e
-                }
-            }
+            loadUrl(url)
         }
     }
 

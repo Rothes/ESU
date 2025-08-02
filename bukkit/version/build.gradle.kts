@@ -23,4 +23,11 @@ subprojects {
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
         compileOnly(project(":bukkit"))
     }
+
+    tasks.shadowJar {
+        dependencies {
+            exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
+            exclude(dependency("org.jetbrains:annotations"))
+        }
+    }
 }

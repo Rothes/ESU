@@ -34,7 +34,7 @@ subprojects {
     apply(plugin = "com.gradleup.shadow")
     apply(plugin = "com.xpdustry.kotlin-shadow-relocator")
 
-    val javaVer = JavaVersion.VERSION_17
+    val javaVer = JavaVersion.VERSION_11
 
     java {
         disableAutoTargetJvm()

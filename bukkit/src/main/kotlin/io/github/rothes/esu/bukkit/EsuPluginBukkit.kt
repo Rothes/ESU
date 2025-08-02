@@ -11,8 +11,11 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
+import io.github.rothes.esu.bukkit.util.artifact.injector.UnsafeURLInjector
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
+import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -22,7 +25,6 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.version.Version
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
@@ -44,11 +46,10 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
 import java.nio.file.Path
+import java.util.jar.JarFile
 import java.util.logging.Level
 
 class EsuPluginBukkit: JavaPlugin(), EsuCore {
-
-    val serverVersion: Version = Version.fromString(Bukkit.getServer().bukkitVersion.split('-')[0])
 
     override var initialized: Boolean = false
         private set
@@ -58,6 +59,21 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     init {
         EsuCore.instance = this
+        if (!ServerCompatibility.mojmap) {
+            info("You are not running a Mojmap server, loading necessary libraries...")
+            try {
+                Class.forName("org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory")
+            } catch (_: ClassNotFoundException) {
+                val resolve = plugin.dataFolder.resolve(".cache/aether-library.jar")
+                UnsafeURLInjector.addURL(resolve.toURI().toURL())
+            }
+            MavenResolver.loadDependencies(
+                listOf(
+                    "net.neoforged:AutoRenamingTool:2.0.13",
+                )
+            )
+        }
+        MappingsLoader
         if (!ServerCompatibility.paper) {
             info("You are not running a Paper server, loading necessary libraries...")
             MavenResolver.loadDependencies(
@@ -72,7 +88,37 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 )
             )
         }
+
+        loadVersions()
         enabledHot = byPluginMan()
+    }
+
+    private fun loadVersions() {
+        val tempFolder = dataFolder.resolve(".cache/minecraft_versions")
+        tempFolder.deleteRecursively()
+        tempFolder.mkdirs()
+
+        val jarFile = JarFile(javaClass.protectionDomain.codeSource.location.path)
+        val entries = jarFile.entries()
+        while (entries.hasMoreElements()) {
+            val entry = entries.nextElement()
+            val fullName = entry.name
+            if (fullName.startsWith("esu_minecraft_versions/") && fullName != "esu_minecraft_versions/") {
+                val url = classLoader.getResource(fullName)!!
+
+                val name = fullName.substringAfterLast("/")
+                val file = tempFolder.resolve(name)
+                file.createNewFile()
+                url.openStream().use { stream ->
+                    file.outputStream().use { output ->
+                        stream.copyTo(output)
+                    }
+                }
+
+                val toLoad = if (!ServerCompatibility.mojmap) MappingsLoader.reobf(file) else file
+                Versioned.loadVersion(toLoad)
+            }
+        }
     }
 
     override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
