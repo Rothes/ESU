@@ -9,6 +9,7 @@ import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
 import java.io.File
+import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -169,14 +170,27 @@ object MappingsLoader {
             if (hasSpigotMembers)
                 add("bukkit-members.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-${MappingsLoader.version}-members.csrg?at=$commit")
         }
-        plugin.info("Downloading mappings")
+        plugin.info("Downloading mappings, this might take a while as it's first run")
         cacheFolder.mkdirs()
         fileHashes.clear()
         files.forEach {
             val file = cacheFolder.resolve(it.first)
-            URI.create(it.second).toURL().openStream().use { input ->
-                file.outputStream().use { output ->
-                    input.copyTo(output)
+            var trys = 0
+            while (true) {
+                try {
+                    URI.create(it.second).toURL().openStream().use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    break
+                } catch (e: IOException) {
+                    if (trys < 2) {
+                        plugin.info("Failed to download, retrying: $e")
+                        trys++
+                    } else {
+                        throw IOException("Failed to download ${it.second} to $file", e)
+                    }
                 }
             }
             fileHashes.store(file)
