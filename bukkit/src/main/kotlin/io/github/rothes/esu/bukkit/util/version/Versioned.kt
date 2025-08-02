@@ -23,7 +23,13 @@ class Versioned<T, V>(
                 error("${target.canonicalName} is not an interface.")
 
             val prefix = target.packageName + ".v"
-            val find = classes.filter { it.startsWith(prefix) && (type == null || it.endsWith(type)) }
+            val find = classes
+                .filter {
+                    !it.contains('$') // Not subclass!
+                            && it.startsWith(prefix)
+                            && it.substringAfterLast('.').startsWith(target.simpleName)
+                            && (type == null || it.endsWith(type))
+                }
                 .map {
                     it to Version.fromString(
                         it.substring(prefix.length).substringBefore('.').replace('_', '.')
