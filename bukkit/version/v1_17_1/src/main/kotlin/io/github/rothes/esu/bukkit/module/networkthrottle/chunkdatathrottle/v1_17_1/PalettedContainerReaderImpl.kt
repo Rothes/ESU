@@ -10,9 +10,6 @@ class PalettedContainerReaderImpl: PalettedContainerReader {
     private val storage = PalettedContainer::class.java.declaredFields.last { it.type == BitStorage::class.java }.also { it.isAccessible = true }
     private val palette = PalettedContainer::class.java.declaredFields.last { it.type == Palette::class.java }.also { it.isAccessible = true }
 
-//    override fun getState(section: LevelChunkSection): PalettedContainer<BlockState> {
-//        return section.states
-//    }
 
     override fun getStorage(container: PalettedContainer<*>): BitStorage {
         return storage[container] as BitStorage

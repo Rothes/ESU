@@ -6,8 +6,6 @@ import net.minecraft.world.level.chunk.PalettedContainer
 
 interface PalettedContainerReader {
 
-//    fun getState(section: LevelChunkSection): PalettedContainer<BlockState>
-
     fun getStorage(container: PalettedContainer<*>): BitStorage
     fun <T> getPalette(container: PalettedContainer<T>): Palette<T>
 
