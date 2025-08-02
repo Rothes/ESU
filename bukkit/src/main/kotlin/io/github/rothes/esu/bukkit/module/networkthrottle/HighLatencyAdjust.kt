@@ -11,6 +11,7 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.locale
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
@@ -37,6 +38,10 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     fun onEnable() {
+        if (!ServerCompatibility.paper) {
+            plugin.err("[HighLatencyAdjust] This feature requires Paper server")
+            return
+        }
         for ((uuid, v) in data.originalViewDistance.entries) {
             val player = Bukkit.getPlayer(uuid)
             if (player != null)
