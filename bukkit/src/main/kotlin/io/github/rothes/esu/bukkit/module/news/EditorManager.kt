@@ -50,7 +50,7 @@ object EditorManager {
         val slot = player.inventory.heldItemSlot
         editing[player] = EditData(slot, newsId, lang, cancel, complete)
 
-        item.meta<BookMeta> { meta ->
+        item.meta { meta: BookMeta ->
             meta.pages = content
         }
         val packet = WrapperPlayServerSetSlot(
@@ -117,7 +117,11 @@ object EditorManager {
 
                     val wrapper = WrapperPlayClientEditBook(event)
                     if (wrapper.slot != data.slot) return
-                    completeEdit(player, wrapper.pages)
+                    val pages = wrapper.pages
+                        ?: SpigotConversionUtil.toBukkitItemStack(wrapper.itemStack).meta { meta: BookMeta ->
+                            meta.pages
+                        }
+                    completeEdit(player, pages)
                     event.isCancelled = true
                 }
             }

@@ -59,7 +59,7 @@ dependencies {
     compileOnly("net.neoforged:AutoRenamingTool:2.0.13")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.9.3")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
     compileOnly("io.lumine:Mythic-Dist:5.8.0")
