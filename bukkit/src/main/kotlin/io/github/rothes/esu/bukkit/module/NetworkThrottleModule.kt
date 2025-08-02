@@ -114,10 +114,12 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     override fun reloadConfig() {
         super.reloadConfig()
-        if (config.dynamicChunkSendRate.enabled) {
-            DynamicChunkSendRate.enable()
-        } else {
-            DynamicChunkSendRate.disable()
+        if (enabled) {
+            if (config.dynamicChunkSendRate.enabled) {
+                DynamicChunkSendRate.enable()
+            } else {
+                DynamicChunkSendRate.disable()
+            }
         }
     }
 
