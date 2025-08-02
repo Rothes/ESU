@@ -71,8 +71,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     "net.neoforged:AutoRenamingTool:2.0.13",
                 )
             )
+            MappingsLoader
         }
-        MappingsLoader
         if (!ServerCompatibility.paper) {
             info("You are not running a Paper server, loading necessary libraries...")
             MavenResolver.loadDependencies(
