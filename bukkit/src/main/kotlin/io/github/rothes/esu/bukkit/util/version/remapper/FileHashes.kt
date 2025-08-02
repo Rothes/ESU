@@ -46,23 +46,25 @@ class FileHashes(
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    private val File.sha1: String
-        get() {
-            val messageDigest = MessageDigest.getInstance("SHA-1")
-            FileInputStream(this).use { input ->
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                while (input.read(buffer).also { bytesRead = it } != -1) {
-                    messageDigest.update(buffer, 0, bytesRead)
-                }
-            }
-            val hashBytes = messageDigest.digest()
-            return hashBytes.toHexString()
-        }
-
     inner class Data(
         val sha1: MutableMap<String, String> = linkedMapOf()
     )
+
+    companion object {
+        @OptIn(ExperimentalStdlibApi::class)
+        val File.sha1: String
+            get() {
+                val messageDigest = MessageDigest.getInstance("SHA-1")
+                FileInputStream(this).use { input ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        messageDigest.update(buffer, 0, bytesRead)
+                    }
+                }
+                val hashBytes = messageDigest.digest()
+                return hashBytes.toHexString()
+            }
+    }
 
 }
