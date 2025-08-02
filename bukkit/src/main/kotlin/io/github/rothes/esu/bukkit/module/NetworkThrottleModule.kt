@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -17,6 +18,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.github.rothes.esu.core.util.version.Version
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
 import org.spongepowered.configurate.objectmapping.meta.Comment
@@ -169,13 +171,22 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             val singleValuedSectionBlockList: DefaultedLinkedHashMap<String, MutableList<Material>> = DefaultedLinkedHashMap<String, MutableList<Material>>(
                 mutableListOf(Material.BEDROCK)
             ).apply {
-                put("world", mutableListOf(
-                    Material.COAL_ORE, Material.COPPER_ORE, Material.IRON_ORE, Material.GOLD_ORE,
-                    Material.EMERALD_ORE, Material.DIAMOND_ORE, Material.REDSTONE_ORE, Material.LAPIS_ORE,
-                    Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE,
-                    Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
-                ))
-                put("world_nether", mutableListOf(Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE))
+                put("world", buildList {
+                    val cavesUpdate = ServerCompatibility.serverVersion >= Version.fromString("1.17")
+                    add(Material.COAL_ORE)
+                    if (cavesUpdate) add(Material.COPPER_ORE)
+                    addAll(listOf(Material.IRON_ORE, Material.GOLD_ORE,
+                        Material.EMERALD_ORE, Material.DIAMOND_ORE, Material.REDSTONE_ORE, Material.LAPIS_ORE))
+
+                    if (cavesUpdate) addAll(listOf(Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE,
+                        Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_EMERALD_ORE,
+                        Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE))
+                }.toMutableList())
+                put("world_nether", buildList {
+                    add(Material.NETHER_QUARTZ_ORE)
+                    if (ServerCompatibility.serverVersion >= Version.fromString("1.16"))
+                        add(Material.NETHER_GOLD_ORE)
+                }.toMutableList())
                 put("world_the_end", mutableListOf(Material.END_STONE))
             }
         ) {
