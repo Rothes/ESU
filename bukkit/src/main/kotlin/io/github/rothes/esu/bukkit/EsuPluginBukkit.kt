@@ -16,6 +16,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.FileHashes.Companion.sha1
+import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -118,7 +119,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     }
                 }
 
-                val toLoad = if (!ServerCompatibility.mojmap) MappingsLoader.reobf(file) else file
+                val toLoad = if (!ServerCompatibility.mojmap) JarRemapper.reobf(file) else file
                 Versioned.loadVersion(toLoad)
             }
         }

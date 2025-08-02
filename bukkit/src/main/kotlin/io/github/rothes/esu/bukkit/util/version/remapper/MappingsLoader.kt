@@ -33,33 +33,6 @@ object MappingsLoader {
         CachedFiles(mappings, servers)
     }()
 
-    fun reobf(file: File): File {
-        val output = plugin.dataFolder.resolve(".cache/remapped").resolve(file.name)
-        output.parentFile.mkdirs()
-        val renamer = Renamer.builder().apply {
-            loadedFiles.mappings.values.forEach {
-                add(Transformer.renamerFactory(it, false))
-            }
-            add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
-            lib(File(plugin.javaClass.protectionDomain.codeSource.location.path))
-            loadedFiles.servers.values.forEach {
-                lib(it)
-            }
-            threads(1)
-            logger {
-                if (it == "Adding Libraries to Inheritance"
-                    || it == "Adding input to inheritance map"
-                    || it == "Adding extras"
-                    || it == "Sorting"
-                    || it.startsWith("Conflicting propagated mapping"))
-                    return@logger
-                plugin.info("[Remapper] $it")
-            }
-        }.build()
-        renamer.run(file, output)
-        return output
-    }
-
     private fun loadMappings(): CachedFiles.Mappings {
         return loadMappingsFromCache() ?: let {
             downloadFiles()
