@@ -7,37 +7,65 @@ plugins {
 
 val serverVer = rootProject.property("targetMinecraftVersion").toString()
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
 
-    maven {
-        name = "papermc"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
-    }
-    maven {
-        name = "PlugManX"
-        url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
-    }
-    maven {
-        name = "PlaceholderAPI"
-        url = uri("https://repo.extendedclip.com/releases/")
-    }
-    maven("https://repo.codemc.org/repository/maven-public/")
+        maven {
+            name = "papermc"
+            url = uri("https://repo.papermc.io/repository/maven-public/")
+        }
+        maven {
+            name = "PlugManX"
+            url = uri("https://raw.githubusercontent.com/TheBlackEntity/PlugManX/repository/")
+        }
+        maven {
+            name = "PlaceholderAPI"
+            url = uri("https://repo.extendedclip.com/releases/")
+        }
+        maven("https://repo.codemc.org/repository/maven-public/")
 
-    maven("https://mvn.lumine.io/repository/maven-public")
-    maven {
-        name = "MMOItems"
-        url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
-    }
-    maven("https://repo.momirealms.net/releases/")
+        maven("https://mvn.lumine.io/repository/maven-public")
+        maven {
+            name = "MMOItems"
+            url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
+        }
+        maven("https://repo.momirealms.net/releases/")
 
-    maven {
-        name = "NeoForged"
-        url = uri("https://maven.neoforged.net/releases/")
+        maven {
+            name = "NeoForged"
+            url = uri("https://maven.neoforged.net/releases/")
+        }
+    }
+
+    dependencies {
+        compileOnly("com.github.retrooper:packetevents-spigot:2.9.3")
+        compileOnly("org.lz4:lz4-java:1.8.0")
+    }
+
+    tasks.shadowJar {
+        val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
+        fun relocate(pattern: String) {
+            relocate(pattern, "$pkg.$pattern")
+        }
+        kotlinRelocate("kotlin.", "$pkg.kotlin.") {
+            exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
+        }
+        kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
+        kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
+        kotlinRelocate("org.incendo", "$pkg.org.incendo")
+        relocate("com.zaxxer")
+        relocate("org.spongepowered")
+        relocate("net.kyori.option")
+
+        relocate("info.debatty")
+        relocate("org.bstats")
+        relocate("de.tr7zw.changeme.nbtapi")
+
+        mergeServiceFiles()
     }
 }
-
 
 dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
@@ -59,7 +87,6 @@ dependencies {
     compileOnly("net.neoforged:AutoRenamingTool:2.0.13")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.9.3")
 
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
     compileOnly("io.lumine:Mythic-Dist:5.8.0")
@@ -87,23 +114,6 @@ paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArt
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}-mojmap.jar"
-
-    val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-    kotlinRelocate("kotlin.", "$pkg.kotlin.") {
-        exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
-    }
-    kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
-    kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
-    kotlinRelocate("org.incendo", "$pkg.org.incendo")
-    relocate("com.zaxxer", "$pkg.com.zaxxer")
-    relocate("org.spongepowered", "$pkg.org.spongepowered")
-    relocate("net.kyori.option", "$pkg.net.kyori.option")
-
-    relocate("info.debatty", "$pkg.info.debatty")
-    relocate("org.bstats", "$pkg.org.bstats")
-    relocate("de.tr7zw.changeme.nbtapi", "$pkg.nbtapi")
-
-    mergeServiceFiles()
 
     project(":bukkit:version").subprojects.forEach {
         from(it.tasks.shadowJar) {

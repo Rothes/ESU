@@ -17,11 +17,19 @@ dependencies {
 subprojects {
     apply(plugin = "io.papermc.paperweight.userdev")
 
-    val serverVer = project.name.substring(1).replace('_', '.')
+    val isBase = name == "base"
+
+    val serverVer = if (isBase)
+        rootProject.property("targetMinecraftVersion").toString()
+    else
+        project.name.substring(1).replace('_', '.')
 
     dependencies {
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
-        compileOnly(project(":bukkit"))
+        if (!isBase) {
+            compileOnly(project(":bukkit:version:base"))
+            compileOnly(project(":bukkit"))
+        }
     }
 
     tasks.shadowJar {

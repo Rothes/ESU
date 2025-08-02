@@ -1,6 +1,6 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.v1_21_6
+package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_21_6
 
-import io.github.rothes.esu.bukkit.module.networkthrottle.LevelHandler
+import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.LevelHandler
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 

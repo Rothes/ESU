@@ -170,7 +170,7 @@ object MappingsLoader {
             if (hasSpigotMembers)
                 add("bukkit-members.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-${MappingsLoader.version}-members.csrg?at=$commit")
         }
-        plugin.info("Downloading mappings, this might take a while as it's first run")
+        plugin.info("Downloading mappings, this might take a while as it's the first run")
         cacheFolder.mkdirs()
         fileHashes.clear()
         files.forEach {
