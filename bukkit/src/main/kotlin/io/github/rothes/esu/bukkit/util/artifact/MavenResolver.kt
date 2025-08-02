@@ -16,12 +16,15 @@ import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.repository.RepositoryPolicy
 import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResolutionException
+import org.eclipse.aether.resolution.DependencyResult
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory
 import org.eclipse.aether.spi.connector.transport.TransporterFactory
 import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
 import java.lang.reflect.InaccessibleObjectException
+import java.net.InetAddress
+import java.net.URI
 import java.net.URL
 
 object MavenResolver {
@@ -32,30 +35,48 @@ object MavenResolver {
     }.getService(RepositorySystem::class.java)
     private val session: RepositorySystemSession = MavenRepositorySystemUtils.newSession().apply {
         setSystemProperties(System.getProperties())
-        setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL)
-        setLocalRepositoryManager(repository.newLocalRepositoryManager(this, LocalRepository("libraries")))
-        setTransferListener(object : AbstractTransferListener() {
+        checksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_FAIL
+        localRepositoryManager = repository.newLocalRepositoryManager(this, LocalRepository("libraries"))
+        transferListener = object : AbstractTransferListener() {
             override fun transferStarted(event: TransferEvent) {
                 plugin.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
             }
-        })
+        }
         setReadOnly()
     }
     private val repositories: List<RemoteRepository> =
-        repository.newResolutionRepositories(session, createRepositoriesWithMirrors())
+        repository.newResolutionRepositories(session, createRepositories())
 
     private var injecter: URLInjector = UnsafeURLInjector
 
-    private fun createRepositoriesWithMirrors(): List<RemoteRepository> {
-        return listOf(
-            RemoteRepository.Builder("central", "default", "https://maven-central.storage-download.googleapis.com/maven2").build(),
-            // Chinese mirrors
-            RemoteRepository.Builder("aliyun", "default", "https://maven.aliyun.com/repository/public/").build(),
-            RemoteRepository.Builder("huawei", "default", "https://repo.huaweicloud.com/repository/maven/").build(),
-            // NeoForged
-            RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build(),
+    private fun createRepositories(): List<RemoteRepository> {
+        val repos = linkedMapOf(
+            "https://maven-central.storage-download.googleapis.com/maven2/" to "central",
+            "https://maven-central-asia.storage-download.googleapis.com/maven2/" to "central-asia",
+            "https://maven.aliyun.com/repository/public/" to "aliyun",
         )
+        val best = repos.entries.firstOrNull {
+            it.key.latency in 0..125
+        } ?: repos.firstEntry()
+        return buildList {
+            add(RemoteRepository.Builder(best.value, "default", best.key).build())
+            if (best.value != "aliyun") {
+                add(RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build())
+            }
+        }
     }
+
+    private val String.latency: Long
+        get() {
+            val host = URI.create(this).toURL().host
+            val address = InetAddress.getByName(host)
+            val start = System.currentTimeMillis()
+            val reachable = address.isReachable(500)
+            if (!reachable)
+                return -1
+            val latency = System.currentTimeMillis() - start
+            return latency
+        }
 
     fun loadUrl(url: URL) {
         try {
@@ -73,12 +94,20 @@ object MavenResolver {
     fun loadDependencies(libraries: List<String>) {
         require(libraries.isNotEmpty()) { "Library must not be empty" }
         val dependencies = libraries.map { Dependency(DefaultArtifact(it), null) }
-        val result = try {
-            repository.resolveDependencies(
-                session, DependencyRequest(CollectRequest(null as Dependency?, dependencies, repositories), null)
-            )
-        } catch (e: DependencyResolutionException) {
-            throw RuntimeException("Error resolving libraries ", e)
+        var result: DependencyResult
+        var trys = 0
+        while (true) {
+            try {
+                result = repository.resolveDependencies(
+                    session, DependencyRequest(CollectRequest(null as Dependency?, dependencies, repositories), null)
+                )
+                break
+            } catch (e: DependencyResolutionException) {
+                if (trys < 2)
+                    trys++
+                else
+                    throw RuntimeException("Error resolving libraries", e)
+            }
         }
 
         // TODO: Remap
