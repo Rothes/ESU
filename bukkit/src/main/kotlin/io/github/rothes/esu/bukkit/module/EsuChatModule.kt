@@ -39,6 +39,7 @@ import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
 import org.incendo.cloud.annotations.Permission
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -72,7 +73,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         object Whisper {
 
             private val last = CacheBuilder.newBuilder()
-                .expireAfterAccess(Duration.parse("8h").toJavaDuration())
+                .expireAfterAccess(8, TimeUnit.HOURS)
                 .build<User, LastTarget>()
             private val spying = hashSetOf<User>(ConsoleUser)
 
