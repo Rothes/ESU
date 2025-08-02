@@ -15,6 +15,7 @@ import io.github.rothes.esu.bukkit.util.artifact.injector.UnsafeURLInjector
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
+import io.github.rothes.esu.bukkit.util.version.remapper.FileHashes.Companion.sha1
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -45,6 +46,8 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
+import java.io.IOException
+import java.net.URI
 import java.nio.file.Path
 import java.util.jar.JarFile
 import java.util.logging.Level
@@ -61,12 +64,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         EsuCore.instance = this
         if (!ServerCompatibility.mojmap) {
             info("You are not running a Mojmap server, loading necessary libraries...")
-            try {
-                Class.forName("org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory")
-            } catch (_: ClassNotFoundException) {
-                val resolve = plugin.dataFolder.resolve(".cache/aether-library.jar")
-                UnsafeURLInjector.addURL(resolve.toURI().toURL())
-            }
+            loadAether()
             MavenResolver.loadDependencies(
                 listOf(
                     "net.neoforged:AutoRenamingTool:2.0.13",
@@ -308,6 +306,34 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         if (ServerCompatibility.paper)
             return
         ServerCompatibility.CB.adventure.close()
+    }
+
+    private fun loadAether() {
+        try {
+            Class.forName("org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory")
+        } catch (_: ClassNotFoundException) {
+            // Spigot 1.16.5 and older
+            val resolve = plugin.dataFolder.resolve(".cache/aether-library.jar")
+            if (!resolve.exists() || resolve.sha1 != "f2bbafed1dd38ffdbaac1daf17ca706efbec74ef") {
+                fun downloadAetherLib(domain: String) {
+                    val url = URI.create("https://$domain/Rothes/ESU/blob/raw/aether-library.jar").toURL()
+                    info("Downloading $url to $resolve")
+                    resolve.createNewFile()
+                    url.openStream().use { stream ->
+                        resolve.outputStream().use { outputStream ->
+                            stream.copyTo(outputStream)
+                        }
+                    }
+                }
+                try {
+                    downloadAetherLib("github.com")
+                } catch (_: IOException) {
+                    info("Connection error, fallback to another link")
+                    downloadAetherLib("ghfast.top/https://github.com")
+                }
+            }
+            UnsafeURLInjector.addURL(resolve.toURI().toURL())
+        }
     }
 
     private fun byPluginMan(): Boolean {
