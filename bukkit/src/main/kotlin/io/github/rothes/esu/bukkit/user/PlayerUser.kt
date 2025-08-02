@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
@@ -26,7 +26,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
             val cache = field
             if (cache != null) {
                 // Check if the instance is as it is.
-                if (cache.isOnline && (!ServerCompatibility.paper || cache.isConnected)) {
+                if (cache.isOnline && cache.connected) {
                     return cache
                 }
             }

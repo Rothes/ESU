@@ -3,7 +3,9 @@ package io.github.rothes.esu.bukkit.util.version.adapter
 import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
+import io.github.rothes.esu.core.util.version.Version
 import net.kyori.adventure.text.Component
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 interface PlayerAdapter {
@@ -15,9 +17,15 @@ interface PlayerAdapter {
 
         val instance = if (ServerCompatibility.paper) Paper else CB
 
+        private val playerIsConnected =
+            ServerCompatibility.paper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
+
         var Player.displayNameV: Component
             get() = instance.getDisplayName(this)
             set(value) = instance.setDisplayName(this, value)
+
+        val OfflinePlayer.connected: Boolean
+            get() = if (playerIsConnected) isConnected else true
 
     }
 
