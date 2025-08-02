@@ -37,6 +37,14 @@ object DynamicChunkSendRate {
             return
         if (!ServerCompatibility.proxyMode)
             return plugin.err("This server is not enabled BungeeCord mode or Velocity mode, You should not enable NetworkThrottle/DynamicChunkSendRate!")
+        try {
+            limiterLoad
+            limiterSend
+            allocation
+            takeCarry
+        } catch (t: Throwable) {
+            plugin.err("[DynamicChunkSendRate] Server not supported: $t")
+        }
 
         Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { channel, player, message ->
             val chunkLoaderData = (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
