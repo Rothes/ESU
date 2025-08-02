@@ -282,7 +282,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val level = levelHandler.level(nms)
                     val rebuildPaletteMappings = config.rebuildPaletteMappings
                     val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
-                    val randomBlockIds = config.singleValuedSectionBlockIds.getOrDefault(level.bukkit.name)!!
+                    val world = level.bukkit
+                    val randomBlockIds = config.singleValuedSectionBlockIds.getOrDefault(world.name)!!
 
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
@@ -301,7 +302,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     var id = 0
                     out@ for ((index, section) in sections.withIndex()) {
                         checkSectionAllInvisible(
-                            allInvisible && index == 8 && !config.netherRoofInvisibleCheck && level.world.environment == Environment.NETHER,
+                            allInvisible && index == 8 && !config.netherRoofInvisibleCheck && world.environment == Environment.NETHER,
                             invisible,
                             randomBlockIds,
                             sections,
