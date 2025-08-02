@@ -18,18 +18,19 @@ interface ItemStackAdapter {
 
         val instance = if (ServerCompatibility.paper) Paper else CB
 
-        fun <T: ItemMeta> editMeta(itemStack: ItemStack, block: (T) -> Unit) {
+        fun <T: ItemMeta, R> editMeta(itemStack: ItemStack, block: (T) -> R): R {
             val meta = itemStack.itemMeta
             @Suppress("UNCHECKED_CAST")
-            block(meta as T)
+            val ret = block(meta as T)
             itemStack.itemMeta = meta
+            return ret
         }
 
         @JvmName("editMetaKt")
-        fun ItemStack.meta(block: (meta: ItemMeta) -> Unit) {
+        fun <R> ItemStack.meta(block: (meta: ItemMeta) -> R): R {
             return editMeta(this, block)
         }
-        fun <T: ItemMeta> ItemStack.meta(block: (meta: T) -> Unit) {
+        fun <T: ItemMeta, R> ItemStack.meta(block: (meta: T) -> R): R {
             return editMeta(this, block)
         }
 
