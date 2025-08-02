@@ -15,11 +15,9 @@ import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.papermc.paper.configuration.GlobalConfiguration
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
@@ -101,56 +99,62 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                 }
             }
         })
-
-        try {
-            val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-            registerCommands(object {
-
-                private val gen = clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true }
-                @Command("genRateTop")
-                @ShortPerm("genRateTop")
-                fun genRateTop(sender: User) {
-                    rate(sender, gen, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate) { genRateTop }
-                }
-
-                private val load = clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true }
-                @Command("loadRateTop")
-                @ShortPerm("loadRateTop")
-                fun loadRateTop(sender: User) {
-                    rate(sender, load, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate) { loadRateTop }
-                }
-                // We don't add sendRate command as it doesn't have the logic for this.
-
-                private fun rate(sender: User, field: Field, maxRate: Double, lang: ModuleLocale.() -> ChunkRateTop) {
-                    val map = Bukkit.getOnlinePlayers().associateWith { player ->
-                        (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
-                    }.mapValues { entry ->
-                        val loaderData = entry.value ?: return@mapValues null
-                        val limiter = field[loaderData] as AllocatingRateLimiter
-                        maxRate - limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
-                    }.filter { entry ->
-                        val value = entry.value
-                        value != null && value > 0
-                    }.toList().sortedByDescending { it.second }
-                    if (map.isEmpty()) {
-                        sender.message(locale, { lang().noData })
-                    } else {
-                        sender.message(locale, { lang().header })
-                        map.forEach { (p, v) ->
-                            sender.message(
-                                locale, { lang().entry }, player(p), unparsed("rate", v)
-                            )
-                        }
-                    }
-                }
-            })
-        } catch (e: Exception) {
-            plugin.warn("Cannot register chunk rate commands: $e")
-        }
+        PaperChunkCommands.enable()
     }
 
     override fun disable() {
         super.reloadConfig()
+    }
+
+    private object PaperChunkCommands {
+
+        fun enable() {
+            try {
+                val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java // Only paper 1.18+ (to be confirmed)
+                registerCommands(object {
+
+                    private val gen = clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true }
+                    @Command("genRateTop")
+                    @ShortPerm("genRateTop")
+                    fun genRateTop(sender: User) {
+                        rate(sender, gen, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate) { genRateTop }
+                    }
+
+                    private val load = clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true }
+                    @Command("loadRateTop")
+                    @ShortPerm("loadRateTop")
+                    fun loadRateTop(sender: User) {
+                        rate(sender, load, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate) { loadRateTop }
+                    }
+                    // We don't add sendRate command as it doesn't have the logic for this.
+
+                    private fun rate(sender: User, field: Field, maxRate: Double, lang: ModuleLocale.() -> ChunkRateTop) {
+                        val map = Bukkit.getOnlinePlayers().associateWith { player ->
+                            (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
+                        }.mapValues { entry ->
+                            val loaderData = entry.value ?: return@mapValues null
+                            val limiter = field[loaderData] as AllocatingRateLimiter
+                            maxRate - limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
+                        }.filter { entry ->
+                            val value = entry.value
+                            value != null && value > 0
+                        }.toList().sortedByDescending { it.second }
+                        if (map.isEmpty()) {
+                            sender.message(locale, { lang().noData })
+                        } else {
+                            sender.message(locale, { lang().header })
+                            map.forEach { (p, v) ->
+                                sender.message(
+                                    locale, { lang().entry }, player(p), unparsed("rate", v)
+                                )
+                            }
+                        }
+                    }
+                })
+            } catch (e: NoClassDefFoundError) {
+                plugin.warn("Cannot register chunk rate commands: $e")
+            }
+        }
     }
 
     private val User.pu
