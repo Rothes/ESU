@@ -30,12 +30,18 @@ class Versioned<T, V>(
                             && it.substringAfterLast('.').startsWith(target.simpleName)
                             && (type == null || it.endsWith(type))
                 }
-                .map {
-                    it to Version.fromString(
-                        it.substring(prefix.length).substringBefore('.').replace('_', '.')
-                    )
+                .mapNotNull {
+                    val str = it.substring(prefix.length).substringBefore('.')
+                    val split = str.split("__")
+
+                    if (split.size == 2) {
+                        if (split[1] == "paper" && !ServerCompatibility.paper) {
+                            return@mapNotNull null
+                        }
+                    }
+                    it to Version.fromString(split[0].replace('_', '.'))
                 }
-                .sortedByDescending { it.second }
+                .sortedWith(Comparator { a, b -> compareValuesBy(b, a, { it.second }, { it.first.length }) })
                 .firstOrNull { version >= it.second }
 
             if (find == null)
