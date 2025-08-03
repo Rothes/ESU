@@ -23,10 +23,13 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory
 import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
+import org.eclipse.aether.util.filter.PatternExclusionsDependencyFilter
 import java.lang.reflect.InaccessibleObjectException
 import java.net.URL
 
 object MavenResolver {
+
+    private val blockedGroupIds = setOf("org.jetbrains.kotlin")
 
     private val repository: RepositorySystem = MavenRepositorySystemUtils.newServiceLocator().apply {
         addService(RepositoryConnectorFactory::class.java, BasicRepositoryConnectorFactory::class.java)
@@ -86,7 +89,10 @@ object MavenResolver {
         while (true) {
             try {
                 result = repository.resolveDependencies(
-                    session, DependencyRequest(CollectRequest(null as Dependency?, dependencies, repositories), null)
+                    session, DependencyRequest(
+                        CollectRequest(null as Dependency?, dependencies, repositories),
+                        PatternExclusionsDependencyFilter(blockedGroupIds.map { "$it:::" })
+                    )
                 )
                 break
             } catch (e: DependencyResolutionException) {
@@ -98,8 +104,11 @@ object MavenResolver {
         }
 
         // TODO: Maybe remap?
-        result.artifactResults.forEach {
-            val file = it.artifact.file
+        for (it in result.artifactResults) {
+            val artifact = it.artifact
+            if (blockedGroupIds.contains(artifact.groupId))
+                continue
+            val file = artifact.file
             val url = file.toURI().toURL()
             loadUrl(url)
         }
