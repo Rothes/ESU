@@ -1,6 +1,7 @@
 package io.github.rothes.esu.core.util.artifact
 
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
 import io.github.rothes.esu.core.util.artifact.injector.ReflectURLInjector
 import io.github.rothes.esu.core.util.artifact.injector.URLInjector
 import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
@@ -23,10 +24,7 @@ import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
 import java.lang.reflect.InaccessibleObjectException
-import java.net.InetAddress
-import java.net.URI
 import java.net.URL
-import kotlin.jvm.java
 
 object MavenResolver {
 
@@ -57,7 +55,7 @@ object MavenResolver {
             "https://maven.aliyun.com/repository/public/" to "aliyun",
         )
         val best = repos.entries.firstOrNull {
-            it.key.latency in 0..125
+            it.key.uriLatency in 0..125
         } ?: repos.firstEntry()
         return buildList {
             add(RemoteRepository.Builder(best.value, "default", best.key).build())
@@ -66,18 +64,6 @@ object MavenResolver {
             }
         }
     }
-
-    private val String.latency: Long
-        get() {
-            val host = URI.create(this).toURL().host
-            val address = InetAddress.getByName(host)
-            val start = System.currentTimeMillis()
-            val reachable = address.isReachable(500)
-            if (!reachable)
-                return -1
-            val latency = System.currentTimeMillis() - start
-            return latency
-        }
 
     fun loadUrl(url: URL) {
         try {
