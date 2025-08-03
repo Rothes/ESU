@@ -58,13 +58,13 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
         old.viewers.forEach { open(it) }
     }
 
-    fun open(humanEntity: HumanEntity) {
+    open fun open(humanEntity: HumanEntity) {
         Scheduler.schedule(humanEntity) {
             humanEntity.openInventory(inventory)
         }
     }
 
-    fun close() {
+    open fun close() {
         inventory.close()
     }
 
