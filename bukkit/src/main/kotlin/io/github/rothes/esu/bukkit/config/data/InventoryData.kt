@@ -10,7 +10,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 
 open class InventoryData<T>(
     val inventoryType: InventoryType? = null,
-    val size: Int? = 6 * 9,
+    val size: Int? = null,
     val title: String = "Menu",
     val layout: String = """
         .........
@@ -20,9 +20,7 @@ open class InventoryData<T>(
         .........
         .........
     """.trimIndent(),
-    val icons: Map<Char, InventoryItem> = linkedMapOf(
-        '.' to InventoryItem()
-    ),
+    val icons: Map<Char, InventoryItem> = linkedMapOf('.' to InventoryItem()),
 ): ConfigurationPart {
 
     @Setting("type-icons")
@@ -32,7 +30,7 @@ open class InventoryData<T>(
 
     constructor(
         inventoryType: InventoryType? = null,
-        size: Int? = 6 * 9,
+        size: Int? = null,
         title: String = "Menu",
         layout: String,
         icons: Map<Char, InventoryItem> = linkedMapOf(' ' to InventoryItem()),
