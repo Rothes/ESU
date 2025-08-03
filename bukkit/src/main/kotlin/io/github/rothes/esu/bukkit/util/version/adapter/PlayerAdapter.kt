@@ -17,15 +17,19 @@ interface PlayerAdapter {
 
         val instance = if (ServerCompatibility.paper) Paper else CB
 
-        private val playerIsConnected =
+        private val paper20 =
             ServerCompatibility.paper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
+
+        fun Player.chunkSent(chunkKey: Long): Boolean {
+            return if (paper20) isChunkSent(chunkKey) else true
+        }
 
         var Player.displayNameV: Component
             get() = instance.getDisplayName(this)
             set(value) = instance.setDisplayName(this, value)
 
         val OfflinePlayer.connected: Boolean
-            get() = if (playerIsConnected) isConnected else true
+            get() = if (paper20) isConnected else true
 
     }
 

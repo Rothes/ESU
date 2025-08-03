@@ -41,6 +41,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_1
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
@@ -135,6 +136,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     for (j in 0 until mapSize) {
                         val chunkKey = input.readLong()
                         val longArraySize = input.readInt()
+                        if (!player.chunkSent(chunkKey)) {
+                            input.skipBytes(longArraySize * 8)
+                            continue
+                        }
                         val longArray = LongArray(longArraySize) { input.readLong() }
                         miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(longArray))
                     }
