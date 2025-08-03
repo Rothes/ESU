@@ -28,7 +28,7 @@ open class InventoryData<T>(
     @Setting("type-icons")
     private var typeIconsInternal: T? = null
     val typeIcons: T
-        get() = typeIconsInternal ?: error("Fallback is not set!")
+        get() = typeIconsInternal ?: error("TypeIcons obj is not set!")
 
     constructor(
         inventoryType: InventoryType? = null,
