@@ -4,8 +4,11 @@ import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import net.kyori.adventure.text.Component
+import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 interface ItemStackAdapter {
 
@@ -17,6 +20,15 @@ interface ItemStackAdapter {
     companion object {
 
         val instance = if (ServerCompatibility.paper) Paper else CB
+
+        val ItemStack.isAir: Boolean
+            get() = type == Material.AIR
+
+        inline fun ItemStack.ifNotAir(block: (ItemStack) -> Unit): ItemStack {
+            if (!isAir)
+                block(this)
+            return this
+        }
 
         fun <T: ItemMeta, R> editMeta(itemStack: ItemStack, block: (T) -> R): R {
             val meta = itemStack.itemMeta
