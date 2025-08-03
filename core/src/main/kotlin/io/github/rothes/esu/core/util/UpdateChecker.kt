@@ -75,7 +75,7 @@ class UpdateChecker(
     }
 
     fun fetch(): CheckedInfo {
-        val fetch = getResponse("raw.githubusercontent.com")
+        val fetch = getResponse("ghfast.top/https://raw.githubusercontent.com")
         val errors = mutableListOf<LocaledMessage>()
 
         fun err(vararg arg: TagResolver, scope: EsuLocale.BaseEsuLocaleData.() -> String?) {
@@ -119,7 +119,7 @@ class UpdateChecker(
                 }
         } catch (e: Throwable) {
             if (tryTimes == 0) {
-                return getResponse("ghfast.top/https://raw.githubusercontent.com", 1)
+                return getResponse("raw.githubusercontent.com", 1)
             }
             if (errorCount < 3) {
                 errorCount++

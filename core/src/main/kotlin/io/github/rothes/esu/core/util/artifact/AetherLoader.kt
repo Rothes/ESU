@@ -27,10 +27,10 @@ object AetherLoader {
                     }
                 }
                 try {
-                    downloadAetherLib("github.com")
+                    downloadAetherLib("ghfast.top/https://github.com")
                 } catch (_: IOException) {
                     EsuCore.instance.info("Connection error, fallback to another link")
-                    downloadAetherLib("ghfast.top/https://github.com")
+                    downloadAetherLib("github.com")
                 }
             }
             UnsafeURLInjector.addURL(resolve.toURI().toURL())
