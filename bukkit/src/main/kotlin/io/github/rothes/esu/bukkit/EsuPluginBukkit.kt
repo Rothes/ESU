@@ -9,13 +9,11 @@ import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
+import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
-import io.github.rothes.esu.bukkit.util.artifact.injector.UnsafeURLInjector
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
-import io.github.rothes.esu.bukkit.util.version.remapper.FileHashes.Companion.sha1
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
@@ -27,6 +25,8 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
+import io.github.rothes.esu.core.util.artifact.AetherLoader
+import io.github.rothes.esu.core.util.artifact.MavenResolver
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -48,8 +48,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
-import java.io.IOException
-import java.net.URI
 import java.nio.file.Path
 import java.util.jar.JarFile
 import java.util.logging.Level
@@ -64,9 +62,9 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     init {
         EsuCore.instance = this
+        BukkitDataSerializer // registerTypeAdapter
         if (!ServerCompatibility.mojmap) {
-            info("You are not running a Mojmap server, loading necessary libraries...")
-            loadAether()
+            AetherLoader // For Spigot 1.16.5 and older
             MavenResolver.loadDependencies(
                 listOf(
                     "net.neoforged:AutoRenamingTool:2.0.13",
@@ -75,7 +73,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             MappingsLoader
         }
         if (!ServerCompatibility.paper) {
-            info("You are not running a Paper server, loading necessary libraries...")
             MavenResolver.loadDependencies(
                 listOf(
                     "net.kyori:adventure-platform-bukkit:4.4.1",
@@ -88,10 +85,29 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 )
             )
         }
-        info("Checking missing libraries...")
         MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
             LZ4Factory.fastestInstance()
         }
+        MavenResolver.loadDependencies(
+            listOf(
+                "org.jetbrains.exposed:exposed-core:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-jdbc:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-kotlin-datetime:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-json:1.0.0-beta-2",
+
+                "com.zaxxer:HikariCP:6.3.0",
+                "org.incendo:cloud-core:2.0.0",
+                "org.incendo:cloud-annotations:2.0.0",
+                "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
+
+                "org.incendo:cloud-paper:2.0.0-beta.10",
+
+                "com.h2database:h2:2.3.232",
+                "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+
+                "info.debatty:java-string-similarity:2.0.0",
+            )
+        )
 
         loadVersions()
         enabledHot = byPluginMan()
@@ -312,34 +328,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         if (ServerCompatibility.paper)
             return
         ServerCompatibility.CB.adventure.close()
-    }
-
-    private fun loadAether() {
-        try {
-            Class.forName("org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory")
-        } catch (_: ClassNotFoundException) {
-            // Spigot 1.16.5 and older
-            val resolve = plugin.dataFolder.resolve(".cache/aether-library.jar")
-            if (!resolve.exists() || resolve.sha1 != "f2bbafed1dd38ffdbaac1daf17ca706efbec74ef") {
-                fun downloadAetherLib(domain: String) {
-                    val url = URI.create("https://$domain/Rothes/ESU/blob/raw/aether-library.jar").toURL()
-                    info("Downloading $url to $resolve")
-                    resolve.createNewFile()
-                    url.openStream().use { stream ->
-                        resolve.outputStream().use { outputStream ->
-                            stream.copyTo(outputStream)
-                        }
-                    }
-                }
-                try {
-                    downloadAetherLib("github.com")
-                } catch (_: IOException) {
-                    info("Connection error, fallback to another link")
-                    downloadAetherLib("ghfast.top/https://github.com")
-                }
-            }
-            UnsafeURLInjector.addURL(resolve.toURI().toURL())
-        }
     }
 
     private fun byPluginMan(): Boolean {

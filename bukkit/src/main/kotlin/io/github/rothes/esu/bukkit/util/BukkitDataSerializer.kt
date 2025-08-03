@@ -1,42 +1,21 @@
 package io.github.rothes.esu.bukkit.util
 
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
-import com.google.gson.reflect.TypeToken
+import com.google.gson.*
 import de.tr7zw.changeme.nbtapi.NBT
+import io.github.rothes.esu.core.util.DataSerializer
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
 import java.lang.reflect.Type
 
-object DataSerializer {
+object BukkitDataSerializer {
 
-    val GSON = GsonBuilder().disableHtmlEscaping().enableComplexMapKeySerialization()
-        .registerTypeAdapter(Location::class.java, BukkitLocationAdapter)
-        .registerTypeAdapter(ItemStack::class.java, ItemStackAdapter)
-        .create()!!
-
-    inline fun <reified T> serializeObj(data: T): String {
-        return GSON.toJson(data, T::class.java)
+    init {
+        DataSerializer.registerTypeAdapter(
+            Location::class.java to BukkitLocationAdapter,
+            ItemStack::class.java to ItemStackAdapter
+        )
     }
-
-    inline fun <reified T> deserializeObj(str: String, typeToken: TypeToken<T> = TypeToken.get(T::class.java)): T {
-        return GSON.fromJson(str, typeToken.type)
-    }
-
-    fun Any.serialize(): String = serializeObj(this)
-    inline fun <reified T> String.deserialize(): T = deserializeObj(this)
-    inline fun <reified T> String.deserialize(typeToken: TypeToken<T>): T = deserializeObj(this, typeToken)
-
-    fun Any.encode(): ByteArray = this.serialize().toByteArray(Charsets.UTF_8)
-    inline fun <reified T> ByteArray.decode(): T = this.toString(Charsets.UTF_8).deserialize()
-    inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = this.toString(Charsets.UTF_8).deserialize(typeToken)
 
     private object BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
 

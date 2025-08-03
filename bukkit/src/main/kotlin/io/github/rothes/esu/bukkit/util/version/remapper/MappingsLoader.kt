@@ -1,8 +1,8 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.version.Version
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig

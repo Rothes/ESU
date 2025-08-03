@@ -29,7 +29,7 @@ object DynamicChunkSendRate {
     fun enable() {
         NetworkThrottleModule.registerListener(Listeners)
         if (config.dynamicChunkSendRate.enabled && !running) {
-            task = plugin.server.scheduler.buildTask(plugin) { task ->
+            task = plugin.server.scheduler.buildTask(plugin.bootstrap) { task ->
                 for ((_, atomicLong) in traffic) {
                     atomicLong.set(0)
                 }

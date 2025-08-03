@@ -1,13 +1,13 @@
 package io.github.rothes.esu.bukkit.module.news
 
 import io.github.rothes.esu.bukkit.module.NewsModule
-import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
-import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.DataSerializer.deserialize
+import io.github.rothes.esu.core.util.DataSerializer.serialize
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.v1.core.ReferenceOption

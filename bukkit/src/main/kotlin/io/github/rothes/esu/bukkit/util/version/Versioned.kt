@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.util.version
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.artifact.MavenResolver
+import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
 import java.io.File
 import java.net.URL

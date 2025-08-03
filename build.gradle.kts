@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("java")
+    id("java-library")
     kotlin("jvm") version "2.1.21"
     `maven-publish`
     id("com.gradleup.shadow") version "9.0.0-rc1"
@@ -29,6 +30,7 @@ allprojects {
 
 subprojects {
     apply(plugin = "java")
+    apply(plugin = "java-library")
     apply(plugin = "kotlin")
     apply(plugin = "maven-publish")
     apply(plugin = "com.gradleup.shadow")

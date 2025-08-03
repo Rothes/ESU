@@ -1,9 +1,9 @@
-package io.github.rothes.esu.bukkit.util.artifact
+package io.github.rothes.esu.core.util.artifact
 
-import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.artifact.injector.ReflectURLInjector
-import io.github.rothes.esu.bukkit.util.artifact.injector.URLInjector
-import io.github.rothes.esu.bukkit.util.artifact.injector.UnsafeURLInjector
+import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.util.artifact.injector.ReflectURLInjector
+import io.github.rothes.esu.core.util.artifact.injector.URLInjector
+import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
@@ -26,6 +26,7 @@ import java.lang.reflect.InaccessibleObjectException
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
+import kotlin.jvm.java
 
 object MavenResolver {
 
@@ -39,7 +40,7 @@ object MavenResolver {
         localRepositoryManager = repository.newLocalRepositoryManager(this, LocalRepository("libraries"))
         transferListener = object : AbstractTransferListener() {
             override fun transferStarted(event: TransferEvent) {
-                plugin.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
+                EsuCore.instance.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
             }
         }
         setReadOnly()
@@ -110,7 +111,7 @@ object MavenResolver {
             }
         }
 
-        // TODO: Remap
+        // TODO: Maybe remap?
         result.artifactResults.forEach {
             val file = it.artifact.file
             val url = file.toURI().toURL()

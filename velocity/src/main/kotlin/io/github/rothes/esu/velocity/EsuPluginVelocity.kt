@@ -1,19 +1,13 @@
 package io.github.rothes.esu.velocity
 
-import com.google.inject.Inject
-import com.google.inject.name.Named
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.connection.PreLoginEvent
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
-import com.velocitypowered.api.plugin.Dependency
-import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginContainer
-import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
@@ -26,6 +20,8 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
+import io.github.rothes.esu.core.util.artifact.AetherLoader
+import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
@@ -34,7 +30,6 @@ import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
-import org.bstats.velocity.Metrics
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -44,27 +39,8 @@ import org.incendo.cloud.velocity.VelocityCommandManager
 import org.slf4j.Logger
 import java.nio.file.Path
 
-private const val PLUGIN_ID = "esu"
-
-@Plugin(
-    id = PLUGIN_ID,
-    name = "ESU",
-    version = BuildConfig.VERSION_NAME,
-    authors = ["Rothes"],
-    url = "https://github.com/Rothes/ESU",
-    dependencies = [
-        Dependency("packetevents", true),
-        // Let those plugins load first, so we can restore our ServerChannelInitializerHolder
-        Dependency("sonar", true),
-        Dependency("viaversion", true),
-    ]
-)
-class EsuPluginVelocity @Inject constructor(
-    val server: ProxyServer,
-    val logger: Logger,
-    @DataDirectory private val dataDirectory: Path,
-    @Named("esu") val container: PluginContainer,
-    val metricsFactory: Metrics.Factory
+class EsuPluginVelocity(
+    val bootstrap: EsuBootstrap,
 ): EsuCore {
 
     override var initialized: Boolean = false
@@ -74,6 +50,41 @@ class EsuPluginVelocity @Inject constructor(
 
     var enabledHot: Boolean by InitOnce()
     var disabledHot: Boolean by InitOnce()
+
+    val server: ProxyServer
+        get() = bootstrap.server
+    val logger: Logger
+        get() = bootstrap.logger
+    val dataDirectory: Path
+        get() = bootstrap.dataDirectory
+    val container: PluginContainer
+        get() = bootstrap.container
+
+    init {
+        EsuCore.instance = this
+        enabledHot = byServerUtils()
+
+        AetherLoader
+        MavenResolver.loadDependencies(
+            listOf(
+                "org.jetbrains.exposed:exposed-core:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-jdbc:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-kotlin-datetime:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-json:1.0.0-beta-2",
+
+                "com.zaxxer:HikariCP:6.3.0",
+                "org.incendo:cloud-core:2.0.0",
+                "org.incendo:cloud-annotations:2.0.0",
+                "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
+
+                "org.incendo:cloud-velocity:2.0.0-beta.10",
+
+                "com.h2database:h2:2.3.232",
+                "com.mysql:mysql-connector-j:8.4.0",
+                "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+            )
+        )
+    }
 
     override val commandManager: VelocityCommandManager<VelocityUser> by lazy {
         VelocityCommandManager(container, server, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
@@ -95,11 +106,7 @@ class EsuPluginVelocity @Inject constructor(
         }
     }
 
-
-    @Subscribe
-    fun onProxyInitialization(e: ProxyInitializeEvent) {
-        EsuCore.instance = this
-        enabledHot = byServerUtils()
+    fun onProxyInitialization() {
         EsuConfig           // Load global config
         VelocityEsuLocale   // Load global locale
         StorageManager      // Load database
@@ -157,7 +164,7 @@ class EsuPluginVelocity @Inject constructor(
 
         server.allPlayers.forEach { it.user }
 
-        metricsFactory.make(this, 24826) // bStats
+        bootstrap.metricsFactory.make(bootstrap, 24826) // bStats
 
         initialized = true
         enabled = true

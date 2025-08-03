@@ -47,14 +47,14 @@ abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
-    fun registerListener(listener: Any, pluginInstance: Any = plugin) {
+    fun registerListener(listener: Any, pluginInstance: Any = plugin.bootstrap) {
         plugin.server.eventManager.register(pluginInstance, listener)
         registeredListeners.add(listener to pluginInstance)
     }
 
-    fun unregisterListener(listener: Any, pluginInstance: Any = plugin) {
-        if (pluginInstance === plugin) {
-            if (pluginInstance.enabled) {
+    fun unregisterListener(listener: Any, pluginInstance: Any = plugin.bootstrap) {
+        if (pluginInstance === plugin.bootstrap) {
+            if (plugin.enabled) {
                 plugin.server.eventManager.unregisterListener(pluginInstance, listener)
             }
         } else {

@@ -5,12 +5,12 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.tableName
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.DataSerializer.deserialize
-import io.github.rothes.esu.bukkit.util.DataSerializer.serialize
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.TableUpgrader
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
+import io.github.rothes.esu.core.util.DataSerializer.deserialize
+import io.github.rothes.esu.core.util.DataSerializer.serialize
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.*

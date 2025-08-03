@@ -1,5 +1,3 @@
-import com.xpdustry.ksr.kotlinRelocate
-
 plugins {
     kotlin("kapt")
 }
@@ -27,11 +25,7 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.114.Final")
     // Project
     api(project(":core"))
-    api("org.incendo:cloud-velocity:2.0.0-beta.10")
-
-    implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:8.4.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
+    compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.10")
 
     implementation("org.bstats:bstats-velocity:3.1.0")
 
@@ -50,13 +44,6 @@ tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}.jar"
 
     val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-    kotlinRelocate("kotlin.", "$pkg.kotlin.") {
-        exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
-    }
-    kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
-    kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
-    kotlinRelocate("org.incendo", "$pkg.org.incendo")
-    relocate("com.zaxxer", "$pkg.com.zaxxer")
     relocate("org.spongepowered", "$pkg.org.spongepowered")
     relocate("net.kyori.option", "$pkg.net.kyori.option")
 

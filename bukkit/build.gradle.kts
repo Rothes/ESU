@@ -1,4 +1,3 @@
-import com.xpdustry.ksr.kotlinRelocate
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
@@ -49,17 +48,9 @@ allprojects {
         fun relocate(pattern: String) {
             relocate(pattern, "$pkg.$pattern")
         }
-        kotlinRelocate("kotlin.", "$pkg.kotlin.") {
-            exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
-        }
-        kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
-        kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
-        kotlinRelocate("org.incendo", "$pkg.org.incendo")
-        relocate("com.zaxxer")
         relocate("org.spongepowered")
         relocate("net.kyori.option")
 
-        relocate("info.debatty")
         relocate("org.bstats")
         relocate("de.tr7zw.changeme.nbtapi")
 
@@ -70,20 +61,14 @@ allprojects {
 dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
-    api("org.incendo:cloud-paper:2.0.0-beta.10")
+    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.10")
 
-    implementation("com.h2database:h2:2.3.232")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
-
-    implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("org.bstats:bstats-bukkit:3.1.0")
-
     implementation("de.tr7zw:item-nbt-api:2.15.1")
 
+    compileOnly("info.debatty:java-string-similarity:2.0.0")
+
     compileOnly("net.kyori:adventure-platform-bukkit:4.4.1")
-    compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")
-    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
-    compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.18")
     compileOnly("net.neoforged:AutoRenamingTool:2.0.13")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")

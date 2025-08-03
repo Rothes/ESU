@@ -44,7 +44,7 @@ object TrafficMonitor {
         private set
 
     fun enable() {
-        task = plugin.server.scheduler.buildTask(plugin) { task ->
+        task = plugin.server.scheduler.buildTask(plugin.bootstrap) { task ->
             val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toLong()
             val bytesO = outgoingBytes.getAndSet(0) + ppsO * 46 // TCP overhead.
             val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toLong()

@@ -31,7 +31,7 @@ object UpdateCheckerMan {
     fun reload() {
         if (EsuConfig.get().updateChecker) {
             if (task == null) {
-                task = plugin.server.scheduler.buildTask(plugin, Runnable { checker.run() })
+                task = plugin.server.scheduler.buildTask(plugin.bootstrap, Runnable { checker.run() })
                     .clearDelay()
                     .repeat(Duration.ofHours(1))
                     .schedule()
