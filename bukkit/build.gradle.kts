@@ -98,7 +98,7 @@ paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArt
 
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
-    archiveFileName = "${fileName}-${project.version}-mojmap.jar"
+    archiveFileName = "${fileName}-${project.version}.jar"
 
     project(":bukkit:version").subprojects.forEach {
         from(it.tasks.shadowJar) {
