@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -118,7 +119,7 @@ object EditorManager {
                     val wrapper = WrapperPlayClientEditBook(event)
                     if (wrapper.slot != data.slot) return
                     val pages = wrapper.pages
-                        ?: SpigotConversionUtil.toBukkitItemStack(wrapper.itemStack).meta { meta: BookMeta ->
+                        ?: SpigotConversionUtil.toBukkitItemStack(wrapper.itemStack).metaGet { meta: BookMeta ->
                             meta.pages
                         }
                     completeEdit(player, pages)
