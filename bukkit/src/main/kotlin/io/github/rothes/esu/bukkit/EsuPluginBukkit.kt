@@ -288,9 +288,13 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 // Cannot read world asynchronously on Folia, when player is opening a world inv
             }
 
-            BukkitUserManager.getCache(player.uniqueId)?.let {
-                StorageManager.updateUserNow(it)
-                BukkitUserManager.unload(it)
+            BukkitUserManager.getCache(player.uniqueId)?.let { user ->
+                try {
+                    StorageManager.updateUserNow(user)
+                } catch (t: Throwable) {
+                    err("Failed to update user ${user.nameUnsafe}(${user.uuid}) on disable", t)
+                }
+                BukkitUserManager.unload(user)
             }
         }
         UpdateCheckerMan.shutdown()
