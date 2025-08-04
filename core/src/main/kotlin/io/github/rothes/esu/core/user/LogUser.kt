@@ -35,6 +35,11 @@ interface LogUser: User {
             message(message.copy(chat = message.chat.map { "[ESU] $it" }), params = params)
     }
 
+    override fun actionBar(message: Component) {
+        // Relocate actionBar messages to chat/console message
+        message(message)
+    }
+
     override fun message(message: Component) {
         if (EsuConfig.get().forceTrueColorConsole)
             print(serializer.serialize(message))
