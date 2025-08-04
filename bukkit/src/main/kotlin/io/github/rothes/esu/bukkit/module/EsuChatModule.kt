@@ -239,7 +239,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 var isShout = false
                 val rangedChat = config.chat.rangedChat
                 val shoutHandled = if (rangedChat.enabled) {
-                    if (message.startsWith(rangedChat.shoutPrefix) && sender.hasPerm("chat.shout")) {
+                    val plainText = message.plainText
+                    if (plainText != rangedChat.shoutPrefix && plainText.startsWith(rangedChat.shoutPrefix) && sender.hasPerm("chat.shout")) {
                         isShout = true
                         message.drop(rangedChat.shoutPrefix.length)
                     } else {
@@ -393,10 +394,6 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             parsed("head", modifier?.head ?: ""),
             parsed("foot", modifier?.foot ?: ""),
         )
-    }
-
-    fun Component.startsWith(prefix: String): Boolean {
-        return plainText.startsWith(prefix)
     }
 
     fun Component.drop(n: Int): Component {
