@@ -138,6 +138,23 @@ object ComponentUtils {
         }
     }
 
+    fun placeholderLang(viewer: User, langMap: Map<String, String>, vararg params: TagResolver): TagResolver {
+        return TagResolver.resolver(setOf("pl", "placeholder_lang")) { arg, context ->
+            val pop = arg.popOr("One argument required for placeholder_lang")
+            val key = pop.value()
+            val localed = viewer.localedOrNull(langMap)
+            if (localed != null)
+                Tag.selfClosingInserting(
+                    viewer.buildMinimessage(localed, params = params)
+                )
+            else {
+                Tag.selfClosingInserting(
+                    Component.text("lang.$key")
+                )
+            }
+        }
+    }
+
 //    fun Component.set(vararg objects: Any): Component {
 //        this.replaceText()
 //        Component.text().append(this).mapChildrenDeep { component ->
