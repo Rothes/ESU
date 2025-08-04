@@ -17,6 +17,8 @@ permissions:
     default: op
   'esu.antiCommandSpam.exempt':
     default: op
+  ‘esu.esuchat.chat.shout':
+    default: op
   'esu.esuChat.spy':
     default: op
   'esu.esuChat.spy.other':

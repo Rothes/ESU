@@ -1,6 +1,8 @@
 package io.github.rothes.esu.core.util
 
 import io.github.rothes.esu.core.config.EsuLocale
+import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.user.User
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
@@ -138,7 +140,14 @@ object ComponentUtils {
         }
     }
 
-    fun placeholderLang(viewer: User, langMap: Map<String, String>, vararg params: TagResolver): TagResolver {
+    fun <T: ConfigurationPart> pLang(viewer: User,
+                                     locales: MultiLocaleConfiguration<T>, block: T.() -> Map<String, String>?,
+                                     vararg params: TagResolver): TagResolver {
+        val langMap = viewer.localed(locales, block)
+        return pLang(viewer, langMap, params = params)
+    }
+
+    fun pLang(viewer: User, langMap: Map<String, String>, vararg params: TagResolver): TagResolver {
         return TagResolver.resolver(setOf("pl", "placeholder_lang")) { arg, context ->
             val pop = arg.popOr("One argument required for placeholder_lang")
             val key = pop.value()
