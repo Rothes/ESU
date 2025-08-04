@@ -53,9 +53,9 @@ object MavenResolver {
 
     private fun createRepositories(): List<RemoteRepository> {
         val repos = linkedMapOf(
+            "https://maven.aliyun.com/repository/public/" to "aliyun",
             "https://maven-central.storage-download.googleapis.com/maven2/" to "central",
             "https://maven-central-asia.storage-download.googleapis.com/maven2/" to "central-asia",
-            "https://maven.aliyun.com/repository/public/" to "aliyun",
         )
         val best = repos.entries.firstOrNull {
             it.key.uriLatency in 0..125
