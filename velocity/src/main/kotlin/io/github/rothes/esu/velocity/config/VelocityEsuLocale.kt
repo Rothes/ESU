@@ -17,7 +17,7 @@ object VelocityEsuLocale: EsuLocale<VelocityLocaleData>() {
     }
 
     override fun load(): MultiLocaleConfiguration<VelocityLocaleData> = ConfigLoader.loadMulti(
-        EsuCore.Companion.instance.baseConfigPath().resolve("locale"), "en_us.yml"
+        EsuCore.Companion.instance.baseConfigPath().resolve("lang"), "en_us.yml"
     )
 
     class VelocityLocaleData: BaseEsuLocaleData() {

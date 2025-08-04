@@ -53,7 +53,7 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
         moduleFolder.resolve("config.yml")
     }
     override val localePath: Path by lazy {
-        moduleFolder.resolve("locale")
+        moduleFolder.resolve("lang")
     }
     override var enabled: Boolean = false
 
