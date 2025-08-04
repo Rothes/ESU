@@ -21,6 +21,7 @@ import java.lang.reflect.Type
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.zip.ZipException
 import kotlin.io.path.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -178,9 +179,14 @@ object ConfigLoader {
                                         try {
                                             clazz.kotlin.isData
                                         } catch (_: KotlinReflectionNotSupportedError) {
+                                            // If we don't have kotlin-reflect
                                             false
                                         } catch (e: Throwable) {
-                                            if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
+                                            if (e is ZipException) {
+                                                // ZipException: ZipFile invalid LOC header (bad signature)
+                                                // Mostly caused by hot-update
+                                                EsuCore.instance.err("Failed to check ${clazz.canonicalName} isData: " + e.message)
+                                            } else if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
                                                 e.printStackTrace()
                                             }
                                             false
