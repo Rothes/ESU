@@ -1,4 +1,3 @@
-import com.xpdustry.ksr.kotlinRelocate
 import org.apache.tools.ant.filters.ReplaceTokens
 
 repositories {
@@ -41,13 +40,6 @@ tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}.jar"
 
     val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-    kotlinRelocate("kotlin.", "$pkg.kotlin.") {
-        exclude("%regex[.+\\.kotlin_builtins]") // Fix issues with kotlin-reflect
-    }
-    kotlinRelocate("kotlinx.", "$pkg.kotlinx.")
-    kotlinRelocate("org.jetbrains.exposed.", "$pkg.org.jetbrains.exposed.")
-    kotlinRelocate("org.incendo", "$pkg.org.incendo")
-    relocate("com.zaxxer", "$pkg.com.zaxxer")
     relocate("org.spongepowered", "$pkg.org.spongepowered")
     relocate("net.kyori", "$pkg.net.kyori")
 

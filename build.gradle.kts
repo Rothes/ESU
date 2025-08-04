@@ -3,10 +3,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     id("java-library")
-    kotlin("jvm") version "2.1.21"
+    kotlin("jvm") version "2.2.0"
     `maven-publish`
     id("com.gradleup.shadow") version "9.0.0-rc1"
-    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
+//    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
     id("com.github.gmazzo.buildconfig") version "5.5.1"
 }
 
@@ -34,7 +34,6 @@ subprojects {
     apply(plugin = "kotlin")
     apply(plugin = "maven-publish")
     apply(plugin = "com.gradleup.shadow")
-    apply(plugin = "com.xpdustry.kotlin-shadow-relocator")
 
     val javaVer = JavaVersion.VERSION_11
 
