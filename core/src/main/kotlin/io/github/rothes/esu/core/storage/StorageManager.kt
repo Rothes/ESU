@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -145,8 +146,8 @@ object StorageManager {
                         it[colorScheme] = user.colorSchemeUnsafe
                     }
                 }
-            } catch (e: SQLException) {
-                if (e is SQLIntegrityConstraintViolationException) {
+            } catch (e: ExposedSQLException) {
+                if (e.cause is SQLIntegrityConstraintViolationException) {
                     EsuCore.instance.err("Failed to update user ${user.dbId} data ${user.nameUnsafe} (${user.uuid}): " + e.message)
                     user.nameUnsafe?.let { name ->
                         val get = getUserDataByName(name)
