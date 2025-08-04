@@ -37,4 +37,8 @@ object ConsoleUser: VelocityUser(), LogUser {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
     }
 
+    override fun print(string: String) {
+        commandSender.sendPlainMessage(string)
+    }
+
 }

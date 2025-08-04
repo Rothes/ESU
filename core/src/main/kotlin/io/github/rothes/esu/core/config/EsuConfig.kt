@@ -22,6 +22,10 @@ object EsuConfig {
 
     data class ConfigData(
         val locale: String = Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase(),
+        @field:Comment("""
+Enable this will force to print TrueColor messages in console. This would provide a pretty look.
+Disable this, or change your terminal software if you see weird chars in console.""")
+        val forceTrueColorConsole: Boolean = true,
         @field:Comment("By setting this to true, you can enable legacy color char support.\n" +
                 "You will able to use `&` char to set color/formats.")
         val legacyColorChar: Boolean = false,

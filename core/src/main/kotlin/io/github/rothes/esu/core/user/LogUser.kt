@@ -1,9 +1,13 @@
 package io.github.rothes.esu.core.user
 
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
+import net.kyori.ansi.ColorLevel
 
 interface LogUser: User {
 
@@ -29,6 +33,19 @@ interface LogUser: User {
             message(message, params = params)
         else
             message(message.copy(chat = message.chat.map { "[ESU] $it" }), params = params)
+    }
+
+    override fun message(message: Component) {
+        if (EsuConfig.get().forceTrueColorConsole)
+            print(serializer.serialize(message))
+        else
+            super.message(message)
+    }
+
+    fun print(string: String)
+
+    companion object {
+        private val serializer = ANSIComponentSerializer.builder().colorLevel(ColorLevel.TRUE_COLOR).build()
     }
 
 }
