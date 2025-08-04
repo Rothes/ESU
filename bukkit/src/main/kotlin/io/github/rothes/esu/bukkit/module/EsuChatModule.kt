@@ -464,6 +464,7 @@ the 'head' and 'foot' will be appended to the chat message.""")
                 val radius: Int = 5000,
                 @field:Comment("""
 Player with `esu.esuchat.chat.shout` permission can use this perfix to bypass ranged chat.
+By default, players own this permission.
 Use this prefix before prefixedMessageModifiers.""")
                 val shoutPrefix: String = "!",
                 val shoutFormat: ChatFormat = ChatFormat(

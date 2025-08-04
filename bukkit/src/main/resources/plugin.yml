@@ -11,17 +11,44 @@ softdepend:
   - packetevents
 
 permissions:
-  'esu.chatAntiSpam.bypass':
+  'esu.antiCommandSpam.admin':
     default: op
-  'esu.chatAntiSpam.notify':
+    children:
+      'esu.antiCommandSpam.exempt': true
+
+  'esu.chatAntiSpam.admin':
     default: op
-  'esu.antiCommandSpam.exempt':
+    children:
+      'esu.chatAntiSpam.bypass': true
+      'esu.chatAntiSpam.notify': true
+
+  ‘esu.esuChat.chat.shout':
+    default: true
+  'esu.esuChat.admin':
     default: op
-  ‘esu.esuchat.chat.shout':
+    children:
+      'esu.esuChat.spy': true
+      'esu.esuChat.spy.other': true
+      'esu.esuChat.spy.enableOnJoin': true
+
+  'esu.networkThrottle.admin':
     default: op
-  'esu.esuChat.spy':
+    children:
+      'esu.networkThrottle.command.analyser': true
+      'esu.networkThrottle.command.chunkDataThrottle': true
+
+  'esu.news.admin':
     default: op
-  'esu.esuChat.spy.other':
+    children:
+      'esu.news.command.editor': true
+
+  'esu.utilCommands.admin':
     default: op
-  'esu.esuChat.spy.enableOnJoin':
-    default: op
+    children:
+      'esu.utilCommands.command.ping': true
+      'esu.utilCommands.command.clientLocale': true
+      'esu.utilCommands.command.ip': true
+      'esu.utilCommands.command.ipGroup': true
+      'esu.utilCommands.command.tpChunk': true
+      'esu.utilCommands.command.genRateTop': true
+      'esu.utilCommands.command.loadRateTop': true

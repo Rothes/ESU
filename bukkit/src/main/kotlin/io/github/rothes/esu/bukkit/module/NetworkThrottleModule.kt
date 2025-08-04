@@ -91,7 +91,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             }
 
             @Command("network chunkDataThrottle view")
-            @ShortPerm()
+            @ShortPerm("chunkDataThrottle")
             fun chunkDataThrottleView(sender: User) {
                 val (minimalChunks, resentChunks, resentBlocks) = ChunkDataThrottle.counter
                 sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks ; resentBlocks: $resentBlocks")
