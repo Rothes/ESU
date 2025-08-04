@@ -48,6 +48,7 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
+import java.net.URLDecoder
 import java.nio.file.Path
 import java.util.jar.JarFile
 import java.util.logging.Level
@@ -118,7 +119,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         tempFolder.deleteRecursively()
         tempFolder.mkdirs()
 
-        JarFile(javaClass.protectionDomain.codeSource.location.path).use { jarFile ->
+        JarFile(URLDecoder.decode(javaClass.protectionDomain.codeSource.location.path, Charsets.UTF_8)).use { jarFile ->
             val entries = jarFile.entries()
             while (entries.hasMoreElements()) {
                 val entry = entries.nextElement()
