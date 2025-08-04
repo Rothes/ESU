@@ -3,12 +3,17 @@ package io.github.rothes.esu.core.config
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.spongepowered.configurate.objectmapping.meta.Comment
+import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*
 
 object EsuConfig {
+
+    init {
+        // Default to false right now. load() will cache kotlin.isData
+        URLConnection.setDefaultUseCaches("jar", false)
+    }
 
     private var data: ConfigData = load()
 
@@ -16,6 +21,8 @@ object EsuConfig {
 
     fun reloadConfig() {
         data = load()
+
+        URLConnection.setDefaultUseCaches("jar", !data.disableJarFileCache)
     }
 
     private fun load(): ConfigData = ConfigLoader.load(EsuCore.instance.baseConfigPath().resolve("config.yml"))
@@ -36,6 +43,11 @@ Disable this, or change your terminal software if you see weird chars in console
         val database: Database = Database(),
         val defaultColorScheme: String = "amethyst",
         val updateChecker: Boolean = true,
+        @field:Comment("""
+Set this to true will disable caching reading files in jars. This is globally in jvm.
+If you frequently hot-update plugins, setting this to true will reduce errors,
+ but may reduce performance in some cases.""")
+        val disableJarFileCache: Boolean = false,
     ): ConfigurationPart {
 
         data class Database(
