@@ -22,7 +22,7 @@ permissions:
       'esu.chatAntiSpam.bypass': true
       'esu.chatAntiSpam.notify': true
 
-  ‘esu.esuChat.chat.shout':
+  'esu.esuChat.chat.shout':
     default: true
   'esu.esuChat.admin':
     default: op
