@@ -451,6 +451,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 "\\<<pd:sender>> <message>".message,
                 "<#48c0c0>\\<<pd:sender>> <message>".message,
             ),
+            @field:Comment("""
+By enabling this, players only receive chat messages from nearby players, of the same world.""")
             val rangedChat: RangedChat = RangedChat(),
             @field:Comment("""
 If the message player sent starts with 'messagePrefix' and player has the permission,
