@@ -80,9 +80,11 @@ subprojects {
         if (project.name != "core") {
             apply(plugin = "com.github.gmazzo.buildconfig")
             buildConfig {
+                val exposedVersion: String by project
                 buildConfigField("VERSION_NAME", project.property("versionName").toString())
                 buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
                 buildConfigField("VERSION_ID", project.property("versionId").toString())
+                buildConfigField("EXPOSED_VERSION", exposedVersion)
             }
         }
     }

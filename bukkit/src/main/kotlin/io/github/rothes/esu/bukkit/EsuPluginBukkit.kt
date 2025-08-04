@@ -91,10 +91,10 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
         MavenResolver.loadDependencies(
             listOf(
-                "org.jetbrains.exposed:exposed-core:1.0.0-beta-2",
-                "org.jetbrains.exposed:exposed-jdbc:1.0.0-beta-2",
-                "org.jetbrains.exposed:exposed-kotlin-datetime:1.0.0-beta-2",
-                "org.jetbrains.exposed:exposed-json:1.0.0-beta-2",
+                "org.jetbrains.exposed:exposed-core:${BuildConfig.EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-json:${BuildConfig.EXPOSED_VERSION}",
 
                 "com.zaxxer:HikariCP:6.3.0",
                 "org.incendo:cloud-core:2.0.0",
