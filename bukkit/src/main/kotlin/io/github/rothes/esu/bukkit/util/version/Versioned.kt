@@ -70,11 +70,13 @@ class Versioned<T, V>(
             MavenResolver.loadUrl(url)
             versions.add(url)
 
-            val entries = JarFile(file).entries()
-            while (entries.hasMoreElements()) {
-                val entry = entries.nextElement()
-                if (entry.name.endsWith(".class")) {
-                    classes.add(entry.name.dropLast(".class".length).replace('/', '.'))
+            JarFile(file).use { jarFile ->
+                val entries = jarFile.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    if (entry.name.endsWith(".class")) {
+                        classes.add(entry.name.dropLast(".class".length).replace('/', '.'))
+                    }
                 }
             }
         }

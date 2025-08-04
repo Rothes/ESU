@@ -118,25 +118,25 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         tempFolder.deleteRecursively()
         tempFolder.mkdirs()
 
-        val jarFile = JarFile(javaClass.protectionDomain.codeSource.location.path)
-        val entries = jarFile.entries()
-        while (entries.hasMoreElements()) {
-            val entry = entries.nextElement()
-            val fullName = entry.name
-            if (fullName.startsWith("esu_minecraft_versions/") && fullName != "esu_minecraft_versions/") {
-                val url = classLoader.getResource(fullName)!!
+        JarFile(javaClass.protectionDomain.codeSource.location.path).use { jarFile ->
+            val entries = jarFile.entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                val fullName = entry.name
+                if (fullName.startsWith("esu_minecraft_versions/") && fullName != "esu_minecraft_versions/") {
+                    val name = fullName.substringAfterLast("/")
+                    val file = tempFolder.resolve(name)
+                    file.createNewFile()
 
-                val name = fullName.substringAfterLast("/")
-                val file = tempFolder.resolve(name)
-                file.createNewFile()
-                url.openStream().use { stream ->
-                    file.outputStream().use { output ->
-                        stream.copyTo(output)
+                    jarFile.getInputStream(entry).use { stream ->
+                        file.outputStream().use { output ->
+                            stream.copyTo(output)
+                        }
                     }
-                }
 
-                val toLoad = if (!ServerCompatibility.mojmap) JarRemapper.reobf(file) else file
-                Versioned.loadVersion(toLoad)
+                    val toLoad = if (!ServerCompatibility.mojmap) JarRemapper.reobf(file) else file
+                    Versioned.loadVersion(toLoad)
+                }
             }
         }
     }
