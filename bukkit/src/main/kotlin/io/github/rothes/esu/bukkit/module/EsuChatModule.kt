@@ -437,8 +437,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     data class ModuleConfig(
         val chat: Chat = Chat(),
-        val whisper: Whisper = Whisper(),
         val emote: Emote = Emote(),
+        val whisper: Whisper = Whisper(),
     ): BaseModuleConfiguration() {
 
         data class Chat(
@@ -479,6 +479,17 @@ Use this prefix before prefixedMessageModifiers.""")
             )
         }
 
+        data class Emote(
+            @field:Comment("Enable esu emote/me commands.")
+            val enabled: Boolean = true,
+            val format: MessageData = "<pl:prefix><pdc><pd:sender></pdc> <message>".message,
+            @field:Comment("Enabling this will redirect all emote commands to the esu one, to avoid mixing usage.")
+            val interceptNamespaces: Boolean = true,
+            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
+                PrefixedMessageModifier("", true, "", "<gray>", "</gray>"),
+            ),
+        )
+
         data class Whisper(
             @field:Comment("Enable esu whisper commands.")
             val enabled: Boolean = true,
@@ -502,17 +513,6 @@ Use this prefix before prefixedMessageModifiers.""")
             }
         }
 
-        data class Emote(
-            @field:Comment("Enable esu emote/me commands.")
-            val enabled: Boolean = true,
-            val format: MessageData = "<pl:prefix><pdc><pd:sender></pdc> <message>".message,
-            @field:Comment("Enabling this will redirect all emote commands to the esu one, to avoid mixing usage.")
-            val interceptNamespaces: Boolean = true,
-            val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
-                PrefixedMessageModifier("", true, "", "<gray>", "</gray>"),
-            ),
-        )
-
         data class PrefixedMessageModifier(
             val messagePrefix: String = "",
             val removePrefix: Boolean = false,
@@ -527,8 +527,8 @@ Use this prefix before prefixedMessageModifiers.""")
         val playerDisplay: String = "<hover:show_text:'<pc>Click to whisper <pdc><player_key>'>" +
                 "<click:suggest_command:/m <player_key_name> ><player_key></hover>",
         val chat: Chat = Chat(),
-        val whisper: Whisper = Whisper(),
         val emote: Emote = Emote(),
+        val whisper: Whisper = Whisper(),
         val ignore: Ignore = Ignore(),
     ): ConfigurationPart {
 
