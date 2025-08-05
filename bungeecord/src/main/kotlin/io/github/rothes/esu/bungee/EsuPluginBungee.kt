@@ -34,6 +34,8 @@ import java.util.logging.Level
 
 class EsuPluginBungee: Plugin(), EsuCore {
 
+    override var dependenciesResolved: Boolean = false
+        private set
     override var initialized: Boolean = false
         private set
     var enabled: Boolean = false

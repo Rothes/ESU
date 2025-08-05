@@ -55,6 +55,8 @@ import java.util.logging.Level
 
 class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
+    override var dependenciesResolved: Boolean = false
+        private set
     override var initialized: Boolean = false
         private set
 
@@ -109,6 +111,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 "info.debatty:java-string-similarity:2.0.0",
             )
         )
+        dependenciesResolved = true
 
         loadVersions()
         enabledHot = byPluginMan()
@@ -163,7 +166,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
     override fun onEnable() {
         checkSpigotSupport()
-        EsuConfig           // Load global config
+        EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
         BukkitEsuLocale     // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes

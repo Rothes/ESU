@@ -43,6 +43,8 @@ class EsuPluginVelocity(
     val bootstrap: EsuBootstrap,
 ): EsuCore {
 
+    override var dependenciesResolved: Boolean = false
+        private set
     override var initialized: Boolean = false
         private set
     var enabled: Boolean = false
@@ -84,6 +86,7 @@ class EsuPluginVelocity(
                 "org.mariadb.jdbc:mariadb-java-client:3.5.3",
             )
         )
+        dependenciesResolved = true
     }
 
     override val commandManager: VelocityCommandManager<VelocityUser> by lazy {
@@ -107,7 +110,7 @@ class EsuPluginVelocity(
     }
 
     fun onProxyInitialization() {
-        EsuConfig           // Load global config
+        EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
         VelocityEsuLocale   // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
