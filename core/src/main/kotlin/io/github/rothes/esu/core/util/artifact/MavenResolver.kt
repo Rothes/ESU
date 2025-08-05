@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.util.artifact
 
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.util.artifact.injector.ReflectURLInjector
 import io.github.rothes.esu.core.util.artifact.injector.URLInjector
 import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
@@ -52,17 +52,10 @@ object MavenResolver {
     private var injecter: URLInjector = UnsafeURLInjector
 
     private fun createRepositories(): List<RemoteRepository> {
-        val repos = linkedMapOf(
-            "https://maven.aliyun.com/repository/public/" to "aliyun",
-            "https://maven-central.storage-download.googleapis.com/maven2/" to "central",
-            "https://maven-central-asia.storage-download.googleapis.com/maven2/" to "central-asia",
-        )
-        val best = repos.entries.firstOrNull {
-            it.key.uriLatency in 0..125
-        } ?: repos.firstEntry()
+        val repo = EsuConfig.get().mavenRepo
         return buildList {
-            add(RemoteRepository.Builder(best.value, "default", best.key).build())
-            if (best.value != "aliyun") {
+            add(RemoteRepository.Builder(repo.id, "default", repo.url).build())
+            if (repo.id == "central") {
                 add(RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build())
             }
         }
