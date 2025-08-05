@@ -18,7 +18,11 @@ object EsuConfig {
         URLConnection.setDefaultUseCaches("jar", false)
     }
 
-    private var data: ConfigData = load()
+    private lateinit var data: ConfigData
+
+    init {
+        reloadConfig()
+    }
 
     fun get() = data
 
