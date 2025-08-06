@@ -44,8 +44,6 @@ tasks.shadowJar {
     archiveFileName = "${fileName}-${project.version}.jar"
 
     val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-    relocate("org.spongepowered", "$pkg.org.spongepowered")
-    relocate("net.kyori.option", "$pkg.net.kyori.option")
 
     relocate("org.bstats", "$pkg.org.bstats")
 

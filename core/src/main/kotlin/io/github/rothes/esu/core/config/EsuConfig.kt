@@ -4,9 +4,9 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
-import org.spongepowered.configurate.objectmapping.meta.Comment
-import org.spongepowered.configurate.objectmapping.meta.PostProcess
-import org.spongepowered.configurate.objectmapping.meta.Setting
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*

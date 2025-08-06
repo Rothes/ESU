@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.configuration.serializer
 
-import org.spongepowered.configurate.serialize.ScalarSerializer
-import org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
 import java.lang.reflect.Type
 import java.time.Duration
 import java.util.function.Predicate

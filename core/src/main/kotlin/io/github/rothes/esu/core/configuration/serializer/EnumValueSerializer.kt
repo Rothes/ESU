@@ -1,12 +1,11 @@
 package io.github.rothes.esu.core.configuration.serializer
 
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.org.spongepowered.configurate.util.EnumLookup
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
-import org.spongepowered.configurate.serialize.ScalarSerializer
-import org.spongepowered.configurate.serialize.SerializationException
-import org.spongepowered.configurate.util.EnumLookup
 import java.lang.reflect.Type
-import java.util.*
 import java.util.function.Predicate
 import kotlin.Any
 import kotlin.Enum

@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.configuration.serializer
 
-import org.spongepowered.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
 import java.lang.reflect.Type
 import java.nio.file.Path
 import java.nio.file.Paths

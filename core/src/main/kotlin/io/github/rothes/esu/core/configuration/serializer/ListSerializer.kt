@@ -1,10 +1,10 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
-import org.spongepowered.configurate.ConfigurationOptions
-import org.spongepowered.configurate.serialize.AbstractListChildSerializer
-import org.spongepowered.configurate.serialize.SerializationException
-import org.spongepowered.configurate.util.CheckedConsumer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationOptions
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.AbstractListChildSerializer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.org.spongepowered.configurate.util.CheckedConsumer
 import java.lang.reflect.AnnotatedParameterizedType
 import java.lang.reflect.AnnotatedType
 

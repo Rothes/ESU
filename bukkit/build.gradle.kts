@@ -48,8 +48,6 @@ allprojects {
         fun relocate(pattern: String) {
             relocate(pattern, "$pkg.$pattern")
         }
-        relocate("org.spongepowered")
-        relocate("net.kyori.option")
 
         relocate("org.bstats")
         relocate("de.tr7zw.changeme.nbtapi")

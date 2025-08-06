@@ -5,10 +5,10 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.bungee.config.BungeeEsuLocale.BungeeLocaleData
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.incendo.cloud.caption.ConstantCaptionProvider
 import org.incendo.cloud.caption.DelegatingCaptionProvider
 import org.incendo.cloud.caption.StandardCaptionsProvider
-import org.spongepowered.configurate.objectmapping.meta.PostProcess
 
 object BungeeEsuLocale: EsuLocale<BungeeLocaleData>() {
 
@@ -17,7 +17,7 @@ object BungeeEsuLocale: EsuLocale<BungeeLocaleData>() {
     }
 
     override fun load(): MultiLocaleConfiguration<BungeeLocaleData> = ConfigLoader.loadMulti(
-        EsuCore.Companion.instance.baseConfigPath().resolve("lang"), "en_us.yml"
+        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us.yml"
     )
 
     class BungeeLocaleData: BaseEsuLocaleData() {

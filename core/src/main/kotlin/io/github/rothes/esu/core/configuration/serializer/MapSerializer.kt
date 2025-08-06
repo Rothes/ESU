@@ -2,13 +2,13 @@ package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
+import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
+import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationNode
+import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationOptions
+import io.github.rothes.esu.lib.org.spongepowered.configurate.NodePath
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.TypeSerializer
 import io.leangen.geantyref.GenericTypeReflector
-import org.spongepowered.configurate.BasicConfigurationNode
-import org.spongepowered.configurate.ConfigurationNode
-import org.spongepowered.configurate.ConfigurationOptions
-import org.spongepowered.configurate.NodePath
-import org.spongepowered.configurate.serialize.SerializationException
-import org.spongepowered.configurate.serialize.TypeSerializer
 import java.lang.reflect.AnnotatedType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type

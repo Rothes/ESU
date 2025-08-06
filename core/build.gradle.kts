@@ -10,7 +10,7 @@ val exposedVersion: String by project
 dependencies {
     api(kotlin("reflect"))
 
-    api("com.github.Rothes.Configurate:configurate-yaml:master-SNAPSHOT")
+    api(project(":core:configurate", configuration = "shadow"))
     compileOnlyApi("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     compileOnlyApi("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")

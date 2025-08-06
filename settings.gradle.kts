@@ -1,5 +1,7 @@
 rootProject.name = "ESU"
 include("core")
+include("core:configurate")
+
 include("bukkit")
 include("velocity")
 include("bungeecord")

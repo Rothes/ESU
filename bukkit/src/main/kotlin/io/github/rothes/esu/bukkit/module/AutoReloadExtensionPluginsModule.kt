@@ -8,9 +8,9 @@ import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 
 object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java

@@ -1,12 +1,12 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
 import org.incendo.cloud.caption.Caption
 import org.incendo.cloud.caption.CaptionProvider
 import org.incendo.cloud.caption.ConstantCaptionProvider
 import org.incendo.cloud.caption.DelegatingCaptionProvider
-import org.spongepowered.configurate.serialize.ScalarSerializer
-import org.spongepowered.configurate.serialize.SerializationException
 import java.lang.reflect.Type
 import java.util.*
 import java.util.function.Predicate
