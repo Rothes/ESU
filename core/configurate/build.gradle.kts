@@ -24,3 +24,18 @@ tasks.shadowJar {
 
     mergeServiceFiles()
 }
+
+publishing {
+    repositories {
+        mavenLocal()
+    }
+    publications {
+        create<MavenPublication>("mavenJar") {
+            from(components["shadow"])
+
+            artifactId = project.name
+            groupId = project.group as String?
+            version = project.version as String?
+        }
+    }
+}

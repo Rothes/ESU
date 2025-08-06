@@ -68,10 +68,7 @@ subprojects {
             }
             publications {
                 create<MavenPublication>("mavenJar") {
-                    if (project.name == "core")
-                        from(components["shadow"])
-                    else
-                        from(components["java"])
+                    from(components["java"])
 
                     artifactId = project.name
                     groupId = project.group as String?
