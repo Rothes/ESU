@@ -19,10 +19,10 @@ import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.version.Version
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
-import org.spongepowered.configurate.objectmapping.meta.Comment
-import org.spongepowered.configurate.objectmapping.meta.PostProcess
 import java.time.Duration
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds

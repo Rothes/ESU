@@ -9,7 +9,7 @@ import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
-import org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.jvm.java
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(

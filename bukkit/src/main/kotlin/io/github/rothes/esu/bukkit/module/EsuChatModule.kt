@@ -21,6 +21,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.enabled
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -39,7 +40,6 @@ import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
 import org.incendo.cloud.annotations.Permission
-import org.spongepowered.configurate.objectmapping.meta.Comment
 import java.util.concurrent.TimeUnit
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>(

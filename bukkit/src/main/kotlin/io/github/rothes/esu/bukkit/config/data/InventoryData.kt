@@ -2,11 +2,10 @@ package io.github.rothes.esu.bukkit.config.data
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
-import net.minecraft.world.entity.variant.SpawnPrioritySelectors.fallback
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.NodeKey
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryType
-import org.spongepowered.configurate.objectmapping.meta.NodeKey
-import org.spongepowered.configurate.objectmapping.meta.Setting
 
 open class InventoryData<T>(
     val inventoryType: InventoryType? = null,

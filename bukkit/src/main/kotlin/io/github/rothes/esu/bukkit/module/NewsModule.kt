@@ -21,6 +21,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.time
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
+import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
@@ -33,7 +34,6 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
-import org.spongepowered.configurate.objectmapping.meta.Comment
 import kotlin.jvm.java
 
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
