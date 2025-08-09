@@ -9,6 +9,7 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
 
@@ -78,7 +79,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     private fun loadCriticalClasses() {
         // Load the classes those are easily to break the hot plugin update.
-        org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
+        Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
         org.incendo.cloud.parser.flag.FlagContext::class.java.toString()
         Charsets::class.java.toString()
         InventoryAdapter.instance
