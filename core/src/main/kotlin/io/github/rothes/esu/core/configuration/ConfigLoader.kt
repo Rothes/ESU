@@ -4,6 +4,7 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
+import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
@@ -154,6 +155,31 @@ object ConfigLoader {
                             val node = root.node("old-config-removed", *destination.path().array())
                             node.from(destination)
                             destination.parent()?.removeChild(destination.key())
+                        }
+                    }
+                    .addProcessor(RenamedFrom::class.java) { data, _ ->
+                        val name = data.oldName
+                        require(name.isNotEmpty())
+                        Processor { _, destination ->
+                            val parent = if (name.startsWith('/')) {
+                                var root = destination
+                                while (true) {
+                                    root = root.parent() ?: break
+                                }
+                                root
+                            } else {
+                                var p = destination.parent()!!
+                                for (i in 0 ..< name.count { it == '.' }) {
+                                    p = p.parent() ?: error("Parent node is null while processing $name")
+                                }
+                                p
+                            }
+                            val from = parent.node(*name.split('.').toTypedArray())
+                            if (!from.virtual()) {
+                                destination.set(from.raw())
+                                from.set(null)
+                                from.parent()!!.removeChild(from.key())
+                            }
                         }
                     }
                     .addNodeResolver { name, _ ->
