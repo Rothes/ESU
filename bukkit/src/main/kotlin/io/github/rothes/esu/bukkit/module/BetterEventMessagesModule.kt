@@ -89,11 +89,20 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
     }
 
     data class ModuleConfig(
-        @field:Comment("""
-Customize the message behaviours.
-Set 'message-color' to '${OptionalSerializer.DISABLED}' or a color to override the default color of the vanilla message.
-Set 'format' to modify the original message, set it to empty to remove the messages.
-If 'show-in-console' is false, only online players can see the message.""")
+        @io.github.rothes.esu.core.configuration.meta.Comment(
+            """
+            Customize the message behaviours.
+            Set 'message-color' to '${OptionalSerializer.DISABLED}' or a color to override the default color of the vanilla message.
+            Set 'format' to modify the original message, set it to empty to remove the messages.
+            If 'show-in-console' is false, only online players can see the message.
+            """,
+            overrideOld =
+                """
+                Customize the message behaviours.
+                Set 'color' to '${OptionalSerializer.DISABLED}' or a color to change the default color of the message.
+                Set 'head' and 'foot' the prefix and suffix to be added to the original message.
+                If 'show-in-console' is false, only the online players can see the message.
+                """)
         val message: Message = Message(),
     ): BaseModuleConfiguration() {
 
