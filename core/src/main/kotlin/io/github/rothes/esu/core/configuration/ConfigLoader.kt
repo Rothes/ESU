@@ -3,6 +3,7 @@ package io.github.rothes.esu.core.configuration
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
@@ -143,12 +144,25 @@ object ConfigLoader {
                                 destination.set(null)
                             }
                         }
-                    }.addNodeResolver { name, _ ->
+                    }
+                    .addProcessor(RemovedNode::class.java) { _, _ ->
+                        Processor { _, destination ->
+                            var root = destination
+                            while (true) {
+                                root = root.parent() ?: break
+                            }
+                            val node = root.node("old-config-removed", *destination.path().array())
+                            node.from(destination)
+                            destination.parent()?.removeChild(destination.key())
+                        }
+                    }
+                    .addNodeResolver { name, _ ->
                         // Skip kotlin delegate(e.g. lazy) properties
                         if (name.endsWith("\$delegate")) {
                             NodeResolver.SKIP_FIELD
                         } else null
-                    }.build()
+                    }
+                    .build()
                 options.mapFactory(MapFactories.insertionOrdered())
                     .serializers {
                         if (EsuCore.instance.dependenciesResolved) {
