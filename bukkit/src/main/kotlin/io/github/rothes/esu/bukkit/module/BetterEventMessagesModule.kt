@@ -4,10 +4,15 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
+import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.OptionalUtils.applyTo
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
 import net.kyori.adventure.text.Component
@@ -66,11 +71,10 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
         private fun handle(message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {
             val handler = { user: User ->
                 user.message(
-                    Component.text()
-                        .append(user.buildMinimessage(modifier.head))
-                        .append(modifier.color.applyTo(message) { message.color(it) })
-                        .append(user.buildMinimessage(modifier.foot))
-                        .build()
+                    modifier.format,
+                    component("message",
+                        modifier.messageColor.applyTo(message) { message.color(it) }
+                    )
                 )
             }
             Bukkit.getOnlinePlayers().forEach {
@@ -87,9 +91,9 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
     data class ModuleConfig(
         @field:Comment("""
 Customize the message behaviours.
-Set 'color' to '${OptionalSerializer.DISABLED}' or a color to change the default color of the message.
-Set 'head' and 'foot' the prefix and suffix to be added to the original message.
-If 'show-in-console' is false, only the online players can see the message.""")
+Set 'message-color' to '${OptionalSerializer.DISABLED}' or a color to override the default color of the vanilla message.
+Set 'format' to modify the original message, set it to empty to remove the messages.
+If 'show-in-console' is false, only online players can see the message.""")
         val message: Message = Message(),
     ): BaseModuleConfiguration() {
 
@@ -101,12 +105,18 @@ If 'show-in-console' is false, only the online players can see the message.""")
         ): ConfigurationPart {
 
             data class MessageModifier(
-                val color: Optional<TextColor> = Optional.empty(),
-                val head: String = "",
-                val foot: String = "",
+                @RenamedFrom("color")
+                val messageColor: Optional<TextColor> = Optional.empty(),
+                val format: MessageData = "<message>".message,
                 val showInConsole: Boolean = true,
             ): ConfigurationPart {
-                constructor(color: TextColor?, head: String = ""): this(Optional.ofNullable(color), head)
+                @RemovedNode
+                val color: Optional<TextColor>? = null
+                @RemovedNode
+                val head: String? = null
+                @RemovedNode
+                val foot: String? = null
+                constructor(color: TextColor?, head: String = ""): this(Optional.ofNullable(color), "$head<message>".message)
             }
 
         }
