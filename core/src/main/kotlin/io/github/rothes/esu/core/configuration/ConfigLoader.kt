@@ -2,12 +2,7 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.configuration.meta.OVERRIDE_DISABLED
-import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
-import io.github.rothes.esu.core.configuration.meta.OVERRIDE_ALWAYS
-import io.github.rothes.esu.core.configuration.meta.RemovedNode
-import io.github.rothes.esu.core.configuration.meta.RenamedFrom
+import io.github.rothes.esu.core.configuration.meta.*
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
@@ -145,15 +140,12 @@ object ConfigLoader {
                     .addProcessor(Comment::class.java) { data, _ ->
                         Processor { _, destination ->
                             if (destination is CommentedConfigurationNodeIntermediary<*>) {
-                                when (val old = data.overrideOld.trimIndent()) {
-                                    OVERRIDE_DISABLED -> destination.commentIfAbsent(data.value.trimIndent())
-                                    OVERRIDE_ALWAYS -> destination.comment(data.value.trimIndent())
-                                    else -> {
-                                        if (destination.comment() == null || destination.comment() == old) {
-                                            destination.comment(data.value.trimIndent())
-                                        }
-                                        destination.commentIfAbsent(data.value.trimIndent())
-                                    }
+                                if (data.overrideOld.isEmpty() || destination.comment() == null) {
+                                    destination.commentIfAbsent(data.value.trimIndent())
+                                } else if (data.overrideOld.first() == OVERRIDE_ALWAYS) {
+                                    destination.comment(data.value.trimIndent())
+                                } else if (data.overrideOld.map { it.trimIndent() }.contains(destination.comment())) {
+                                    destination.comment(data.value.trimIndent())
                                 }
                             }
                         }
