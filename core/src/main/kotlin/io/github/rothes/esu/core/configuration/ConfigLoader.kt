@@ -2,13 +2,17 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
+import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.OVERRIDE_DISABLED
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
+import io.github.rothes.esu.core.configuration.meta.OVERRIDE_ALWAYS
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.CommentedConfigurationNode
+import io.github.rothes.esu.lib.org.spongepowered.configurate.CommentedConfigurationNodeIntermediary
 import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.loader.HeaderMode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.ObjectMapper
@@ -138,6 +142,22 @@ object ConfigLoader {
             .commentsEnabled(true)
             .defaultOptions { options ->
                 val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder()
+                    .addProcessor(Comment::class.java) { data, _ ->
+                        Processor { _, destination ->
+                            if (destination is CommentedConfigurationNodeIntermediary<*>) {
+                                when (val old = data.overrideOld.trimIndent()) {
+                                    OVERRIDE_DISABLED -> destination.commentIfAbsent(data.value.trimIndent())
+                                    OVERRIDE_ALWAYS -> destination.comment(data.value.trimIndent())
+                                    else -> {
+                                        if (destination.comment() == null || destination.comment() == old) {
+                                            destination.comment(data.value.trimIndent())
+                                        }
+                                        destination.commentIfAbsent(data.value.trimIndent())
+                                    }
+                                }
+                            }
+                        }
+                    }
                     .addProcessor(NoDeserializeIf::class.java) { data, _ ->
                         Processor { value, destination ->
                             if (value.toString() == data.value) {
