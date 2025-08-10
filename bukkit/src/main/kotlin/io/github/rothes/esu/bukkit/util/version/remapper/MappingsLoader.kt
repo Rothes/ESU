@@ -41,7 +41,6 @@ object MappingsLoader {
     }()
 
     private fun loadMappings(): CachedFiles.Mappings {
-        createCraftBukkitMapping()
         return loadMappingsFromCache() ?: let {
             downloadFiles()
             loadMappingsFromCache() ?: error("Failed to load mappings, cache corrupted")
@@ -185,7 +184,6 @@ object MappingsLoader {
         craftBukkitPackage?.let { _ ->
             val resolve = cacheFolder.resolve("craft-bukkit.csrg")
             resolve.outputStream().bufferedWriter().use { writer ->
-                println(Bukkit.getServer().javaClass.protectionDomain.codeSource.location)
                 ClassPath.from(Bukkit.getServer().javaClass.classLoader)
                     .allClasses
                     .filter {
