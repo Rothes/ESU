@@ -33,6 +33,7 @@ subprojects {
     }
 
     tasks.shadowJar {
+        archiveFileName = project.name + ".jar"
         val split = project.name.substring(1).split('_')
         for (i in 1 .. split.size) {
             relocate(
