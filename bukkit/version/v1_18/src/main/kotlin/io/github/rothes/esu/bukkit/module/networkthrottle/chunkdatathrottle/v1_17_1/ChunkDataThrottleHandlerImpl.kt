@@ -58,13 +58,13 @@ import net.minecraft.world.level.chunk.*
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.World.Environment
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.lang.reflect.Method
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.experimental.or
@@ -670,15 +670,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val Level.bukkit
         get() = worldMethod.invoke(this) as World
 
-    private var handleMethod: Method? = null
     private inline val Player.nms: ServerPlayer
-        get() {
-            val mt = handleMethod ?: this.javaClass.getMethod("getHandle").also {
-                it.isAccessible = true
-                handleMethod = it
-            }
-            return mt.invoke(this) as ServerPlayer
-        }
+        get() = (this as CraftPlayer).handle
 
     private val BlockState.id
         get() = Block.BLOCK_STATE_REGISTRY.getId(this)
