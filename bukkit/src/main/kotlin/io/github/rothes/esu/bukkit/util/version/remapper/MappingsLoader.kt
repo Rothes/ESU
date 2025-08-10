@@ -191,6 +191,7 @@ object MappingsLoader {
                     .allClasses
                     .filter {
                         it.name.startsWith("org.bukkit.craftbukkit.v") }
+                    .sortedBy { it.name }
                     .forEach {
                         val start = "org.bukkit.craftbukkit.".length
                         val end = it.name.indexOf('.', start) + 1
