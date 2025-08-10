@@ -33,6 +33,13 @@ subprojects {
     }
 
     tasks.shadowJar {
+        val split = project.name.substring(1).split('_')
+        for (i in 1 .. split.size) {
+            relocate(
+                "org.bukkit.craftbukkit.v${split.take(2).joinToString("_")}_R$i",
+                "org.bukkit.craftbukkit"
+            )
+        }
         dependencies {
             exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
             exclude(dependency("org.jetbrains:annotations"))
