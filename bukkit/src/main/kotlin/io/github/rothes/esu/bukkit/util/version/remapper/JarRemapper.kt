@@ -15,7 +15,10 @@ object JarRemapper {
     fun reobf(file: File): File {
         val output = cacheFolder.resolve(file.name)
 
-        if (output.exists() && cached.verify(output) && cached.verify(file, "mojmap"))
+        if (output.exists()
+            && cached.verify(output)
+            && cached.verify(file, "mojmap")
+            && cached.verify(output, "mappings", MappingsLoader.mappingsHash()))
             return output
 
         output.parentFile.mkdirs()
@@ -43,6 +46,7 @@ object JarRemapper {
         renamer.run(file, output)
         cached.store(output)
         cached.store(file, "mojmap")
+        cached.store(output, "mappings", MappingsLoader.mappingsHash())
         cached.save()
         return output
     }

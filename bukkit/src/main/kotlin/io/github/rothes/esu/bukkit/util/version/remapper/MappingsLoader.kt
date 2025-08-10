@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.util.version.remapper
 import com.google.common.reflect.ClassPath
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.version.remapper.FileHashes.Companion.sha1
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.version.Version
 import net.neoforged.art.api.Renamer
@@ -39,6 +40,8 @@ object MappingsLoader {
         val servers = loadServers(mappings)
         CachedFiles(mappings, servers)
     }()
+
+    fun mappingsHash() = fileHashes.dataFile.sha1
 
     private fun loadMappings(): CachedFiles.Mappings {
         return loadMappingsFromCache() ?: let {
