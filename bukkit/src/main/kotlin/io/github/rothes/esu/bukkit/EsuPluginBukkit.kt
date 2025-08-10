@@ -28,6 +28,7 @@ import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import net.jpountz.lz4.LZ4Factory
+import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
@@ -87,6 +88,10 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     "net.kyori:adventure-text-serializer-plain:4.24.0",
                 )
             )
+        }
+        MavenResolver.testDependency("net.kyori:adventure-text-serializer-ansi:4.24.0") {
+            // Confirmed on Paper 1.18.2, doesn't contain this
+            ANSIComponentSerializer.ansi()
         }
         MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
             LZ4Factory.fastestInstance()
