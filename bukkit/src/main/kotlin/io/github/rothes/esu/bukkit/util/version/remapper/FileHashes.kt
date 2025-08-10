@@ -12,9 +12,9 @@ class FileHashes(
     folder: File
 ) {
 
-    private val hashes = folder.resolve(FILE_HASHES_FILENAME)
+    val dataFile = folder.resolve(FILE_HASHES_FILENAME)
 
-    private val data: Data = if (!hashes.exists()) Data() else hashes.readText().deserialize()
+    private val data: Data = if (!dataFile.exists()) Data() else dataFile.readText().deserialize()
 
     operator fun get(key: String): String? = data.sha1[key]
     operator fun set(key: String, value: String) = data.sha1.set(key, value)
@@ -39,11 +39,11 @@ class FileHashes(
     }
 
     fun save() {
-        if (!hashes.exists()) {
-            hashes.parentFile.mkdirs()
-            hashes.createNewFile()
+        if (!dataFile.exists()) {
+            dataFile.parentFile.mkdirs()
+            dataFile.createNewFile()
         }
-        hashes.writer().use { writer ->
+        dataFile.writer().use { writer ->
             writer.append(data.serialize())
         }
     }
