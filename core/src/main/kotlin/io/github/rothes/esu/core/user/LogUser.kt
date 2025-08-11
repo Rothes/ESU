@@ -5,9 +5,14 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TranslatableComponent
+import net.kyori.adventure.text.flattener.ComponentFlattener
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
+import net.kyori.adventure.translation.GlobalTranslator
+import net.kyori.adventure.translation.TranslationRegistry
 import net.kyori.ansi.ColorLevel
+import java.util.*
 
 interface LogUser: User {
 
@@ -50,7 +55,32 @@ interface LogUser: User {
     fun print(string: String)
 
     companion object {
-        private val serializer = ANSIComponentSerializer.builder().colorLevel(ColorLevel.TRUE_COLOR).build()
+        private var flattener = ComponentFlattener.basic().toBuilder().complexMapper(TranslatableComponent::class.java) { translatable, consumer ->
+            for (source in GlobalTranslator.translator().sources()) {
+                if (source is TranslationRegistry && source.contains(translatable.key())) {
+                    consumer.accept(GlobalTranslator.render(translatable, Locale.getDefault()))
+                    return@complexMapper
+                }
+            }
+            val fallback = translatable.fallback() ?: return@complexMapper
+            for (source in GlobalTranslator.translator().sources()) {
+                if (source is TranslationRegistry && source.contains(fallback)) {
+                    consumer.accept(GlobalTranslator.render(Component.translatable(fallback), Locale.getDefault()))
+                    return@complexMapper
+                }
+            }
+        }.build()
+        private var serializer = buildSerializer()
+
+        fun setFlattener(flattener: ComponentFlattener) {
+            this.flattener = flattener
+            serializer = buildSerializer()
+        }
+
+        private fun buildSerializer() = ANSIComponentSerializer.builder()
+            .colorLevel(ColorLevel.TRUE_COLOR)
+            .flattener(flattener)
+            .build()
     }
 
 }

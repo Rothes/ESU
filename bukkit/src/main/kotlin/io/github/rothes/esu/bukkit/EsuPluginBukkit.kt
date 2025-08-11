@@ -119,6 +119,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         dependenciesResolved = true
 
         loadVersions()
+        Class.forName("io.github.rothes.esu.bukkit.AnsiFlattener")
         enabledHot = byPluginMan()
     }
 
