@@ -9,6 +9,7 @@ import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
+import org.bukkit.Bukkit
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -27,6 +28,11 @@ object MappingsLoader {
 
     private const val SERVER_CL = "serverCl.jar"
     private const val SERVER_MOJMAP = "serverMojmap.jar"
+
+    val craftBukkitPackage =
+        "org\\.bukkit\\.craftbukkit\\.([^.]+)\\.CraftServer".toRegex()
+            .matchEntire(Bukkit.getServer().javaClass.canonicalName)
+            ?.groupValues[1]
 
     val loadedFiles = {
         val mappings = loadMappings()
@@ -136,6 +142,7 @@ object MappingsLoader {
     }
 
     private fun downloadFiles() {
+        plugin.info("Downloading mappings, this might take a while as it's the first run")
         val commit = getSpigotCommit()
         val version = getMinecraftVersion()
         val pkg = version.packageObject
@@ -146,7 +153,6 @@ object MappingsLoader {
             if (hasSpigotMembers)
                 add("bukkit-members.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-${MappingsLoader.version}-members.csrg?at=$commit")
         }
-        plugin.info("Downloading mappings, this might take a while as it's the first run")
         cacheFolder.mkdirs()
         fileHashes.clear()
         files.forEach {
@@ -169,7 +175,50 @@ object MappingsLoader {
                     }
                 }
             }
-            fileHashes.store(file)
+        }
+        if (MappingsLoader.version.minor <= 16) {
+            // Mappings doesn't contain NMS package, fixing it
+            val prefix = "net/minecraft/server/$craftBukkitPackage/"
+            fun String.prefixed() = "$prefix${substringAfterLast('/')}"
+
+            with(cacheFolder.resolve("bukkit-cl.csrg")) {
+                writeText(readLines().joinToString("\n") { line ->
+                    if (!line.startsWith('#')) {
+                        val split = line.split(' ')
+                        require(split.size == 2) { "Invalid line format: $line" }
+                        "${split[0]} ${split[1].prefixed()}"
+                    } else {
+                        line
+                    }
+                })
+            }
+            with(cacheFolder.resolve("bukkit-members.csrg")) {
+                val regex = "L([^;)]+)".toRegex()
+                fun String.handleArgs() = replace(regex) {
+                    if (it.groupValues[1].contains('/') && !it.groupValues[1].startsWith("net/minecraft/server/"))
+                        // If it's neither "net/minecraft/server/Main" or "net/minecraft/server/MinecraftServer"
+                        it.value
+                    else
+                        "L${it.groupValues[1].prefixed()}"
+                }
+
+                writeText(readLines().joinToString("\n") { line ->
+                    if (!line.startsWith('#')) {
+                        val split = line.split(' ')
+                        require(split.size in 3..4) { "Invalid line format: $line" }
+                        when (split.size) {
+                            3 -> "${split[0].prefixed()} ${split[1].handleArgs()} ${split[2]}"
+                            4 -> "${split[0].prefixed()} ${split[1]} ${split[2].handleArgs()} ${split[3]}"
+                            else -> error("?")
+                        }
+                    } else {
+                        line
+                    }
+                })
+            }
+        }
+        files.forEach {
+            fileHashes.store(cacheFolder.resolve(it.first))
         }
         fileHashes.save()
     }

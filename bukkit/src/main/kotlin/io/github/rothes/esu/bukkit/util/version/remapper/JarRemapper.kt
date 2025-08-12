@@ -5,18 +5,12 @@ import io.github.rothes.esu.core.util.artifact.PackageRelocator
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
-import org.bukkit.Bukkit
 import java.io.File
 import kotlin.text.startsWith
 
 object JarRemapper {
 
     private const val REMAPPER_VERSION = "3"
-
-    private val craftBukkitPackage =
-        "org\\.bukkit\\.craftbukkit\\.([^.]+)\\.CraftServer".toRegex()
-            .matchEntire(Bukkit.getServer().javaClass.canonicalName)
-            ?.groupValues[1]
 
     private val cacheFolder = plugin.dataFolder.resolve(".cache/remapped")
     private val cached = FileHashes(cacheFolder)
@@ -54,7 +48,7 @@ object JarRemapper {
             }
         }.build()
         renamer.run(file, output)
-        craftBukkitPackage?.let { cb ->
+        MappingsLoader.craftBukkitPackage?.let { cb ->
             PackageRelocator(
                 mapOf("org/bukkit/craftbukkit/" to "org/bukkit/craftbukkit/$cb/")
             ).relocate(output, output)
