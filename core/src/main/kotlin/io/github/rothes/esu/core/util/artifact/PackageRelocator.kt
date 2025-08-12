@@ -12,13 +12,15 @@ import java.util.zip.ZipOutputStream
 
 class PackageRelocator(
     relocates: Map<String, String>,
-    val logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") }
+    val logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") },
+    val err: (String) -> Unit = { EsuCore.instance.err("[Relocator] $it") },
 ) {
 
     constructor(
         vararg relocates: Pair<String, String>,
-        logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") }
-    ): this(relocates.toMap(), logger)
+        logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") },
+        err: (String) -> Unit = { EsuCore.instance.err("[Relocator] $it") },
+    ): this(relocates.toMap(), logger, err)
 
     private val remapper = ClassNameRemapper(relocates)
 
@@ -41,15 +43,21 @@ class PackageRelocator(
         }
         val mapped = entries.map { entry ->
             if (entry is ClassEntry) {
-                val reader = ClassReader(entry.data)
-                val writer = ClassWriter(0)
-                val visitor = RelocateVisitor(writer, remapper)
+                try {
+                    val reader = ClassReader(entry.data)
+                    val writer = ClassWriter(0)
+                    val visitor = RelocateVisitor(writer, remapper)
 
-                reader.accept(visitor, 0)
+                    reader.accept(visitor, 0)
 
-                val data = writer.toByteArray()
-                val newName = remapper.map(entry.className)
-                ClassEntry("$newName.class", entry.time, data)
+                    val data = writer.toByteArray()
+                    val newName = remapper.map(entry.className)
+                    ClassEntry("$newName.class", entry.time, data)
+                } catch (e: Exception) {
+                    // Likely Unsupported class file major version error, not a thing.
+                    err("Failed to relocate ${entry.className}: $e")
+                    entry
+                }
             } else {
                 entry
             }
