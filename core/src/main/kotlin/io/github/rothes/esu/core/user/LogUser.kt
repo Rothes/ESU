@@ -4,14 +4,14 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.TranslatableComponent
-import net.kyori.adventure.text.flattener.ComponentFlattener
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
-import net.kyori.adventure.translation.GlobalTranslator
-import net.kyori.adventure.translation.TranslationRegistry
-import net.kyori.ansi.ColorLevel
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.net.kyori.adventure.text.flattener.ComponentFlattener
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
+import io.github.rothes.esu.lib.net.kyori.adventure.translation.GlobalTranslator
+import io.github.rothes.esu.lib.net.kyori.adventure.translation.TranslationRegistry
+import io.github.rothes.esu.lib.net.kyori.ansi.ColorLevel
 import java.util.*
 
 interface LogUser: User {

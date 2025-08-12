@@ -7,7 +7,7 @@ import io.github.rothes.esu.core.config.EsuLocale
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import java.net.URI
 import java.util.*
 

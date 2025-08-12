@@ -2,9 +2,11 @@ package io.github.rothes.esu.bukkit.util.version.adapter
 
 import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.core.util.ComponentUtils.esu
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
+import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.core.util.version.Version
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -42,8 +44,8 @@ interface PlayerAdapter {
 
     private object Paper: PlayerAdapter {
 
-        override fun getDisplayName(player: Player): Component = player.displayName()
-        override fun setDisplayName(player: Player, name: Component?) = player.displayName(name)
+        override fun getDisplayName(player: Player): Component = player.displayName().esu
+        override fun setDisplayName(player: Player, name: Component?) = player.displayName(name?.server)
 
     }
 

@@ -18,7 +18,7 @@ object BukkitEsuLocale: EsuLocale<BukkitLocaleData>() {
     }
 
     override fun load(): MultiLocaleConfiguration<BukkitLocaleData> = ConfigLoader.loadMulti(
-        EsuCore.Companion.instance.baseConfigPath().resolve("lang"), "en_us.yml"
+        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us.yml"
     )
 
     class BukkitLocaleData: BaseEsuLocaleData() {

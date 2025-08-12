@@ -4,8 +4,9 @@ import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
+import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.core.util.VarLazy
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.HumanEntity
 import org.bukkit.event.inventory.InventoryAction
@@ -20,9 +21,9 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
 
     private var inv: Inventory by VarLazy {
         val inv = if (inventoryData.size != null) {
-            Bukkit.createInventory(this, inventoryData.size, inventoryData.title.miniMessage)
+            Bukkit.createInventory(this, inventoryData.size, inventoryData.title.miniMessage.server)
         } else if (inventoryData.inventoryType != null) {
-            Bukkit.createInventory(this, inventoryData.inventoryType, inventoryData.title.miniMessage)
+            Bukkit.createInventory(this, inventoryData.inventoryType, inventoryData.title.miniMessage.server)
         } else {
             throw IllegalArgumentException("Both inventoryType and size are null in InventoryData")
         }
@@ -51,8 +52,8 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
     fun setTitle(component: Component) {
         val old = inv
         inv =
-            if (old.type == InventoryType.CHEST) Bukkit.createInventory(this, old.size, component)
-            else Bukkit.createInventory(this, old.type, component)
+            if (old.type == InventoryType.CHEST) Bukkit.createInventory(this, old.size, component.server)
+            else Bukkit.createInventory(this, old.type, component.server)
         for (i in 0 until old.size)
             inv.setItem(i, old.getItem(i))
         old.viewers.forEach { open(it) }

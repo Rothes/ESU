@@ -2,8 +2,10 @@ package io.github.rothes.esu.bukkit.util.version.adapter
 
 import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.core.util.ComponentUtils.esu
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.core.util.ComponentUtils.server
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
@@ -85,16 +87,16 @@ interface ItemStackAdapter {
     private object Paper: ItemStackAdapter {
 
         override fun getDisplayName(meta: ItemMeta): Component? {
-            return meta.displayName()
+            return meta.displayName()?.esu
         }
         override fun setDisplayName(meta: ItemMeta, name: Component?) {
-            meta.displayName(name)
+            meta.displayName(name?.server)
         }
         override fun getLore(meta: ItemMeta): List<Component>? {
-            return meta.lore()
+            return meta.lore()?.map { it.esu }
         }
         override fun setLore(meta: ItemMeta, lore: List<Component>?) {
-            meta.lore(lore)
+            meta.lore(lore?.map { it.server })
         }
     }
 

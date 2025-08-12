@@ -10,7 +10,7 @@ val exposedVersion: String by project
 dependencies {
     api(kotlin("reflect"))
 
-    api(project(":core:configurate", configuration = "shadow"))
+    api(project(":core:dep-core", configuration = "shadow"))
     compileOnlyApi("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     compileOnlyApi("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
@@ -25,12 +25,10 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
 
-    compileOnly("net.kyori:adventure-api:4.17.0")
-    compileOnly("net.kyori:adventure-text-serializer-legacy:4.17.0")
-    compileOnly("net.kyori:adventure-text-serializer-plain:4.17.0")
-    compileOnly("net.kyori:adventure-text-serializer-ansi:4.17.0")
-    compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
-//    compileOnly("org.spongepowered:configurate-yaml:4.1.2")
+    val adventureVersion: String by project
+    implementation("net.kyori:adventure-text-serializer-gson:$adventureVersion") {
+        exclude("com.google.code.gson")
+    }
     compileOnly("com.google.code.gson:gson:2.11.0")
 
     compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")

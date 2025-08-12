@@ -8,10 +8,10 @@ import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Compani
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.user.User
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
 

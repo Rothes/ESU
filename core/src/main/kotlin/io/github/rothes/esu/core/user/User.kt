@@ -7,17 +7,18 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
+import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.sound.Sound
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-import net.kyori.adventure.title.Title
-import net.kyori.adventure.title.TitlePart
+import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.net.kyori.adventure.inventory.Book
+import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import io.github.rothes.esu.lib.net.kyori.adventure.title.Title
+import io.github.rothes.esu.lib.net.kyori.adventure.title.TitlePart
 import java.util.*
 import kotlin.experimental.ExperimentalTypeInference
 
@@ -174,6 +175,14 @@ interface User {
 
     fun openBook(book: Book) {
         audience.openBook(book)
+    }
+
+    // Server Adventure functions
+    fun message(message: net.kyori.adventure.text.Component) {
+        message(message.esu)
+    }
+    fun actionBar(message: net.kyori.adventure.text.Component) {
+        actionBar(message.esu)
     }
 
 }

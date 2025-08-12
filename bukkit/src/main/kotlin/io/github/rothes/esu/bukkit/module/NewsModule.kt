@@ -22,11 +22,11 @@ import io.github.rothes.esu.core.util.ComponentUtils.time
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
-import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.inventory.Book
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.event.ClickEvent
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.event.EventHandler

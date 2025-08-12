@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.core.user.LogUser
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.TranslatableComponent
-import net.kyori.adventure.text.flattener.ComponentFlattener
-import net.kyori.adventure.translation.GlobalTranslator
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.net.kyori.adventure.text.flattener.ComponentFlattener
+import io.github.rothes.esu.lib.net.kyori.adventure.translation.GlobalTranslator
 import net.minecraft.locale.Language
 import java.util.Locale
 

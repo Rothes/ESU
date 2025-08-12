@@ -13,11 +13,13 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
+import io.github.rothes.esu.core.util.ComponentUtils.esu
+import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.core.util.OptionalUtils.applyTo
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.NamedTextColor
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -47,25 +49,25 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onDeath(event: PlayerDeathEvent) {
             val message = event.deathMessage() ?: return
-            event.deathMessage(handle(message, config.message.death))
+            event.deathMessage(handle(message.esu, config.message.death)?.server)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onJoin(event: PlayerJoinEvent) {
             val message = event.joinMessage() ?: return
-            event.joinMessage(handle(message, config.message.playerJoin))
+            event.joinMessage(handle(message.esu, config.message.playerJoin)?.server)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onQuit(event: PlayerQuitEvent) {
             val message = event.quitMessage() ?: return
-            event.quitMessage(handle(message, config.message.playerQuit))
+            event.quitMessage(handle(message.esu, config.message.playerQuit)?.server)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onQuit(event: PlayerAdvancementDoneEvent) {
             val message = event.message() ?: return
-            event.message(handle(message, config.message.doneAdvancement))
+            event.message(handle(message.esu, config.message.doneAdvancement)?.server)
         }
 
         private fun handle(message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {

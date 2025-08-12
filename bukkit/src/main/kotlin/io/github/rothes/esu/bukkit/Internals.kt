@@ -2,12 +2,11 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.ServerCompatibility.CB.adventure
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.util.ComponentUtils
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.net.kyori.adventure.platform.bukkit.BukkitAudiences
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.util.*
@@ -23,5 +22,6 @@ val Player.user: PlayerUser
 val UUID.playerUser: PlayerUser
     get() = BukkitUserManager[this]
 
+val adventure by lazy { BukkitAudiences.create(plugin) }
 val CommandSender.audience: Audience
-    get() = if (ServerCompatibility.paper) this else adventure.sender(this)
+    get() = adventure.sender(this)

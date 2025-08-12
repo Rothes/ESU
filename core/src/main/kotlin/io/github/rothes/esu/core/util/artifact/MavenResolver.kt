@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
+import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.collection.CollectRequest
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory
@@ -24,6 +25,7 @@ import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
 import org.eclipse.aether.util.filter.PatternExclusionsDependencyFilter
+import java.io.File
 import java.lang.reflect.InaccessibleObjectException
 import java.net.URL
 
@@ -74,7 +76,7 @@ object MavenResolver {
         }
     }
 
-    fun loadDependencies(libraries: List<String>) {
+    fun loadDependencies(libraries: List<String>, loader: (File, Artifact) -> File = { f, _ -> f }) {
         require(libraries.isNotEmpty()) { "Library must not be empty" }
         val dependencies = libraries.map { Dependency(DefaultArtifact(it), null) }
         var result: DependencyResult
@@ -96,13 +98,13 @@ object MavenResolver {
             }
         }
 
-        // TODO: Maybe remap?
         for (it in result.artifactResults) {
             val artifact = it.artifact
             if (blockedGroupIds.contains(artifact.groupId))
                 continue
             val file = artifact.file
-            val url = file.toURI().toURL()
+            val toLoad = loader(file, artifact)
+            val url = toLoad.toURI().toURL()
             loadUrl(url)
         }
     }

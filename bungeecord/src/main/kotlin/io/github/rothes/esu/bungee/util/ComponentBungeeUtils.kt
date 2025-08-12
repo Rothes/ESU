@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bungee.util
 
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.md_5.bungee.chat.ComponentSerializer
 
 object ComponentBungeeUtils {

@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.configuration.data
 
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 
 data class ParsedMessageData(
     val chat: List<Component>? = null,

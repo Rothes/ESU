@@ -14,7 +14,7 @@ import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
-import net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
 import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit

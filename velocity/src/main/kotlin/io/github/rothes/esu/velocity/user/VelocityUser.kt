@@ -2,13 +2,14 @@ package io.github.rothes.esu.velocity.user
 
 import com.velocitypowered.api.command.CommandSource
 import io.github.rothes.esu.core.user.User
-import net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.core.util.MappedAudience
+import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
 
 abstract class VelocityUser: User {
 
     abstract val commandSender: CommandSource
     override val audience: Audience by lazy {
-        commandSender
+        MappedAudience(commandSender)
     }
 
     override var language: String?

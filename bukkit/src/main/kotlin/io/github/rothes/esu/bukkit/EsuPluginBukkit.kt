@@ -14,6 +14,7 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
+import io.github.rothes.esu.bukkit.util.version.remapper.CachedRelocator
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
@@ -27,8 +28,8 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
+import io.github.rothes.esu.core.util.artifact.PackageRelocator
 import net.jpountz.lz4.LZ4Factory
-import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
@@ -76,22 +77,22 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             )
             MappingsLoader
         }
-        if (!ServerCompatibility.paper) {
-            MavenResolver.loadDependencies(
-                listOf(
-                    "net.kyori:adventure-platform-bukkit:4.4.1",
-                    "net.kyori:adventure-api:4.24.0",
-                    "net.kyori:adventure-text-minimessage:4.24.0",
-                    "net.kyori:adventure-text-serializer-ansi:4.24.0",
-                    "net.kyori:adventure-text-serializer-gson:4.24.0",
-                    "net.kyori:adventure-text-serializer-legacy:4.24.0",
-                    "net.kyori:adventure-text-serializer-plain:4.24.0",
-                )
+        val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
+        MavenResolver.loadDependencies(
+            listOf(
+                "net.kyori:adventure-platform-bukkit:4.4.1",
+                "net.kyori:adventure-api:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-minimessage:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-gson:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-plain:${BuildConfig.ADVENTURE_VERSION}",
             )
-        }
-        MavenResolver.testDependency("net.kyori:adventure-text-serializer-ansi:4.24.0") {
-            // Confirmed on Paper 1.18.2, doesn't contain this
-            ANSIComponentSerializer.ansi()
+        ) { file, artifact ->
+            if (artifact.groupId == "net.kyori")
+                CachedRelocator.relocate(relocator, file)
+            else
+                file
         }
         MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
             LZ4Factory.fastestInstance()
@@ -171,7 +172,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
     }
     override fun onEnable() {
-        checkSpigotSupport()
         EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
         BukkitEsuLocale     // Load global locale
         StorageManager      // Load database
@@ -309,7 +309,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
-        disableSpigotSupport()
+        adventure.close()
     }
 
     override fun info(message: String) {
@@ -330,18 +330,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     override fun baseConfigPath(): Path {
         return dataFolder.toPath()
-    }
-
-    private fun checkSpigotSupport() {
-        if (ServerCompatibility.paper)
-            return
-        ServerCompatibility.CB
-    }
-
-    private fun disableSpigotSupport() {
-        if (ServerCompatibility.paper)
-            return
-        ServerCompatibility.CB.adventure.close()
     }
 
     private fun byPluginMan(): Boolean {

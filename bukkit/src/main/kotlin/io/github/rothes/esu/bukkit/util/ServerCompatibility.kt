@@ -4,7 +4,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.util.version.Version
 import io.papermc.paper.configuration.GlobalConfiguration
 import io.papermc.paper.util.MappingEnvironment
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import io.github.rothes.esu.lib.net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -61,10 +61,6 @@ object ServerCompatibility {
                 then(success)
             }
         }
-    }
-
-    object CB {
-        val adventure = BukkitAudiences.create(plugin)
     }
 
 }

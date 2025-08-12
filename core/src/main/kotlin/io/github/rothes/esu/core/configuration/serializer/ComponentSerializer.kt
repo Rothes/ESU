@@ -2,8 +2,8 @@ package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
 import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import java.lang.reflect.Type
 import java.util.function.Predicate
 

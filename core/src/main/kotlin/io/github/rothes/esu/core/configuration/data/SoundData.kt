@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.configuration.data
 
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.sound.Sound
+import io.github.rothes.esu.lib.net.kyori.adventure.key.Key
+import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
 
 const val MINECRAFT = "minecraft"
 

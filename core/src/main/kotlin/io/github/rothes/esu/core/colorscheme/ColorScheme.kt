@@ -1,16 +1,16 @@
 package io.github.rothes.esu.core.colorscheme
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.Style
-import net.kyori.adventure.text.format.TextColor
-import net.kyori.adventure.text.minimessage.Context
-import net.kyori.adventure.text.minimessage.internal.serializer.SerializableResolver
-import net.kyori.adventure.text.minimessage.internal.serializer.StyleClaim
-import net.kyori.adventure.text.minimessage.internal.serializer.TokenEmitter
-import net.kyori.adventure.text.minimessage.tag.Tag
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.NamedTextColor
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.Style
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextColor
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.Context
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.internal.serializer.SerializableResolver
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.internal.serializer.StyleClaim
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.internal.serializer.TokenEmitter
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.Tag
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 /**
  * A Color Scheme holds the colors for the color tags.

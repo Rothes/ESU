@@ -6,9 +6,10 @@ import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.core.util.ComponentUtils.server
+import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -65,7 +66,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
 
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!))
+            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!).server)
     }
 
     override fun equals(other: Any?): Boolean {

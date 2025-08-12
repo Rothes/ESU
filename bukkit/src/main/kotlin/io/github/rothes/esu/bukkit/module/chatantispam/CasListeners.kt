@@ -17,10 +17,11 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
+import io.github.rothes.esu.core.util.ComponentUtils.esu
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.text.TranslatableComponent
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -46,7 +47,7 @@ object CasListeners: Listener {
         object : Listener {
             @EventHandler(priority = EventPriority.HIGH)
             fun onChat(event: AsyncChatEvent) {
-                if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(event.message()), Chat)) {
+                if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(event.message().esu), Chat)) {
                     event.isCancelled = true
                 }
             }
