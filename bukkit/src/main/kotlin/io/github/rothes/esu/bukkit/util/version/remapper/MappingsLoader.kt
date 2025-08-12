@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
-import com.google.common.reflect.ClassPath
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.remapper.FileHashes.Companion.sha1
@@ -10,7 +9,6 @@ import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
-import org.bukkit.Bukkit
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -29,11 +27,6 @@ object MappingsLoader {
 
     private const val SERVER_CL = "serverCl.jar"
     private const val SERVER_MOJMAP = "serverMojmap.jar"
-
-    private val craftBukkitPackage =
-        "org\\.bukkit\\.craftbukkit\\.([^.]+)\\.CraftServer".toRegex()
-            .matchEntire(Bukkit.getServer().javaClass.canonicalName)
-            ?.groupValues[1]
 
     val loadedFiles = {
         val mappings = loadMappings()
@@ -65,7 +58,6 @@ object MappingsLoader {
             mojmap =    getMapping("mojang.txt") ?: return null,
             cbCl =      getMapping("bukkit-cl.csrg") ?: return null,
             cbMembers = if (hasSpigotMembers) getMapping("bukkit-members.csrg") ?: return null else null,
-            craftBukkit = craftBukkitPackage?.let { getMapping("craft-bukkit.csrg") ?: return null },
         )
     }
 
@@ -179,29 +171,7 @@ object MappingsLoader {
             }
             fileHashes.store(file)
         }
-        createCraftBukkitMapping()
         fileHashes.save()
-    }
-
-    private fun createCraftBukkitMapping() {
-        craftBukkitPackage?.let { _ ->
-            val resolve = cacheFolder.resolve("craft-bukkit.csrg")
-            resolve.outputStream().bufferedWriter().use { writer ->
-                ClassPath.from(Bukkit.getServer().javaClass.classLoader)
-                    .allClasses
-                    .filter {
-                        it.name.startsWith("org.bukkit.craftbukkit.v") }
-                    .sortedBy { it.name }
-                    .forEach {
-                        val start = "org.bukkit.craftbukkit.".length
-                        val end = it.name.indexOf('.', start) + 1
-                        val removed = it.name.removeRange(start, end)
-                        fun String.set() = replace('.', '/')
-                        writer.write("${removed.set()} ${it.name.set()}\n")
-                    }
-            }
-            fileHashes.store(resolve)
-        }
     }
 
     private fun getSpigotCommit(): String {
@@ -244,9 +214,8 @@ object MappingsLoader {
             val mojmap: IMappingFile,
             val cbCl: IMappingFile,
             val cbMembers: IMappingFile?,
-            val craftBukkit: IMappingFile?,
         ) {
-            val values = listOfNotNull(mojmap, cbCl, cbMembers, craftBukkit)
+            val values = listOfNotNull(mojmap, cbCl, cbMembers)
         }
 
         data class Servers(
