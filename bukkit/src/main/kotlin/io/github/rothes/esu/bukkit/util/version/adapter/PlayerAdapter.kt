@@ -21,9 +21,11 @@ interface PlayerAdapter {
 
         private val paper20 =
             ServerCompatibility.paper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
+        private val paper20_4 =
+            ServerCompatibility.paper && ServerCompatibility.serverVersion >= Version.fromString("1.20.4")
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
-            return if (paper20) isChunkSent(chunkKey) else true
+            return if (paper20_4) isChunkSent(chunkKey) else true
         }
 
         var Player.displayNameV: Component
