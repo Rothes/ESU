@@ -22,6 +22,8 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
+import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
+import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
@@ -84,8 +86,26 @@ class EsuPluginVelocity(
                 "com.h2database:h2:2.3.232",
                 "com.mysql:mysql-connector-j:8.4.0",
                 "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+
+                "org.ow2.asm:asm-commons:9.8",
             )
         )
+        val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
+        MavenResolver.loadDependencies(
+            listOf(
+                "net.kyori:adventure-api:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-minimessage:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-gson:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-plain:${BuildConfig.ADVENTURE_VERSION}",
+            )
+        ) { file, artifact ->
+            if (artifact.groupId == "net.kyori")
+                CachedRelocator.relocate(relocator, file)
+            else
+                file
+        }
         dependenciesResolved = true
     }
 

@@ -27,10 +27,13 @@ dependencies {
     api(project(":core"))
     compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.10")
 
+    compileOnly("org.apache.maven.resolver:maven-resolver-api:1.9.18")
+
     implementation("org.bstats:bstats-velocity:3.1.0")
 
     compileOnly("com.github.Rothes.ServerUtils:ServerUtils-Velocity:master-SNAPSHOT") // Official repo is down
     compileOnly("com.github.retrooper:packetevents-velocity:2.7.0")
+
 }
 
 kotlin {
