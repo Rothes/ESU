@@ -1,9 +1,8 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.module.newbieprotect.EntityAttribute
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
-import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.Bukkit
@@ -22,8 +21,6 @@ import kotlin.math.max
 object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java
 ) {
-
-    val attr: EntityAttribute by lazy { EntityAttribute::class.java.versioned() }
 
     override fun enable() {
         update()
@@ -73,19 +70,19 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
         resetEntity(e)
         val nerf = config.spawnWitherNerf.firstOrNull { it.radius >= max(abs(e.location.x), abs(e.location.z)) } ?: return
 
-        e.getAttribute(attr.FLYING_SPEED)!!.addTransientModifier(
+        e.getAttribute(AttributeAdapter.FLYING_SPEED)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey, -1 + nerf.speedModifier, AttributeModifier.Operation.MULTIPLY_SCALAR_1
             )
         )
-        e.getAttribute(attr.MOVEMENT_SPEED)!!.addTransientModifier(
+        e.getAttribute(AttributeAdapter.MOVEMENT_SPEED)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey,
                 -1 + nerf.speedModifier,
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1
             )
         )
-        e.getAttribute(attr.FOLLOW_RANGE)!!.addTransientModifier(
+        e.getAttribute(AttributeAdapter.FOLLOW_RANGE)!!.addTransientModifier(
             AttributeModifier(
                 witherNerfKey,
                 -1 + nerf.followRangeModifier,
@@ -97,9 +94,9 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
     fun resetEntity(e: Entity) {
         if (e !is Wither) return
 
-        e.getAttribute(attr.FLYING_SPEED)?.removeModifier(witherNerfKey)
-        e.getAttribute(attr.MOVEMENT_SPEED)?.removeModifier(witherNerfKey)
-        e.getAttribute(attr.FOLLOW_RANGE)?.removeModifier(witherNerfKey)
+        e.getAttribute(AttributeAdapter.FLYING_SPEED)?.removeModifier(witherNerfKey)
+        e.getAttribute(AttributeAdapter.MOVEMENT_SPEED)?.removeModifier(witherNerfKey)
+        e.getAttribute(AttributeAdapter.FOLLOW_RANGE)?.removeModifier(witherNerfKey)
     }
 
     object Listeners: Listener {
