@@ -68,7 +68,7 @@ interface ItemStackAdapter {
     private object CB: ItemStackAdapter {
 
         override fun getDisplayName(meta: ItemMeta): Component? {
-            return meta.displayName.legacy
+            return if (meta.hasDisplayName()) meta.displayName.legacy else null
         }
         override fun setDisplayName(meta: ItemMeta, name: Component?) {
             meta.setDisplayName(name?.legacy)
