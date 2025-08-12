@@ -15,6 +15,11 @@ class PackageRelocator(
     val logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") }
 ) {
 
+    constructor(
+        vararg relocates: Pair<String, String>,
+        logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") }
+    ): this(relocates.toMap(), logger)
+
     private val remapper = ClassNameRemapper(relocates)
 
     fun relocate(input: File, output: File) {
