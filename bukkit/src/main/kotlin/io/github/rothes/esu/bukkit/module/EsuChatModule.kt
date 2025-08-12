@@ -102,7 +102,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                             with(config.whisper.formats.spy) { if (initiative) send else reply },
                             msg,
                             playerDisplay(receiver, pd),
-                            pLang(sender, locale, { whisper.placeholders })
+                            pLang(sender, locale, { whisper.spy.placeholders })
                         )
                 }
             }
