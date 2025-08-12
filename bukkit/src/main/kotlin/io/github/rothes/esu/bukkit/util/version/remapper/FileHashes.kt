@@ -22,10 +22,16 @@ class FileHashes(
     private operator fun get(file: File): String? = get(file.name)
     private operator fun set(file: File, value: String) = data.sha1.set(file.name, value)
 
-    fun verify(file: File, modifier: String? = null, expected: String = file.sha1): Boolean {
-        val suffix = modifier?.let { ":$it" } ?: ""
+    fun verify(file: File, modifier: String? = null): Boolean {
         if (!file.exists())
             return false
+        return verify(file, modifier, file.sha1)
+    }
+
+    fun verify(file: File, modifier: String? = null, expected: String): Boolean {
+        if (!file.exists())
+            return false
+        val suffix = modifier?.let { ":$it" } ?: ""
         return expected == get(file.name + suffix)
     }
 
