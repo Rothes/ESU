@@ -158,6 +158,22 @@ object ConfigLoader {
                             }
                         }
                     }
+                    .addProcessor(MoveToTop::class.java) { _, _ ->
+                        Processor { _, destination ->
+                            val node = destination.parent() ?: error("Node ${destination.key()} doesn't have a parent")
+                            val children = node.childrenMap()
+                            if (children.keys.first() == destination.key()) {
+                                // Already at the top
+                                return@Processor
+                            }
+                            val list = children.map { it.key to it.value.copy() }
+                            node.set(null)
+                            node.node(destination.key()).set("placeholder") // Set it first
+                            for ((key, value) in list) {
+                                node.node(key).from(value)
+                            }
+                        }
+                    }
                     .addProcessor(NoDeserializeIf::class.java) { data, _ ->
                         Processor { value, destination ->
                             if (value.toString() == data.value) {
