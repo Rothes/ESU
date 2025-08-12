@@ -1,6 +1,7 @@
 rootProject.name = "ESU"
 include("core")
 include("core:dep-core")
+include("core:dep-impl-core")
 
 include("bukkit")
 include("bukkit:dep-bukkit")

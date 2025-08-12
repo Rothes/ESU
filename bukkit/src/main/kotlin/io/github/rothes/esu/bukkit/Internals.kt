@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit
 
+import io.github.rothes.esu.bukkit.AdventureHolder.adventure
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.EsuCore
@@ -22,6 +23,10 @@ val Player.user: PlayerUser
 val UUID.playerUser: PlayerUser
     get() = BukkitUserManager[this]
 
-val adventure by lazy { BukkitAudiences.create(plugin) }
 val CommandSender.audience: Audience
     get() = adventure.sender(this)
+
+object AdventureHolder {
+    // Wrap with an object, to avoid init error before we load dependencies
+    val adventure = BukkitAudiences.create(plugin)
+}

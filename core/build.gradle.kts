@@ -10,7 +10,9 @@ val exposedVersion: String by project
 dependencies {
     api(kotlin("reflect"))
 
-    api(project(":core:dep-core", configuration = "shadow"))
+    compileOnlyApi(project(":core:dep-core", configuration = "shadow"))
+    api(project(":core:dep-impl-core", configuration = "shadow"))
+
     compileOnlyApi("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     compileOnlyApi("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")

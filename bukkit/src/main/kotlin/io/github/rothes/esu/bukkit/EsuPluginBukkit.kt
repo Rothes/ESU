@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit
 
+import io.github.rothes.esu.bukkit.AdventureHolder.adventure
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
