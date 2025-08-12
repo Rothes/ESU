@@ -18,6 +18,7 @@ import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.NodeStyle
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
+import net.kyori.adventure.text.Component
 import java.lang.reflect.Type
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,6 +28,13 @@ import kotlin.io.path.*
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
+
+    private val serverAdventure = try {
+        Component.text()
+        true
+    } catch (_: Throwable) {
+        false
+    }
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
             loadMulti(path: Path, vararg forceLoad: String,
@@ -207,6 +215,10 @@ object ConfigLoader {
                             it.register(CaptionSerializer)
                                 .register(ComponentSerializer)
                                 .register(TextColorSerializer)
+                        }
+                        if (serverAdventure) {
+                            it.register(ServerComponentSerializer)
+                            it.register(ServerTextColorSerializer)
                         }
                         it.register(
                             { type ->

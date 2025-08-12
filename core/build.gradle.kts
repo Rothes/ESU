@@ -26,9 +26,11 @@ dependencies {
     }
 
     val adventureVersion: String by project
-    implementation("net.kyori:adventure-text-serializer-gson:$adventureVersion") {
+    compileOnly("net.kyori:adventure-text-minimessage:${adventureVersion}")
+    compileOnly("net.kyori:adventure-text-serializer-gson:$adventureVersion") {
         exclude("com.google.code.gson")
     }
+
     compileOnly("com.google.code.gson:gson:2.11.0")
 
     compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")
