@@ -1,7 +1,8 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.core.util.artifact.PackageRelocator
+import io.github.rothes.esu.core.util.artifact.local.FileHashes
+import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer

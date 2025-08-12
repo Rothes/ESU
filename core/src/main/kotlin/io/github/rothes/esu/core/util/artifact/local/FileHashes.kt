@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.util.version.remapper
+package io.github.rothes.esu.core.util.artifact.local
 
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize

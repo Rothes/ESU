@@ -15,7 +15,7 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
-import io.github.rothes.esu.bukkit.util.version.remapper.CachedRelocator
+import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
@@ -29,7 +29,7 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
-import io.github.rothes.esu.core.util.artifact.PackageRelocator
+import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit

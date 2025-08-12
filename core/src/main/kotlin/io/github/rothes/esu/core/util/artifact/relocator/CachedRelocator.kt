@@ -1,12 +1,12 @@
-package io.github.rothes.esu.bukkit.util.version.remapper
+package io.github.rothes.esu.core.util.artifact.relocator
 
-import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.core.util.artifact.PackageRelocator
+import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import java.io.File
 
 object CachedRelocator {
 
-    private val cacheFolder = plugin.dataFolder.resolve(".cache/relocated")
+    private val cacheFolder = EsuCore.instance.baseConfigPath().toFile().resolve(".cache/relocated")
     private val cached = FileHashes(cacheFolder)
 
     fun relocate(relocator: PackageRelocator, file: File): File {

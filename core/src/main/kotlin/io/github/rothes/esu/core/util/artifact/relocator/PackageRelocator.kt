@@ -1,4 +1,4 @@
-package io.github.rothes.esu.core.util.artifact
+package io.github.rothes.esu.core.util.artifact.relocator
 
 import io.github.rothes.esu.core.EsuCore
 import org.objectweb.asm.ClassReader
@@ -9,6 +9,7 @@ import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.collections.iterator
 
 class PackageRelocator(
     relocates: Map<String, String>,
