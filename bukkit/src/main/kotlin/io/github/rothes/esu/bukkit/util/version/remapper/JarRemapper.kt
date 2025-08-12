@@ -11,6 +11,8 @@ import kotlin.text.startsWith
 
 object JarRemapper {
 
+    private const val REMAPPER_VERSION = "3"
+
     private val craftBukkitPackage =
         "org\\.bukkit\\.craftbukkit\\.([^.]+)\\.CraftServer".toRegex()
             .matchEntire(Bukkit.getServer().javaClass.canonicalName)
@@ -25,6 +27,7 @@ object JarRemapper {
         if (output.exists()
             && cached.verify(output)
             && cached.verify(file, "mojmap")
+            && cached.verify(output, "remapper", REMAPPER_VERSION)
             && cached.verify(output, "mappings", MappingsLoader.mappingsHash()))
             return output
 
@@ -58,6 +61,7 @@ object JarRemapper {
         }
         cached.store(output)
         cached.store(file, "mojmap")
+        cached.store(output, "remapper", REMAPPER_VERSION)
         cached.store(output, "mappings", MappingsLoader.mappingsHash())
         cached.save()
         return output
