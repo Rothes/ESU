@@ -36,6 +36,9 @@ dependencies {
     compileOnly("org.apache.maven:maven-resolver-provider:3.9.6")
     compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
     compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.18")
+
+    compileOnly("org.ow2.asm:asm:9.8")
+    compileOnly("org.ow2.asm:asm-commons:9.8")
 }
 
 tasks.test {
