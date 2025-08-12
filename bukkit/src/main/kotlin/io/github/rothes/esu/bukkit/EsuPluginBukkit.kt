@@ -173,6 +173,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
     }
     override fun onEnable() {
+        adventure           // Init adventure
         EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
         BukkitEsuLocale     // Load global locale
         StorageManager      // Load database
