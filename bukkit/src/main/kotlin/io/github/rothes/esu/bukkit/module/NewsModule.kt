@@ -124,10 +124,14 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         }
         @Command("news checked")
         fun newsChecked(user: User) {
+            val latest = NewsDataManager.news.firstOrNull()?.id ?: -1
+            if (checkedCache[user] == latest) {
+                user.message(locale, { bookNews.checkedNothing })
+                return
+            }
             user.message(locale, { bookNews.checked })
-            val checked = NewsDataManager.news.firstOrNull()?.id ?: -1
-            NewsDataManager.setChecked(user, checked)
-            checkedCache[user] = checked
+            NewsDataManager.setChecked(user, latest)
+            checkedCache[user] = latest
         }
 
         @ShortPerm("editor")
@@ -350,6 +354,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             """.trimIndent(),
             val checkButton: String = "<vpdc>[Check]",
             val newPlaceholder: String = "<dark_green><bold>NEW!<br>",
+            val checkedNothing: MessageData = "<ec>You have nothing to check.".message,
             val checked: MessageData = "<pc>You have mark the news as checked. We won't notify you again until there's something new.".message,
             val editor: Editor = Editor(),
         ) {
