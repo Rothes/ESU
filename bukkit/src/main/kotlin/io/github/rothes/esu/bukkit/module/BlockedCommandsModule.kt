@@ -8,7 +8,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
@@ -66,9 +66,9 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
     ): BaseModuleConfiguration() {
 
         data class BlockingGroup(
-            @field:Comment("The message key to send to users. You need to set the message in locale configs.")
+            @Comment("The message key to send to users. You need to set the message in locale configs.")
             val blockedMessage: String = "",
-            @field:Comment("The commands to block. Using regex.")
+            @Comment("The commands to block. Using regex.")
             val commands: List<Regex> = arrayListOf(),
             val consoleUserExcluded: Boolean = true,
         ): ConfigurationPart

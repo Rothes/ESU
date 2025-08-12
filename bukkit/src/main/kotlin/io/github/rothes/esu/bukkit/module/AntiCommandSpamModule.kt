@@ -8,7 +8,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -89,8 +89,10 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
 
 
     data class ModuleConfig(
-        @field:Comment("Plugin will increase the count for the command player send if it matches any condition,\n" +
-                "and handle the limit with the first limit it hits.")
+        @Comment("""
+            Plugin will increase the count for the command player send if it matches any condition,
+             and handle the limit with the first limit it hits.
+        """)
         val commands: List<CommandGroup> = arrayListOf(
             CommandGroup(listOf("^(.+:)?suicide$".toRegex(), "^(.+:)?kill$".toRegex()), "suicide-spam", "suicide-spam"),
             CommandGroup(listOf(".".toRegex()), "generic-spam", "generic-spam"),
@@ -99,7 +101,7 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
         
         data class CommandGroup(
             val commands: List<Regex> = arrayListOf(),
-            @field:Comment("The message key to send to users. You need to set the message in locale configs.")
+            @Comment("The message key to send to users. You need to set the message in locale configs.")
             val warnMessage: String = "",
             val kickMessage: String = "",
             val cancelCount: Int = 3,

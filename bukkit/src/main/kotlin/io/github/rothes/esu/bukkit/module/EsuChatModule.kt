@@ -22,7 +22,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.enabled
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.papermc.paper.event.player.AsyncChatEvent
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
@@ -444,17 +444,19 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
         data class Chat(
             val enabled: Boolean = true,
-            @field:Comment("'player' is what players see, and 'console' is what printed to console.")
+            @Comment("'player' is what players see, and 'console' is what printed to console.")
             val format: ChatFormat = ChatFormat(
                 "\\<<pd:sender>> <message>".message,
                 "<#48c0c0>\\<<pd:sender>> <message>".message,
             ),
-            @field:Comment("""
-By enabling this, players only receive chat messages from nearby players, of the same world.""")
+            @Comment("""
+                By enabling this, players only receive chat messages from nearby players, of the same world.
+            """)
             val rangedChat: RangedChat = RangedChat(),
-            @field:Comment("""
-If the message player sent starts with 'messagePrefix' and player has the permission,
-the 'head' and 'foot' will be appended to the chat message.""")
+            @Comment("""
+                If the message player sent starts with 'messagePrefix' and player has the permission,
+                the 'head' and 'foot' will be appended to the chat message.
+            """)
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
                 PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
@@ -463,10 +465,11 @@ the 'head' and 'foot' will be appended to the chat message.""")
             data class RangedChat(
                 val enabled: Boolean = false,
                 val radius: Int = 5000,
-                @field:Comment("""
-Player with `esu.esuchat.chat.shout` permission can use this perfix to bypass ranged chat.
-By default, players own this permission.
-Use this prefix before prefixedMessageModifiers.""")
+                @Comment("""
+                    Player with `esu.esuchat.chat.shout` permission can use this perfix to bypass ranged chat.
+                    By default, players own this permission.
+                    Use this prefix before prefixedMessageModifiers.
+                """)
                 val shoutPrefix: String = "!",
                 val shoutFormat: ChatFormat = ChatFormat(
                     "\\<<pd:sender>> <pl:shout><message>".message,
@@ -481,10 +484,10 @@ Use this prefix before prefixedMessageModifiers.""")
         }
 
         data class Emote(
-            @field:Comment("Enable esu emote/me commands.")
+            @Comment("Enable esu emote/me commands.")
             val enabled: Boolean = true,
             val format: MessageData = "<pl:prefix><pdc><pd:sender></pdc> <message>".message,
-            @field:Comment("Enabling this will redirect all emote commands to the esu one, to avoid mixing usage.")
+            @Comment("Enabling this will redirect all emote commands to the esu one, to avoid mixing usage.")
             val interceptNamespaces: Boolean = true,
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier("", true, "", "<gray>", "</gray>"),
@@ -492,7 +495,7 @@ Use this prefix before prefixedMessageModifiers.""")
         )
 
         data class Whisper(
-            @field:Comment("Enable esu whisper commands.")
+            @Comment("Enable esu whisper commands.")
             val enabled: Boolean = true,
             val formats: Formats = Formats(),
 
@@ -524,7 +527,7 @@ Use this prefix before prefixedMessageModifiers.""")
     }
 
     data class ModuleLang(
-        @field:Comment("This is being used with <pd:player_key>.")
+        @Comment("This is being used with <pd:player_key>.")
         val playerDisplay: String = "<hover:show_text:'<pc>Click to whisper <pdc><player_key>'>" +
                 "<click:suggest_command:/m <player_key_name> ><player_key></hover>",
         val chat: Chat = Chat(),

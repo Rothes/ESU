@@ -9,7 +9,7 @@ import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import kotlin.jvm.java
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -45,23 +45,23 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
 
 
     data class ModuleConfig(
-        @field:Comment("Dynamic manage chunk send rate with outgoing traffic.\n" +
+        @Comment("Dynamic manage chunk send rate with outgoing traffic.\n" +
                 "NetworkThrottleModule at backend servers enabled is required.")
         val dynamicChunkSendRate: DynamicChunkSendRate = DynamicChunkSendRate(),
-        @field:Comment("We can't know exactly what the actual bandwidth rate and packet rate are at netty level.\n" +
+        @Comment("We can't know exactly what the actual bandwidth rate and packet rate are at netty level.\n" +
                 "You can modify the calibration parameters here, for advanced users.")
         val trafficCalibration: TrafficCalibration = TrafficCalibration(),
     ): BaseModuleConfiguration() {
 
         data class DynamicChunkSendRate(
             val enabled: Boolean = true,
-//            @field:Comment("The total upload bandwidth this server can send. Unit is Kbps.")
+//            @Comment("The total upload bandwidth this server can send. Unit is Kbps.")
 //            val totalUploadBandwidth: Long = 50 * 1024,
-            @field:Comment("The upload bandwidth threshold to start the throttle. Unit is Kbps.\n" +
+            @Comment("The upload bandwidth threshold to start the throttle. Unit is Kbps.\n" +
                     "We will use the data from traffic monitor, so you may have done the\n" +
                     " traffic-calibration settings.")
             val limitUploadBandwidth: Long = 50 * 1024,
-            @field:Comment("Minimum guaranteed rate per player. If server bandwidth hits limitUploadBandwidth,\n" +
+            @Comment("Minimum guaranteed rate per player. If server bandwidth hits limitUploadBandwidth,\n" +
                     "player with outgoing rates above this will be limit chunk sending by one second immediately.\n" +
                     "This helps reduce the probability of spikes, and distributes the bandwidth evenly.\n" +
                     "It's not easy to hit the default value, you may set it lower like 1520 if you have\n" +

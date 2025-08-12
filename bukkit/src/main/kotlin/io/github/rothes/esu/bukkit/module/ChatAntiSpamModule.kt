@@ -25,7 +25,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
@@ -203,7 +203,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         data class ExpireTime(
             val chatRequest: Long = (6 * MINUTE).toLong(),
             val filtered: Long = (4.5 * MINUTE).toLong(),
-            @field:Comment("Using base value(hard) plus quadratic function to check expired with a rate.\n" +
+            @Comment("Using base value(hard) plus quadratic function to check expired with a rate.\n" +
                     "Default: 60 + 840 seconds(15m in total) to fully expire")
             val messageRecord: ExpireCurve = ExpireCurve(),
             val whisperTarget: Long = (4 * MINUTE).toLong(),
@@ -245,12 +245,12 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             data class SpamScore(
                 val calculateSize: Int = 6,
                 val muteOnAverageScore: Double = 0.5625,
-                @field:Comment("Make sure the player get muted can be scored in this range after unmute")
+                @Comment("Make sure the player get muted can be scored in this range after unmute")
                 val safeScoreOnMute: Double = 0.3,
             ): ConfigurationPart
 
             data class MuteDurationMultiplier(
-                @field:Comment("Last Mute must within this interval to trigger a multiplier")
+                @Comment("Last Mute must within this interval to trigger a multiplier")
                 val maxMuteInterval: Long = 15 * MINUTE,
                 val multiplier: Double = 2.0,
             ): ConfigurationPart
@@ -258,7 +258,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
         data class SpamCheck(
             val notifyFiltered: Boolean = true,
-            @field:Comment("""Efficient to "Spam" module with a fixed send rate""")
+            @Comment("""
+                Efficient to "Spam" module with a fixed send rate
+            """)
             val fixedRequestMute: FixedRequestMute = FixedRequestMute(),
             val frequency: Frequency = Frequency(),
             val illegalCharacters: IllegalCharacters = IllegalCharacters(),

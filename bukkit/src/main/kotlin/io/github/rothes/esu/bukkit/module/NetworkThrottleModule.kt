@@ -19,7 +19,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.version.Version
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
@@ -129,36 +129,36 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     )
 
     data class ModuleConfig(
-        @field:Comment("Helps to reduce chunk upload bandwidth. Plugin will compress invisible blocks in chunk data packet.\n" +
+        @Comment("Helps to reduce chunk upload bandwidth. Plugin will compress invisible blocks in chunk data packet.\n" +
                 "If necessary, we send a full chunk data again.\n" +
                 "This can save about 50% bandwidth usage in overworld and 30% in nether averagely.\n" +
                 "Make sure you enabled network-compression on proxy or this server.")
         val chunkDataThrottle: ChunkDataThrottle = ChunkDataThrottle(),
-        @field:Comment("Enable DynamicChunkSendRate. Make sure you have velocity mode on, and installed ESU on velocity.")
+        @Comment("Enable DynamicChunkSendRate. Make sure you have velocity mode on, and installed ESU on velocity.")
         val dynamicChunkSendRate: DynamicChunkSendRate = DynamicChunkSendRate(),
-        @field:Comment("Adjust the settings the players with high latency to lower value.\n" +
+        @Comment("Adjust the settings the players with high latency to lower value.\n" +
                 "So they won't affect average quality of all players.")
         val highLatencyAdjust: HighLatencyAdjust = HighLatencyAdjust(),
     ): BaseModuleConfiguration() {
 
         data class ChunkDataThrottle(
             val enabled: Boolean = false,
-            @field:Comment("Plugin will resent whole chunk data if resent block amount exceeds this value.\n" +
+            @Comment("Plugin will resent whole chunk data if resent block amount exceeds this value.\n" +
                     "Set it to -1 will never resent chunk but keep updating nearby blocks, \n" +
                     " 0 to always resent chunks.")
             val thresholdToResentWholeChunk: Int = 448,
-            @field:Comment("We updates the nearby blocks when a player digs a block immediately.\n" +
+            @Comment("We updates the nearby blocks when a player digs a block immediately.\n" +
                     "If this is enabled, we will check if the block is in the interaction range\n" +
                     " of the player with a rough calculation.")
             val updateOnLegalInteractOnly: Boolean = true,
-            @field:Comment("How many distance of blocks to update from the center while necessary.")
+            @Comment("How many distance of blocks to update from the center while necessary.")
             val updateDistance: Int = 2,
-            @field:Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
+            @Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,
-            @field:Comment("Same with minimal-height but it's for nether roof.")
+            @Comment("Same with minimal-height but it's for nether roof.")
             val netherRoofInvisibleCheck: Boolean = true,
-            @field:Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
+            @Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
                     "However the mapping is not created based on the amount of blocks.\n" +
                     "If this option is enabled, we will rebuild the mapping by sorted blocks amount.\n" +
                     "This may slightly help with the compression rate, especially since we are changing the blocks too.\n" +
@@ -166,7 +166,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     "This could easily double the process time, if you care about the extra about ~0.2ms, disable it.\n" +
                     " * We are planing to enhance this by another two approaches, which may help more.")
             val rebuildPaletteMappings: Boolean = true,
-            @field:Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
+            @Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
                     "We choose a random block from the list and make it of a 16*16*16 chunk section.")
@@ -226,11 +226,11 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
         data class HighLatencyAdjust(
             val enabled: Boolean = false,
-            @field:Comment("Trigger a adjust when player's ping is greater than or equal this.")
+            @Comment("Trigger a adjust when player's ping is greater than or equal this.")
             val latencyThreshold: Int = 150,
-            @field:Comment("The high ping must keep for the duration to trigger a adjust finally.")
+            @Comment("The high ping must keep for the duration to trigger a adjust finally.")
             val duration: Duration = kotlin.time.Duration.parse("1m").toJavaDuration(),
-            @field:Comment("Plugin detects CLIENT_SETTINGS packets to reset the view distance for players.\n" +
+            @Comment("Plugin detects CLIENT_SETTINGS packets to reset the view distance for players.\n" +
                     "If true, player must change the client view distance for a reset;\n" +
                     "If false, any new settings could reset the view distance for the player.")
             val newViewDistanceToReset: Boolean = false,

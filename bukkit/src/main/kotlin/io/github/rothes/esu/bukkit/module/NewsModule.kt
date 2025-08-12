@@ -21,7 +21,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.time
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.lib.net.kyori.adventure.inventory.Book
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.event.ClickEvent
@@ -319,13 +319,14 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     ): BaseModuleConfiguration() {
 
         data class BookNews(
-            @field:Comment("""
-The news channel of this server.
-All news data are stored in database, so if you have multiple
- same servers, you can use the same channel.""")
+            @Comment("""
+                The news channel of this server.
+                All news data are stored in database, so if you have multiple
+                 same servers, you can use the same channel.
+            """)
             val channel: String = "main",
             val showUnreadNewsOnJoin: Boolean = true,
-            @field:Comment("The default layout when you create a new news.")
+            @Comment("The default layout when you create a new news.")
             val newLayout: Map<String, String> = mapOf(
                 "default" to """
                     <pdc><b>Title </b> 

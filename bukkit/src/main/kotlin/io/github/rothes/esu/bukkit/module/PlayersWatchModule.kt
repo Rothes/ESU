@@ -4,7 +4,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.Comment
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -54,7 +54,7 @@ object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWa
     )
 
     data class ConfigData(
-        @field:Comment("In ticks.")
+        @Comment("In ticks.")
         val switchWatchInterval: Long = 6 * 20
     ): BaseModuleConfiguration()
 
