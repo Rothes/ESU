@@ -8,7 +8,7 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
-import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayNameV
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MINECRAFT
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -425,7 +425,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 Tag.selfClosingInserting(
                     viewer.buildMinimessage(locale, { playerDisplay },
                         if (user is PlayerUser)
-                            component("player_key", user.player.displayNameV)
+                            component("player_key", user.player.displayName_)
                         else
                             parsed("player_key", MiniMessage.miniMessage().escapeTags(user.name)),
                         parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)))

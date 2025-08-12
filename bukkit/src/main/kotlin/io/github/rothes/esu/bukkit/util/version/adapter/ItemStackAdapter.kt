@@ -54,10 +54,10 @@ interface ItemStackAdapter {
             return editMeta(this, block) != null
         }
 
-        var ItemMeta.displayNameV: Component?
+        var ItemMeta.displayName_: Component?
             get() = instance.getDisplayName(this)
             set(value) = instance.setDisplayName(this, value)
-        var ItemMeta.loreV: List<Component>?
+        var ItemMeta.lore_: List<Component>?
             get() = instance.getLore(this)
             set(value) = instance.setLore(this, value)
 

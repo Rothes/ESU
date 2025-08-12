@@ -14,7 +14,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
-import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayNameV
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -114,7 +114,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 CasDataManager.cacheByIp.remove(playerUser.addr)
                 context.sender().message(locale, { command.reset.resetPlayer },
                     context.sender().msgPrefix,
-                    component("player", playerUser.player.displayNameV)
+                    component("player", playerUser.player.displayName_)
                 )
             }
         }

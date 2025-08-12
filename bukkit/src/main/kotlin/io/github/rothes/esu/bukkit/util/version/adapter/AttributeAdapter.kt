@@ -78,7 +78,7 @@ interface AttributeAdapter {
         val SWEEPING_DAMAGE_RATIO: Attribute = instance.sweepingDamageRatio
         val SPAWN_REINFORCEMENTS: Attribute = instance.spawnReinforcements
 
-        val Attribute.keyV
+        val Attribute.key_
             get() = instance.getKey(this)
 
         fun Attribute.of(name: String) = instance.valueOf(name)

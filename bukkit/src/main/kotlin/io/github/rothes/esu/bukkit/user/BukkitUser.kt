@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.config.data.ItemData
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayNameV
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.loreV
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
@@ -50,7 +50,7 @@ abstract class BukkitUser: User {
 
         item.meta { meta ->
             itemData.displayName?.let {
-                meta.displayNameV = buildMinimessage(it, params = params)
+                meta.displayName_ = buildMinimessage(it, params = params)
             }
             itemData.lore?.let { lore ->
                 val built = lore.map { buildMinimessage(it, params = params) }
@@ -63,7 +63,7 @@ abstract class BukkitUser: User {
                         list.add(component)
                     }
                 }
-                meta.loreV = list
+                meta.lore_ = list
             }
         }
         return item

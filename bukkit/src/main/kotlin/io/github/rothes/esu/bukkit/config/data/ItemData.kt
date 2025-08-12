@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.config.data
 import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayNameV
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.loreV
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
+import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
@@ -76,8 +76,8 @@ data class ItemData(
     val itemUnsafe: ItemStack by lazy {
         create.also { item ->
             item.meta { meta ->
-                displayNameComponent?.let { meta.displayNameV = it }
-                loreComponent?.let { meta.loreV = it }
+                displayNameComponent?.let { meta.displayName_ = it }
+                loreComponent?.let { meta.lore_ = it }
             }
         }
     }

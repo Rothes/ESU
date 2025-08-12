@@ -28,7 +28,7 @@ interface PlayerAdapter {
             return if (paper20_4) isChunkSent(chunkKey) else true
         }
 
-        var Player.displayNameV: Component
+        var Player.displayName_: Component
             get() = instance.getDisplayName(this)
             set(value) = instance.setDisplayName(this, value)
 
