@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.inventory
 import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
-import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.core.util.VarLazy
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.Bukkit

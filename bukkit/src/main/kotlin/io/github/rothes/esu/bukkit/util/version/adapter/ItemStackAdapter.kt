@@ -2,15 +2,13 @@ package io.github.rothes.esu.bukkit.util.version.adapter
 
 import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.core.util.ComponentUtils.esu
+import io.github.rothes.esu.core.util.AdventureConverter.esu
+import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
-import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 interface ItemStackAdapter {
 

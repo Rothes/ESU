@@ -16,9 +16,9 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.configuration.data.SOUND
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.enabled
-import io.github.rothes.esu.core.util.ComponentUtils.esu
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.plainText

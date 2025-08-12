@@ -6,7 +6,7 @@ import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
-import io.github.rothes.esu.core.util.ComponentUtils.server
+import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver

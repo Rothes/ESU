@@ -12,11 +12,10 @@ import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.AdventureConverter.esu
+import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.component
-import io.github.rothes.esu.core.util.ComponentUtils.esu
-import io.github.rothes.esu.core.util.ComponentUtils.server
 import io.github.rothes.esu.core.util.OptionalUtils.applyTo
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Comment
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.format.NamedTextColor
 import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextColor

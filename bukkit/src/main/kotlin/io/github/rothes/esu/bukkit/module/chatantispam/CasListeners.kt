@@ -16,8 +16,8 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
-import io.github.rothes.esu.core.util.ComponentUtils.esu
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.papermc.paper.event.player.AsyncChatEvent
 import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
