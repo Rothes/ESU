@@ -81,7 +81,8 @@ interface AttributeAdapter {
         val Attribute.key_
             get() = instance.getKey(this)
 
-        fun Attribute.of(name: String) = instance.of(name)
+        fun Attribute.of(name: String) = this@Companion.of(name)
+        fun of(name: String) = instance.of(name)
 
     }
 
