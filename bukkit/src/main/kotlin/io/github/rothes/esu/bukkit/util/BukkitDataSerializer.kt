@@ -2,6 +2,8 @@ package io.github.rothes.esu.bukkit.util
 
 import com.google.gson.*
 import de.tr7zw.changeme.nbtapi.NBT
+import io.github.rothes.esu.bukkit.config.serializer.AttributeSerializer
+import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.util.DataSerializer
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -15,6 +17,7 @@ object BukkitDataSerializer {
             Location::class.java to BukkitLocationAdapter,
             ItemStack::class.java to ItemStackAdapter
         )
+        ConfigLoader.registerSerializer(AttributeSerializer)
     }
 
     private object BukkitLocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {

@@ -70,9 +70,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     init {
         EsuCore.instance = this
-        // Register bukkit serializers
-        ConfigLoader.registerSerializer(AttributeSerializer)
-        BukkitDataSerializer // registerTypeAdapter
+        BukkitDataSerializer // Register bukkit serializers
         if (!ServerCompatibility.mojmap) {
             AetherLoader // For Spigot 1.16.5 and older
             MavenResolver.loadDependencies(
