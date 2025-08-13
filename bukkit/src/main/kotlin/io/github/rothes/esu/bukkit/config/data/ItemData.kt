@@ -24,7 +24,9 @@ import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.attribute.Attribute
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import java.util.UUID
@@ -42,6 +44,10 @@ data class ItemData(
     val lore: List<String>? = null,
     @NoDeserializeNull
     val enchantments: Map<String, Int>? = null,
+    @NoDeserializeNull
+    val attributes: Map<Attribute, List<AttributeModifierData>>? = null,
+    @NoDeserializeNull
+    val itemFlags: List<ItemFlag>? = null,
     @NoDeserializeIf("1")
     val amount: Int = 1,
     val playerTexture: String? = null,
@@ -67,6 +73,16 @@ data class ItemData(
                         }
                         meta.addEnchant(enchantment, level, true)
                     }
+                }
+                attributes?.let {
+                    for ((attr, mods) in attributes) {
+                        for (mod in mods) {
+                            meta.addAttributeModifier(attr, mod.bukkit)
+                        }
+                    }
+                }
+                itemFlags?.let {
+                    meta.addItemFlags(*it.toTypedArray())
                 }
                 playerTexture?.let {
                     if (meta !is SkullMeta) return@let
@@ -161,5 +177,17 @@ data class ItemData(
         }
         return true
     }
+
+    // Legacy APIs
+
+    @Deprecated("Since 0.9.0, legacy api support only")
+    constructor(material: Material? = null, itemsAdderId: String? = null, mythicMobsItemId: String? = null,
+                mmoItemsItemType: String? = null, mmoItemsItemId: String? = null, craftEngineItemId: String? = null,
+                displayName: String? = null, lore: List<String>? = null, enchantments: Map<String, Int>? = null,
+                amount: Int = 1, playerTexture: String? = null, customModelData: Int? = null, itemModel: String? = null,
+                tooltipStyle: String? = null,
+    ): this(material, itemsAdderId, mythicMobsItemId, mmoItemsItemType, mmoItemsItemId, craftEngineItemId, displayName,
+        lore, enchantments, null, null, amount, playerTexture, customModelData, itemModel,
+        tooltipStyle)
 
 }
