@@ -12,18 +12,14 @@ import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils
-import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.nonItalic
+import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.format.NamedTextColor
-import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextDecoration
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import io.lumine.mythic.lib.gui.editable.item.ItemOptions.material
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
 import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit
@@ -34,7 +30,7 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
-import java.util.UUID
+import java.util.*
 
 data class ItemData(
     val material: Material? = null,
@@ -175,10 +171,10 @@ data class ItemData(
     private fun checkProp(itemStack: ItemStack): Boolean {
         val meta = itemStack.itemMeta
         displayNameComponent?.let {
-            if (meta.displayName() != it) return false
+            if (meta.displayName_ != it) return false
         }
         loreComponent?.let {
-            if (meta.lore() != it) return false
+            if (meta.lore_ != it) return false
         }
         tooltipStyleObj?.let {
             if (meta.tooltipStyle != it) return false
