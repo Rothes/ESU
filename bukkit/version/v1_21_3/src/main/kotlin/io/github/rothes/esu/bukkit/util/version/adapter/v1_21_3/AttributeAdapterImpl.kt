@@ -40,7 +40,7 @@ class AttributeAdapterImpl: AttributeAdapter {
     override val sweepingDamageRatio: Attribute = Attribute.SWEEPING_DAMAGE_RATIO
     override val spawnReinforcements: Attribute = Attribute.SPAWN_REINFORCEMENTS
 
-    override fun valueOf(name: String): Attribute? {
+    override fun of(name: String): Attribute? {
         return Registry.ATTRIBUTE.get(NamespacedKey.fromString(name)!!)
     }
 

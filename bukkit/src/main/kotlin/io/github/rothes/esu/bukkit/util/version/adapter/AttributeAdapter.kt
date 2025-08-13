@@ -38,7 +38,7 @@ interface AttributeAdapter {
     val sweepingDamageRatio: Attribute
     val spawnReinforcements: Attribute
 
-    fun valueOf(name: String): Attribute?
+    fun of(name: String): Attribute?
     fun getKey(attribute: Attribute): String
 
     companion object {
@@ -81,7 +81,7 @@ interface AttributeAdapter {
         val Attribute.key_
             get() = instance.getKey(this)
 
-        fun Attribute.of(name: String) = instance.valueOf(name)
+        fun Attribute.of(name: String) = instance.of(name)
 
     }
 

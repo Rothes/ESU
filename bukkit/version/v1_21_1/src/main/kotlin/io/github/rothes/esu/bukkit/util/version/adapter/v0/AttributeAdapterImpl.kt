@@ -39,7 +39,7 @@ class AttributeAdapterImpl: AttributeAdapter {
     override val sweepingDamageRatio: Attribute = Attribute.PLAYER_SWEEPING_DAMAGE_RATIO
     override val spawnReinforcements: Attribute = Attribute.ZOMBIE_SPAWN_REINFORCEMENTS
 
-    override fun valueOf(name: String): Attribute? {
+    override fun of(name: String): Attribute? {
         return Attribute.entries.find { it.name.substringAfter('_') == name.uppercase() }
     }
 
