@@ -43,7 +43,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
     override fun enable() {
         CasDataManager
-        purgeTask = Scheduler.async(20, 5 * 60 * 20) { purgeCache(true) }
+        purgeTask = Scheduler.asyncTicks(20, 5 * 60 * 20) { purgeCache(true) }
         CasListeners.enable()
         Bukkit.getOnlinePlayers().map { it.user }.forEach {
             if (it.hasPerm("notify"))

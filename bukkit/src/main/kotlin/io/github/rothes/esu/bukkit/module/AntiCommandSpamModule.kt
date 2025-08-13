@@ -24,7 +24,7 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
 
     override fun enable() {
         Bukkit.getPluginManager().registerEvents(Listeners, plugin)
-        cacheTask = Scheduler.async(5 * 60 * 20L, 5 * 60 * 20L) {
+        cacheTask = Scheduler.asyncTicks(5 * 60 * 20L, 5 * 60 * 20L) {
             val now = System.currentTimeMillis()
             Listeners.hits.cellSet().toList().forEach { cell ->
                 val cmd = cell.columnKey

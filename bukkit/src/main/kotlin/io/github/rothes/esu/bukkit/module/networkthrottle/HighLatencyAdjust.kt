@@ -50,7 +50,7 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
         data.originalViewDistance.clear()
 
         if (config.highLatencyAdjust.enabled) {
-            task = Scheduler.async(0, 15 * 20) {
+            task = Scheduler.asyncTicks(0, 15 * 20) {
                 val now = System.currentTimeMillis()
                 for (player in Bukkit.getOnlinePlayers()) {
                     if (player.ping >= config.highLatencyAdjust.latencyThreshold) {

@@ -32,7 +32,7 @@ object UpdateCheckerMan {
     fun reload() {
         if (EsuConfig.get().updateChecker) {
             if (task == null) {
-                task = Scheduler.async(0, 60 * 60 * 20) {
+                task = Scheduler.asyncTicks(0, 60 * 60 * 20) {
                     checker.run()
                 }
             }

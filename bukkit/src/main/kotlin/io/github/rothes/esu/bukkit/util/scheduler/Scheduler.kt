@@ -73,14 +73,14 @@ object Scheduler {
         else
             BukkitTask(Bukkit.getScheduler().runTaskAsynchronously(plugin, func))
     }
-    fun async(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun asyncTicks(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
             FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
                 delayTicks * 50, TimeUnit.MILLISECONDS))
         else
             BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func, delayTicks))
     }
-    fun async(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun asyncTicks(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (folia)
             FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
                 delayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS)

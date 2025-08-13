@@ -55,7 +55,7 @@ object NewsDataManager {
         fetchNews()
         fun schedule() {
             // We want a random offset
-            task = Scheduler.async(20 * 60L + (-200 .. 200).random()) {
+            task = Scheduler.asyncTicks(20 * 60L + (-200 .. 200).random()) {
                 fetchNews()
                 schedule()
             }
