@@ -4,13 +4,10 @@ import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.bukkit.user.ConsoleUser.actionBar
-import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMinimessage
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.user.User
@@ -89,10 +86,10 @@ data class ItemData(
 
         item.meta { meta ->
             displayName?.let {
-                meta.displayName_ = user.buildMinimessage(it, params = params)
+                meta.displayName_ = user.buildMiniMessage(it, params = params)
             }
             lore?.let { lore ->
-                val built = lore.map { user.buildMinimessage(it, params = params) }
+                val built = lore.map { user.buildMiniMessage(it, params = params) }
                 val list = arrayListOf<Component>()
                 built.forEach { component ->
                     val serialize = MiniMessage.miniMessage().serialize(component)

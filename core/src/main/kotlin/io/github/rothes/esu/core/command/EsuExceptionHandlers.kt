@@ -74,7 +74,7 @@ class EsuExceptionHandlers(
     }
 
     private fun ExceptionContext<out User, out Throwable>.msg(caption: Caption, vararg tags: TagResolver) {
-        this.context().sender().minimessage("<ec>" + this.context().formatCaption(caption), *tags)
+        this.context().sender().miniMessage("<ec>" + this.context().formatCaption(caption), *tags)
     }
 
 }

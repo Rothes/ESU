@@ -28,8 +28,8 @@ data class MessageData(
 
     fun parsed(user: User, vararg params: TagResolver): ParsedMessageData {
         return ParsedMessageData(
-            chat?.map { user.buildMinimessage(it, params = params) },
-            actionBar?.let { user.buildMinimessage(it, params = params) },
+            chat?.map { user.buildMiniMessage(it, params = params) },
+            actionBar?.let { user.buildMiniMessage(it, params = params) },
             title?.parsed(user, params = params),
             sound,
         )

@@ -128,7 +128,7 @@ object ComponentUtils {
     fun Boolean.yes(user: User): Component = duel(user, { yes }) { no }
 
     private fun Boolean.duel(user: User, t: EsuLocale.BaseEsuLocaleData.Booleans.() -> String, f: EsuLocale.BaseEsuLocaleData.Booleans.() -> String): Component {
-        return user.buildMinimessage(EsuLocale.get(), { if (this@duel) t(booleans) else f(booleans) })
+        return user.buildMiniMessage(EsuLocale.get(), { if (this@duel) t(booleans) else f(booleans) })
     }
 
     fun Component.capitalize(): Component {
@@ -154,7 +154,7 @@ object ComponentUtils {
             val localed = viewer.localedOrNull(langMap)
             if (localed != null)
                 Tag.selfClosingInserting(
-                    viewer.buildMinimessage(localed, params = params)
+                    viewer.buildMiniMessage(localed, params = params)
                 )
             else {
                 Tag.selfClosingInserting(

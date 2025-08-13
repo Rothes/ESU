@@ -93,16 +93,16 @@ interface User {
     }
 
     fun <T: ConfigurationPart> message(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        message(buildMinimessage(locales, block, params = params))
+        message(buildMiniMessage(locales, block, params = params))
     }
-    fun minimessage(message: String, vararg params: TagResolver) {
-        message(buildMinimessage(message, params = params))
+    fun miniMessage(message: String, vararg params: TagResolver) {
+        message(buildMiniMessage(message, params = params))
     }
 
-    fun <T: ConfigurationPart> buildMinimessage(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
-        return buildMinimessage(localed(locales, block), params = params)
+    fun <T: ConfigurationPart> buildMiniMessage(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
+        return buildMiniMessage(localed(locales, block), params = params)
     }
-    fun buildMinimessage(message: String, vararg params: TagResolver): Component {
+    fun buildMiniMessage(message: String, vararg params: TagResolver): Component {
         return MiniMessage.miniMessage().deserialize(
             message.let {
                 if (EsuConfig.get().legacyColorChar)
@@ -112,6 +112,19 @@ interface User {
             },
             *params, colorSchemeTagResolver, capitalize
         )
+    }
+
+    @Deprecated("Since Esu 0.9.0, use {@link #miniMessage()} instead.")
+    fun minimessage(message: String, vararg params: TagResolver) {
+        miniMessage(message, params = params)
+    }
+    @Deprecated("Since Esu 0.9.0, use {@link #buildMiniMessage()} instead.")
+    fun <T: ConfigurationPart> buildMinimessage(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
+        return buildMiniMessage(locales, block, params = params)
+    }
+    @Deprecated("Since Esu 0.9.0, use {@link #buildMiniMessage()} instead.")
+    fun buildMinimessage(message: String, vararg params: TagResolver): Component {
+        return buildMiniMessage(message, params = params)
     }
 
     fun message(messageData: MessageData, vararg params: TagResolver) {

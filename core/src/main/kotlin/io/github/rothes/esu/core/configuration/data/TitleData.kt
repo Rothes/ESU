@@ -16,8 +16,8 @@ data class TitleData(
 
     fun parsed(user: User, vararg params: TagResolver): ParsedMessageData.ParsedTitleData {
         return ParsedMessageData.ParsedTitleData(
-            title?.let { user.buildMinimessage(it, *params) },
-            subTitle?.let { user.buildMinimessage(it, *params) },
+            title?.let { user.buildMiniMessage(it, *params) },
+            subTitle?.let { user.buildMiniMessage(it, *params) },
             times
         )
     }

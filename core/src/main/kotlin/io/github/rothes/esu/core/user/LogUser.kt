@@ -25,12 +25,12 @@ interface LogUser: User {
 
     fun <T: ConfigurationPart> log(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         val message = localed(locales, block)
-        minimessage("[ESU] $message", params = params)
+        miniMessage("[ESU] $message", params = params)
     }
 
     fun log(message: String, vararg params: TagResolver) {
         if (message.isEmpty())
-            minimessage("[ESU] $message", params = params)
+            miniMessage("[ESU] $message", params = params)
     }
 
     fun log(message: MessageData, vararg params: TagResolver) {

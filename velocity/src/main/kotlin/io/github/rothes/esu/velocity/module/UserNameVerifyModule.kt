@@ -2,15 +2,10 @@ package io.github.rothes.esu.velocity.module
 
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.connection.LoginEvent
-import com.velocitypowered.api.event.connection.PostLoginEvent
-import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
-import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.ComponentUtils.component
-import io.github.rothes.esu.velocity.plugin
 import io.github.rothes.esu.velocity.user
 import kotlin.jvm.java
 
@@ -36,7 +31,7 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
                 if (regex.matchEntire(username) == null) {
                     val user = e.player.user
                     user.kick(locale, { kickMessage.messages[key] },
-                        component("prefix", user.buildMinimessage(locale, { kickMessage.prefix }))
+                        component("prefix", user.buildMiniMessage(locale, { kickMessage.prefix }))
                     )
                     e.result = ServerPreConnectEvent.ServerResult.denied()
                     break

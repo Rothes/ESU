@@ -423,7 +423,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val user = map[id]
             if (user != null)
                 Tag.selfClosingInserting(
-                    viewer.buildMinimessage(locale, { playerDisplay },
+                    viewer.buildMiniMessage(locale, { playerDisplay },
                         if (user is PlayerUser)
                             component("player_key", user.player.displayName_)
                         else
