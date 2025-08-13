@@ -46,27 +46,7 @@ abstract class BukkitUser: User {
     }
 
     fun item(itemData: ItemData, vararg params: TagResolver): ItemStack {
-        val item = itemData.create
-
-        item.meta { meta ->
-            itemData.displayName?.let {
-                meta.displayName_ = buildMinimessage(it, params = params)
-            }
-            itemData.lore?.let { lore ->
-                val built = lore.map { buildMinimessage(it, params = params) }
-                val list = arrayListOf<Component>()
-                built.forEach { component ->
-                    val serialize = MiniMessage.miniMessage().serialize(component)
-                    if (serialize.contains('\n') || serialize.contains("<br>")) {
-                        list.addAll(serialize.split("<br>", "\n").map { MiniMessage.miniMessage().deserialize(it) })
-                    } else {
-                        list.add(component)
-                    }
-                }
-                meta.lore_ = list
-            }
-        }
-        return item
+        return itemData.parsed(this, *params)
     }
 
 }

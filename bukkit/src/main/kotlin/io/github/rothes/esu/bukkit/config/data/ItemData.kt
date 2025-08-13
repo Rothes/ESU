@@ -3,18 +3,25 @@ package io.github.rothes.esu.bukkit.config.data
 import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.user.ConsoleUser.actionBar
+import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMinimessage
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
 import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit
@@ -73,16 +80,33 @@ data class ItemData(
                 tooltipStyleObj?.let { meta.tooltipStyle = it }
             }
         }
-    val itemUnsafe: ItemStack by lazy {
-        create.also { item ->
-            item.meta { meta ->
-                displayNameComponent?.let { meta.displayName_ = it }
-                loreComponent?.let { meta.lore_ = it }
-            }
-        }
-    }
+    val itemUnsafe: ItemStack by lazy { parsed(ConsoleUser) }
     val item
         get() = itemUnsafe.clone()
+
+    fun parsed(user: User, vararg params: TagResolver): ItemStack {
+        val item = create
+
+        item.meta { meta ->
+            displayName?.let {
+                meta.displayName_ = user.buildMinimessage(it, params = params)
+            }
+            lore?.let { lore ->
+                val built = lore.map { user.buildMinimessage(it, params = params) }
+                val list = arrayListOf<Component>()
+                built.forEach { component ->
+                    val serialize = MiniMessage.miniMessage().serialize(component)
+                    if (serialize.contains('\n') || serialize.contains("<br>")) {
+                        list.addAll(serialize.split("<br>", "\n").map { MiniMessage.miniMessage().deserialize(it) })
+                    } else {
+                        list.add(component)
+                    }
+                }
+                meta.lore_ = list
+            }
+        }
+        return item
+    }
 
     fun matches(itemStack: ItemStack): Boolean {
         if (material == null && itemsAdderId == null && mythicMobsItemId == null && itemStack.type != Material.AIR) {
