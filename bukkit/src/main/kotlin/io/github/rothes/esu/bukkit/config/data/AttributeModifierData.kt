@@ -6,14 +6,14 @@ import org.bukkit.inventory.EquipmentSlotGroup
 import java.util.UUID
 
 data class AttributeModifierData(
-    val name: String = UUID.randomUUID().toString().lowercase(),
+    val key: String = UUID.randomUUID().toString().lowercase(),
     val amount: Double = 0.0,
     val operation: AttributeModifier.Operation? = null,
     val slot: String? = null,
 ) {
 
     val namespacedKey by lazy {
-        NamespacedKey.fromString(name) ?: error("Invalid name $name")
+        NamespacedKey.fromString(key) ?: error("Invalid name $key")
     }
 
     val slotGroup: EquipmentSlotGroup by lazy {
