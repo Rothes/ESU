@@ -12,13 +12,18 @@ import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils
+import io.github.rothes.esu.core.util.ComponentUtils.amount
+import io.github.rothes.esu.core.util.ComponentUtils.nonItalic
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.NamedTextColor
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.lumine.mythic.lib.gui.editable.item.ItemOptions.material
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
 import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit
@@ -102,7 +107,7 @@ data class ItemData(
 
         item.meta { meta ->
             displayName?.let {
-                meta.displayName_ = user.buildMiniMessage(it, params = params)
+                meta.displayName_ = user.buildMiniMessage(it, params = params).nonItalic
             }
             lore?.let { lore ->
                 val built = lore.map { user.buildMiniMessage(it, params = params) }
@@ -110,9 +115,12 @@ data class ItemData(
                 built.forEach { component ->
                     val serialize = MiniMessage.miniMessage().serialize(component)
                     if (serialize.contains('\n') || serialize.contains("<br>")) {
-                        list.addAll(serialize.split("<br>", "\n").map { MiniMessage.miniMessage().deserialize(it) })
+                        list.addAll(
+                            serialize.split("<br>", "\n")
+                                .map { MiniMessage.miniMessage().deserialize(it).nonItalic }
+                        )
                     } else {
-                        list.add(component)
+                        list.add(component.nonItalic)
                     }
                 }
                 meta.lore_ = list

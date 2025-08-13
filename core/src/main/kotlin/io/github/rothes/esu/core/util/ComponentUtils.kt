@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.ComponentLike
+import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.Formatter
@@ -66,6 +67,10 @@ object ComponentUtils {
 
     val Component.plainText
         get() = PlainTextComponentSerializer.plainText().serialize(this)
+
+    val Component.nonItalic
+        get() = decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+
 
     fun unparsed(key: String, value: Any?): TagResolver.Single {
         return Placeholder.unparsed(key, value.toString())
