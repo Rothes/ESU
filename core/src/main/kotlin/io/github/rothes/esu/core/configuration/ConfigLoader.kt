@@ -13,6 +13,7 @@ import io.github.rothes.esu.lib.org.spongepowered.configurate.loader.HeaderMode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.ObjectMapper
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.NodeResolver
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Processor
+import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
 import io.github.rothes.esu.lib.org.spongepowered.configurate.util.MapFactories
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.NodeStyle
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
@@ -35,6 +36,11 @@ object ConfigLoader {
     } catch (_: Throwable) {
         false
     }
+
+    private val scalarSerializers = mutableSetOf<ScalarSerializer<*>>()
+
+    fun registerSerializer(serializer: ScalarSerializer<*>) = scalarSerializers.add(serializer)
+    fun unregisterSerializer(serializer: ScalarSerializer<*>) = scalarSerializers.remove(serializer)
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
             loadMulti(path: Path, vararg forceLoad: String,
@@ -236,6 +242,9 @@ object ConfigLoader {
                             it.register(ServerComponentSerializer)
                             it.register(ServerTextColorSerializer)
                         }
+                        for (serializer in scalarSerializers) {
+                            it.register(serializer)
+                        }
                         it.register(
                             { type ->
                                 GenericTypeReflector.erase(type).let { clazz ->
@@ -274,7 +283,8 @@ object ConfigLoader {
                                             false
                                         }
                                     }
-                                }, factory.asTypeSerializer())
+                                }, factory.asTypeSerializer()
+                            )
                     }
             }
     }
