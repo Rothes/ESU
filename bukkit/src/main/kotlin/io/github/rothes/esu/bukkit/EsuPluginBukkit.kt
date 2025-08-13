@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit
 import io.github.rothes.esu.bukkit.AdventureHolder.adventure
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.config.serializer.AttributeSerializer
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
@@ -23,6 +24,7 @@ import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
+import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
@@ -68,6 +70,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
     init {
         EsuCore.instance = this
+        // Register bukkit serializers
+        ConfigLoader.registerSerializer(AttributeSerializer)
         BukkitDataSerializer // registerTypeAdapter
         if (!ServerCompatibility.mojmap) {
             AetherLoader // For Spigot 1.16.5 and older
