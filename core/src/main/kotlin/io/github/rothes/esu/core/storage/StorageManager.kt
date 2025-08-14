@@ -139,20 +139,23 @@ object StorageManager {
     fun updateUserNow(user: User) {
         transaction(database) {
             try {
-                with(UsersTable) {
-                    update({ dbId eq user.dbId }) {
-                        it[name] = user.nameUnsafe
-                        it[language] = user.languageUnsafe
-                        it[colorScheme] = user.colorSchemeUnsafe
-                    }
-                }
+                doUpdateUser(user)
             } catch (e: ExposedSQLException) {
                 if (e.cause is SQLIntegrityConstraintViolationException) {
                     EsuCore.instance.err("Failed to update user ${user.dbId} data ${user.nameUnsafe} (${user.uuid}): " + e.message)
-                    user.nameUnsafe?.let { name ->
-                        val get = getUserDataByName(name)
+                    user.nameUnsafe?.let { dbName ->
+                        val get = getUserDataByName(dbName)
                         if (get != null) {
-                            EsuCore.instance.err("Current in db user ${get.dbId}: ${user.nameUnsafe} (${get.uuid})")
+                            EsuCore.instance.warn("Current in db user ${get.dbId}: ${user.nameUnsafe} (${get.uuid})")
+                            if (get.dbId != user.dbId) {
+                                with(UsersTable) {
+                                    update({ dbId eq get.dbId }) {
+                                        it[name] = null
+                                    }
+                                }
+                                doUpdateUser(user)
+                                EsuCore.instance.err("Re-attached name ${user.nameUnsafe} to user ${user.dbId}")
+                            }
                         }
                     }
                 } else {
@@ -165,6 +168,16 @@ object StorageManager {
     fun updateUserAsync(user: User) {
         coroutineScope.launch {
             updateUserNow(user)
+        }
+    }
+
+    private fun doUpdateUser(user: User) {
+        with(UsersTable) {
+            update({ dbId eq user.dbId }) {
+                it[name] = user.nameUnsafe
+                it[language] = user.languageUnsafe
+                it[colorScheme] = user.colorSchemeUnsafe
+            }
         }
     }
 
