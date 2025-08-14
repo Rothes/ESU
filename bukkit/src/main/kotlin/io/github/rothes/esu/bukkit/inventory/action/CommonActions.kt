@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.inventory.action
 
 import io.github.rothes.esu.bukkit.user.BukkitUser
+import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import org.bukkit.Bukkit
@@ -17,6 +18,10 @@ object CommonActions {
     val COMMAND = ArgumentAction.create("Command") { user, arg ->
         arg ?: return@create
         Bukkit.dispatchCommand((user as BukkitUser).commandSender, arg)
+    }
+    val CONSOLE = ArgumentAction.create("Console") { _, arg ->
+        arg ?: return@create
+        Bukkit.dispatchCommand(ConsoleUser.commandSender, arg)
     }
     val MESSAGE = ArgumentAction.create("Message") { user, arg ->
         arg ?: return@create
