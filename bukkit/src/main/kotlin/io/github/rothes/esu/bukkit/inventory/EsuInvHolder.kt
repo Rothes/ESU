@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.inventory
 
 import io.github.rothes.esu.bukkit.config.data.InventoryData
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
@@ -57,6 +58,10 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
         for (i in 0 until old.size)
             inv.setItem(i, old.getItem(i))
         old.viewers.forEach { open(it) }
+    }
+
+    fun open(user: PlayerUser) {
+        open(user.player)
     }
 
     open fun open(humanEntity: HumanEntity) {
