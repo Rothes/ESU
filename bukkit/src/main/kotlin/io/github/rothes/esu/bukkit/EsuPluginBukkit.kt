@@ -3,7 +3,6 @@ package io.github.rothes.esu.bukkit
 import io.github.rothes.esu.bukkit.AdventureHolder.adventure
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
-import io.github.rothes.esu.bukkit.config.serializer.AttributeSerializer
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
@@ -16,7 +15,6 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
-import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
@@ -24,13 +22,13 @@ import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
+import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
@@ -41,6 +39,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -277,6 +276,14 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                 val holder = e.inventory.holder
                 if (holder is EsuInvHolder<*>) {
                     holder.handleDrag(e)
+                }
+            }
+
+            @EventHandler(priority = EventPriority.HIGH)
+            fun onClick(e: InventoryCloseEvent) {
+                val holder = e.inventory.holder
+                if (holder is EsuInvHolder<*>) {
+                    holder.onClose()
                 }
             }
         }, this)
