@@ -26,6 +26,7 @@ import java.nio.file.Path
 import java.util.*
 import java.util.zip.ZipException
 import kotlin.io.path.*
+import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
@@ -43,24 +44,46 @@ object ConfigLoader {
     fun unregisterSerializer(serializer: ScalarSerializer<*>) = scalarSerializers.remove(serializer)
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+            loadMulti(path: Path, vararg forceLoad: String): T {
+        return loadMultiSimple(path, T::class.java, D::class.java, forceLoad = forceLoad)
+    }
+
+    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
             loadMulti(path: Path, vararg forceLoad: String,
                       create: Array<String>? = null, loadSubDir: Boolean = false,
-                      nameMapper: (Path) -> String = { it.nameWithoutExtension },
-                      builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      modifier: (D, Path) -> D = { it, _ -> it }): T {
-        return loadMulti(path, D::class.java, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, modifier)
+                      noinline nameMapper: (Path) -> String = { it.nameWithoutExtension },
+                      noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+                      noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+                      noinline modifier: (D, Path) -> D = { it, _ -> it }): T {
+        return loadMulti(path, T::class.java, D::class.java, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, nodeMapper, modifier)
     }
 
     inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
-            loadMulti(path: Path, clazz: Class<D>, vararg forceLoad: String,
+            loadMulti(path: Path, dataClass: Class<D>, vararg forceLoad: String,
+                      create: Array<String>? = null, loadSubDir: Boolean = false,
+                      noinline nameMapper: (Path) -> String = { it.nameWithoutExtension },
+                      noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+                      noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+                      noinline modifier: (D, Path) -> D = { it, _ -> it }): T {
+        return loadMulti(path, T::class.java, dataClass, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, nodeMapper, modifier)
+    }
+
+    fun <T: MultiConfiguration<D>, D: ConfigurationPart>
+            loadMultiSimple(path: Path, configClass: Class<T>, dataClass: Class<D>, forceLoad: Array<out String>): T {
+        return loadMulti(path, configClass, dataClass, forceLoad = forceLoad)
+    }
+
+    fun <T: MultiConfiguration<D>, D: ConfigurationPart>
+            loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, vararg forceLoad: String,
                       create: Array<String>? = null, loadSubDir: Boolean = false,
                       nameMapper: (Path) -> String = { it.nameWithoutExtension },
                       builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+                      nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
                       modifier: (D, Path) -> D = { it, _ -> it }): T {
-        if (clazz.isInstance(EmptyConfiguration)) {
-            return T::class.java.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
+        if (dataClass.isInstance(EmptyConfiguration)) {
+            return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
-        if (MultiLocaleConfiguration::class.java.isAssignableFrom(T::class.java) && path.notExists()) {
+        if (MultiLocaleConfiguration::class.java.isAssignableFrom(configClass) && path.notExists()) {
             EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
                 val relativize = EsuCore.instance.baseConfigPath().relativize(path)
                 val source = linkTo.resolve(relativize)
@@ -71,7 +94,7 @@ object ConfigLoader {
                 EsuCore.instance.info("Created symbolic link: [$path] -> [$source]")
             }
         }
-        return T::class.java.getConstructor(Map::class.java).newInstance(
+        return configClass.getConstructor(Map::class.java).newInstance(
             buildMap {
                 val files = forceLoad.map { path.resolve(it) }.toMutableSet()
                 if (create?.isNotEmpty() == true && path.notExists()) {
@@ -82,13 +105,13 @@ object ConfigLoader {
                     loadDirectory(path, files, loadSubDir)
                 }
                 files.forEach { file ->
-                    put(nameMapper(file), load(file, clazz, builder, modifier))
+                    put(nameMapper(file), load(file, dataClass, builder, nodeMapper, modifier))
                 }
             }
         )
     }
 
-    fun loadDirectory(dir: Path, files: MutableCollection<Path>, deep: Boolean) {
+    private fun loadDirectory(dir: Path, files: MutableCollection<Path>, deep: Boolean) {
         dir.forEachDirectoryEntry {
             if (it.isRegularFile() && !files.contains(it)) {
                 files.add(it)
@@ -98,14 +121,24 @@ object ConfigLoader {
         }
     }
 
-    inline fun <reified T> load(path: Path,
-                                builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                                modifier: (T, Path) -> T = { it, _ -> it }): T {
-        return load(path, T::class.java, builder, modifier)
+    inline fun <reified T> load(path: Path): T {
+        return loadSimple(path, T::class.java)
     }
 
-    inline fun <T> load(path: Path, clazz: Class<T>,
+    inline fun <reified T> load(path: Path,
+                                noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+                                noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+                                noinline modifier: (T, Path) -> T = { it, _ -> it }): T {
+        return load(path, T::class.java, builder, nodeMapper, modifier)
+    }
+
+    fun <T> loadSimple(path: Path, clazz: Class<T>): T {
+        return load(path, clazz)
+    }
+
+    fun <T> load(path: Path, clazz: Class<T>,
                         builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+                        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
                         modifier: (T, Path) -> T = { it, _ -> it }): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return clazz.cast(EmptyConfiguration)
@@ -114,7 +147,7 @@ object ConfigLoader {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
         val loader = createBuilder().path(path).let(builder).build()
-        val node = loader.load()
+        val node = nodeMapper(loader.load())
         val t = modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
         loader.save(node)
@@ -131,8 +164,8 @@ object ConfigLoader {
         println((serial as ObjectMapper.Factory).get(clazz).load(BasicConfigurationNode.root(node.options().shouldCopyDefaults(false))))
     }
 
-    inline fun save(path: Path, obj: Any,
-                        builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }) {
+    fun save(path: Path, obj: Any,
+             builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }) {
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
