@@ -6,7 +6,6 @@ import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
 const val MINECRAFT = "minecraft"
 
 data class SoundData(
-    val namespace: String = MINECRAFT,
     val key: String = "",
     val source: Sound.Source? = null,
     val volume: Float? = null,
@@ -15,7 +14,7 @@ data class SoundData(
 ) {
 
     val adventure by lazy {
-        var sound = Sound.sound().type(Key.key(namespace, key))
+        var sound = Sound.sound().type(Key.key(key))
         if (source != null) {
             sound = sound.source(source)
         }
