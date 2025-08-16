@@ -19,6 +19,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.math.floor
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 object ComponentUtils {
 
@@ -84,6 +85,12 @@ object ComponentUtils {
         return Placeholder.component(key, component)
     }
 
+    fun durationTicks(ticks: Long, user: User, key: String = "duration"): TagResolver.Single {
+        return durationMillis(ticks * 20, user, key)
+    }
+    fun durationMillis(millis: Long, user: User, key: String = "duration"): TagResolver.Single {
+        return duration(millis.milliseconds, user, key)
+    }
     fun duration(duration: Duration, user: User, key: String = "duration"): TagResolver.Single {
         return Placeholder.parsed(key, duration.toComponents { d, h, m, s, ns ->
             buildString {
