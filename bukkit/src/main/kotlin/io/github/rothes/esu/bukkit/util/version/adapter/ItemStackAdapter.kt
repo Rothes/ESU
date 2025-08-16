@@ -21,11 +21,14 @@ interface ItemStackAdapter {
 
         val instance = if (ServerCompatibility.paper) Paper else CB
 
+        val ItemStack.empty: Boolean
+            get() = isAir || amount <= 0
+
         val ItemStack.isAir: Boolean
             get() = type == Material.AIR
 
-        inline fun ItemStack.ifNotAir(block: (ItemStack) -> Unit): ItemStack {
-            if (!isAir)
+        inline fun ItemStack.ifNotEmpty(block: (ItemStack) -> Unit): ItemStack {
+            if (!empty)
                 block(this)
             return this
         }
@@ -38,18 +41,18 @@ interface ItemStackAdapter {
             return ret
         }
 
-        @JvmName("editMetaGetKt")
         fun <R: Any> ItemStack.metaGet(block: (meta: ItemMeta) -> R): R {
             return editMeta(this, block) ?: throw IllegalArgumentException("ItemStack does not have a meta")
         }
+        @JvmName("metaGetT")
         fun <T: ItemMeta, R: Any> ItemStack.metaGet(block: (meta: T) -> R): R {
             return editMeta(this, block) ?: throw IllegalArgumentException("ItemStack does not have a meta")
         }
 
-        @JvmName("editMetaKt")
         fun ItemStack.meta(block: (meta: ItemMeta) -> Unit): Boolean {
             return editMeta(this, block) != null
         }
+        @JvmName("metaT")
         fun <T: ItemMeta> ItemStack.meta(block: (meta: T) -> Unit): Boolean {
             return editMeta(this, block) != null
         }
