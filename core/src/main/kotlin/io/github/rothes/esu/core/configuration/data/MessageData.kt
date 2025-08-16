@@ -2,7 +2,6 @@ package io.github.rothes.esu.core.configuration.data
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -74,7 +73,7 @@ data class MessageData(
                 }
             }
             if (sound != null) {
-                tag(SOUND, sound.string)
+                tag(SOUND, sound.serialized)
             }
         }
 
@@ -130,20 +129,13 @@ data class MessageData(
                             matches = true
                         }
                         SOUND    -> {
-                            val split = off.split(':')
-                            if (split.size < 2) {
-                                EsuCore.instance.err("Failed to parse sound: At least namespace + key arguments required")
-                            } else {
-                                val namespace = split[0]
-                                val key = split[1]
-                                val source = if (split.size > 2) Sound.Source.valueOf(split[2].uppercase()) else null
-                                val volume = if (split.size > 3) split[3].toFloat() else null
-                                val pitch = if (split.size > 4) split[4].toFloat() else null
-                                val seed = if (split.size > 5) split[5].toLong() else null
-                                builder.sound = SoundData(namespace, key, source, volume, pitch, seed)
-                                messageType = MessageType.SOUND
-                                matches = true
+                            try {
+                                builder.sound = SoundData.parse(off)
+                            } catch (e: IllegalArgumentException) {
+                                EsuCore.instance.err("Skipping sound tag of $string: $e")
                             }
+                            messageType = MessageType.SOUND
+                            matches = true
                         }
                     }
                     if (matches) {
@@ -173,13 +165,6 @@ data class MessageData(
 
         private val TitleData.Times.string
             get() = "${fadeIn.toKotlinDuration()}:${stay.toKotlinDuration()}:${fadeOut.toKotlinDuration()}"
-
-        private val SoundData.string
-            get() =  if (seed != null)   "$namespace:$key:${source!!.name.lowercase()}:$volume:$pitch:$seed"
-            else if (pitch != null)  "$namespace:$key:${source!!.name.lowercase()}:$volume:$pitch"
-            else if (volume != null) "$namespace:$key:${source!!.name.lowercase()}:$volume"
-            else if (source != null) "$namespace:$key:${source.name.lowercase()}"
-            else "$namespace:$key"
 
         private fun parseTitleTimes(builder: MessageDataBuilder, string: String) {
             if (string.isEmpty())

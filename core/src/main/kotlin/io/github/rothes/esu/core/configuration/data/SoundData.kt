@@ -30,4 +30,29 @@ data class SoundData(
         sound.build()
     }
 
+    val serialized: String by lazy {
+        if (seed != null)        "$key:${source?.name?.lowercase()}:$volume:$pitch:$seed"
+        else if (pitch != null)  "$key:${source?.name?.lowercase()}:$volume:$pitch"
+        else if (volume != null) "$key:${source?.name?.lowercase()}:$volume"
+        else if (source != null) "$key:${source.name.lowercase()}"
+        else key
+    }
+
+    companion object {
+
+        fun parse(str: String): SoundData {
+            val split = str.split(':')
+            require(split.size >= 2) { "Failed to parse sound: At least namespace + key arguments required" }
+
+            val namespace = split[0]
+            val key = split[1]
+            val source = if (split.size > 2) Sound.Source.valueOf(split[2].uppercase()) else null
+            val volume = if (split.size > 3) split[3].toFloat() else null
+            val pitch = if (split.size > 4) split[4].toFloat() else null
+            val seed = if (split.size > 5) split[5].toLong() else null
+            return SoundData("$namespace:$key", source, volume, pitch, seed)
+        }
+
+    }
+
 }
