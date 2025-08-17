@@ -45,6 +45,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.LongArrayList
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import it.unimi.dsi.fastutil.shorts.ShortList
 import net.jpountz.lz4.LZ4Factory
@@ -458,10 +459,12 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     // We don't check allInvisible for last section. It never happens in vanilla generated chunks.
                     counter.minimalChunks++
                     miniChunks[chunkKey] = PlayerChunk(invisible)
-//                val tim = System.nanoTime() - tm
-//                if (tim < 600_000) timesl.add(tim)
-//                if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
-//                event.isCancelled = true
+//                    // benchmark starts
+//                    val tim = System.nanoTime() - tm
+//                    if (tim < 600_000) timesl.add(tim)
+//                    if (timesl.size > 1000) println("AVG: ${timesl.drop(1000).average()}")
+//                    event.isCancelled = true
+//                    // benchmark ends
                 }
             }
         } catch (t: Throwable) {
@@ -478,7 +481,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 scope(x, z)
     }
 
-    private inline fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
+    private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
                                             bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte) {
         level.getChunkIfLoaded(chunkX, chunkZ)?.let { chunk ->
             val indexLoop = 0x100 - bidStep * 16
@@ -531,7 +534,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    private inline fun handleBlockingPrevSec(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
+    private fun handleBlockingPrevSec(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
                                              index: Int, x: Int, z: Int, id: Int, sections: Array<BaseChunk>): Boolean {
         addNearby(blocking, id, x, z)
         if (index == 0)
@@ -553,7 +556,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         return false
     }
 
-    private inline fun handleBlocking(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
+    private fun handleBlocking(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
                                       x: Int, z: Int, id: Int, storage: BaseStorage): Boolean {
         addNearby(blocking, id, x, z)
 
@@ -568,7 +571,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         return false
     }
 
-    private inline fun addNearby(blocking: ByteArray, id: Int, x: Int, z: Int) {
+    private fun addNearby(blocking: ByteArray, id: Int, x: Int, z: Int) {
         if (x > 0 ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
         if (x < 15) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
         if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
@@ -576,7 +579,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
     }
 
-    private inline fun checkSectionAllInvisible(allInvisible: Boolean, invisible: BitSet, randomList: IntArray,
+    private fun checkSectionAllInvisible(allInvisible: Boolean, invisible: BitSet, randomList: IntArray,
                                                 sections: Array<BaseChunk>, index: Int) {
         if (allInvisible) {
             val section = sections[index - 1] as Chunk_v1_18
@@ -671,7 +674,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val Level.bukkit
         get() = worldMethod.invoke(this) as World
 
-    private inline val Player.nms: ServerPlayer
+    private val Player.nms: ServerPlayer
         get() = (this as CraftPlayer).handle
 
     private val BlockState.id
@@ -680,22 +683,22 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private data class ChunkPos(val x: Int, val z: Int)
     private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
 
-    private inline val Long.chunkPos
+    private val Long.chunkPos
         get() = ChunkPos((this and 0xffffffffL).toInt(), (this shr 32).toInt())
 
-    private inline fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
+    private fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
         return (x and 0xf) or (z and 0xf shl 4) or (y - minHeight shl 8)
     }
-    private inline fun getChunkKey(x: Int, z: Int): Long {
+    private fun getChunkKey(x: Int, z: Int): Long {
         return x.toLong() and 0xffffffffL or ((z.toLong() and 0xffffffffL) shl 32)
     }
-    private inline val Int.chunkBlockPos: ChunkBlockPos
+    private val Int.chunkBlockPos: ChunkBlockPos
         get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
 
-    private inline val Int.blocking
+    private val Int.blocking
         get() = blockingCache[this]
 
-    private inline val BlockState.blocking: Boolean
+    private val BlockState.blocking: Boolean
         get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocking
 
     data class PlayerChunk(
