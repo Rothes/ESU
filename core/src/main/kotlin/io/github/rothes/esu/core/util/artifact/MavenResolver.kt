@@ -109,9 +109,9 @@ object MavenResolver {
         }
     }
 
-    fun testDependency(library: String, score: () -> Unit) {
+    fun testDependency(library: String, scope: () -> Unit) {
         try {
-            score()
+            scope()
         } catch (_: Throwable) {
             loadDependencies(listOf(library))
         }
