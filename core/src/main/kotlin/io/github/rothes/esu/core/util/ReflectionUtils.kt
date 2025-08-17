@@ -14,11 +14,16 @@ object ReflectionUtils {
         return LOOKUP.unreflectGetter(field)
     }
 
-    fun getter(field: Field, rType: Class<*>): MethodHandle {
-        return getter(field).asType(MethodType.methodType(rType, field.declaringClass))
+    fun getter(field: Field, rType: Class<*> = field.type, pType: Class<*> = field.declaringClass): MethodHandle {
+        return getter(field).asType(MethodType.methodType(rType, pType))
     }
 
     val Field.getter
         get() = getter(this)
+
+    @JvmName("getterKt")
+    fun Field.getter(rType: Class<*> = type, pType: Class<*> = declaringClass): MethodHandle {
+        return ReflectionUtils.getter(this, rType, pType)
+    }
 
 }
