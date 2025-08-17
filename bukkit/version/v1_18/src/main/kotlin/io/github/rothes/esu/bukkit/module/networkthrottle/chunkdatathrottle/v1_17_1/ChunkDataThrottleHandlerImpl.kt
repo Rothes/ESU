@@ -42,6 +42,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
+import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
@@ -727,12 +728,11 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         private object CB: SectionGetter {
 
             // This field is private on Spigot
-            private val field = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }
-                .also { it.isAccessible = true }
+            private val field = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }.getter
 
             override fun getContainer(section: LevelChunkSection): PalettedContainer<BlockState> {
                 @Suppress("UNCHECKED_CAST")
-                return field[section] as PalettedContainer<BlockState>
+                return field.invokeExact(section) as PalettedContainer<BlockState>
             }
 
         }
