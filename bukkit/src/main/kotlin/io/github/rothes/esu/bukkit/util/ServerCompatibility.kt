@@ -34,6 +34,8 @@ object ServerCompatibility {
         false
     }
 
+    val hasMojmap = serverVersion >= Version.fromString("1.14.4")
+
     val asyncTp = try {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)
         true

@@ -30,6 +30,7 @@ import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
+import io.github.rothes.esu.core.util.version.Version
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -77,7 +78,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     "net.neoforged:AutoRenamingTool:2.0.13",
                 )
             )
-            MappingsLoader
+            if (ServerCompatibility.hasMojmap)
+                MappingsLoader
         }
         val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
         MavenResolver.loadDependencies(
@@ -147,7 +149,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                         }
                     }
 
-                    val toLoad = if (!ServerCompatibility.mojmap) JarRemapper.reobf(file) else file
+                    val toLoad = if (!ServerCompatibility.mojmap && ServerCompatibility.hasMojmap) JarRemapper.reobf(file) else file
                     Versioned.loadVersion(toLoad)
                 }
             }
