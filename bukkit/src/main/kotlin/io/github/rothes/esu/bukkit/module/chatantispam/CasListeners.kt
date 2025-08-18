@@ -19,9 +19,9 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.papermc.paper.event.player.AsyncChatEvent
 import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -228,8 +228,10 @@ object CasListeners: Listener {
     }
 
     fun <T> ArrayDeque<T>.sizedAdd(fullOn: Int, obj: T): ArrayDeque<T> {
-        dropIfFull(fullOn)
-        add(obj)
+        synchronized(this) {
+            dropIfFull(fullOn)
+            add(obj)
+        }
         return this
     }
 
