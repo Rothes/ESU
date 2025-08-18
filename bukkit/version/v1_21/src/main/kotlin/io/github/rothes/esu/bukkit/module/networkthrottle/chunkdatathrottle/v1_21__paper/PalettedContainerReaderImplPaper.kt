@@ -9,7 +9,6 @@ import net.minecraft.world.level.chunk.PalettedContainer
 class PalettedContainerReaderImplPaper: PalettedContainerReader {
 
     // 1.21, Paper made data field public
-    // 1.21.5, Paper added FastPaletteData
     private val dataType = PalettedContainer::class.java.getDeclaredField("data").type
     private val storage = dataType.declaredFields.first { it.type == BitStorage::class.java }.getter
     private val palette = dataType.declaredFields.first { it.type == Palette::class.java }.getter
