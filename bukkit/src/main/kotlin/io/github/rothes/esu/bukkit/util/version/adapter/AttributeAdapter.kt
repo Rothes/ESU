@@ -68,7 +68,8 @@ interface AttributeAdapter {
         val MOVEMENT_EFFICIENCY: Attribute = instance.movementEfficiency
         val OXYGEN_BONUS: Attribute = instance.oxygenBonus
         val WATER_MOVEMENT_EFFICIENCY: Attribute = instance.waterMovementEfficiency
-        val TEMPT_RANGE: Attribute = instance.temptRange
+        val TEMPT_RANGE: Attribute
+            get() = instance.temptRange // Added on 1.21.2
         val BLOCK_INTERACTION_RANGE: Attribute = instance.blockInteractionRange
         val ENTITY_INTERACTION_RANGE: Attribute = instance.entityInteractionRange
         val BLOCK_BREAK_SPEED: Attribute = instance.blockBreakSpeed
