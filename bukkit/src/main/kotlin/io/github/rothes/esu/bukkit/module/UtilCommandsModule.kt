@@ -146,9 +146,14 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
 
             private fun checkMax(user: User, num: Int): Boolean {
                 if (MoonriseConstants.MAX_VIEW_DISTANCE < num) {
-                    val prop = PlatformHooks.get().brand + ".MaxViewDistance"
-                    user.miniMessage("<ec>Current MAX_VIEW_DISTANCE is ${MoonriseConstants.MAX_VIEW_DISTANCE}" +
-                            "<br>Add `-D$prop=$num` behind java in your server start commandline")
+                    user.miniMessage("<ec>Current MAX_VIEW_DISTANCE is ${MoonriseConstants.MAX_VIEW_DISTANCE}")
+                    try {
+                        val prop = PlatformHooks.get().brand + ".MaxViewDistance"
+                        user.miniMessage("<ec>Add `-D$prop=$num` behind java in your server start commandline to override it")
+                    } catch (_: NoClassDefFoundError) {
+                        // Not a thing on 1.21.1
+                        user.miniMessage("<ec>Your server version doesn't allow to override it safely, need a upgrade.")
+                    }
                     return false
                 }
                 return true
