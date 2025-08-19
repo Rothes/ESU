@@ -11,6 +11,7 @@ import java.io.IOException
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.name
 
 object EsuConfig {
 
@@ -116,7 +117,7 @@ For MariaDB:
     set 'jdbc-driver' to 'org.mariadb.jdbc.Driver'
     and 'jdbc-url' to 'jdbc:mariadb://127.0.0.1:3306/esu'""")
             val jdbcDriver: String = "org.h2.Driver",
-            val jdbcUrl: String = "jdbc:h2:file:./plugins/ESU/h2;MODE=MYSQL",
+            val jdbcUrl: String = "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath().name}/h2;MODE=MYSQL",
             val username: String = "root",
             val password: String = "root",
         )
