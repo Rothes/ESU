@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
+import java.io.IOException
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*

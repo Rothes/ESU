@@ -1,5 +1,7 @@
 package io.github.rothes.esu.core.util
 
+import io.github.rothes.esu.core.EsuCore
+import java.io.IOException
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
@@ -11,13 +13,17 @@ object NetworkUtils {
 
     val String.hostLatency: Long
         get() {
-            val address = InetAddress.getByName(this)
-            val start = System.currentTimeMillis()
-            val reachable = address.isReachable(500)
-            if (!reachable)
+            try {
+                val address = InetAddress.getByName(this)
+                val start = System.currentTimeMillis()
+                val reachable = address.isReachable(500)
+                if (!reachable) return -1
+                val latency = System.currentTimeMillis() - start
+                return latency
+            } catch (e: IOException) {
+                EsuCore.instance.err("Failed to test latency to $this : $e")
                 return -1
-            val latency = System.currentTimeMillis() - start
-            return latency
+            }
         }
 
     val URL.latency: Long
