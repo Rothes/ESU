@@ -135,6 +135,9 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                 }
                 if (checkMax(sender, num)) {
                     for (world in Bukkit.getWorlds()) {
+                        if (world.viewDistance < num) {
+                            sender.miniMessage("<ec>ViewDistance of ${world.name} is ${world.viewDistance}, you need it higher or eq than $num")
+                        }
                         world.chunkLoader.setSendDistance(num)
                         sender.message("${world.name} to ${world.sendViewDistance}")
                     }
