@@ -117,7 +117,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             @Command("viewDistance <num>")
             @ShortPerm("viewDistance")
             fun viewDistance(sender: User, num: Int) {
-                if (num < 2 && num != -1) {
+                if (num + 1 < 2 && num != -1) {
                     return sender.miniMessage("<ec>viewDistance should be >= 2")
                 }
                 if (checkMax(sender, num)) {
