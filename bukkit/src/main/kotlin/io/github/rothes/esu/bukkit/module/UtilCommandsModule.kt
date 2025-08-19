@@ -1,6 +1,8 @@
 package io.github.rothes.esu.bukkit.module
 
+import ca.spottedleaf.moonrise.common.PlatformHooks
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
+import ca.spottedleaf.moonrise.common.util.MoonriseConstants
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule.ModuleLocale.ChunkRateTop
 import io.github.rothes.esu.bukkit.plugin
@@ -21,11 +23,13 @@ import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
+import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.bukkit.parser.location.Location2D
 import java.lang.reflect.Field
+import kotlin.jvm.java
 
 object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
     BaseModuleConfiguration::class.java, ModuleLocale::class.java
@@ -98,6 +102,57 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     player.tp(location)
                 }
             }
+
+            @Command("tickDistance <num>")
+            @ShortPerm("tickDistance")
+            fun tickDistance(sender: User, num: Int) {
+                if (num !in (2..32)) {
+                    return sender.miniMessage("<ec>tickDistance should be in range of [2, 32]")
+                }
+                for (world in Bukkit.getWorlds()) {
+                    world.chunkLoader.setTickDistance(num)
+                    sender.message("${world.name} to ${world.simulationDistance}")
+                }
+            }
+            @Command("viewDistance <num>")
+            @ShortPerm("viewDistance")
+            fun viewDistance(sender: User, num: Int) {
+                if (num < 2 && num != -1) {
+                    return sender.miniMessage("<ec>viewDistance should be >= 2")
+                }
+                if (checkMax(sender, num)) {
+                    for (world in Bukkit.getWorlds()) {
+                        world.chunkLoader.setLoadDistance(num + 1)
+                        sender.message("${world.name} to ${world.viewDistance}")
+                    }
+                }
+            }
+            @Command("sendDistance <num>")
+            @ShortPerm("sendDistance")
+            fun sendDistance(sender: User, num: Int) {
+                if (num < 0 && num != -1) {
+                    return sender.miniMessage("<ec>sendDistance should be >= 0")
+                }
+                if (checkMax(sender, num)) {
+                    for (world in Bukkit.getWorlds()) {
+                        world.chunkLoader.setSendDistance(num)
+                        sender.message("${world.name} to ${world.sendViewDistance}")
+                    }
+                }
+            }
+
+            private fun checkMax(user: User, num: Int): Boolean {
+                if (MoonriseConstants.MAX_VIEW_DISTANCE < num) {
+                    val prop = PlatformHooks.get().brand + ".MaxViewDistance"
+                    user.miniMessage("<ec>Current MAX_VIEW_DISTANCE is ${MoonriseConstants.MAX_VIEW_DISTANCE}" +
+                            "<br>Add `-D$prop=$num` behind java in your server start commandline")
+                    return false
+                }
+                return true
+            }
+
+            private val World.chunkLoader
+                get() = (this as CraftWorld).handle.`moonrise$getPlayerChunkLoader`()
         })
         PaperChunkCommands.enable()
     }
