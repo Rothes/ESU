@@ -25,6 +25,9 @@ object UnsafeUtils {
         unsafe.putObject(obj ?: staticBase, offset, value)
     }
 
+    val Field.unsafeObjGetter
+        get() = UnsafeObjGetter(this)
+
     @Suppress("DEPRECATION")
     private val Field.objOffset
         get() = unsafe.objectFieldOffset(this)
@@ -34,5 +37,12 @@ object UnsafeUtils {
     @Suppress("DEPRECATION")
     private val Field.staticBase
         get() = unsafe.staticFieldBase(this)
+
+    class UnsafeObjGetter(val field: Field) {
+
+        private val offset = field.objOffset
+
+        operator fun get(obj: Any): Any? = unsafe.getObject(obj, offset)
+    }
 
 }
