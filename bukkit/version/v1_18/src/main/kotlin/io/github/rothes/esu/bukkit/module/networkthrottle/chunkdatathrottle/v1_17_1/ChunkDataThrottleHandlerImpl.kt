@@ -303,7 +303,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
                     val bvArr = ByteArray((height shl 8) + 16 * 16) // BlocksViewArray
-                    val invisible = BitSet(height shl 8)
+                    val invisible = BooleanArray(height shl 8)
                     if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
                     // Handle neighbour chunks starts
                     handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS)
@@ -393,7 +393,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1))
                     }
 
-                    val array = invisible.toLongArray()!!
+                    val array = invisible.toLongArray()
                     out@ for (i in 1 .. sections.size) {
                         var j = i shl 6 // multiple (16 * 16 * 16 / 64) = 64
                         if (j >= array.size) break
@@ -405,7 +405,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         section.chunkData.palette = SingletonPalette(randomBlockIds.random())
                     }
                     counter.minimalChunks++
-                    miniChunks[chunkKey] = PlayerChunk(invisible)
+                    miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(array))
 //                    // benchmark starts
 //                    val tim = System.nanoTime() - tm
 //                    if (tim < 600_000) timesl.add(tim)
@@ -498,16 +498,16 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: BitSet, id: Int) {
+    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: BooleanArray, id: Int) {
         for (i in id - 1 downTo id - 0x101) {
             if (bvArr[i] != INVISIBLE) {
                 return
             }
         }
-        invisible.set(id - 0x100, id + 0xe00)
+        invisible.fill(true, id - 0x100, id + 0xe00)
     }
 
-    private fun handleBlocksView(bvArr: ByteArray, invisible: BitSet,
+    private fun handleBlocksView(bvArr: ByteArray, invisible: BooleanArray,
                                  id: Int, sections: Array<BaseChunk>, section: Int) {
         addNearby(bvArr, id)
 
@@ -532,6 +532,22 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
         if (z < 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
+    }
+
+    private fun BooleanArray.toLongArray(): LongArray {
+        val count = size shr 6
+        val arr = LongArray(count)
+
+        var i = 0
+        for (j in 0 until count) {
+            var l = 0L
+            for (k in 0 until 64) {
+                if (this[i++])
+                    l = l or (0b1L shl k)
+            }
+            arr[j] = l
+        }
+        return arr
     }
 
     private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
