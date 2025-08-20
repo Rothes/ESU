@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
@@ -73,6 +74,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import java.lang.reflect.Modifier
 import java.nio.file.StandardOpenOption
 import java.util.*
+import kotlin.collections.isNotEmpty
 import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
@@ -256,7 +258,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val world = player.world
                     val minHeight = world.minHeight
                     for (block in wrapper.blocks) {
-                        if (block.blockId.blocking) {
+                        if (block.blockId.blocksView) {
                             // Only check full chunk if blocks get broken or transformed to non-blocking
                             continue
                         }
@@ -266,7 +268,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                 PacketType.Play.Server.BLOCK_CHANGE       -> {
                     val wrapper = WrapperPlayServerBlockChange(event)
-                    if (wrapper.blockId.blocking) {
+                    if (wrapper.blockId.blocksView) {
                         // Only check full chunk if blocks get broken or transformed to non-blocking
                         return
                     }
@@ -300,61 +302,38 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
-                    val blocking = ByteArray((height shl 8) + 16 * 16)
-                    val isZero = BooleanArray(height shl 8)
+                    val bvArr = ByteArray((height shl 8) + 16 * 16) // BlocksViewArray
                     val invisible = BitSet(height shl 8)
-                    if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) blocking[i] = Y_MINUS
+                    if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
                     // Handle neighbour chunks starts
-                    handleNeighbourChunk(blocking, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS)
-                    handleNeighbourChunk(blocking, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS)
-                    handleNeighbourChunk(blocking, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS)
-                    handleNeighbourChunk(blocking, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS)
+                    handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS)
+                    handleNeighbourChunk(bvArr, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS)
+                    handleNeighbourChunk(bvArr, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS)
+                    handleNeighbourChunk(bvArr, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS)
                     // Handle neighbour chunks ends
 
-                    var allInvisible = false
                     var id = 0
                     out@ for ((index, section) in sections.withIndex()) {
-                        checkSectionAllInvisible(
-                            allInvisible && index == 8 && !config.netherRoofInvisibleCheck && world.environment == Environment.NETHER,
-                            invisible,
-                            randomBlockIds,
-                            sections,
-                            index
-                        )
-
                         section as Chunk_v1_18
                         when (val palette = section.chunkData.palette) {
                             is SingletonPalette           -> {
                                 // This section contains only one block type, and it's already the smallest way.
                                 // We don't check isZero here because we never write data to this.
-                                if (palette.idToState(0).blocking) {
-                                    forChunk2D { x, z ->
-                                        if (!handleBlockingPrevSec(
-                                                blocking,
-                                                isZero,
-                                                invisible,
-                                                index,
-                                                x,
-                                                z,
-                                                id,
-                                                sections
-                                            )
-                                        ) allInvisible = false
-                                        id++
+                                if (palette.idToState(0).blocksView) {
+                                    if (index > 0) {
+                                        // Check if the surface on previous section is all invisible
+                                        checkSurfaceInvisible(bvArr, invisible, id)
                                     }
-                                    checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
-                                    allInvisible = true
-
-                                    id += 16 * 16 * 15
-                                    for (i in id until id + 16 * 16) blocking[i] = blocking[i] or Y_MINUS
+                                    id += 16 * 16 * 16
+                                    for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
                                 } else {
                                     id += 16 * 16 * 16
-                                    allInvisible = false
                                 }
                             }
 
-                            is ListPalette, is MapPalette -> {
-                                val storage = section.chunkData.storage!!
+                            is ListPalette,
+                            is MapPalette -> {
+                                val storage = section.chunkData.storage
                                 val reader = storage.reader
                                 // rebuildPaletteMappings starts
                                 /* TODO: Try to reduce the amount of block types; Each lower bit benefits at least 512 bytes.
@@ -381,81 +360,23 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 //                                }
                                     section.chunkData.palette =
                                         CustomListPalette(if (palette is ListPalette) 4 else 8, arr)
-                                    BooleanArray(palette.size()) { id -> arr[id].blockId.blocking }
+                                    BooleanArray(palette.size()) { id -> arr[id].blockId.blocksView }
                                 } else {
-                                    BooleanArray(palette.size()) { id -> palette.idToState(id).blocking }
+                                    BooleanArray(palette.size()) { id -> palette.idToState(id).blocksView }
                                 }
                                 // rebuildPaletteMappings ends
-                                forChunk2D { x, z ->
-                                    val block = storage.get(id and 0xfff)
-                                    if (block == 0) isZero[id] = true
-                                    if (!blockingArr[block] || !handleBlockingPrevSec(
-                                            blocking,
-                                            isZero,
-                                            invisible,
-                                            index,
-                                            x,
-                                            z,
-                                            id,
-                                            sections
-                                        )
-                                    ) allInvisible = false
-                                    id++
-                                }
-                                checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
-                                allInvisible = true
-
-                                for (y in 0 until 15) forChunk2D { x, z ->
-                                    val block = storage.get(id and 0xfff)
-                                    if (block == 0) isZero[id] = true
-                                    if (!blockingArr[block] || !handleBlocking(
-                                            blocking,
-                                            isZero,
-                                            invisible,
-                                            x,
-                                            z,
-                                            id,
-                                            storage
-                                        )
-                                    ) allInvisible = false
+                                storage.reader.all { v ->
+                                    if (blockingArr[v])
+                                        handleBlocksView(bvArr, invisible, id, sections, index)
                                     id++
                                 }
                             }
 
                             is GlobalPalette              -> {
                                 val storage = section.chunkData.storage!!
-                                forChunk2D { x, z ->
-                                    val block = storage.get(id and 0xfff)
-                                    if (block == 0) isZero[id] = true
-                                    if (!block.blocking || !handleBlockingPrevSec(
-                                            blocking,
-                                            isZero,
-                                            invisible,
-                                            index,
-                                            x,
-                                            z,
-                                            id,
-                                            sections
-                                        )
-                                    ) allInvisible = false
-                                    id++
-                                }
-                                checkSectionAllInvisible(allInvisible, invisible, randomBlockIds, sections, index)
-                                allInvisible = true
-
-                                for (y in 0 until 15) forChunk2D { x, z ->
-                                    val block = storage.get(id and 0xfff)
-                                    if (block == 0) isZero[id] = true
-                                    if (!(block.blocking || !handleBlocking(
-                                            blocking,
-                                            isZero,
-                                            invisible,
-                                            x,
-                                            z,
-                                            id,
-                                            storage
-                                        ))
-                                    ) allInvisible = false
+                                storage.reader.all { v ->
+                                    if (v.blocksView)
+                                        handleBlocksView(bvArr, invisible, id, sections, index)
                                     id++
                                 }
                             }
@@ -465,14 +386,31 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             }
                         }
                     }
-                    // We don't check allInvisible for last section. It never happens in vanilla generated chunks.
+                    if (!config.netherRoofInvisibleCheck && world.environment == Environment.NETHER) {
+                        // We could do the same thing to the top section,
+                        // but it never happens in vanilla generated chunks,
+                        // so, no.
+                        checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1))
+                    }
+
+                    val array = invisible.toLongArray()!!
+                    out@ for (i in 1 .. sections.size) {
+                        var j = i shl 6 // multiple (16 * 16 * 16 / 64) = 64
+                        if (j >= array.size) break
+                        for (k in 0 until (16 * 16 * 16 / 64)) {
+                            if (array[j--] != -1L) // 0xFFFFFFFFFFFFFFFF == -1
+                                continue@out
+                        }
+                        val section = sections[i - 1] as Chunk_v1_18
+                        section.chunkData.palette = SingletonPalette(randomBlockIds.random())
+                    }
                     counter.minimalChunks++
                     miniChunks[chunkKey] = PlayerChunk(invisible)
-                    // benchmark starts
-                    val tim = System.nanoTime() - tm
-                    if (tim < 600_000) timesl.add(tim)
-                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
-                    event.isCancelled = true
+//                    // benchmark starts
+//                    val tim = System.nanoTime() - tm
+//                    if (tim < 600_000) timesl.add(tim)
+//                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
+//                    event.isCancelled = true
                     // benchmark ends
                 }
             }
@@ -483,12 +421,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val timesl = LongArrayList(10000000)
 
     private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(32))
-
-    private inline fun forChunk2D(crossinline scope: (x: Int, z: Int) -> Unit) {
-        for (z in 0 until 16)
-            for (x in 0 until 16)
-                scope(x, z)
-    }
 
     private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
                                             bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte) {
@@ -538,7 +470,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         val storage = containerReader.getStorage(states)
                         for (y in 0 until 16) {
                             for (j in 0 until 16) {
-                                if (storage.get(blockId and 0xfff).blocking)
+                                if (storage.get(blockId and 0xfff).blocksView)
                                     (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
                                 blockId += bidStep
                             }
@@ -566,59 +498,40 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    private fun handleBlockingPrevSec(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
-                                             index: Int, x: Int, z: Int, id: Int, sections: Array<BaseChunk>): Boolean {
-        addNearby(blocking, id, x, z)
-        if (index == 0)
-            return true
-
-        val block = id - 0x100
-        if (blocking[block] == INVISIBLE) {
-            if (isZero[block])
-                return true
-            val chunkData = (sections[index - 1] as Chunk_v1_18).chunkData
-            val last = chunkData.storage
-            if (last != null) {
-                last.set(block and 0xfff, 0)
-                invisible[block] = true
+    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: BitSet, id: Int) {
+        for (i in id - 1 downTo id - 0x101) {
+            if (bvArr[i] != INVISIBLE) {
+                return
             }
-            // If the block in last section is not invisible it should be already false so we don't do a check here.
-            return true
         }
-        return false
+        invisible.set(id - 0x100, id + 0xe00)
     }
 
-    private fun handleBlocking(blocking: ByteArray, isZero: BooleanArray, invisible: BitSet,
-                                      x: Int, z: Int, id: Int, storage: BaseStorage): Boolean {
-        addNearby(blocking, id, x, z)
+    private fun handleBlocksView(bvArr: ByteArray, invisible: BitSet,
+                                 id: Int, sections: Array<BaseChunk>, section: Int) {
+        addNearby(bvArr, id)
 
-        val block = id - 0x100
-        if (blocking[block] == INVISIBLE) {
-            if (isZero[block])
-                return true
-            storage.set(block and 0xfff, 0)
-            invisible[block] = true
-            return true
+        if (id < 0x100) // bedrock layer
+            return
+//
+        // Check if previous block is complete invisible
+        val previous = id - 0x100
+        if (bvArr[previous] == INVISIBLE) {
+            val storage = if   (previous and 0xfff > 0xeff) (sections[section - 1] as Chunk_v1_18).chunkData.storage
+                          else (sections[section] as Chunk_v1_18).chunkData.storage
+            storage.set(previous and 0xfff, 0)
+            invisible[previous] = true
         }
-        return false
     }
 
-    private fun addNearby(blocking: ByteArray, id: Int, x: Int, z: Int) {
+    private fun addNearby(blocking: ByteArray, id: Int) {
+        val x = id and 0xf
+        val z = id shr 4 and 0xf
         if (x > 0 ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
         if (x < 15) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
         if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
         if (z < 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
-    }
-
-    private fun checkSectionAllInvisible(allInvisible: Boolean, invisible: BitSet, randomList: IntArray,
-                                                sections: Array<BaseChunk>, index: Int) {
-        if (allInvisible) {
-            val section = sections[index - 1] as Chunk_v1_18
-            // Re-fill invisible; This is to fix data with isZero skipped and SingletonPalette ...
-            invisible.set((index - 1) shl 12, index shl 12, true)
-            section.chunkData.palette = SingletonPalette(randomList.random())
-        }
     }
 
     private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
@@ -727,11 +640,11 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val Int.chunkBlockPos: ChunkBlockPos
         get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
 
-    private val Int.blocking
+    private val Int.blocksView
         get() = blockingCache[this]
 
     private val BlockState.blocking: Boolean
-        get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocking
+        get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocksView
 
     data class PlayerChunk(
         val invisible: BitSet,
@@ -746,7 +659,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         val mask = (1L shl bits) - 1L
         val valuesPerLong = (64 / bits).toChar().code
 
-        inline fun bedrock(crossinline scope: (Int, Int)-> Unit) {
+        inline fun bedrock(crossinline scope: (Int, Int) -> Unit) {
             var i = 0
 
             for (l in this.data) {
@@ -762,7 +675,23 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             }
         }
 
-        inline fun all(crossinline scope: (Int, Int)-> Unit) {
+        inline fun all(crossinline scope: (Int) -> Unit) {
+            var i = 0
+
+            for (l in this.data) {
+                var l = l
+                for (j in 0..<this.valuesPerLong) {
+                    scope((l and this.mask).toInt())
+                    l = l shr this.bits
+                    ++i
+                    if (i >= 16 * 16 * 16) {
+                        return
+                    }
+                }
+            }
+        }
+
+        inline fun all(crossinline scope: (Int, Int) -> Unit) {
             var i = 0
 
             for (l in this.data) {
