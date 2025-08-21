@@ -20,6 +20,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
@@ -158,14 +159,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             val minimalHeightInvisibleCheck: Boolean = false,
             @Comment("Same with minimal-height but it's for nether roof.")
             val netherRoofInvisibleCheck: Boolean = true,
-            @Comment("Minecraft 1.18+ indexes and maps block types for chunk sections to improve compression,\n" +
-                    "However the mapping is not created based on the amount of blocks.\n" +
-                    "If this option is enabled, we will rebuild the mapping by sorted blocks amount.\n" +
-                    "This may slightly help with the compression rate, especially since we are changing the blocks too.\n" +
-                    "It also reduces the probability of ghost chunks(full chunk with portals [with sound], eta.) .\n" +
-                    "This could easily double the process time, if you care about the extra about ~0.2ms, disable it.\n" +
-                    " * We are planing to enhance this by another two approaches, which may help more.")
-            val rebuildPaletteMappings: Boolean = true,
             @Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
                     "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
                     "you can use this for some kind of substitution.\n" +
@@ -192,6 +185,10 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 put("world_the_end", mutableListOf(Material.END_STONE))
             }
         ) {
+
+            @RemovedNode
+            val rebuildPaletteMappings: Boolean? = null
+
             val singleValuedSectionBlockIds by lazy {
                 with(singleValuedSectionBlockList) {
                     DefaultedLinkedHashMap<String, IntArray>((default ?: listOf(Material.BEDROCK)).map { it.globalId }.toIntArray()).also {
