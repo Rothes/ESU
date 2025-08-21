@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
@@ -333,43 +332,77 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                             is ListPalette,
                             is MapPalette -> {
-                                val storage = section.chunkData.storage
-                                val reader = storage.reader
-                                // rebuildPaletteMappings starts
-                                /* TODO: Try to reduce the amount of block types; Each lower bit benefits at least 512 bytes.
-                                     Approaches:
-                                      a) Minecraft keeps the removed blocks in indexes, remove them;
-                                      b) Convert all blocks in block types to id=0, if possible. As we sorted the types by amount, it's clear how to do that. */
-                                val blockingArr = if (rebuildPaletteMappings) {
-                                    val arr = Array(palette.size()) { i -> BlockType(palette.idToState(i), i) }
+                                // rebuildPaletteMapping starts
+                                val frequency = ShortArray(palette.size())
 
-                                    reader.all { i, v ->
-                                        arr[v].blocks.add(i.toShort())
-                                    }
+                                val data = IntArray(16 * 16 * 16)
 
-                                    arr.sortByDescending { it.blocks.size }
-                                    for ((i, data) in arr.withIndex()) {
-                                        if (data.oldMapId != i) {
-                                            val iterator = data.blocks.iterator()
-                                            while (iterator.hasNext()) storage.set(iterator.nextShort().toInt(), i)
+                                section.chunkData.storage.reader.all { i, v ->
+                                    frequency[v]++
+                                    data[i] = v
+                                }
+
+                                val empty = frequency.count { it == 0.toShort() }
+
+                                val freqId = IntArray(frequency.size) { it }.sortedByDescending { frequency[it] }.toIntArray()
+                                val remapped = IntArray(frequency.size) // value is the new index of original
+                                for (i in 0 until remapped.size) {
+                                    val oldStateIndex = freqId[i]
+                                    remapped[oldStateIndex] = i
+                                }
+
+                                val bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits()).coerceAtLeast(4)
+                                val oldState = IntArray(section.chunkData.palette.size()) { i ->
+                                    section.chunkData.palette.idToState(i)
+                                }
+                                val remappedState = IntArray(frequency.size - empty) { i -> oldState[remapped.indexOf(i)] }
+//                                println("""
+//                                    FREQ: ${frequency.map { "%5d".format(it) }}
+//                                    FRED: ${freqId.map { "%5d".format(it) }}
+//                                    OLD : ${oldState.map { "%5d".format(it) }}
+//                                    NEW : ${remappedState.map { "%5d".format(it) }}
+//                                    MAP : ${remapped.map { "%5d".format(it) }}
+//                                """.trimIndent())
+                                // rebuildPaletteMapping ends
+
+                                section.chunkData.palette = CustomListPalette2(bits, remappedState)
+
+                                val blockingArr = BooleanArray(oldState.size) { i -> oldState[i].blocksView }
+
+                                for (i in 0 until 16 * 16 * 16) {
+                                    if (blockingArr[data[i]]) {
+                                        addNearby(bvArr, id)
+                                        // Make sure it's not out of bounds, while we are processing bedrock layer
+                                        if (id >= 0x100) {
+                                            // Check if previous block is complete invisible
+                                            val previous = id - 0x100
+                                            if (bvArr[previous] == INVISIBLE) {
+                                                invisible[previous] = true
+                                            }
                                         }
                                     }
-//                                val empty = arr.filter { it.blocks.isEmpty() }
-//                                if (empty.isNotEmpty()) {
-//                                    println("Block types: ${arr.size} - ${empty.size} not found; ${32 - arr.size.countLeadingZeroBits()} -> ${32 - (arr.size - empty.size).countLeadingZeroBits()}")
-//                                }
-                                    section.chunkData.palette =
-                                        CustomListPalette(if (palette is ListPalette) 4 else 8, arr)
-                                    BooleanArray(palette.size()) { id -> arr[id].blockId.blocksView }
-                                } else {
-                                    BooleanArray(palette.size()) { id -> palette.idToState(id).blocksView }
-                                }
-                                // rebuildPaletteMappings ends
-                                storage.reader.all { v ->
-                                    if (blockingArr[v])
-                                        handleBlocksView(bvArr, invisible, id, sections, index)
                                     id++
                                 }
+
+                                val valuesPerLong = (64 / bits).toChar().code
+                                val longs = (16 * 16 * 16 + valuesPerLong - 1) / valuesPerLong
+                                val new = LongArray(longs)
+
+                                id -= 16 * 16 * 16
+                                var i = 0
+                                for (j in 0 until longs) {
+                                    var l = 0L
+                                    var shift = 0
+                                    for (k in 0 until valuesPerLong) {
+                                        if (!invisible[id++])
+                                            l = l or (remapped[data[i]].toLong() shl shift)
+                                        if (++i == 16 * 16 * 16) break
+                                        shift += bits
+                                    }
+                                    new[j] = l
+                                }
+
+                                section.chunkData.storage = PEBitStorage(bits, 16*16*16, new)
                             }
 
                             is GlobalPalette              -> {
@@ -406,7 +439,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     }
                     counter.minimalChunks++
                     miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(array))
-//                    // benchmark starts
+                    // benchmark starts
 //                    val tim = System.nanoTime() - tm
 //                    if (tim < 600_000) timesl.add(tim)
 //                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
@@ -885,6 +918,16 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             private var read = -2
             override fun readVarInt(): Int {
                 return if (++read == -1) array.size else array[read].blockId
+            }
+        }
+    }
+
+    private class CustomListPalette2(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
+
+        private class CustomNetStreamInput(val array: IntArray) : NetStreamInput(null) {
+            private var read = -2
+            override fun readVarInt(): Int {
+                return if (++read == -1) array.size else array[read]
             }
         }
     }
