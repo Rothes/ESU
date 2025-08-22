@@ -18,9 +18,9 @@ object UnsafeUtils {
     init {
         val internalOffsetMethod = internalUnsafe.javaClass.getDeclaredMethod("objectFieldOffset", Field::class.java)
         val bool = unsafe.getBoolean(internalOffsetMethod, 12)
-        unsafe.putBoolean(internalOffsetMethod, 12, true) // Make is accessible
-        internalOffset = internalOffsetMethod.handle(pType = Any::class.java)
-        unsafe.putBoolean(internalOffsetMethod, 12, bool) // Set it back
+        unsafe.putBoolean(internalOffsetMethod, 12, true) // Make it accessible
+        internalOffset = internalOffsetMethod.handle(pType = Any::class.java) // This checks for accessible when we get it
+        unsafe.putBoolean(internalOffsetMethod, 12, bool) // Set accessible back, we no longer need the hack
     }
 
     fun <T> Field.usGet(obj: Any?): T {
