@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_17_1
+package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
@@ -37,8 +37,8 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.Chun
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkSender
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.LevelHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.PalettedContainerReader
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_17_1.ChunkDataThrottleHandlerImpl.DataReader.Companion.reader
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_17_1.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
+import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18.ChunkDataThrottleHandlerImpl.DataReader.Companion.reader
+import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -48,8 +48,6 @@ import io.github.rothes.esu.core.util.UnsafeUtils.unsafeObjGetter
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongArrayList
-import it.unimi.dsi.fastutil.shorts.ShortArrayList
-import it.unimi.dsi.fastutil.shorts.ShortList
 import net.jpountz.lz4.LZ4Factory
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
@@ -75,6 +73,7 @@ import java.lang.reflect.Modifier
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.collections.isNotEmpty
+import kotlin.collections.iterator
 import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
@@ -86,15 +85,13 @@ import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 import net.minecraft.util.BitStorage as NmsBitStorage
 
-// We put this 1.17.1 impl in 1.18 project, cuz SingleValuePalette is missing in 1.17.1 and have to do NPE check
-
 class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
 
     companion object {
 
-        const val SECTION_SIZE = 16 * 16 * 16
-        const val ALL_TRUE = -1L
+        const val SECTION_BLOCKS = 16 * 16 * 16
+        const val BITS_ALL_TRUE = -1L
 
         private var LAVA_MIN = Int.MAX_VALUE
         private var LAVA_MAX = Int.MIN_VALUE
@@ -349,16 +346,15 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                     // Check if the surface on previous section is invisible
                                     checkSurfaceInvisible(bvArr, invisible, id)
                                 }
-                                id += SECTION_SIZE
+                                id += SECTION_BLOCKS
                                 for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
                             } else {
-                                id += SECTION_SIZE
+                                id += SECTION_BLOCKS
                             }
                         } else {
-                            val data = IntArray(SECTION_SIZE)
+                            val data = IntArray(SECTION_BLOCKS)
                             val bits: Int
                             val mapping: IntArray
-                            val states: IntArray
                             val blockingArr: BooleanArray
                             when (palette) {
                                 is ListPalette, is MapPalette -> {
@@ -383,7 +379,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                     }
                                     val remappedState = IntArray(frequency.size - empty) { i -> oldState[remapped.indexOf(i)] }
 
-                                    section.chunkData.palette = CustomListPalette2(bits, remappedState)
+                                    section.chunkData.palette = CustomListPalette(bits, remappedState)
 
                                     blockingArr = BooleanArray(oldState.size) { i -> oldState[i].blocksView }
                                     mapping = remapped
@@ -401,7 +397,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                 }
                             }
 
-                            for (i in 0 until SECTION_SIZE) {
+                            for (i in 0 until SECTION_BLOCKS) {
                                 if (blockingArr[data[i]]) {
                                     addNearby(bvArr, id)
                                     // Make sure it's not out of bounds, while we are processing bedrock layer
@@ -431,36 +427,37 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         section as Chunk_v1_18
                         val sectionData = sectionDataArr[index]
                         var i = index + 1 shl 6
-                        if (sectionData == null) { // is SingletonPalette
-                            if (i < array.size && array[i] == ALL_TRUE && array[i - 64 + 1] == ALL_TRUE) {
+                        if (sectionData == null) {
+                            // This section is SingletonPalette
+                            if (i < array.size && array[i] == BITS_ALL_TRUE && array[i - 64 + 1] == BITS_ALL_TRUE) {
                                 section.chunkData.palette = SingletonPalette(randomBlockIds.random())
                             }
-                            id += SECTION_SIZE
+                            id += SECTION_BLOCKS
                             continue
                         }
                         if (i < array.size) {
                             var allInvisible = true
-                            for (k in 0 until (SECTION_SIZE / 64)) {
-                                if (array[i--] != ALL_TRUE) {
+                            for (k in 0 until (SECTION_BLOCKS / 64)) {
+                                if (array[i--] != BITS_ALL_TRUE) {
                                     allInvisible = false
                                     break
                                 }
                             }
                             if (allInvisible) {
                                 section.chunkData.palette = SingletonPalette(randomBlockIds.random())
-                                id += SECTION_SIZE
+                                id += SECTION_BLOCKS
                                 continue
                             }
                         }
                         val valuesPerLong = (64 / sectionData.bits).toChar().code
-                        val longs = (SECTION_SIZE + valuesPerLong - 1) / valuesPerLong
+                        val longs = (SECTION_BLOCKS + valuesPerLong - 1) / valuesPerLong
                         val new = LongArray(longs)
 
                         val maxShift = sectionData.bits * valuesPerLong
                         var cellIndex = 0
                         var shift = 0
                         var l = 0L
-                        for (i in 0 until SECTION_SIZE) {
+                        for (i in 0 until SECTION_BLOCKS) {
                             if (!invisible[id++])
                                 l = l or (sectionData.remapped[sectionData.data[i]].toLong() shl shift)
 
@@ -475,7 +472,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             new[cellIndex] = l
                         }
 
-                        section.chunkData.storage = PEBitStorage(sectionData.bits, SECTION_SIZE, new)
+                        section.chunkData.storage = PEBitStorage(sectionData.bits, SECTION_BLOCKS, new)
                     }
 
                     counter.minimalChunks++
@@ -494,8 +491,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     }
     private val timesl = LongArrayList(10000000)
 
-    private data class BlockType(val blockId: Int, val oldMapId: Int, val blocks: ShortList = ShortArrayList(32))
-
     private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
                                             bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte) {
         val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
@@ -506,7 +501,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             val states = section.container
             val palette = containerReader.getPalette(states)
             if (palette is SingleValuePalette<BlockState>) {
-                if (palette.valueFor(0).blocking) {
+                if (palette.valueFor(0).blocksView) {
                     for (y in 0 until 16) {
                         for (j in 0 until 16) {
                             (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
@@ -515,13 +510,13 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         blockId += indexLoop
                     }
                 } else {
-                    blockId += SECTION_SIZE
+                    blockId += SECTION_BLOCKS
                 }
             } else {
                 val storage = containerReader.getStorage(states)
                 val blockingArr = when (palette) {
                     is LinearPalette<BlockState>, is HashMapPalette<BlockState> ->
-                        BooleanArray(palette.size) { id -> palette.valueFor(id).blocking }
+                        BooleanArray(palette.size) { id -> palette.valueFor(id).blocksView }
                     is net.minecraft.world.level.chunk.GlobalPalette<BlockState> ->
                         BLOCKS_VIEW
                     else ->
@@ -684,7 +679,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val Int.blocksView
         get() = BLOCKS_VIEW[this]
 
-    private val BlockState.blocking: Boolean
+    private val BlockState.blocksView: Boolean
         get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocksView
 
     data class PlayerChunk(
@@ -700,38 +695,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         val mask = (1L shl bits) - 1L
         val valuesPerLong = (64 / bits).toChar().code
 
-        inline fun bedrock(crossinline scope: (Int, Int) -> Unit) {
-            var i = 0
-
-            for (l in this.data) {
-                var l = l
-                for (j in 0..<this.valuesPerLong) {
-                    scope(i, (l and this.mask).toInt())
-                    l = l shr this.bits
-                    ++i
-                    if (i >= 16 * 16) {
-                        return
-                    }
-                }
-            }
-        }
-
-        inline fun all(crossinline scope: (Int) -> Unit) {
-            var i = 0
-
-            for (l in this.data) {
-                var l = l
-                for (j in 0..<this.valuesPerLong) {
-                    scope((l and this.mask).toInt())
-                    l = l shr this.bits
-                    ++i
-                    if (i >= SECTION_SIZE) {
-                        return
-                    }
-                }
-            }
-        }
-
         inline fun all(crossinline scope: (Int, Int) -> Unit) {
             var i = 0
 
@@ -741,7 +704,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     scope(i, (l and this.mask).toInt())
                     l = l shr this.bits
                     ++i
-                    if (i >= SECTION_SIZE) {
+                    if (i >= SECTION_BLOCKS) {
                         return
                     }
                 }
@@ -765,156 +728,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-//    interface BitStorageAccessor {
-//
-//        fun forEach(scope: IntConsumer)
-//        fun forEachIndexed(scope: IntConsumer2)
-//
-//        fun readNext(): Int
-//        fun writeLast(value: Int)
-//        fun skip(values: Int)
-//
-//        companion object {
-//
-//            fun reader(bitStorage: NmsBitStorage) = when (bitStorage) {
-//                is SimpleBitStorage -> ArrayBitStorageAccessor(bitStorage)
-//                is ZeroBitStorage -> ZeroBitStorageAccessor
-//                else -> error("BitStorage ${bitStorage.javaClass.canonicalName} is not supported")
-//            }
-//
-//            val NmsBitStorage.reader
-//                get() = reader(this)
-//            val BaseStorage.reader
-//                get() = ArrayBitStorageAccessor(this as PEBitStorage)
-//        }
-//    }
-
-//    class ArrayBitStorageAccessor(val data: LongArray, val bits: Int): BitStorageAccessor {
-//
-//        constructor(bitStorage: SimpleBitStorage): this(dataGetter[bitStorage] as LongArray, bitStorage.bits)
-//        constructor(bitStorage: PEBitStorage): this(bitStorage.data, bitStorage.bitsPerEntry)
-//
-//        val mask = (1L shl bits) - 1L
-//        val valuesPerLong = (64 / bits).toChar().code
-//
-//        var arr = 0
-//        var longIndex = 0
-//        var long = data[0]
-//
-//
-//        override fun forEach(scope: IntConsumer) {
-//            var i = 0
-//
-//            for (l in this.data) {
-//                var l = l
-//                for (j in 0..<this.valuesPerLong) {
-//                    scope((l and this.mask).toInt())
-//                    l = l shr this.bits
-//                    ++i
-//                    if (i >= 16 * 16 * 16) {
-//                        return
-//                    }
-//                }
-//            }
-//        }
-//
-//        override fun forEachIndexed(scope: IntConsumer2) {
-//            var i = 0
-//
-//            for (l in this.data) {
-//                var l = l
-//                for (j in 0..<this.valuesPerLong) {
-//                    scope(i, (l and this.mask).toInt())
-//                    l = l shr this.bits
-//                    ++i
-//                    if (i >= 16 * 16 * 16) {
-//                        return
-//                    }
-//                }
-//            }
-//        }
-//
-//        override fun readNext(): Int {
-//            val v = long and mask
-//            long = long shr bits
-//            if (++longIndex == valuesPerLong && ++arr < data.size) {
-//                long = data[arr]
-//                longIndex = 0
-//            }
-//            return v.toInt()
-//        }
-//
-//        override fun skip(values: Int) {
-//            if (values <= 0)
-//                return
-//            longIndex += values
-//            var read = longIndex
-//            while (longIndex >= valuesPerLong) {
-//                longIndex -= valuesPerLong
-//                if (++arr >= data.size) return
-//                long = data[arr]
-//                read = 0
-//            }
-//            for (i in read until longIndex) {
-//                long = long shr bits
-//            }
-//        }
-//
-//        override fun writeLast(value: Int) {
-//            if (longIndex == 0) {
-//                val id = valuesPerLong - 1
-//                val arr = this.arr - 1
-//                data[arr] = data[arr] and (this.mask shl id).inv() or ((value.toLong() and this.mask) shl id)
-//            } else {
-//                val id = longIndex - 1
-//                long = long and (this.mask shl id).inv() or ((value.toLong() and this.mask) shl id)
-//                data[arr] = long
-//            }
-//        }
-//
-//        companion object {
-//            private val dataGetter = SimpleBitStorage::class.java.declaredFields.first {
-//                it.type == LongArray::class.java && !Modifier.isStatic(it.modifiers)
-//            }.unsafeObjGetter
-//        }
-//    }
-//
-//    object ZeroBitStorageAccessor: BitStorageAccessor {
-//
-//        override fun forEach(scope: IntConsumer) {
-//            for (i in 0 until 16 * 16 * 16)
-//                scope(0)
-//        }
-//
-//        override fun forEachIndexed(scope: IntConsumer2) {
-//            for (i in 0 until 16 * 16 * 16)
-//                scope(i, 0)
-//        }
-//
-//        override fun readNext(): Int {
-//            return 0
-//        }
-//
-//        override fun skip(values: Int) {
-//        }
-//
-//        override fun writeLast(value: Int) {
-//            error("Not supported on ZeroBitStorage")
-//        }
-//
-//    }
-
-    private class CustomListPalette(bits: Int, array: Array<BlockType>): ListPalette(bits, CustomNetStreamInput(array)) {
-
-        private class CustomNetStreamInput(val array: Array<BlockType>) : NetStreamInput(null) {
-            private var read = -2
-            override fun readVarInt(): Int {
-                return if (++read == -1) array.size else array[read].blockId
-            }
-        }
-    }
-
-    private class CustomListPalette2(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
+    private class CustomListPalette(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
 
         private class CustomNetStreamInput(val array: IntArray) : NetStreamInput(null) {
             private var read = -2

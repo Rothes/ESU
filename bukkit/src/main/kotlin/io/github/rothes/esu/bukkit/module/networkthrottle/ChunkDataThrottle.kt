@@ -14,9 +14,9 @@ object ChunkDataThrottle {
         get() = versioned.counter
 
     fun onEnable() {
-        if (ServerCompatibility.serverVersion < Version.fromString("1.17")) {
+        if (ServerCompatibility.serverVersion < Version.fromString("1.18")) {
             if (config.chunkDataThrottle.enabled)
-                plugin.err("[ChunkDataThrottle] This feature requires Minecraft 1.17+")
+                plugin.err("[ChunkDataThrottle] This feature requires Minecraft 1.18+")
             return
         }
         versioned.enable()
