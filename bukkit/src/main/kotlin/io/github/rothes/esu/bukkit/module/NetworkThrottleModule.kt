@@ -158,7 +158,10 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             @Comment("The bedrock level(minimal height) is never visible unless you are in void.\n" +
                     "We would skip the check, and if you don't like it you can enable it.")
             val minimalHeightInvisibleCheck: Boolean = false,
-            @Comment("Same with minimal-height but it's for nether roof.")
+            @Comment("""
+                Same with minimal-height but it's for nether roof. For out-of-the-box, it's true by default.
+                It's highly recommend to set it to FALSE if you don't allow players to get above there.
+                """, overrideOld = ["Same with minimal-height but it's for nether roof."])
             val netherRoofInvisibleCheck: Boolean = true,
             @RenamedFrom("single-valued-section-block-list")
             @Comment("""
@@ -166,7 +169,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     You must use the anti-xray here we provide.
                     
                     We will send non-visible blocks to one of the random block in this list.
-            """, overrideOld = ["Plugin will convert chunks with all non-visible blocks to single-valued palette format,\nThis could save a lot of bandwidth. And since we are conflicting with anti-xray things,\nyou can use this for some kind of substitution.\nWe choose a random block from the list and make it of a 16*16*16 chunk section."])
+                """, overrideOld = ["Plugin will convert chunks with all non-visible blocks to single-valued palette format,\nThis could save a lot of bandwidth. And since we are conflicting with anti-xray things,\nyou can use this for some kind of substitution.\nWe choose a random block from the list and make it of a 16*16*16 chunk section."])
             val antiXrayRandomBlockList: DefaultedLinkedHashMap<String, MutableList<Material>> = DefaultedLinkedHashMap<String, MutableList<Material>>(
                 mutableListOf(Material.BEDROCK)
             ).apply {
