@@ -2,24 +2,24 @@
   "version_channel": {
     "stable": {
       "bukkit": {
-        "latest_version_id": 6,
+        "latest_version_id": 7,
         "notification": {
           "actions": [],
           "message_times": -1,
           "notify_in_game": true,
           "message": {
-            "en-us": "<pc>A new version of ESU-bukkit (<pdc>\"0.8.1\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu<chat><pdc>This is a BIG update, with config changes! Make SURE you read changelogs!"
+            "en-us": "<pc>A new version of ESU-bukkit (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu"
           }
         }
       },
       "velocity": {
-        "latest_version_id": 6,
+        "latest_version_id": 7,
         "notification": {
           "actions": [],
           "message_times": -1,
           "notify_in_game": true,
           "message": {
-            "en-us": "<pc>A new version of ESU-velocity (<pdc>\"0.8.1\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu<chat><pdc>This is a BIG update, with config changes! Make SURE you read changelogs!"
+            "en-us": "<pc>A new version of ESU-velocity (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu"
           }
         }
       }
