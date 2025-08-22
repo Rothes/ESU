@@ -492,75 +492,43 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
                                             bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte) {
-        level.getChunkIfLoaded(chunkX, chunkZ)?.let { chunk ->
-            val indexLoop = 0x100 - bidStep * 16
-            var blockId = bid
-            for (section in chunk.sections) {
-                val states = section.container
-                when (val palette = containerReader.getPalette(states)) {
-                    is LinearPalette<BlockState>, is HashMapPalette<BlockState> -> {
-//                        val storage = containerReader.getStorage(states).reader
-//                        val blockingArr = BooleanArray(palette.size) { id -> palette.valueFor(id).blocking }
-//                        for (y in 0 until 16) {
-//                            for (j in 0 until 16) {
-//                                val readNext = storage.readNext()
-//                                if (blockingArr.getOrElse(readNext) {
-//                                        storage as ArrayBitStorageAccessor
-//                                        val real = containerReader.getStorage(states).get(blockId and 0xfff)
-//                                        println("$readNext vs $real, bid $blockId, long ${storage.long.toString(2)} index ${storage.longIndex}, arr ${storage.arr}")
-//                                        false
-//                                    })
-//                                    (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-                        val storage = containerReader.getStorage(states)
-                        val blockingArr = BooleanArray(palette.size) { id -> palette.valueFor(id).blocking }
-                        for (y in 0 until 16) {
-                            for (j in 0 until 16) {
-                                if (blockingArr[storage.get(blockId and 0xfff)])
-                                    (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-                                blockId += bidStep
-//                                storage.skip(bidStep - 1)
-                            }
-                            blockId += indexLoop
-//                            storage.skip(indexLoop - 1)
+        val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
+
+        val indexLoop = 0x100 - bidStep * 16
+        var blockId = bid
+        for (section in chunk.sections) {
+            val states = section.container
+            val palette = containerReader.getPalette(states)
+            if (palette is SingleValuePalette<BlockState>) {
+                if (palette.valueFor(0).blocking) {
+                    for (y in 0 until 16) {
+                        for (j in 0 until 16) {
+                            (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
+                            blockId += bidStep
                         }
+                        blockId += indexLoop
                     }
-                    is net.minecraft.world.level.chunk.GlobalPalette<BlockState> -> {
-//                        val storage = containerReader.getStorage(states).reader
-//                        for (y in 0 until 16) {
-//                            for (j in 0 until 16) {
-//                                if (storage.readNext().blocking)
-//                                    (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-//                                storage.skip(bidStep - 1)
-//                            }
-//                            blockId += indexLoop
-//                            storage.skip(indexLoop - 1)
-//                        }
-                        val storage = containerReader.getStorage(states)
-                        for (y in 0 until 16) {
-                            for (j in 0 until 16) {
-                                if (storage.get(blockId and 0xfff).blocksView)
-                                    (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-                                blockId += bidStep
-                            }
-                            blockId += indexLoop
-                        }
+                } else {
+                    blockId += SECTION_SIZE
+                }
+            } else {
+                val storage = containerReader.getStorage(states)
+                val blockingArr = when (palette) {
+                    is LinearPalette<BlockState>, is HashMapPalette<BlockState> ->
+                        BooleanArray(palette.size) { id -> palette.valueFor(id).blocking }
+                    is net.minecraft.world.level.chunk.GlobalPalette<BlockState> ->
+                        BLOCKS_VIEW
+                    else ->
+                        error("Unsupported minecraft palette type: ${palette::class.simpleName}")
+                }
+
+                for (y in 0 until 16) {
+                    for (j in 0 until 16) {
+                        if (blockingArr[storage.get(blockId and 0xfff)])
+                            (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
+                        blockId += bidStep
                     }
-                    is SingleValuePalette<BlockState> -> {
-                        if (palette.valueFor(0).blocking) {
-                            for (y in 0 until 16) {
-                                for (j in 0 until 16) {
-                                    (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-                                    blockId += bidStep
-                                }
-                                blockId += indexLoop
-                            }
-                        } else {
-                            blockId += SECTION_SIZE
-                        }
-                    }
-                    else -> {
-                        throw AssertionError("Unsupported minecraft palette type: ${palette::class.simpleName}")
-                    }
+                    blockId += indexLoop
                 }
             }
         }
