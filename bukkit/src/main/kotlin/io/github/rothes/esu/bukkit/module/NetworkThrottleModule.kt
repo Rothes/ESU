@@ -144,7 +144,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     ): BaseModuleConfiguration() {
 
         data class ChunkDataThrottle(
-            val enabled: Boolean = false,
+            val enabled: Boolean = true,
             @Comment("Plugin will resent whole chunk data if resent block amount exceeds this value.\n" +
                     "Set it to -1 will never resent chunk but keep updating nearby blocks, \n" +
                     " 0 to always resent chunks.")
