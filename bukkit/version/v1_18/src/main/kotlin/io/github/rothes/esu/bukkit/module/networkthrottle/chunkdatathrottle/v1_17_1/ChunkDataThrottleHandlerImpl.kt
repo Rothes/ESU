@@ -456,17 +456,23 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         val longs = (SECTION_SIZE + valuesPerLong - 1) / valuesPerLong
                         val new = LongArray(longs)
 
-                        i = 0
-                        for (j in 0 until longs) {
-                            var l = 0L
-                            var shift = 0
-                            for (k in 0 until valuesPerLong) {
-                                if (!invisible[id++])
-                                    l = l or (sectionData.remapped[sectionData.data[i]].toLong() shl shift)
-                                if (++i == SECTION_SIZE) break
-                                shift += sectionData.bits
+                        val maxShift = sectionData.bits * valuesPerLong
+                        var cellIndex = 0
+                        var shift = 0
+                        var l = 0L
+                        for (i in 0 until SECTION_SIZE) {
+                            if (!invisible[id++])
+                                l = l or (sectionData.remapped[sectionData.data[i]].toLong() shl shift)
+
+                            shift += sectionData.bits
+                            if (shift == maxShift) {
+                                shift = 0
+                                new[cellIndex++] = l
+                                l = 0
                             }
-                            new[j] = l
+                        }
+                        if (l != 0L) {
+                            new[cellIndex] = l
                         }
 
                         section.chunkData.storage = PEBitStorage(sectionData.bits, SECTION_SIZE, new)
