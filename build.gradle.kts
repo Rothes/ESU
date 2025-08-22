@@ -54,6 +54,10 @@ subprojects {
     kotlin {
         compilerOptions {
             jvmTarget.value(JvmTarget.fromTarget(javaVer.toString()))
+            // Remove Intrinsics checks
+            freeCompilerArgs.add("-Xno-call-assertions")
+            freeCompilerArgs.add("-Xno-receiver-assertions")
+            freeCompilerArgs.add("-Xno-param-assertions")
         }
     }
 
