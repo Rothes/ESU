@@ -21,6 +21,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
+import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
@@ -159,11 +160,14 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             val minimalHeightInvisibleCheck: Boolean = false,
             @Comment("Same with minimal-height but it's for nether roof.")
             val netherRoofInvisibleCheck: Boolean = true,
-            @Comment("Plugin will convert chunks with all non-visible blocks to single-valued palette format,\n" +
-                    "This could save a lot of bandwidth. And since we are conflicting with anti-xray things,\n" +
-                    "you can use this for some kind of substitution.\n" +
-                    "We choose a random block from the list and make it of a 16*16*16 chunk section.")
-            val singleValuedSectionBlockList: DefaultedLinkedHashMap<String, MutableList<Material>> = DefaultedLinkedHashMap<String, MutableList<Material>>(
+            @RenamedFrom("single-valued-section-block-list")
+            @Comment("""
+                    This feature doesn't support running belong with any other anti-xray plugins.
+                    You must use the anti-xray here we provide.
+                    
+                    We will send non-visible blocks to one of the random block in this list.
+            """, overrideOld = ["Plugin will convert chunks with all non-visible blocks to single-valued palette format,\nThis could save a lot of bandwidth. And since we are conflicting with anti-xray things,\nyou can use this for some kind of substitution.\nWe choose a random block from the list and make it of a 16*16*16 chunk section."])
+            val antiXrayRandomBlockList: DefaultedLinkedHashMap<String, MutableList<Material>> = DefaultedLinkedHashMap<String, MutableList<Material>>(
                 mutableListOf(Material.BEDROCK)
             ).apply {
                 put("world", buildList {
@@ -189,8 +193,8 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             @RemovedNode
             val rebuildPaletteMappings: Boolean? = null
 
-            val singleValuedSectionBlockIds by lazy {
-                with(singleValuedSectionBlockList) {
+            val antiXrayRandomBlockIds by lazy {
+                with(antiXrayRandomBlockList) {
                     DefaultedLinkedHashMap<String, IntArray>((default ?: listOf(Material.BEDROCK)).map { it.globalId }.toIntArray()).also {
                         it.putAll(entries.map { it.key to it.value.map { it.globalId }.toIntArray() })
                     }
@@ -205,13 +209,13 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 fun checkEmptyBlockList(key: String, list: MutableList<Material>) {
                     if (list.isEmpty()) {
                         list.add(Material.BEDROCK)
-                        plugin.warn("[ChunkDataThrottle] SingleValued section block list of '$key' is empty! We have added bedrock to it.")
+                        plugin.warn("[ChunkDataThrottle] Anti-xray random block list of '$key' is empty! We have added bedrock to it.")
                     }
                 }
-                singleValuedSectionBlockList.default?.let {
+                antiXrayRandomBlockList.default?.let {
                     checkEmptyBlockList("default", it)
                 }
-                singleValuedSectionBlockList.entries.toList().forEach {
+                antiXrayRandomBlockList.entries.toList().forEach {
                     checkEmptyBlockList(it.key, it.value)
                 }
             }

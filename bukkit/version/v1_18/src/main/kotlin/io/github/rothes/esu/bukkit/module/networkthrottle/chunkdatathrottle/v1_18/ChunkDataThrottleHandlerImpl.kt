@@ -45,7 +45,6 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjGetter
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.longs.LongArrayList
 import net.jpountz.lz4.LZ4Factory
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
@@ -312,7 +311,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val level = levelHandler.level(nms)
                     val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
                     val world = level.bukkit
-                    val randomBlockIds = config.singleValuedSectionBlockIds.getOrDefault(world.name)!!
+                    val randomBlockIds = config.antiXrayRandomBlockIds.getOrDefault(world.name)!!
 
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
@@ -451,7 +450,22 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                             bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits())
                                 .coerceAtLeast(4) // Vanilla forces at least 4
-                            val remapped = IntArray(frequency.size - empty) { i -> sectionData.states[remappedState.indexOf(i)] }
+                            val remapped =
+                                if (frequency.size - empty - 1 and (1 shl bits - 1) ==
+                                    frequency.size - empty     and (1 shl bits - 1) ||
+                                    frequency.size - empty + 1 <= (1 shl 4)
+                                    ) {
+                                    // If we can add a block type without adding bits used, we add one random block.
+                                    for ((i, v) in remappedState.withIndex()) {
+                                        remappedState[i] = v + 1
+                                    }
+                                    IntArray(frequency.size - empty + 1) { i ->
+                                        if (i == 0) randomBlockIds.random()
+                                        else sectionData.states[remappedState.indexOf(i)]
+                                    }
+                                } else {
+                                    IntArray(frequency.size - empty) { i -> sectionData.states[remappedState.indexOf(i)] }
+                                }
 
                             section.chunkData.palette = CustomListPalette(bits, remapped)
                         } else {
