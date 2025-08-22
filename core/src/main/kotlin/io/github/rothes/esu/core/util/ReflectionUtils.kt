@@ -4,6 +4,8 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.Field
+import java.lang.reflect.InaccessibleObjectException
+import java.lang.reflect.Method
 
 object ReflectionUtils {
 
@@ -14,16 +16,38 @@ object ReflectionUtils {
         return LOOKUP.unreflectGetter(field)
     }
 
+    fun method(method: Method, rType: Class<*>, pType: Class<*>, argTypes: Array<Class<*>>): MethodHandle {
+        try {
+            method.setAccessible(true)
+        } catch (_: InaccessibleObjectException) {
+        }
+        return LOOKUP.unreflect(method).asType(MethodType.methodType(rType, pType, *argTypes))
+    }
+
     fun getter(field: Field, rType: Class<*> = field.type, pType: Class<*> = field.declaringClass): MethodHandle {
         return getter(field).asType(MethodType.methodType(rType, pType))
     }
 
     val Field.getter
-        get() = getter(this)
+        get() = getter()
 
     @JvmName("getterKt")
     fun Field.getter(rType: Class<*> = type, pType: Class<*> = declaringClass): MethodHandle {
         return ReflectionUtils.getter(this, rType, pType)
+    }
+
+    val Method.handle
+        get() = handle()
+
+    @JvmName("getterKt")
+    fun Method.handle(rType: Class<*> = returnType, pType: Class<*> = declaringClass, argTypes: Array<Class<*>> = parameterTypes): MethodHandle {
+        return method(this, rType, pType, argTypes)
+    }
+
+    // Easy functions
+    fun Field.accessibleGet(any: Any?): Any {
+        isAccessible = true
+        return this.get(any)
     }
 
 }
