@@ -30,7 +30,6 @@ import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
-import io.github.rothes.esu.core.util.version.Version
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -183,12 +182,12 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
-        ModuleManager.addModule(AntiCommandSpamModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(BlockedCommandsModule)
         ModuleManager.addModule(ChatAntiSpamModule)
+        ModuleManager.addModule(CommandAntiSpamModule)
         ModuleManager.addModule(EsuChatModule)
         ModuleManager.addModule(ExploitFixModule)
         ModuleManager.addModule(ItemEditModule)

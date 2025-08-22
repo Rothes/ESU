@@ -16,7 +16,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 
-object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, AntiCommandSpamModule.ModuleLocale>(
+object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, CommandAntiSpamModule.ModuleLocale>(
     ModuleConfig::class.java, ModuleLocale::class.java
 ) {
     
@@ -29,7 +29,7 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
             Listeners.hits.cellSet().toList().forEach { cell ->
                 val cmd = cell.columnKey
                 val queue = cell.value
-                val conf = config.commands.find { it.commands.any { it.containsMatchIn(cmd) } }
+                val conf = config.commands.find { it.commands.any { regex -> regex.containsMatchIn(cmd) } }
                 if (conf == null) {
                     queue.clear()
                 } else {
@@ -51,7 +51,7 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
 
     object Listeners: Listener {
         
-        val hits: HashBasedTable<User, String, ArrayDeque<Long>> = HashBasedTable.create<User, String, ArrayDeque<Long>>()
+        val hits: HashBasedTable<User, String, ArrayDeque<Long>> = HashBasedTable.create()
 
         @EventHandler(priority = EventPriority.LOW)
         fun onCommand(event: PlayerCommandPreprocessEvent) {
@@ -74,11 +74,11 @@ object AntiCommandSpamModule: BukkitModule<AntiCommandSpamModule.ModuleConfig, A
                 queue.add(now)
 
                 val count = queue.size
-                if (matched.cancelCount >= 0 && count >= matched.cancelCount) {
+                if (matched.cancelCount in 0..count) {
                     event.isCancelled = true
                 }
 
-                if (matched.kickCount   >= 0 && count >= matched.kickCount) {
+                if (matched.kickCount in 0..count) {
                     user.kick(locale, { kickMessage[matched.kickMessage] })
                 } else if (matched.warnCount >= 0 && count >= matched.cancelCount) {
                     user.message(locale, { warnMessage[matched.warnMessage] })
