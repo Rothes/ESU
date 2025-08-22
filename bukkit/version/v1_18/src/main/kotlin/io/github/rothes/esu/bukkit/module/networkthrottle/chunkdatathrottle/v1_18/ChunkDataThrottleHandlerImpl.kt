@@ -43,8 +43,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
-import io.github.rothes.esu.core.util.ReflectionUtils.getter
-import io.github.rothes.esu.core.util.UnsafeUtils.unsafeObjGetter
+import io.github.rothes.esu.core.util.UnsafeUtils.usObjGetter
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongArrayList
@@ -477,11 +476,11 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                     counter.minimalChunks++
                     miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(array))
-//                    // benchmark starts
-//                    val tim = System.nanoTime() - tm
-//                    if (tim < 600_000) timesl.add(tim)
-//                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
-//                    event.isCancelled = true
+                    // benchmark starts
+                    val tim = System.nanoTime() - tm
+                    if (tim < 600_000) timesl.add(tim)
+                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
+                    event.isCancelled = true
                     // benchmark ends
                 }
             }
@@ -714,7 +713,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         companion object {
             private val dataGetter = SimpleBitStorage::class.java.declaredFields.first {
                 it.type == LongArray::class.java && !Modifier.isStatic(it.modifiers)
-            }.unsafeObjGetter
+            }.usObjGetter
 
             fun reader(bitStorage: NmsBitStorage) = when (bitStorage) {
                 is SimpleBitStorage -> DataReader(bitStorage)
@@ -753,11 +752,11 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         private object CB: SectionGetter {
 
             // This field is private on Spigot
-            private val field = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }.getter
+            private val getter = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }.usObjGetter
 
             override fun getContainer(section: LevelChunkSection): PalettedContainer<BlockState> {
                 @Suppress("UNCHECKED_CAST")
-                return field.invokeExact(section) as PalettedContainer<BlockState>
+                return getter[section] as PalettedContainer<BlockState>
             }
 
         }
