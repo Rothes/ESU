@@ -61,6 +61,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.*
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.World.Environment
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
@@ -116,7 +117,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             } catch (_: Exception) {
                 SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
             }
-            material.isOccluding
+            when (material) {
+                Material.GLOWSTONE -> true
+                else               -> material.isOccluding
+            }
         }
     }
     override val counter = ChunkDataThrottleHandler.Counter()
