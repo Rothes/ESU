@@ -102,65 +102,6 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     player.tp(location)
                 }
             }
-
-            @Command("tickDistance <num>")
-            @ShortPerm("tickDistance")
-            fun tickDistance(sender: User, num: Int) {
-                if (num !in (2..32)) {
-                    return sender.miniMessage("<ec>tickDistance should be in range of [2, 32]")
-                }
-                for (world in Bukkit.getWorlds()) {
-                    world.chunkLoader.setTickDistance(num)
-                    sender.message("${world.name} to ${world.simulationDistance}")
-                }
-            }
-            @Command("viewDistance <num>")
-            @ShortPerm("viewDistance")
-            fun viewDistance(sender: User, num: Int) {
-                if (num + 1 < 2 && num != -1) {
-                    return sender.miniMessage("<ec>viewDistance should be >= 2")
-                }
-                if (checkMax(sender, num)) {
-                    for (world in Bukkit.getWorlds()) {
-                        world.chunkLoader.setLoadDistance(num + 1)
-                        sender.message("${world.name} to ${world.viewDistance}")
-                    }
-                }
-            }
-            @Command("sendDistance <num>")
-            @ShortPerm("sendDistance")
-            fun sendDistance(sender: User, num: Int) {
-                if (num < 0 && num != -1) {
-                    return sender.miniMessage("<ec>sendDistance should be >= 0")
-                }
-                if (checkMax(sender, num)) {
-                    for (world in Bukkit.getWorlds()) {
-                        if (world.viewDistance < num) {
-                            sender.miniMessage("<ec>ViewDistance of ${world.name} is ${world.viewDistance}, you need it higher or eq than $num")
-                        }
-                        world.chunkLoader.setSendDistance(num)
-                        sender.message("${world.name} to ${world.sendViewDistance}")
-                    }
-                }
-            }
-
-            private fun checkMax(user: User, num: Int): Boolean {
-                if (MoonriseConstants.MAX_VIEW_DISTANCE < num) {
-                    user.miniMessage("<ec>Current MAX_VIEW_DISTANCE is ${MoonriseConstants.MAX_VIEW_DISTANCE}")
-                    try {
-                        val prop = PlatformHooks.get().brand + ".MaxViewDistance"
-                        user.miniMessage("<ec>Add `-D$prop=$num` behind java in your server start commandline to override it")
-                    } catch (_: NoClassDefFoundError) {
-                        // Not a thing on 1.21.1
-                        user.miniMessage("<ec>Your server version doesn't allow to override it safely, need a upgrade.")
-                    }
-                    return false
-                }
-                return true
-            }
-
-            private val World.chunkLoader
-                get() = (this as CraftWorld).handle.`moonrise$getPlayerChunkLoader`()
         })
         PaperChunkCommands.enable()
     }
@@ -175,6 +116,65 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
             try {
                 val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java // Only paper 1.18+ (to be confirmed)
                 registerCommands(object {
+
+                    @Command("tickDistance <num>")
+                    @ShortPerm("tickDistance")
+                    fun tickDistance(sender: User, num: Int) {
+                        if (num !in (2..32)) {
+                            return sender.miniMessage("<ec>tickDistance should be in range of [2, 32]")
+                        }
+                        for (world in Bukkit.getWorlds()) {
+                            world.chunkLoader.setTickDistance(num)
+                            sender.message("${world.name} to ${world.simulationDistance}")
+                        }
+                    }
+                    @Command("viewDistance <num>")
+                    @ShortPerm("viewDistance")
+                    fun viewDistance(sender: User, num: Int) {
+                        if (num + 1 < 2 && num != -1) {
+                            return sender.miniMessage("<ec>viewDistance should be >= 2")
+                        }
+                        if (checkMax(sender, num)) {
+                            for (world in Bukkit.getWorlds()) {
+                                world.chunkLoader.setLoadDistance(num + 1)
+                                sender.message("${world.name} to ${world.viewDistance}")
+                            }
+                        }
+                    }
+                    @Command("sendDistance <num>")
+                    @ShortPerm("sendDistance")
+                    fun sendDistance(sender: User, num: Int) {
+                        if (num < 0 && num != -1) {
+                            return sender.miniMessage("<ec>sendDistance should be >= 0")
+                        }
+                        if (checkMax(sender, num)) {
+                            for (world in Bukkit.getWorlds()) {
+                                if (world.viewDistance < num) {
+                                    sender.miniMessage("<ec>ViewDistance of ${world.name} is ${world.viewDistance}, you need it higher or eq than $num")
+                                }
+                                world.chunkLoader.setSendDistance(num)
+                                sender.message("${world.name} to ${world.sendViewDistance}")
+                            }
+                        }
+                    }
+
+                    private fun checkMax(user: User, num: Int): Boolean {
+                        if (MoonriseConstants.MAX_VIEW_DISTANCE < num) {
+                            user.miniMessage("<ec>Current MAX_VIEW_DISTANCE is ${MoonriseConstants.MAX_VIEW_DISTANCE}")
+                            try {
+                                val prop = PlatformHooks.get().brand + ".MaxViewDistance"
+                                user.miniMessage("<ec>Add `-D$prop=$num` behind java in your server start commandline to override it")
+                            } catch (_: NoClassDefFoundError) {
+                                // Not a thing on 1.21.1
+                                user.miniMessage("<ec>Your server version doesn't allow to override it safely, need a upgrade.")
+                            }
+                            return false
+                        }
+                        return true
+                    }
+
+                    private val World.chunkLoader
+                        get() = (this as CraftWorld).handle.`moonrise$getPlayerChunkLoader`()
 
                     private val gen = clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true }
                     @Command("genRateTop")
@@ -215,7 +215,7 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     }
                 })
             } catch (e: NoClassDefFoundError) {
-                plugin.warn("Cannot register chunk rate commands: $e")
+                plugin.warn("Cannot register chunk rate & view distance commands: $e")
             }
         }
     }
