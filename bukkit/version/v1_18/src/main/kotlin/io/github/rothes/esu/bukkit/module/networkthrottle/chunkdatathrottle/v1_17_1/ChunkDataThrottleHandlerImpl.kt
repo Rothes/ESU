@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.DiggingAction
 import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
-import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk
+import com.github.retrooper.packetevents.protocol.world.MaterialType
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
@@ -79,6 +79,8 @@ import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
@@ -92,8 +94,30 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     companion object {
 
         const val SECTION_SIZE = 16 * 16 * 16
+        const val ALL_TRUE = -1L
+
+        private var LAVA_MIN = Int.MAX_VALUE
+        private var LAVA_MAX = Int.MIN_VALUE
+        private val BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
+            BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+                val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
+                if (wrapped.type.materialType == MaterialType.LAVA) {
+                    LAVA_MIN = min(id, LAVA_MIN)
+                    LAVA_MAX = max(id, LAVA_MAX)
+                }
+                val material = try {
+                    SpigotConversionUtil.toBukkitBlockData(wrapped).material
+                } catch (_: Exception) {
+                    SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
+                }
+                when (material) {
+                    Material.GLOWSTONE -> true
+                    else               -> material.isOccluding
+                }
+            }
+        }
+        val ITSELF = IntArray(BLOCKS_VIEW.size) { it }
         val FULL_CHUNK = PlayerChunk(BitSet(0))
-        val ALL_TRUE = -1L
 
     }
 
@@ -109,20 +133,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     private val hotDataFile = NetworkThrottleModule.moduleFolder.resolve("minimalChunksData.tmp")
     private val minimalChunks = hashMapOf<Player, Long2ObjectMap<PlayerChunk>>()
-    private val blockingCache = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
-        BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
-            val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
-            val material = try {
-                SpigotConversionUtil.toBukkitBlockData(wrapped).material
-            } catch (_: Exception) {
-                SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
-            }
-            when (material) {
-                Material.GLOWSTONE -> true
-                else               -> material.isOccluding
-            }
-        }
-    }
+
     override val counter = ChunkDataThrottleHandler.Counter()
 
 
@@ -323,7 +334,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     class SectionData(
                         val bits: Int,
                         val data: IntArray,
-                        val remapped: IntArray?,
+                        val remapped: IntArray,
                     )
 
                     val sectionDataArr = Array<SectionData?>(sections.size) { null }
@@ -346,7 +357,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         } else {
                             val data = IntArray(SECTION_SIZE)
                             val bits: Int
-                            val mapping: IntArray?
+                            val mapping: IntArray
+                            val states: IntArray
                             val blockingArr: BooleanArray
                             when (palette) {
                                 is ListPalette, is MapPalette -> {
@@ -381,8 +393,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                     section.chunkData.storage.reader.all { i, v ->
                                         data[i] = v
                                     }
-                                    mapping = null
-                                    blockingArr = blockingCache
+                                    mapping = ITSELF
+                                    blockingArr = BLOCKS_VIEW
                                 }
                                 else         -> {
                                     error("Unsupported packetevents palette type: ${palette::class.simpleName}")
@@ -444,32 +456,17 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         val longs = (SECTION_SIZE + valuesPerLong - 1) / valuesPerLong
                         val new = LongArray(longs)
 
-                        if (sectionData.remapped != null) {
-                            var i = 0
-                            for (j in 0 until longs) {
-                                var l = 0L
-                                var shift = 0
-                                for (k in 0 until valuesPerLong) {
-                                    if (!invisible[id++])
-                                        l = l or (sectionData.remapped[sectionData.data[i]].toLong() shl shift)
-                                    if (++i == SECTION_SIZE) break
-                                    shift += sectionData.bits
-                                }
-                                new[j] = l
+                        i = 0
+                        for (j in 0 until longs) {
+                            var l = 0L
+                            var shift = 0
+                            for (k in 0 until valuesPerLong) {
+                                if (!invisible[id++])
+                                    l = l or (sectionData.remapped[sectionData.data[i]].toLong() shl shift)
+                                if (++i == SECTION_SIZE) break
+                                shift += sectionData.bits
                             }
-                        } else {
-                            var i = 0
-                            for (j in 0 until longs) {
-                                var l = 0L
-                                var shift = 0
-                                for (k in 0 until valuesPerLong) {
-                                    if (!invisible[id++])
-                                        l = l or (sectionData.data[i].toLong() shl shift)
-                                    if (++i == SECTION_SIZE) break
-                                    shift += sectionData.bits
-                                }
-                                new[j] = l
-                            }
+                            new[j] = l
                         }
 
                         section.chunkData.storage = PEBitStorage(sectionData.bits, SECTION_SIZE, new)
@@ -581,10 +578,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private fun addNearby(blocking: ByteArray, id: Int) {
         val x = id and 0xf
         val z = id shr 4 and 0xf
-        if (x > 0 ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
-        if (x < 15) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
-        if (z > 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
-        if (z < 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
+        if (x != 0 ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
+        if (x != 15) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
+        if (z != 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
+        if (z != 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
     }
 
@@ -711,7 +708,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
 
     private val Int.blocksView
-        get() = blockingCache[this]
+        get() = BLOCKS_VIEW[this]
 
     private val BlockState.blocking: Boolean
         get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocksView
