@@ -183,8 +183,10 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 }.toMutableList())
                 put("world_nether", buildList {
                     add(Material.NETHER_QUARTZ_ORE)
-                    if (ServerCompatibility.serverVersion >= Version.fromString("1.16"))
+                    if (ServerCompatibility.serverVersion >= Version.fromString("1.16")) {
                         add(Material.NETHER_GOLD_ORE)
+                        add(Material.ANCIENT_DEBRIS)
+                    }
                 }.toMutableList())
                 put("world_the_end", mutableListOf(Material.END_STONE))
             }
