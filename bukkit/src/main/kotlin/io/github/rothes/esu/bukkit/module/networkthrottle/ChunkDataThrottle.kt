@@ -23,7 +23,7 @@ object ChunkDataThrottle {
     }
 
     fun onDisable() {
-        if (ServerCompatibility.serverVersion < Version.fromString("1.17"))
+        if (ServerCompatibility.serverVersion < Version.fromString("1.18"))
             return
         versioned.disable()
     }
