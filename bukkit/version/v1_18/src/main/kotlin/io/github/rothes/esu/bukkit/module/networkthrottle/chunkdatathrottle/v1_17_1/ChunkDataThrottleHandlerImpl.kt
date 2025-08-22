@@ -112,9 +112,9 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
             val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
             val material = try {
-                SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
-            } catch (_: Exception) {
                 SpigotConversionUtil.toBukkitBlockData(wrapped).material
+            } catch (_: Exception) {
+                SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
             }
             material.isOccluding
         }
