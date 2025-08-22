@@ -16,12 +16,12 @@ class PalettedContainerReaderImpl: PalettedContainerReader {
     private val palette = dataField.type.declaredFields.first { it.type == Palette::class.java }.usObjGetter
 
     override fun getStorage(container: PalettedContainer<*>): BitStorage {
-        return storage[data[container]!!] as BitStorage
+        return storage[data[container]] as BitStorage
     }
 
     override fun <T> getPalette(container: PalettedContainer<T>): Palette<T> {
         @Suppress("UNCHECKED_CAST")
-        return palette[data[container]!!] as Palette<T>
+        return palette[data[container]] as Palette<T>
     }
 
 }

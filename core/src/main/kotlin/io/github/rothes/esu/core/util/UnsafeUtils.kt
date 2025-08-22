@@ -41,10 +41,16 @@ object UnsafeUtils {
 
     val Field.usObjGetter
         get() = UnsafeObjGetter(this)
+    val Field.usObjGetterNullable
+        get() = UnsafeObjGetterNullable(this)
 
     @Suppress("DEPRECATION")
     private val Field.objOffset
-        get() = unsafe.objectFieldOffset(this)
+        get() = try {
+            unsafe.objectFieldOffset(this)
+        } catch (_: UnsupportedOperationException) {
+            internalOffset.invokeExact(internalUnsafe, this) as Long
+        }
     @Suppress("DEPRECATION")
     private val Field.staticOffset
         get() = unsafe.staticFieldOffset(this)
@@ -53,12 +59,14 @@ object UnsafeUtils {
         get() = unsafe.staticFieldBase(this)
 
     class UnsafeObjGetter(val field: Field) {
+        private val offset = field.objOffset
 
-        private val offset = try {
-            field.objOffset
-        } catch (_: UnsupportedOperationException) {
-            internalOffset.invokeExact(internalUnsafe, field) as Long
-        }
+        // No Intrinsics.checkNotNull, should be faster
+        operator fun get(obj: Any): Any = unsafe.getObject(obj, offset)
+    }
+
+    class UnsafeObjGetterNullable(val field: Field) {
+        private val offset = field.objOffset
 
         operator fun get(obj: Any): Any? = unsafe.getObject(obj, offset)
     }
