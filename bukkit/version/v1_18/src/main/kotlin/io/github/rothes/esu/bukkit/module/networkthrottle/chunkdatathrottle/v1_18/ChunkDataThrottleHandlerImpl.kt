@@ -106,6 +106,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 }
                 when (material) {
                     Material.GLOWSTONE -> true
+                    Material.BARRIER   -> false
                     else               -> material.isOccluding
                 }
             }
