@@ -5,6 +5,10 @@ import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
+import org.bukkit.Bukkit
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
+import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.Command
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
@@ -13,6 +17,13 @@ import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
     dataClass: Class<T>, localeClass: Class<L>,
 ): CommonModule<T, L>(dataClass, localeClass) {
+
+    protected val registeredListeners = linkedSetOf<Listener>()
+
+    override fun disable() {
+        unregisterListeners()
+        super.disable()
+    }
 
     protected fun registerCommand(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {
         with(plugin.commandManager) {
@@ -33,6 +44,18 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
 
             val commands = annotationParser.parse(obj)
             registeredCommands.addAll(commands)
+        }
+    }
+
+    protected fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.plugin) {
+        Bukkit.getPluginManager().registerEvents(listener, plugin)
+        registeredListeners.add(listener)
+    }
+
+    protected fun unregisterListeners() {
+        registeredListeners.removeIf {
+            HandlerList.unregisterAll(it)
+            true
         }
     }
 
