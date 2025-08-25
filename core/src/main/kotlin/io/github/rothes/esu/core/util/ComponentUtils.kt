@@ -159,14 +159,14 @@ object ComponentUtils {
         return pLang(viewer, langMap, params = params)
     }
 
-    fun pLang(viewer: User, langMap: Map<String, String>, vararg params: TagResolver): TagResolver {
-        return TagResolver.resolver(setOf("pl", "placeholder_lang")) { arg, context ->
+    fun pLang(viewer: User, placeholders: Map<String, String>, vararg params: TagResolver): TagResolver {
+        return TagResolver.resolver(setOf("pl", "placeholder_lang")) { arg, _ ->
             val pop = arg.popOr("One argument required for placeholder_lang")
             val key = pop.value()
-            val localed = viewer.localedOrNull(langMap)
-            if (localed != null)
+            val placeholder = placeholders[key]
+            if (placeholder != null)
                 Tag.selfClosingInserting(
-                    viewer.buildMiniMessage(localed, params = params)
+                    viewer.buildMiniMessage(placeholder, params = params)
                 )
             else {
                 Tag.selfClosingInserting(
