@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
@@ -54,12 +55,25 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
                 }
             }
         })
+        for ((key, value) in config.tickType.startupSettings) {
+            val ticketType = TicketTypeHandler.handler.getTicketTypeMap()[key]
+            if (ticketType == null) {
+                log("$key ticket type not found")
+                continue
+            }
+            ticketType.expiryTicks = value
+        }
     }
 
 
     data class ModuleConfig(
+        val tickType: TicketType = TicketType(),
         val waterlogged: Waterlogged = Waterlogged(),
     ): BaseModuleConfiguration() {
+
+        data class TicketType(
+            val startupSettings: Map<String, Long> = TicketTypeHandler.handler.getTicketTypeMap().mapValues { it.value.expiryTicks }
+        )
 
         data class Waterlogged(
             @Comment("Enable this will disable water spread from Waterlogged blocks.")
