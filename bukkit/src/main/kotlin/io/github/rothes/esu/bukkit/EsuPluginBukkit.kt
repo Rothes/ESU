@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.AdventureHolder.adventure
 import io.github.rothes.esu.bukkit.command.parser.UserParser
+import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
@@ -169,6 +170,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     commandCaptions[caption]
                 }
             }
+            parserRegistry().registerParser(ChunkLocationParser.parser())
             parserRegistry().registerParser(UserParser.parser())
             parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
             EsuExceptionHandlers(exceptionController()).register()
