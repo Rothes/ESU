@@ -50,7 +50,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.util.SimpleBitStorage
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
@@ -66,11 +65,8 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.lang.reflect.Modifier
 import java.nio.file.StandardOpenOption
 import java.util.*
-import kotlin.collections.isNotEmpty
-import kotlin.collections.iterator
 import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
@@ -80,7 +76,6 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
-import net.minecraft.util.BitStorage as NmsBitStorage
 
 class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -727,47 +722,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             l = l shr bits
         }
         return array
-    }
-
-    class DataReader(val data: LongArray, val bits: Int) {
-
-        constructor(bitStorage: SimpleBitStorage): this(dataGetter[bitStorage] as LongArray, bitStorage.bits)
-        constructor(bitStorage: PEBitStorage): this(bitStorage.data, bitStorage.bitsPerEntry)
-
-        val mask = (1L shl bits) - 1L
-        val valuesPerLong = (64 / bits).toChar().code
-
-        inline fun all(crossinline scope: (Int, Int) -> Unit) {
-            var i = 0
-
-            for (l in this.data) {
-                var l = l
-                for (j in 0..<this.valuesPerLong) {
-                    scope(i, (l and this.mask).toInt())
-                    l = l shr this.bits
-                    ++i
-                    if (i >= SECTION_BLOCKS) {
-                        return
-                    }
-                }
-            }
-        }
-
-        companion object {
-            private val dataGetter = SimpleBitStorage::class.java.declaredFields.first {
-                it.type == LongArray::class.java && !Modifier.isStatic(it.modifiers)
-            }.usObjGetter
-
-            fun reader(bitStorage: NmsBitStorage) = when (bitStorage) {
-                is SimpleBitStorage -> DataReader(bitStorage)
-                else -> error("BitStorage ${bitStorage.javaClass.canonicalName} is not supported")
-            }
-
-            val NmsBitStorage.reader
-                get() = reader(this)
-            val BaseStorage.reader
-                get() = DataReader(this as PEBitStorage)
-        }
     }
 
     private class CustomListPalette(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
