@@ -55,7 +55,17 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
                 }
             }
         })
-        for ((key, value) in config.tickType.startupSettings) {
+        applyTicketType()
+    }
+
+    override fun reloadConfig() {
+        super.reloadConfig()
+        if (enabled)
+            applyTicketType()
+    }
+
+    private fun applyTicketType() {
+        for ((key, value) in config.ticketType.startupSettings) {
             val ticketType = TicketTypeHandler.handler.getTicketTypeMap()[key]
             if (ticketType == null) {
                 log("$key ticket type not found")
@@ -67,11 +77,22 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
 
 
     data class ModuleConfig(
-        val tickType: TicketType = TicketType(),
+        @Comment("""
+            Change server ticket type settings.
+            Tickets control chunk loading. For details, check https://minecraft.wiki/w/Chunk#Tickets
+            Setting expiry-ticks to 0 or negative value makes the chunk load forever until the ticket
+             is manually removed.
+        """)
+        val ticketType: TicketType = TicketType(),
         val waterlogged: Waterlogged = Waterlogged(),
     ): BaseModuleConfiguration() {
 
         data class TicketType(
+            @Comment("""
+                Change the expiry ticks value once the module is enabled or reloaded.
+                For example, if you set `portal: 1`, chunk loaded by portal teleport will be removed
+                 right after 1 game tick, so that "chunk loader" will not be working any more.
+            """)
             val startupSettings: Map<String, Long> = TicketTypeHandler.handler.getTicketTypeMap().mapValues { it.value.expiryTicks }
         )
 
