@@ -39,7 +39,7 @@ object ReflectionUtils {
     val Method.handle
         get() = handle()
 
-    @JvmName("getterKt")
+    @JvmName("handleKt")
     fun Method.handle(rType: Class<*> = returnType, pType: Class<*> = declaringClass, argTypes: Array<Class<*>> = parameterTypes): MethodHandle {
         return method(this, rType, pType, argTypes)
     }
