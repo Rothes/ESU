@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.BukkitUser
+import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
@@ -57,6 +58,10 @@ abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
             HandlerList.unregisterAll(it)
             true
         }
+    }
+
+    fun log(msg: String) {
+        ConsoleUser.log("[$name] $msg]")
     }
 
 }
