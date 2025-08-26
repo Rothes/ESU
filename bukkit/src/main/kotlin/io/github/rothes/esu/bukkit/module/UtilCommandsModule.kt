@@ -4,6 +4,7 @@ import ca.spottedleaf.moonrise.common.PlatformHooks
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.common.util.MoonriseConstants
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
+import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocation
 import io.github.rothes.esu.bukkit.module.UtilCommandsModule.ModuleLocale.ChunkRateTop
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -27,9 +28,7 @@ import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.bukkit.parser.location.Location2D
 import java.lang.reflect.Field
-import kotlin.jvm.java
 
 object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
     BaseModuleConfiguration::class.java, ModuleLocale::class.java
@@ -80,9 +79,9 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
 
             @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("tpChunk")
-            fun tpChunk(sender: User, chunk: Location2D, world: World = sender.player.location.world, player: Player = sender.player) {
+            fun tpChunk(sender: User, chunk: ChunkLocation, world: World = sender.player.location.world, player: Player = sender.player) {
                 sender.message(locale, { tpChunkTeleporting }, player(player))
-                val location = Location(world, (chunk.x.toInt() shl 4) + 8.5, 0.0, (chunk.z.toInt() shl 4) + 8.5)
+                val location = Location(world, (chunk.chunkX shl 4) + 8.5, 0.0, (chunk.chunkZ shl 4) + 8.5)
                 Scheduler.schedule(location) {
                     val y = if (world.environment == World.Environment.NETHER) {
                         var y = 125
