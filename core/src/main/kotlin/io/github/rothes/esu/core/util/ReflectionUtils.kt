@@ -6,6 +6,7 @@ import java.lang.invoke.MethodType
 import java.lang.reflect.Field
 import java.lang.reflect.InaccessibleObjectException
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 object ReflectionUtils {
 
@@ -21,7 +22,8 @@ object ReflectionUtils {
             method.setAccessible(true)
         } catch (_: InaccessibleObjectException) {
         }
-        return LOOKUP.unreflect(method).asType(MethodType.methodType(rType, pType, *argTypes))
+        val pTypes = if (method.modifiers and Modifier.STATIC != 0) argTypes.toList() else listOf(pType, *argTypes)
+        return LOOKUP.unreflect(method).asType(MethodType.methodType(rType, pTypes))
     }
 
     fun getter(field: Field, rType: Class<*> = field.type, pType: Class<*> = field.declaringClass): MethodHandle {
