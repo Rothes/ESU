@@ -120,12 +120,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val levelHandler by Versioned(LevelHandler::class.java)
     private val chunkSender by Versioned(ChunkSender::class.java)
 
-    init {
-        if (Block.BLOCK_STATE_REGISTRY.size() > Short.MAX_VALUE)
-            error("Block states has exceeded max value of short! This is not supported. " +
-                    "${Block.BLOCK_STATE_REGISTRY.size()} > ${Short.MAX_VALUE}")
-    }
-
     private val hotDataFile = NetworkThrottleModule.moduleFolder.resolve("minimalChunksData.tmp")
     private val minimalChunks = hashMapOf<Player, Long2ObjectMap<PlayerChunk>>()
 
