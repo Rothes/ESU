@@ -8,7 +8,8 @@
           "message_times": -1,
           "notify_in_game": true,
           "message": {
-            "en-us": "<pc>A new version of ESU-bukkit (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu"
+            "en_us": "<pc>A new version of ESU-bukkit (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu",
+            "zh_cn": "<pc>发现新版本的 ESU-bukkit (<pdc>\"0.9.0\"</pdc>)!<chat><pc>在此处下载: <pdc>https://modrinth.com/plugin/esu"
           }
         }
       },
@@ -19,7 +20,8 @@
           "message_times": -1,
           "notify_in_game": true,
           "message": {
-            "en-us": "<pc>A new version of ESU-velocity (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu"
+            "en_us": "<pc>A new version of ESU-velocity (<pdc>\"0.9.0\"</pdc>) is available!<chat><pc>Download at: <pdc>https://modrinth.com/plugin/esu",
+            "zh_cn": "<pc>发现新版本的 ESU-velocity (<pdc>\"0.9.0\"</pdc>)!<chat><pc>在此处下载: <pdc>https://modrinth.com/plugin/esu"
           }
         }
       }
@@ -32,7 +34,8 @@
         "message_times": 1,
         "notify_in_game": true,
         "message": {
-          "en-us": "<pc>Welcome to ESU! Discuss and support at <pdc>https://discord.gg/zwzzkmYCBb"
+          "en_us": "<pc>Welcome to ESU! Discuss and support at <pdc>https://discord.gg/zwzzkmYCBb",
+          "zh_cn": "<pc>欢迎使用 ESU. 讨论与求助可加入我们的QQ群 422532220"
         }
       }
     },
