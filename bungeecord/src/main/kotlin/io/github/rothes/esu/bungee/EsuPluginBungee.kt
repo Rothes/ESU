@@ -84,7 +84,7 @@ class EsuPluginBungee: Plugin(), EsuCore {
                         EsuConfig.reloadConfig()
                         BungeeEsuLocale.reloadConfig()
                         ColorSchemes.reload()
-                        ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
+                        ModuleManager.reloadModules()
                         context.sender().message("§aReloaded global & module configs.")
                     }
             )

@@ -210,7 +210,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                         BukkitEsuLocale.reloadConfig()
                         ColorSchemes.reload()
                         UpdateCheckerMan.reload()
-                        ModuleManager.registeredModules().forEach { module -> module.reloadConfig() }
+                        ModuleManager.reloadModules()
                         context.sender().message("§aReloaded global & module configs.")
                     }
             )
