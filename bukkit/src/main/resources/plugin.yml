@@ -52,3 +52,6 @@ permissions:
       'esu.utilCommands.command.tpChunk': true
       'esu.utilCommands.command.genRateTop': true
       'esu.utilCommands.command.loadRateTop': true
+      'esu.utilCommands.command.tickDistance': true
+      'esu.utilCommands.command.viewDistance': true
+      'esu.utilCommands.command.sendDistance': true
