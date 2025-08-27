@@ -56,7 +56,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.World
 import org.bukkit.World.Environment
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
@@ -665,9 +664,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     private fun BitSet.safeGet(index: Int) = if (index in 0 until size()) get(index) else false
 
-    private val worldMethod = Level::class.java.getMethod("getWorld").also { it.isAccessible = true }
     private val Level.bukkit
-        get() = worldMethod.invoke(this) as World
+        get() = this.world
 
     private val Player.nms: ServerPlayer
         get() = (this as CraftPlayer).handle
