@@ -32,7 +32,7 @@ class UserLoginEvent(
                 Bukkit.getPluginManager().registerEvents(listener, plugin)
                 Bukkit.getOnlinePlayers().filter(filter).forEach { it.user.logonBefore = true }
             }
-            if (Bukkit.getPluginManager().isPluginEnabled("Authme")) {
+            if (Bukkit.getPluginManager().isPluginEnabled("AuthMe")) {
                 reg(object : Listener {
                     @EventHandler
                     fun onLogin(e: LoginEvent) {
