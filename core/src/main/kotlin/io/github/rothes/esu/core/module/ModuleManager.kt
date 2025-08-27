@@ -60,7 +60,7 @@ object ModuleManager {
 
     fun reloadModules() {
         for (module in modules.values) {
-            removeModule(module.name)
+            reloadModule(module)
         }
     }
 
