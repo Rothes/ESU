@@ -11,9 +11,9 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockFromToEvent
+import org.bukkit.event.block.BlockPistonEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
-import kotlin.jvm.java
 
 object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java
@@ -32,17 +32,25 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
             }
             @EventHandler
             fun onPistonPushWaterlogged(e: BlockPistonExtendEvent) {
-                handleWaterloggedPush(e.blocks, e.direction)
+                handleWaterloggedPush(e.blocks, e)
             }
             @EventHandler
             fun onPistonPushWaterlogged(e: BlockPistonRetractEvent) {
-                handleWaterloggedPush(e.blocks, e.direction)
+                handleWaterloggedPush(e.blocks, e)
             }
 
-            private fun handleWaterloggedPush(blocks: List<Block>, face: BlockFace) {
-                if (!config.waterlogged.disableWaterSpread || !config.waterlogged.keepWaterAfterPistonPush) {
+            private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
+                val config = config.waterlogged
+                if (config.disableWaterloggedBlockPush) {
+                    if (blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
+                        e.isCancelled = true
+                        return
+                    }
+                }
+                if (!config.disableWaterSpread || !config.keepWaterAfterPistonPush) {
                     return
                 }
+                val face = e.direction
                 for (block in blocks) {
                     val waterlogged = block.blockData as? Waterlogged ?: continue
                     if (waterlogged.isWaterlogged)
@@ -97,10 +105,12 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
         )
 
         data class Waterlogged(
-            @Comment("Enable this will disable water spread from Waterlogged blocks.")
+            @Comment("Enable this will disable water spread from waterlogged blocks.")
             val disableWaterSpread: Boolean = false,
-            @Comment("If enabled, water in Waterlogged will be refilled after a piston push.")
+            @Comment("If enabled, water in waterlogged blocks will be refilled after a piston push.")
             val keepWaterAfterPistonPush: Boolean = false,
+            @Comment("If enabled, waterlogged blocks cannot be pushed by pistons")
+            val disableWaterloggedBlockPush: Boolean = false
         )
     }
 
