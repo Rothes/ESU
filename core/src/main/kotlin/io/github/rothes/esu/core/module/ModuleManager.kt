@@ -14,11 +14,7 @@ object ModuleManager {
         removeModule(module.name)
         modules.putIfAbsent(module.name, module)
 
-        try {
-            module.reloadConfig()
-        } catch (e: Throwable) {
-            EsuCore.instance.err("Failed to read config of module ${module.name}", e)
-        }
+        reloadModule(module)
         try {
             if (module.canUse()) {
                 enableModule(module)
@@ -59,6 +55,20 @@ object ModuleManager {
         } catch (e: Throwable) {
             EsuCore.instance.err("Failed to disable module ${module.name}", e)
             return false
+        }
+    }
+
+    fun reloadModules() {
+        for (module in modules.values) {
+            removeModule(module.name)
+        }
+    }
+
+    private fun reloadModule(module: Module<*, *>) {
+        try {
+            module.reloadConfig()
+        } catch (e: Throwable) {
+            EsuCore.instance.err("Failed to read config of module ${module.name}", e)
         }
     }
 
