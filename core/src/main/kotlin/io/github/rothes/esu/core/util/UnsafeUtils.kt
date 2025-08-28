@@ -44,6 +44,11 @@ object UnsafeUtils {
     val Field.usObjGetterNullable
         get() = UnsafeObjGetterNullable(this)
 
+    val Field.usLongGetter
+        get() = UnsafeLongGetter(this)
+    val Field.usLongSetter
+        get() = UnsafeLongSetter(this)
+
     @Suppress("DEPRECATION")
     private val Field.objOffset
         get() = try {
@@ -69,6 +74,17 @@ object UnsafeUtils {
         private val offset = field.objOffset
 
         operator fun get(obj: Any): Any? = unsafe.getObject(obj, offset)
+    }
+
+    class UnsafeLongGetter(val field: Field) {
+        private val offset = field.objOffset
+
+        operator fun get(obj: Any): Long = unsafe.getLong(obj, offset)
+    }
+    class UnsafeLongSetter(val field: Field) {
+        private val offset = field.objOffset
+
+        operator fun set(obj: Any, value: Long): Long = unsafe.getAndSetLong(obj, offset, value)
     }
 
 }
