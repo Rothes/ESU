@@ -49,18 +49,18 @@ object UnsafeUtils {
     val Field.usLongSetter
         get() = UnsafeLongSetter(this)
 
-    @Suppress("DEPRECATION")
     private val Field.objOffset
         get() = try {
+            @Suppress("DEPRECATION")
             unsafe.objectFieldOffset(this)
         } catch (_: UnsupportedOperationException) {
             internalOffset.invokeExact(internalUnsafe, this) as Long
         }
-    @Suppress("DEPRECATION")
     private val Field.staticOffset
+        @Suppress("DEPRECATION")
         get() = unsafe.staticFieldOffset(this)
-    @Suppress("DEPRECATION")
     private val Field.staticBase
+        @Suppress("DEPRECATION")
         get() = unsafe.staticFieldBase(this)
 
     class UnsafeObjGetter(val field: Field) {
