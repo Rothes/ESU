@@ -12,15 +12,15 @@ import java.nio.file.Path
 import kotlin.jvm.java
 import kotlin.reflect.KClass
 
-abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
-    val dataClass: Class<T>,
+abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart>(
+    val configClass: Class<C>,
     val localeClass: Class<L>,
-): Module<T, L> {
+): Module<C, L> {
 
-    constructor(dataClass: KClass<T>, localeClass: KClass<L>): this(dataClass.java, localeClass.java)
+    constructor(configClass: KClass<C>, localeClass: KClass<L>): this(configClass.java, localeClass.java)
 
     override val name: String = javaClass.simpleName.removeSuffix("Module")
-    override lateinit var config: T
+    override lateinit var config: C
         protected set
     override lateinit var locale: MultiLocaleConfiguration<L>
         protected set
@@ -58,7 +58,7 @@ abstract class CommonModule<T: ConfigurationPart, L: ConfigurationPart>(
     }
 
     override fun reloadConfig() {
-        config = ConfigLoader.load(configPath, dataClass, builder = configLoader)
+        config = ConfigLoader.load(configPath, configClass, builder = configLoader)
         locale = ConfigLoader.loadMulti(localePath, localeClass, "en_us.yml", builder = localeLoader)
     }
 

@@ -4,10 +4,10 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiConfiguration
 import java.nio.file.Path
 
-interface Module<T: ConfigurationPart, L: ConfigurationPart> {
+interface Module<C: ConfigurationPart, L: ConfigurationPart> {
 
     val name: String
-    val config: T
+    val config: C
     val locale: MultiConfiguration<L>
     val moduleFolder: Path
     val configPath: Path

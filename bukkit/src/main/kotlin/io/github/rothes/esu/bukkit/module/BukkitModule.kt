@@ -15,9 +15,9 @@ import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 
-abstract class BukkitModule<T: ConfigurationPart, L: ConfigurationPart>(
-    dataClass: Class<T>, localeClass: Class<L>,
-): CommonModule<T, L>(dataClass, localeClass) {
+abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart>(
+    dataClass: Class<C>, localeClass: Class<L>,
+): CommonModule<C, L>(dataClass, localeClass) {
 
     protected val registeredListeners = linkedSetOf<Listener>()
 

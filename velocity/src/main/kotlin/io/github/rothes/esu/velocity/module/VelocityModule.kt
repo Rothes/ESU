@@ -11,9 +11,9 @@ import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.velocity.VelocityCommandManager
 import kotlin.jvm.java
 
-abstract class VelocityModule<T: ConfigurationPart, L: ConfigurationPart>(
-    dataClass: Class<T>, localeClass: Class<L>,
-): CommonModule<T, L>(dataClass, localeClass) {
+abstract class VelocityModule<C: ConfigurationPart, L: ConfigurationPart>(
+    configClass: Class<C>, localeClass: Class<L>,
+): CommonModule<C, L>(configClass, localeClass) {
 
     protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
 
