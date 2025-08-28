@@ -84,7 +84,7 @@ object UnsafeUtils {
     class UnsafeLongSetter(val field: Field) {
         private val offset = field.objOffset
 
-        operator fun set(obj: Any, value: Long): Long = unsafe.getAndSetLong(obj, offset, value)
+        operator fun set(obj: Any, value: Long) = unsafe.putLong(obj, offset, value)
     }
 
 }
