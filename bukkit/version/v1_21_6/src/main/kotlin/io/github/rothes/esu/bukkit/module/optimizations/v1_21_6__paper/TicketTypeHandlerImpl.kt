@@ -10,14 +10,14 @@ class TicketTypeHandlerImpl: TicketTypeHandler {
         .entrySet()
         .associate {
             val name = it.key.location().path
-            name to TicketTypeImpl(it.value, name)
+            name to TicketTypeMoonriseImpl(it.value, name)
         }
 
     override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
         return map
     }
 
-    class TicketTypeImpl(
+    class TicketTypeMoonriseImpl(
         override val handle: TicketType<*>,
         override val name: String,
     ): TicketTypeHandler.TicketType {
