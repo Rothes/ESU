@@ -5,9 +5,9 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
-import java.io.IOException
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*
@@ -107,19 +107,65 @@ object EsuConfig {
         )
 
         data class Database(
-            @Comment(
-                """
-By default, we use a H2 database.
-If you have a MySQL server, and want to use it,
-    set 'jdbc-driver' to 'com.mysql.jdbc.Driver'
-    and 'jdbc-url' to 'jdbc:mysql://127.0.0.1:3306/esu'
-For MariaDB:
-    set 'jdbc-driver' to 'org.mariadb.jdbc.Driver'
-    and 'jdbc-url' to 'jdbc:mariadb://127.0.0.1:3306/esu'""")
-            val jdbcDriver: String = "org.h2.Driver",
-            val jdbcUrl: String = "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath().name}/h2;MODE=MYSQL",
-            val username: String = "root",
-            val password: String = "root",
-        )
+            @Comment("""
+                The database software you want to use.
+                Supports 'H2'(built-in file system db), 'MySQL', 'MariaDB'
+            """)
+            var databaseType: String = "H2",
+            @Comment("""
+                Below settings are only needed when you have a database server.
+            """)
+            var host: String = "127.0.0.1",
+            var port: Int = 3306,
+            var database: String = "esu",
+            var username: String = "root",
+            var password: String = "root",
+        ) {
+
+            val driverClassName: String
+                get() = when (databaseType.uppercase()) {
+                    "H2"      -> "org.h2.Driver"
+                    "MYSQL"   -> "com.mysql.jdbc.Driver"
+                    "MARIADB" -> "org.mariadb.jdbc.Driver"
+                    else      -> error("Unsupported database type: $databaseType")
+                }
+
+            val url: String
+                get() = when (databaseType.uppercase()) {
+                    "H2"      -> "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath().name}/h2;MODE=MYSQL"
+                    "MySQL",
+                    "mariadb" -> "jdbc:mysql://$host:$port/$database"
+                    else      -> error("Unsupported database type: $databaseType")
+                }
+
+            @RemovedNode("0.9.1")
+            val jdbcDriver: String? = null
+            @RemovedNode("0.9.1")
+            val jdbcUrl: String? = null
+
+            @PostProcess
+            private fun upgrade() {
+                if (jdbcUrl != null) {
+                    val split = jdbcUrl.split(':', limit = 3)
+                    if (split.size < 3) return
+                    when (split[1]) {
+                        "h2" -> {
+                            databaseType = "H2"
+                        }
+                        "mysql",
+                        "mariadb" -> {
+                            databaseType = split[1].uppercase()
+                            val reg = "//(.+):(.+)/(.+)".toRegex().matchEntire(split[2])
+                            if (reg != null) {
+                                host = reg.groups[1]?.value ?: host
+                                port = reg.groups[2]?.value?.toIntOrNull() ?: port
+                                database = reg.groups[3]?.value ?: database
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }

@@ -21,7 +21,6 @@ import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.sql.SQLException
 import java.sql.SQLIntegrityConstraintViolationException
 import java.util.*
 
@@ -29,14 +28,14 @@ object StorageManager {
 
     private val datasource = HikariDataSource(HikariConfig().apply {
         poolName = "ESU-HikariPool"
-        driverClassName = EsuConfig.get().database.jdbcDriver
-        jdbcUrl         = EsuConfig.get().database.jdbcUrl
+        driverClassName = EsuConfig.get().database.driverClassName
+        jdbcUrl         = EsuConfig.get().database.url
         username        = EsuConfig.get().database.username
         password        = EsuConfig.get().database.password
     })
     val database: Database = try {
         Database.connect(datasource).also {
-            if (EsuConfig.get().database.jdbcUrl.startsWith("jdbc:h2:")) {
+            if (EsuConfig.get().database.url.startsWith("jdbc:h2:")) {
                 transaction(it) {
                     exec("SET MODE=MYSQL")
                 }
