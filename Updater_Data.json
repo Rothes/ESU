@@ -2,6 +2,7 @@
   "version_channel": {
     "stable": {
       "bukkit": {
+        "latest_version_name": "0.9.1",
         "latest_version_id": 8,
         "notification": {
           "actions": [],
@@ -14,6 +15,7 @@
         }
       },
       "velocity": {
+        "latest_version_name": "0.9.1",
         "latest_version_id": 8,
         "notification": {
           "actions": [],

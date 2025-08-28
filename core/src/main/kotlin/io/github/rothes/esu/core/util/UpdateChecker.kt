@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.config.EsuLocale
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import java.net.URI
 import java.util.*
@@ -26,13 +27,13 @@ class UpdateChecker(
     private val perm = "$premRoot.updater.receive"
 
     private val messageTimesMap = mutableMapOf<String, Int>()
-    private val messages = mutableListOf<Map<String, String>>()
+    private val messages = mutableListOf<RemoteMessage>()
     private var errorCount = 0
 
     fun onJoin(user: User) {
         if (user.hasPermission(perm)) {
             for (msg in messages) {
-                user.message(user.localed(msg) { it.message })
+                user.message(user.localed(msg.langMap) { it.message }, *msg.args)
             }
         }
     }
@@ -61,16 +62,19 @@ class UpdateChecker(
                 }
             }
 
-            console.log(console.localed(notification.message) { it.message })
+            val args = arrayOf(unparsed("latest_version", info.latestVersionName))
+            val msg = RemoteMessage(notification.message, *args)
+
+            console.log(console.localed(msg.langMap) { it.message }, *msg.args)
             if (notification.notifyInGame) {
                 allUsers()
                     .filter { it.hasPermission(perm) }
                     .forEach { user ->
-                        user.message(user.localed(notification.message) { it.message })
+                        user.message(user.localed(msg.langMap) { it.message }, *msg.args)
                     }
             }
 
-            messages.add(notification.message)
+            messages.add(msg)
         }
     }
 
@@ -83,7 +87,7 @@ class UpdateChecker(
         }
 
         fetch.errorMessage?.let { errors.add(it) }
-        val response = fetch.response ?: return CheckedInfo(null, errors)
+        val response = fetch.response ?: return CheckedInfo(null, "unknown", errors)
         return CheckedInfo(
             buildList {
                 messages.clear()
@@ -92,8 +96,8 @@ class UpdateChecker(
                         if (versionId < info.latestVersionId) {
                             add(info.notification)
                         }
-                    } ?: err(ComponentUtils.unparsed("platform", platform)) { updater.checker.unknownPlatform }
-                } ?: err(ComponentUtils.unparsed("channel", channel)) { updater.checker.unknownChannel }
+                    } ?: err(unparsed("platform", platform)) { updater.checker.unknownPlatform }
+                } ?: err(unparsed("channel", channel)) { updater.checker.unknownChannel }
 
                 response.versionAction[platform]?.let { map ->
                     for ((range, notification) in map) {
@@ -104,6 +108,7 @@ class UpdateChecker(
                     }
                 }
             },
+            response.versionChannel[channel]?.get(platform)?.latestVersionName ?: "unknown",
             errors
         )
     }
@@ -123,7 +128,7 @@ class UpdateChecker(
             }
             if (errorCount < 3) {
                 errorCount++
-                return FetchedResponse(errorMessage = LocaledMessage(ComponentUtils.unparsed("message", e)) {
+                return FetchedResponse(errorMessage = LocaledMessage(unparsed("message", e)) {
                     updater.checker.networkError
                 })
             }
@@ -146,12 +151,15 @@ class UpdateChecker(
         data class VersionInfo(
             @SerializedName("latest_version_id")
             val latestVersionId: Int,
+            @SerializedName("latest_version_name")
+            val latestVersionName: String,
             val notification: Notification,
         )
     }
 
     data class CheckedInfo(
         val notifications: List<Notification>?,
+        val latestVersionName: String,
         val errorMessage: List<LocaledMessage> = listOf(),
     )
 
@@ -171,6 +179,11 @@ class UpdateChecker(
     class LocaledMessage(
         vararg val args: TagResolver,
         val scope: EsuLocale.BaseEsuLocaleData.() -> String?,
+    )
+
+    class RemoteMessage(
+        val langMap: Map<String, String>,
+        vararg val args: TagResolver,
     )
 
 }
