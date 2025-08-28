@@ -18,12 +18,12 @@ interface PlayerAdapter {
 
     companion object {
 
-        val instance = if (ServerCompatibility.paper) Paper else CB
+        val instance = if (ServerCompatibility.isPaper) Paper else CB
 
         private val playerChunkSentHandler by Versioned(PlayerChunkSentHandler::class.java)
 
         private val paper20 =
-            ServerCompatibility.paper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
+            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
             return playerChunkSentHandler.isChunkSentNms(this, chunkKey)

@@ -38,7 +38,7 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
     }
 
     fun onEnable() {
-        if (!ServerCompatibility.paper) {
+        if (!ServerCompatibility.isPaper) {
             plugin.err("[HighLatencyAdjust] This feature requires Paper server")
             return
         }

@@ -71,7 +71,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     init {
         EsuCore.instance = this
         BukkitDataSerializer // Register bukkit serializers
-        if (!ServerCompatibility.mojmap) {
+        if (!ServerCompatibility.isMojmap) {
             AetherLoader // For Spigot 1.16.5 and older
             MavenResolver.loadDependencies(
                 listOf(
@@ -149,7 +149,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                         }
                     }
 
-                    val toLoad = if (!ServerCompatibility.mojmap && ServerCompatibility.hasMojmap) JarRemapper.reobf(file) else file
+                    val toLoad = if (!ServerCompatibility.isMojmap && ServerCompatibility.hasMojmap) JarRemapper.reobf(file) else file
                     Versioned.loadVersion(toLoad)
                 }
             }

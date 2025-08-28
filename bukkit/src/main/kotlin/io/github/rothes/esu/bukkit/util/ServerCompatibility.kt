@@ -1,10 +1,8 @@
 package io.github.rothes.esu.bukkit.util
 
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.util.version.Version
 import io.papermc.paper.configuration.GlobalConfiguration
 import io.papermc.paper.util.MappingEnvironment
-import io.github.rothes.esu.lib.net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -14,22 +12,30 @@ object ServerCompatibility {
 
     val serverVersion: Version = Version.fromString(Bukkit.getServer().bukkitVersion.split('-')[0])
 
-    val paper = try {
+    val isPaper = try {
         Class.forName("com.destroystokyo.paper.VersionHistoryManager\$VersionData")
         true
     } catch (_: ClassNotFoundException) {
         false
     }
 
-    val folia = try {
+    val isFolia = try {
         Class.forName("io.papermc.paper.threadedregions.RegionizedServer")
         true
     } catch (_: ClassNotFoundException) {
         false
     }
 
-    val mojmap = try {
+    val isMojmap = try {
         !MappingEnvironment.reobf()
+    } catch (_: NoClassDefFoundError) {
+        false
+    }
+
+    val isProxyMode = try {
+        SpigotConfig.bungee || GlobalConfiguration.get().proxies.velocity.enabled
+    } catch (_: NoSuchMethodException) {
+        false
     } catch (_: NoClassDefFoundError) {
         false
     }
@@ -40,14 +46,6 @@ object ServerCompatibility {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)
         true
     } catch (_: NoSuchMethodException) {
-        false
-    }
-
-    val proxyMode = try {
-        SpigotConfig.bungee || GlobalConfiguration.get().proxies.velocity.enabled
-    } catch (_: NoSuchMethodException) {
-        false
-    } catch (_: NoClassDefFoundError) {
         false
     }
 

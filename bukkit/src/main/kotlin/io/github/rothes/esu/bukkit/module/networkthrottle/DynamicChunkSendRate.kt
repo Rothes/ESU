@@ -35,7 +35,7 @@ object DynamicChunkSendRate {
     fun enable() {
         if (!config.dynamicChunkSendRate.enabled || running)
             return
-        if (!ServerCompatibility.proxyMode)
+        if (!ServerCompatibility.isProxyMode)
             return plugin.err("[DynamicChunkSendRate] This server is not enabled BungeeCord mode or Velocity mode. You should not enable this module.")
         try {
             limiterLoad

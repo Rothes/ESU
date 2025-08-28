@@ -19,7 +19,7 @@ interface ItemStackAdapter {
 
     companion object {
 
-        val instance = if (ServerCompatibility.paper) Paper else CB
+        val instance = if (ServerCompatibility.isPaper) Paper else CB
 
         val ItemStack.empty: Boolean
             get() = isAir || amount <= 0

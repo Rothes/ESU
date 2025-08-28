@@ -35,7 +35,7 @@ class Versioned<T, V>(
                     val split = str.split("__")
 
                     if (split.size == 2) {
-                        if (split[1] == "paper" && !ServerCompatibility.paper) {
+                        if (split[1] == "paper" && !ServerCompatibility.isPaper) {
                             return@mapNotNull null
                         }
                     }

@@ -738,7 +738,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
         companion object {
 
-            val instance = if (ServerCompatibility.paper) Paper else CB
+            val instance = if (ServerCompatibility.isPaper) Paper else CB
 
             val LevelChunkSection.container: PalettedContainer<BlockState>
                 get() = instance.getContainer(this)
