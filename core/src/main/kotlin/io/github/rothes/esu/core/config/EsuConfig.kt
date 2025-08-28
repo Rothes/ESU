@@ -66,7 +66,7 @@ object EsuConfig {
         @Comment("""
             Set this to true will disable caching reading files in jars. This is globally in jvm.
             If you frequently hot-update plugins, setting this to true will reduce errors,
-             but may reduce performance in some cases.
+             but may reduce performance in some specific scenarios.
         """)
         val disableJarFileCache: Boolean = false,
     ): ConfigurationPart {
