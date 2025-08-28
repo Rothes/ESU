@@ -63,28 +63,24 @@ object UnsafeUtils {
         @Suppress("DEPRECATION")
         get() = unsafe.staticFieldBase(this)
 
-    class UnsafeObjGetter(val field: Field) {
-        private val offset = field.objOffset
-
-        // No Intrinsics.checkNotNull, should be faster
+    class UnsafeObjGetter(field: Field): UnsafeFieldAccessor(field) {
+        // No Kotlin Intrinsics.checkNotNull, should be faster
         operator fun get(obj: Any): Any = unsafe.getObject(obj, offset)
     }
 
-    class UnsafeObjGetterNullable(val field: Field) {
-        private val offset = field.objOffset
-
+    class UnsafeObjGetterNullable(field: Field): UnsafeFieldAccessor(field) {
         operator fun get(obj: Any): Any? = unsafe.getObject(obj, offset)
     }
 
-    class UnsafeLongGetter(val field: Field) {
-        private val offset = field.objOffset
-
+    class UnsafeLongGetter(field: Field): UnsafeFieldAccessor(field) {
         operator fun get(obj: Any): Long = unsafe.getLong(obj, offset)
     }
-    class UnsafeLongSetter(val field: Field) {
-        private val offset = field.objOffset
-
+    class UnsafeLongSetter(field: Field): UnsafeFieldAccessor(field) {
         operator fun set(obj: Any, value: Long) = unsafe.putLong(obj, offset, value)
+    }
+
+    abstract class UnsafeFieldAccessor(val field: Field) {
+        protected val offset = field.objOffset
     }
 
 }
