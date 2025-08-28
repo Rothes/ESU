@@ -5,6 +5,7 @@ import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import sun.misc.Unsafe
 import java.lang.invoke.MethodHandle
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 object UnsafeUtils {
 
@@ -65,22 +66,22 @@ object UnsafeUtils {
 
     class UnsafeObjGetter(field: Field): UnsafeFieldAccessor(field) {
         // No Kotlin Intrinsics.checkNotNull, should be faster
-        operator fun get(obj: Any): Any = unsafe.getObject(obj, offset)
+        operator fun get(obj: Any?): Any = unsafe.getObject(obj, offset)
     }
 
     class UnsafeObjGetterNullable(field: Field): UnsafeFieldAccessor(field) {
-        operator fun get(obj: Any): Any? = unsafe.getObject(obj, offset)
+        operator fun get(obj: Any?): Any? = unsafe.getObject(obj, offset)
     }
 
     class UnsafeLongGetter(field: Field): UnsafeFieldAccessor(field) {
-        operator fun get(obj: Any): Long = unsafe.getLong(obj, offset)
+        operator fun get(obj: Any?): Long = unsafe.getLong(obj, offset)
     }
     class UnsafeLongSetter(field: Field): UnsafeFieldAccessor(field) {
-        operator fun set(obj: Any, value: Long) = unsafe.putLong(obj, offset, value)
+        operator fun set(obj: Any?, value: Long) = unsafe.putLong(obj, offset, value)
     }
 
     abstract class UnsafeFieldAccessor(val field: Field) {
-        protected val offset = field.objOffset
+        protected val offset = if (Modifier.isStatic(field.modifiers)) field.staticOffset else field.objOffset
     }
 
 }
