@@ -133,8 +133,8 @@ object EsuConfig {
             val url: String
                 get() = when (databaseType.uppercase()) {
                     "H2"      -> "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath().name}/h2;MODE=MYSQL"
-                    "MySQL",
-                    "mariadb" -> "jdbc:mysql://$host:$port/$database"
+                    "MYSQL"   -> "jdbc:mysql://$host:$port/$database"
+                    "MARIADB" -> "jdbc:mariadb://$host:$port/$database"
                     else      -> error("Unsupported database type: $databaseType")
                 }
 
