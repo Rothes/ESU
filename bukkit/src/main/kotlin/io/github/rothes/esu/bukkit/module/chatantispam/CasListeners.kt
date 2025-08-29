@@ -91,7 +91,7 @@ object CasListeners: Listener {
 
     @EventHandler
     fun onDeath(event: PlayerDeathEvent) {
-        val deathMessage = event.deathMessage()
+        val deathMessage = event.deathMessage()?.esu
         if (deathMessage is TranslatableComponent) {
             if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(deathMessage), Death)) {
                 return event.deathMessage(null)
