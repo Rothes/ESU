@@ -114,7 +114,7 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
         data class Waterlogged(
             @Comment("Enable this will disable water spread from waterlogged blocks.")
             val disableWaterSpread: Boolean = false,
-            @Comment("If enabled, water in waterlogged blocks will be refilled after a piston push.")
+            @Comment("If enabled, water in waterlogged blocks will always be refilled after a piston push.")
             val keepWaterAfterPistonPush: Boolean = false,
             @Comment("""
                 Most block amount that can be pushed by pistons, if pushed blocks contain a waterlogged block.
