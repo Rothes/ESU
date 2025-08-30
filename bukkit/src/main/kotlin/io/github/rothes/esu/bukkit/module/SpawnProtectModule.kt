@@ -3,22 +3,29 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
+import org.bukkit.block.Block
+import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Wither
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockPistonEvent
+import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.event.block.BlockPistonRetractEvent
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
+import kotlin.jvm.java
 import kotlin.math.abs
 import kotlin.math.max
 
-object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, EmptyConfiguration>(
+object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyConfiguration>(
     ModuleConfig::class.java, EmptyConfiguration::class.java
 ) {
 
@@ -129,10 +136,31 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
             }
             for (entity in withers) handleEntity(entity)
         }
+
+        @EventHandler
+        fun onPistonPushWaterlogged(e: BlockPistonExtendEvent) {
+            handleWaterloggedPush(e.blocks, e)
+        }
+        @EventHandler
+        fun onPistonPushWaterlogged(e: BlockPistonRetractEvent) {
+            handleWaterloggedPush(e.blocks, e)
+        }
+
+        private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
+            val config = config.waterlogged
+            if (config.disableSpawnPushRadius > 0) {
+                val dist = abs(e.block.x) + abs(e.block.z)
+                if (dist <= config.disableSpawnPushRadius
+                    && blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
+                    e.isCancelled = true
+                }
+            }
+        }
     }
 
     data class ModuleConfig(
         val spawnWitherNerf: List<SpawnWitherNerf> = listOf(SpawnWitherNerf(256, 0), SpawnWitherNerf()),
+        val waterlogged: Waterlogged = Waterlogged(),
     ): BaseModuleConfiguration() {
 
         data class SpawnWitherNerf(
@@ -140,6 +168,15 @@ object NewbieProtectModule: BukkitModule<NewbieProtectModule.ModuleConfig, Empty
             val maxAmount: Int = 1,
             val speedModifier: Double = 0.5,
             val followRangeModifier: Double = 0.25,
+        )
+
+        data class Waterlogged(
+            @Comment("""
+                Disable pushing waterlogged blocks in spawn circle range.
+                set to -1 to disable the limit.
+                This is to prevent ocean maker machine.
+            """)
+            val disableSpawnPushRadius: Long = -1
         )
     }
 

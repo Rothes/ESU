@@ -194,7 +194,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.addModule(ExploitFixModule)
         ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(NetworkThrottleModule)
-        ModuleManager.addModule(NewbieProtectModule)
+        ModuleManager.addModule(SpawnProtectModule)
         ModuleManager.addModule(NewsModule)
         ModuleManager.addModule(OptimizationsModule)
         ModuleManager.addModule(SpoofServerSettingsModule)
