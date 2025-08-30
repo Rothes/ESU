@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.block.Block
@@ -41,10 +42,16 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
 
             private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
                 val config = config.waterlogged
-                if (config.disableWaterloggedBlockPush) {
+                if (config.maxBlockPushWithWaterlogged >= 0) {
                     if (blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
-                        e.isCancelled = true
-                        return
+                        println(blocks.size.toString() + " OK " + blocks.map { it.type })
+                        if (blocks.size > config.maxBlockPushWithWaterlogged) {
+                            println(blocks.size)
+                            e.isCancelled = true
+                            return
+                        }
+                    } else {
+                        println(blocks.size.toString() + " NO_ " + blocks.map { it.type })
                     }
                 }
                 if (!config.disableWaterSpread || !config.keepWaterAfterPistonPush) {
@@ -109,9 +116,17 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
             val disableWaterSpread: Boolean = false,
             @Comment("If enabled, water in waterlogged blocks will be refilled after a piston push.")
             val keepWaterAfterPistonPush: Boolean = false,
-            @Comment("If enabled, waterlogged blocks cannot be pushed by pistons")
-            val disableWaterloggedBlockPush: Boolean = false
-        )
+            @Comment("""
+                Most block amount that can be pushed by pistons, if pushed blocks contain a waterlogged block.
+                Set to -1 to disable the limit, 0 to always block waterlogged block from pushing.
+                It's suggested to set it to 1, which blocks any ocean maker flying machine.
+            """)
+            val maxBlockPushWithWaterlogged: Int = -1
+        ) {
+
+            @RemovedNode
+            val disableWaterloggedBlockPush: Boolean? = null
+        }
     }
 
 }
