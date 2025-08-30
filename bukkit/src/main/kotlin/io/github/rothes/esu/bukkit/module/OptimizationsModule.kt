@@ -42,16 +42,10 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
 
             private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
                 val config = config.waterlogged
-                if (config.maxBlockPushWithWaterlogged >= 0) {
+                if (config.disableWaterloggedBlockPush) {
                     if (blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
-                        println(blocks.size.toString() + " OK " + blocks.map { it.type })
-                        if (blocks.size > config.maxBlockPushWithWaterlogged) {
-                            println(blocks.size)
-                            e.isCancelled = true
-                            return
-                        }
-                    } else {
-                        println(blocks.size.toString() + " NO_ " + blocks.map { it.type })
+                        e.isCancelled = true
+                        return
                     }
                 }
                 if (!config.disableWaterSpread || !config.keepWaterAfterPistonPush) {
@@ -117,16 +111,11 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
             @Comment("If enabled, water in waterlogged blocks will always be refilled after a piston push.")
             val keepWaterAfterPistonPush: Boolean = false,
             @Comment("""
-                Most block amount that can be pushed by pistons, if pushed blocks contain a waterlogged block.
-                Set to -1 to disable the limit, 0 to always block waterlogged block from pushing.
-                It's suggested to set it to 1, which blocks any ocean maker flying machine.
+                If enabled, waterlogged blocks cannot be pushed by pistons.
+                This can block any ocean maker flying machine.
             """)
-            val maxBlockPushWithWaterlogged: Int = -1
-        ) {
-
-            @RemovedNode
-            val disableWaterloggedBlockPush: Boolean? = null
-        }
+            val disableWaterloggedBlockPush: Boolean = false,
+        )
     }
 
 }
