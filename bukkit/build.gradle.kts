@@ -125,7 +125,7 @@ allprojects {
 }
 
 modrinth {
-    loaders.addAll("bukkit", "spigot", "paper", "purpur", "folia")
+    loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
     dependencies {
         optional.project("packetevents")
     }

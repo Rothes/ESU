@@ -58,7 +58,7 @@ buildConfig {
 }
 
 modrinth {
-    loaders.addAll("velocity")
+    loaders = listOf("velocity")
     dependencies {
         optional.project("packetevents")
         optional.project("serverutils")
