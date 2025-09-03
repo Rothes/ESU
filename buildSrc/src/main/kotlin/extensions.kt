@@ -6,6 +6,10 @@ import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
+val Project.lastTag
+    get() = runGitCommand("describe --tags --abbrev=0")
+val Project.commitsSinceLastTag
+    get() = runGitCommand("rev-list $lastTag..HEAD --count")
 
 val Project.latestCommitHash
     get() = runGitCommand("rev-parse --short HEAD")
