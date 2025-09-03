@@ -440,11 +440,12 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits())
                                 .coerceAtLeast(4) // Vanilla forces at least 4
                             val remapped =
-                                if (frequency.size - empty - 1 and (1 shl bits - 1) ==
-                                    frequency.size - empty     and (1 shl bits - 1) ||
-                                    frequency.size - empty + 1 <= (1 shl 4)
+                                if (config.enhancedAntiXray && (
+                                       // Check if we can add a block type without adding bits used.
+                                       frequency.size - empty - 1 and (1 shl bits - 1) ==
+                                       frequency.size - empty     and (1 shl bits - 1) ||
+                                       frequency.size - empty + 1 <= (1 shl 4))
                                     ) {
-                                    // If we can add a block type without adding bits used, we add one random block.
                                     for ((i, v) in remappedState.withIndex()) {
                                         remappedState[i] = v + 1
                                     }

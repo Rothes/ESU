@@ -207,7 +207,12 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                     }
                 }.toMutableList())
                 put("world_the_end", mutableListOf(Material.END_STONE))
-            }
+            },
+            @Comment("""
+                If enabled, we add a extra block type to chunk section palettes for the random block.
+                This will greatly enhance anti-xray capabilities while giving only few bytes of additional bandwidth.
+            """)
+            val enhancedAntiXray: Boolean = true,
         ) {
 
             @RemovedNode
