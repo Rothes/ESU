@@ -24,7 +24,7 @@ project.modrinth {
 
     token.set(System.getenv("MODRINTH_TOKEN"))
     projectId.set("ESU")
-    this.versionNumber.set(versionNumber + "+" + project.name)
+    this.versionNumber.set(versionNumber)
     this.versionName.set(versionName)
     this.changelog.set(changelog)
     versionType.set(if (isRelease) "release" else "alpha")
