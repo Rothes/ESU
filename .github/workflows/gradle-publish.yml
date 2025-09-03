@@ -35,7 +35,6 @@ jobs:
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: gradle modrinth --stacktrace
-        continue-on-error: true
 
       - name: Modify Modrinth changelog
         if: ${{ github.event_name == 'release' }}
