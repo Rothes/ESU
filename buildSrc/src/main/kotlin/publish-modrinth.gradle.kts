@@ -6,7 +6,7 @@ plugins {
 
 project.modrinth {
     val projectVersion = project.version as String
-    val isRelease = projectVersion.contains('-')
+    val isRelease = !projectVersion.contains('-')
     val modrinthVersion = if (isRelease) projectVersion else "$projectVersion+${System.getenv("GITHUB_RUN_NUMBER")}"
     val changelogContent = if (isRelease) {
         "Changelog editing..."
