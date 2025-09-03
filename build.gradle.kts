@@ -5,7 +5,7 @@ plugins {
     id("java-library")
     kotlin("jvm") version "2.2.0"
     `maven-publish`
-    id("com.gradleup.shadow") version "9.0.0-rc1"
+    id("com.gradleup.shadow")
 //    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
     id("com.github.gmazzo.buildconfig") version "5.5.1"
 }
@@ -83,6 +83,7 @@ subprojects {
 
         if (project.name != "core") {
             apply(plugin = "com.github.gmazzo.buildconfig")
+            apply(plugin = "publish-modrinth")
             buildConfig {
                 val exposedVersion: String by project
                 val adventureVersion: String by project

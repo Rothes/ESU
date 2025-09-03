@@ -56,3 +56,11 @@ tasks.shadowJar {
 buildConfig {
     buildConfigField("PLUGIN_PLATFORM", "velocity")
 }
+
+modrinth {
+    loaders.addAll("velocity")
+    dependencies {
+        optional.project("packetevents")
+        optional.project("serverutils")
+    }
+}

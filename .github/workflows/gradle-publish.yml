@@ -1,6 +1,9 @@
-name: ESU Snapshot Builder
+name: ESU Dev Build
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -11,13 +14,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-        
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -25,12 +28,18 @@ jobs:
 
       - name: Execute Gradle build
         run: gradle shadowJar
-      
+
       - name: Locate built jars
         run: mkdir ESU && cp bukkit/build/libs/ESU-*.jar ESU && cp velocity/build/libs/ESU-*.jar ESU
-      
+
       - name: Upload built jars
         uses: actions/upload-artifact@v4
         with:
           name: ESU-Snapshot
           path: ESU
+
+      - name: Publish to Modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: gradle modrinth --stacktrace
+        continue-on-error: true

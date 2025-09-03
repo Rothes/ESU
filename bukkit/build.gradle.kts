@@ -123,3 +123,10 @@ allprojects {
         maven("https://jitpack.io")
     }
 }
+
+modrinth {
+    loaders.addAll("bukkit", "spigot", "paper", "purpur", "folia")
+    dependencies {
+        optional.project("packetevents")
+    }
+}
