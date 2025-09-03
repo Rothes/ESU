@@ -16,7 +16,7 @@ private val projectVersion
     get() = project.version as String
 private val isRelease
     get() = !projectVersion.contains('-')
-private val versionNumber
+private val versionValue
     get() = if (isRelease) projectVersion else "$projectVersion-b${rootProject.commitsSinceLastTag}"
 
 project.modrinth {
@@ -26,11 +26,11 @@ project.modrinth {
         val commitHash = rootProject.latestCommitHash
         "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): ${rootProject.latestCommitMessage}"
     }
-    val versionName = "ESU-${project.name} $versionNumber"
+    val versionName = "ESU-${project.name} $versionValue"
 
     token.set(System.getenv("MODRINTH_TOKEN"))
     projectId.set("ESU")
-    this.versionNumber.set(versionNumber)
+    this.versionNumber.set(versionValue)
     this.versionName.set(versionName)
     this.changelog.set(changelog)
     versionType.set(if (isRelease) "release" else "alpha")
@@ -46,7 +46,7 @@ project.modrinth {
 }
 
 tasks.register("editChangelog") {
-    val versionNumber = System.getenv("GIT_TAG") ?: versionNumber
+    val versionNumber = System.getenv("GIT_TAG") ?: versionValue
     val client = OkHttpClient.Builder().build()
     val response = client.newCall(
         Request.Builder()
