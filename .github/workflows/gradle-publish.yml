@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 100
+          fetch-depth: 250
           fetch-tags: true
 
       - name: Set up JDK 21
