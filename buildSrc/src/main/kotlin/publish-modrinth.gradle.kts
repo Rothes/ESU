@@ -17,7 +17,7 @@ private val projectVersion
 private val isRelease
     get() = !projectVersion.contains('-')
 private val versionValue
-    get() = if (isRelease) projectVersion else "$projectVersion-b${rootProject.commitsSinceLastTag}"
+    get() = if (isRelease) projectVersion else "$projectVersion-${rootProject.commitsSinceLastTag}"
 
 project.modrinth {
     val changelog = if (isRelease) {
