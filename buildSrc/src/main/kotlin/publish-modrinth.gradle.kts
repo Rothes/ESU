@@ -16,8 +16,9 @@ project.modrinth {
         versionName = "ESU-${project.name} $versionNumber"
         changelog = "Changelog waiting for edit..."
     } else {
-        versionNumber = "$projectVersion-b${System.getenv("GITHUB_RUN_NUMBER")}"
-        versionName = "ESU-${project.name} Snapshot"
+        val buildNumber = System.getenv("GITHUB_RUN_NUMBER")
+        versionNumber = "$projectVersion-b$buildNumber"
+        versionName = "ESU-${project.name} dev b$buildNumber"
         val commitHash = rootProject.latestCommitHash
         changelog = "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): ${rootProject.latestCommitMessage}"
     }
