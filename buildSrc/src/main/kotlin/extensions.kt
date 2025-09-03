@@ -32,9 +32,18 @@ abstract class GitCommand : ValueSource<String, GitCommand.GitCommandParameters>
     override fun obtain(): String {
         val command = listOf("git") + parameters.arg.get().split(' ')
         val output = ByteArrayOutputStream()
-        execOperations.exec {
-            commandLine = command
-            standardOutput = output
+        try {
+            execOperations.exec {
+                commandLine = command
+                standardOutput = output
+                errorOutput = output
+            }
+        } catch (e: Throwable) {
+            throw RuntimeException("""
+                Failed to run git command ${parameters.arg.get()}
+                Output:
+                ${output.toString(Charsets.UTF_8)}
+            """.trimIndent(), e)
         }
 
         return output.toString(Charsets.UTF_8).trim().ifBlank { "unknown" }
