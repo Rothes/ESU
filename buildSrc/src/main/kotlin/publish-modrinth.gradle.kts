@@ -19,7 +19,7 @@ project.modrinth {
         versionNumber = "$projectVersion-b${System.getenv("GITHUB_RUN_NUMBER")}"
         versionName = "ESU-${project.name} Snapshot"
         val commitHash = rootProject.latestCommitHash
-        changelog = "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash) ${rootProject.latestCommitMessage}"
+        changelog = "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): ${rootProject.latestCommitMessage}"
     }
 
     token.set(System.getenv("MODRINTH_TOKEN"))
