@@ -86,25 +86,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
         private var LAVA_MIN = Int.MAX_VALUE
         private var LAVA_MAX = Int.MIN_VALUE
-        private val BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
-            BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
-                val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
-                if (wrapped.type.materialType == MaterialType.LAVA) {
-                    LAVA_MIN = min(id, LAVA_MIN)
-                    LAVA_MAX = max(id, LAVA_MAX)
-                }
-                val material = try {
-                    SpigotConversionUtil.toBukkitBlockData(wrapped).material
-                } catch (_: Exception) {
-                    SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
-                }
-                when (material) {
-                    Material.GLOWSTONE -> true
-                    Material.BARRIER   -> false
-                    else               -> material.isOccluding
-                }
-            }
-        }
+        private var BLOCKS_VIEW = BooleanArray(Block.BLOCK_STATE_REGISTRY.size())
         val ITSELF = IntArray(BLOCKS_VIEW.size) { it }
         val FULL_CHUNK = PlayerChunk(BitSet(0))
 
@@ -119,8 +101,33 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     override val counter = ChunkDataThrottleHandler.Counter()
 
+    override fun reload() {
+        val nonInvisible = config.chunkDataThrottle.nonInvisibleBlocksOverrides
+        BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
+            BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+                val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
+                if (wrapped.type.materialType == MaterialType.LAVA) {
+                    LAVA_MIN = min(id, LAVA_MIN)
+                    LAVA_MAX = max(id, LAVA_MAX)
+                }
+                val material = try {
+                    SpigotConversionUtil.toBukkitBlockData(wrapped).material
+                } catch (_: Exception) {
+                    SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
+                }
+                if (nonInvisible.contains(material))
+                    false
+                else when (material) {
+                    Material.GLOWSTONE -> true
+                    Material.BARRIER   -> false
+                    else               -> material.isOccluding
+                }
+            }
+        }
+    }
 
     override fun enable() {
+        reload()
         try {
             val toFile = hotDataFile.toFile()
             if (toFile.exists()) {

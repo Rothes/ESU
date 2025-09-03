@@ -6,6 +6,7 @@ interface ChunkDataThrottleHandler {
 
     fun enable()
     fun disable()
+    fun reload()
 
     companion object {
         // The block B is in center. if Y_MINUS, block in B's bottom is occluding(i.e. blocking) .

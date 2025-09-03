@@ -27,6 +27,7 @@ import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
 import java.time.Duration
 import java.util.*
+import kotlin.jvm.java
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 
@@ -122,6 +123,9 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
             } else {
                 DynamicChunkSendRate.disable()
             }
+            if (config.chunkDataThrottle.enabled) {
+                ChunkDataThrottle.onReload()
+            }
         }
     }
 
@@ -213,6 +217,12 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 This will greatly enhance anti-xray capabilities while giving only few bytes of additional bandwidth.
             """)
             val enhancedAntiXray: Boolean = true,
+            @Comment("""
+                Put any blocks you don't want to hide, so they are ignored while processing.
+                For example, you can add any ores to it, so there's no anti-xray effect.
+                WARNING: This significantly reduces compression badly. Please make sure you really have to do this.
+            """)
+            val nonInvisibleBlocksOverrides: Set<Material> = setOf(),
         ) {
 
             @RemovedNode
