@@ -1,34 +1,25 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
-import io.github.rothes.esu.bukkit.module.networkthrottle.Analyser
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
-import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.ComponentUtils.bytes
-import io.github.rothes.esu.core.util.ComponentUtils.duration
-import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.meta.RenamedFrom
+import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
+import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
-import org.incendo.cloud.annotations.Command
 import java.time.Duration
 import java.util.*
-import kotlin.jvm.java
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 
 object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
@@ -40,67 +31,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     override fun enable() {
         data = ConfigLoader.load(dataPath)
-        registerCommands(object {
-            @Command("network analyser start")
-            @ShortPerm("analyser")
-            fun analyserStart(sender: User) {
-                if (Analyser.start()) {
-                    sender.message(locale, { analyser.started })
-                } else {
-                    sender.message(locale, { analyser.alreadyStarted })
-                }
-            }
-
-            @Command("network analyser stop")
-            @ShortPerm("analyser")
-            fun analyserStop(sender: User) {
-                if (Analyser.stop()) {
-                    sender.message(locale, { analyser.stopped })
-                } else {
-                    sender.message(locale, { analyser.alreadyStopped })
-                }
-            }
-
-            @Command("network analyser view")
-            @ShortPerm("analyser")
-            fun analyserView(sender: User) {
-                val entries = Analyser.records
-                    .mapValues {
-                        val list = it.value.toList()
-                        list.size to list.sumOf { it.size.toLong() }
-                    }
-                    .entries.sortedByDescending { it.value.second }
-                if (entries.isEmpty()) {
-                    sender.message(locale, { analyser.view.noData })
-                    return
-                }
-                sender.message(locale, { analyser.view.header })
-                for ((k, entry) in entries.take(7)) {
-                    val (counts, bytes) = entry
-                    sender.message(locale, { analyser.view.entry },
-                        unparsed("packet-type", k.name.lowercase()),
-                        unparsed("counts", counts),
-                        bytes(bytes, "size"),
-                    )
-                }
-                sender.message(locale, { analyser.view.footer },
-                    duration(
-                        (if (Analyser.running) {
-                            System.currentTimeMillis() - Analyser.startTime
-                        } else {
-                            Analyser.stopTime - Analyser.startTime
-                        }).milliseconds, sender
-                    ))
-            }
-
-            @Command("network chunkDataThrottle view")
-            @ShortPerm("chunkDataThrottle")
-            fun chunkDataThrottleView(sender: User) {
-                val (minimalChunks, resentChunks, resentBlocks) = ChunkDataThrottle.counter
-                sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks ; resentBlocks: $resentBlocks")
-            }
-        })
-        Analyser // Init this
         HighLatencyAdjust.onEnable()
         ChunkDataThrottle.onEnable()
         DynamicChunkSendRate.enable()
@@ -111,7 +41,6 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         ChunkDataThrottle.onDisable()
         HighLatencyAdjust.onDisable()
         DynamicChunkSendRate.disable()
-        Analyser.stop()
         ConfigLoader.save(dataPath, data)
     }
 
@@ -276,31 +205,16 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
 
     data class ModuleLang(
         val highLatencyAdjust: HighLatencyAdjust = HighLatencyAdjust(),
-        val analyser: Analyser = Analyser(),
     ): ConfigurationPart {
+
+        @RemovedNode
+        val analyser: Unit? = null
 
         data class HighLatencyAdjust(
             val adjustedWarning: MessageData = ("<ec><b>Warning: </b><pc>Your network latency seems to be high. \n" +
                     "To enhance your experience, we have adjusted your view distance. " +
                     "You can always adjust it yourself in the game options.").message,
         )
-
-        data class Analyser(
-            val started: MessageData = "<pc>Started the analyser.".message,
-            val stopped: MessageData = "<pc>Stopped the analyser.".message,
-            val alreadyStarted: MessageData = "<ec>The analyser is already running.".message,
-            val alreadyStopped: MessageData = "<ec>The analyser is already stopped.".message,
-
-            val view: View = View(),
-        ) {
-
-            data class View(
-                val noData: MessageData = "<pc>There's no data for view.".message,
-                val header: MessageData = "<pdc>[Packet Type]<pc> <pc>[count]</pc>: <sc>[size]".message,
-                val entry: MessageData = "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><size>".message,
-                val footer: MessageData = "<pc>The analyser has been running for <duration>".message,
-            )
-        }
     }
 
 }
