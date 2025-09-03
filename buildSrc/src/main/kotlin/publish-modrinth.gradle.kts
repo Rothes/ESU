@@ -24,7 +24,9 @@ project.modrinth {
         "Changelog waiting for edit..."
     } else {
         val commitHash = rootProject.latestCommitHash
-        "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): ${rootProject.latestCommitMessage}"
+        val commitMessage = rootProject.latestCommitMessage
+            .replace("\n", "\\\n") // Markdown new line
+        "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): $commitMessage"
     }
     val versionName = "ESU-${project.name} $versionValue"
 
