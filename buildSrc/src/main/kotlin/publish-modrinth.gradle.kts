@@ -46,7 +46,7 @@ project.modrinth {
 }
 
 tasks.register("editChangelog") {
-    val versionNumber = versionNumber
+    val versionNumber = System.getenv("GIT_TAG") ?: versionNumber
     val client = OkHttpClient.Builder().build()
     val response = client.newCall(
         Request.Builder()

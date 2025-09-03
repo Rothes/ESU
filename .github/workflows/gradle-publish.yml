@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+  release:
+    types:
+      - published
+      - edited
 
 jobs:
   build:
@@ -26,20 +30,17 @@ jobs:
         with:
           gradle-version: '8.14'
 
-#      - name: Execute Gradle build
-#        run: gradle shadowJar
-#
-#      - name: Locate built jars
-#        run: mkdir ESU && cp bukkit/build/libs/ESU-*.jar ESU && cp velocity/build/libs/ESU-*.jar ESU
-#
-#      - name: Upload built jars
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ESU-Snapshot
-#          path: ESU
-
       - name: Publish to Modrinth
+        if: ${{ github.event_name == 'push' }}
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: gradle modrinth --stacktrace
         continue-on-error: true
+
+      - name: Modify Modrinth changelog
+        if: ${{ github.event_name == 'release' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CHANGELOG_CONTENT: ${{ github.event.release.body }}
+          GIT_TAG: ${{ github.event.release.tag_name }}
+        run: gradle editChangelog --stacktrace
