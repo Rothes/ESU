@@ -26,7 +26,7 @@ abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart>(
         super.disable()
     }
 
-    protected fun registerCommand(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {
+    fun registerCommand(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {
         with(plugin.commandManager) {
             val command = block.invoke(this).build()
             command(command)
@@ -34,7 +34,7 @@ abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
-    protected fun registerCommands(obj: Any, modifier: ((AnnotationParser<BukkitUser>) -> Unit)? = null) {
+    fun registerCommands(obj: Any, modifier: ((AnnotationParser<BukkitUser>) -> Unit)? = null) {
         with(plugin.commandManager) {
             val annotationParser = AnnotationParser(this, BukkitUser::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
