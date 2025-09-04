@@ -1,4 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowJar
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar.Companion.shadowJar
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
