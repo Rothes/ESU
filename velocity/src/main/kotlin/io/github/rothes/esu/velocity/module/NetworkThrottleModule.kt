@@ -70,8 +70,8 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         )
 
         data class TrafficCalibration(
-            val outgoingPpsMultiplier: Double = 0.6667,
-            val incomingPpsMultiplier: Double = 3.0,
+            val outgoingPpsMultiplier: Double = 1.0,
+            val incomingPpsMultiplier: Double = 1.0,
         )
     }
 
