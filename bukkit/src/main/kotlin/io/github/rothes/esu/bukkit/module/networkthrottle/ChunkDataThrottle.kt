@@ -30,7 +30,7 @@ object ChunkDataThrottle {
         versioned.enable()
 
         NetworkThrottleModule.registerCommands(object {
-            @Command("esu networkThrottle chunkDataThrottle view")
+            @Command("esu networkThrottle chunkDataThrottle stats")
             @ShortPerm("chunkDataThrottle")
             fun chunkDataThrottleView(sender: User) {
                 val (minimalChunks, resentChunks, resentBlocks) = counter
