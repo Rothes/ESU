@@ -17,10 +17,6 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
         registerListener(Listener)
     }
 
-    override fun disable() {
-        super.disable()
-    }
-
     object Listener {
 
         @Subscribe(order = PostOrder.LATE)
