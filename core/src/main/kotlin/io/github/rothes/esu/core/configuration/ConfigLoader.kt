@@ -45,41 +45,41 @@ object ConfigLoader {
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
             loadMulti(path: Path, vararg forceLoad: String): T {
-        return loadMultiSimple(path, T::class.java, D::class.java, forceLoad = forceLoad)
+        return loadMultiSimple(path, T::class.java, D::class.java, forceLoad.toList())
     }
 
     inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
-            loadMulti(path: Path, vararg forceLoad: String,
-                      create: Array<String>? = null, loadSubDir: Boolean = false,
-                      noinline nameMapper: (Path) -> String = { it.nameWithoutExtension },
-                      noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-                      noinline modifier: (D, Path) -> D = { it, _ -> it }): T {
-        return loadMulti(path, T::class.java, D::class.java, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, nodeMapper, modifier)
+            loadMulti(path: Path, forceLoad: List<String>): T {
+        return loadMultiSimple(path, T::class.java, D::class.java, forceLoad)
+    }
+
+    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+            loadMulti(path: Path, settings: LoaderSettingsMulti<D>): T {
+        return loadMulti(path, T::class.java, D::class.java, settings)
     }
 
     inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
-            loadMulti(path: Path, dataClass: Class<D>, vararg forceLoad: String,
-                      create: Array<String>? = null, loadSubDir: Boolean = false,
-                      noinline nameMapper: (Path) -> String = { it.nameWithoutExtension },
-                      noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-                      noinline modifier: (D, Path) -> D = { it, _ -> it }): T {
-        return loadMulti(path, T::class.java, dataClass, forceLoad = forceLoad, create, loadSubDir, nameMapper, builder, nodeMapper, modifier)
+            loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
+        return loadMulti(path, T::class.java, dataClass, settings)
+    }
+
+    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+            loadMulti(path: Path, settings: LoaderSettingsMulti.Builder<D>): T {
+        return loadMulti(path, T::class.java, D::class.java, settings.build())
+    }
+
+    inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
+            loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti.Builder<D>): T {
+        return loadMulti(path, T::class.java, dataClass, settings.build())
     }
 
     fun <T: MultiConfiguration<D>, D: ConfigurationPart>
-            loadMultiSimple(path: Path, configClass: Class<T>, dataClass: Class<D>, forceLoad: Array<out String>): T {
-        return loadMulti(path, configClass, dataClass, forceLoad = forceLoad)
+            loadMultiSimple(path: Path, configClass: Class<T>, dataClass: Class<D>, forceLoad: List<String>): T {
+        return loadMulti(path, configClass, dataClass, LoaderSettingsMulti(forceLoad))
     }
 
     fun <T: MultiConfiguration<D>, D: ConfigurationPart>
-            loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, vararg forceLoad: String,
-                      create: Array<String>? = null, loadSubDir: Boolean = false,
-                      nameMapper: (Path) -> String = { it.nameWithoutExtension },
-                      builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                      nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-                      modifier: (D, Path) -> D = { it, _ -> it }): T {
+            loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
         if (dataClass.isInstance(EmptyConfiguration)) {
             return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
@@ -96,16 +96,16 @@ object ConfigLoader {
         }
         return configClass.getConstructor(Map::class.java).newInstance(
             buildMap {
-                val files = forceLoad.map { path.resolve(it) }.toMutableSet()
-                if (create?.isNotEmpty() == true && path.notExists()) {
-                    files.addAll(create.map { path.resolve(it) })
+                val files = settings.forceLoad?.map { path.resolve(it) }?.toMutableSet() ?: mutableSetOf()
+                if (settings.createKeys?.isNotEmpty() == true && path.notExists()) {
+                    files.addAll(settings.createKeys.map { path.resolve(it) })
                 }
 
                 if (path.isDirectory()) {
-                    loadDirectory(path, files, loadSubDir)
+                    loadDirectory(path, files, settings.loadSubDirectories)
                 }
                 files.forEach { file ->
-                    put(nameMapper(file), load(file, dataClass, builder, nodeMapper, modifier))
+                    put(settings.keyMapper(file), load(file, dataClass, settings))
                 }
             }
         )
@@ -125,30 +125,28 @@ object ConfigLoader {
         return loadSimple(path, T::class.java)
     }
 
-    inline fun <reified T> load(path: Path,
-                                noinline builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                                noinline nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-                                noinline modifier: (T, Path) -> T = { it, _ -> it }): T {
-        return load(path, T::class.java, builder, nodeMapper, modifier)
+    inline fun <reified T> load(path: Path, settings: LoaderSettings<T>): T {
+        return load(path, T::class.java, settings)
+    }
+
+    inline fun <reified T> load(path: Path, settings: LoaderSettings.Builder<T>): T {
+        return load(path, T::class.java, settings.build())
     }
 
     fun <T> loadSimple(path: Path, clazz: Class<T>): T {
-        return load(path, clazz)
+        return load(path, clazz, LoaderSettings())
     }
 
-    fun <T> load(path: Path, clazz: Class<T>,
-                        builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-                        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-                        modifier: (T, Path) -> T = { it, _ -> it }): T {
+    fun <T> load(path: Path, clazz: Class<T>, settings: LoaderSettings<T>): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return clazz.cast(EmptyConfiguration)
         }
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
-        val loader = createBuilder().path(path).let(builder).build()
-        val node = nodeMapper(loader.load())
-        val t = modifier.invoke(node.require(clazz), path)
+        val loader = createBuilder().path(path).let(settings.yamlLoader).build()
+        val node = settings.nodeMapper(loader.load())
+        val t = settings.modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
         loader.save(node)
         if (t is SavableConfiguration) {
@@ -164,15 +162,13 @@ object ConfigLoader {
         println((serial as ObjectMapper.Factory).get(clazz).load(BasicConfigurationNode.root(node.options().shouldCopyDefaults(false))))
     }
 
-    fun save(path: Path, obj: Any,
-             builder: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }) {
+    fun save(path: Path, obj: Any, yamlLoader: YamlConfigurationLoader = createBuilder().path(path).build()) {
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
-        val loader = createBuilder().path(path).let(builder).build()
-        val node = loader.load() ?: CommentedConfigurationNode.root(loader.defaultOptions())
+        val node = yamlLoader.load() ?: CommentedConfigurationNode.root(yamlLoader.defaultOptions())
         node.set(obj.javaClass, obj)
-        loader.save(node)
+        yamlLoader.save(node)
     }
 
     fun createBuilder(): YamlConfigurationLoader.Builder {
@@ -320,6 +316,115 @@ object ConfigLoader {
                             )
                     }
             }
+    }
+
+    open class LoaderSettings<T>(
+        val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+        val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+        val modifier: (T, Path) -> T = { it, _ -> it }
+    ) {
+
+        class Builder<T> {
+
+            var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
+            var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
+            var modifier: (T, Path) -> T = { it, _ -> it }
+
+            fun yamlLoader(yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder): Builder<T> {
+                this.yamlLoader = yamlLoader
+                return this
+            }
+
+            fun nodeMapper(mapper: (ConfigurationNode) -> ConfigurationNode): Builder<T> {
+                this.nodeMapper = mapper
+                return this
+            }
+
+            fun modifier(modifier: (T, Path) -> T): Builder<T> {
+                this.modifier = modifier
+                return this
+            }
+
+            fun build() = LoaderSettings(yamlLoader, nodeMapper, modifier)
+
+        }
+    }
+
+
+    class LoaderSettingsMulti<T>(
+        val forceLoad: List<String>? = null,
+        val createKeys: List<String>? = null,
+        val loadSubDirectories: Boolean = false,
+        val keyMapper: (Path) -> String = { it.nameWithoutExtension },
+        yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+        modifier: (T, Path) -> T = { it, _ -> it }
+    ): LoaderSettings<T>(yamlLoader, nodeMapper, modifier) {
+
+        constructor(
+            vararg forceLoad: String,
+            create: List<String>? = null,
+            loadSubDirectories: Boolean = false,
+            yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+            keyMapper: (Path) -> String = { it.nameWithoutExtension },
+            nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+            modifier: (T, Path) -> T = { it, _ -> it }
+        ): this(forceLoad.toList(), create, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier)
+
+
+        class Builder<T> {
+
+            var forceLoad: List<String>? = null
+            var createKeys: List<String>? = null
+            var loadSubDirectories: Boolean = false
+            var keyMapper: (Path) -> String = { it.nameWithoutExtension }
+            var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
+            var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
+            var modifier: (T, Path) -> T = { it, _ -> it }
+
+            fun forceLoad(vararg forceLoad: String): Builder<T> {
+                this.forceLoad = forceLoad.toList()
+                return this
+            }
+
+            fun forceLoad(forceLoad: List<String>?): Builder<T> {
+                this.forceLoad = forceLoad
+                return this
+            }
+
+            fun create(create: List<String>?): Builder<T> {
+                this.createKeys = create
+                return this
+            }
+
+            fun loadSubDirectories(loadSubDirectories: Boolean): Builder<T> {
+                this.loadSubDirectories = loadSubDirectories
+                return this
+            }
+
+            fun keyMapper(mapper: (Path) -> String): Builder<T> {
+                this.keyMapper = mapper
+                return this
+            }
+
+            fun yamlLoader(yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder): Builder<T> {
+                this.yamlLoader = yamlLoader
+                return this
+            }
+
+            fun nodeMapper(mapper: (ConfigurationNode) -> ConfigurationNode): Builder<T> {
+                this.nodeMapper = mapper
+                return this
+            }
+
+            fun modifier(modifier: (T, Path) -> T): Builder<T> {
+                this.modifier = modifier
+                return this
+            }
+
+            fun build() = LoaderSettingsMulti(forceLoad, createKeys, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier)
+
+        }
     }
 
 }

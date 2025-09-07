@@ -14,20 +14,22 @@ object ColorSchemes {
     }
 
     private fun load(): MultiColorSchemeConfiguration {
-        return ConfigLoader.loadMulti(
+        return ConfigLoader.loadMulti<MultiColorSchemeConfiguration, ColorScheme>(
             EsuCore.instance.baseConfigPath().resolve("color_schemes"),
-            "${EsuConfig.get().defaultColorScheme}.yml",
-            builder = {
-                it.defaultOptions {
-                    it.header("""
+            ConfigLoader.LoaderSettingsMulti(
+                "${EsuConfig.get().defaultColorScheme}.yml",
+                yamlLoader = {
+                    it.defaultOptions {
+                        it.header("""
                         |The default color scheme for ESU.
                         |To use the color defined in color scheme, use <primary_color>, <primary_dim_color> or so.
                         |Alternatively, you can abridge them like <pc>, <pdc>.
                         |
                         |We make dim color of its original of HSL(+0°, -10%, -8%), error color excluded.
                     """.trimMargin())
+                    }
                 }
-            })
+            ))
     }
 
 }
