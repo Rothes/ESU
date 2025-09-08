@@ -186,7 +186,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         }
 
         data class DynamicChunkSendRate(
-            val enabled: Boolean = true,
+            val enabled: Boolean = ServerCompatibility.isProxyMode,
         )
 
         data class HighLatencyAdjust(
