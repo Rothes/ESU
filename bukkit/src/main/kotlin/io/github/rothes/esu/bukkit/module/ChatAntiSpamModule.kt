@@ -30,10 +30,14 @@ import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.incendo.cloud.component.DefaultValue
+import java.time.Duration
 import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAntiSpamModule.ModuleLocale>(
     ModuleConfig::class.java, ModuleLocale::class.java
@@ -152,7 +156,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         val toDel = mutableListOf<Any?>()
         val handler = Consumer<MutableMap<*, SpamData>> { map ->
             map.entries
-                .filter { time - it.value.lastAccess > config.userDataExpiresAfter }
+                .filter { time - it.value.lastAccess > config.userDataExpiresAfter.toMillis() }
                 .forEach {
                     map.remove(it.key)
                     if (deleteDb)
@@ -175,13 +179,10 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
     val User.msgPrefix: TagResolver
         get() = parsed("prefix", localed(locale) { this.prefix })
 
-    private const val SECOND: Long = 1000
-    private const val MINUTE: Long = 60 * SECOND
-
     data class ModuleConfig(
         val notifyConsole: Boolean = true,
-        val userDataExpiresAfter: Long = 20 * MINUTE,
-        val baseMuteDuration: Long = 10 * MINUTE,
+        val userDataExpiresAfter: Duration = 20.minutes.toJavaDuration(),
+        val baseMuteDuration: Duration = 10.minutes.toJavaDuration(),
         val expireSize: ExpireSize = ExpireSize(),
         val expireTime: ExpireTime = ExpireTime(),
         val muteHandler: MuteHandler = MuteHandler(),
@@ -201,25 +202,25 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         ): ConfigurationPart
 
         data class ExpireTime(
-            val chatRequest: Long = (6 * MINUTE).toLong(),
-            val filtered: Long = (4.5 * MINUTE).toLong(),
+            val chatRequest: Duration = 6.minutes.toJavaDuration(),
+            val filtered: Duration = 4.5.minutes.toJavaDuration(),
             @Comment("Using base value(hard) plus quadratic function to check expired with a rate.\n" +
                     "Default: 60 + 840 seconds(15m in total) to fully expire")
             val messageRecord: ExpireCurve = ExpireCurve(),
-            val whisperTarget: Long = (4 * MINUTE).toLong(),
+            val whisperTarget: Duration = 4.minutes.toJavaDuration(),
             val score: Long = -1,
         ): ConfigurationPart {
             data class ExpireCurve(
-                val hardExpireTime: Long = 60 * SECOND,
-                val quadraticDividerOffset: Double = 60.0 * SECOND,
-                val quadraticDivider: Double = 90.0 * SECOND,
+                val hardExpireTime: Duration = 60.seconds.toJavaDuration(),
+                val quadraticDividerOffset: Double = 60.0 * 1000,
+                val quadraticDivider: Double = 90.0 * 1000,
                 val quadraticHeight: Double = 100.0,
             ): ConfigurationPart {
                 fun rate(elapsed: Long): Double {
-                    if (hardExpireTime > elapsed) {
+                    if (hardExpireTime.toMillis() > elapsed) {
                         return 1.0
                     }
-                    val x = elapsed - hardExpireTime
+                    val x = elapsed - hardExpireTime.toMillis()
                     if (quadraticDividerOffset >= x) {
                         return 1.0
                     }
@@ -234,7 +235,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         }
 
         data class MuteHandler(
-            val baseMuteDuration: Long = 10 * MINUTE,
+            val baseMuteDuration: Duration = 10.minutes.toJavaDuration(),
             val muteOnFilteredSize: Int = 8,
             val muteDurationMultiplier: MuteDurationMultiplier = MuteDurationMultiplier(),
             val spamScore: SpamScore = SpamScore(),
@@ -251,7 +252,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
             data class MuteDurationMultiplier(
                 @Comment("Last Mute must within this interval to trigger a multiplier")
-                val maxMuteInterval: Long = 15 * MINUTE,
+                val maxMuteInterval: Duration = 15.minutes.toJavaDuration(),
                 val multiplier: Double = 2.0,
             ): ConfigurationPart
         }
@@ -277,16 +278,16 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ): ConfigurationPart {
 
                 data class Condition(
-                    val drift: Long = (2 * SECOND).toLong(),
-                    val minRequestInterval: Long = 20 * SECOND,
+                    val drift: Duration = 2.seconds.toJavaDuration(),
+                    val minRequestInterval: Duration = 20.seconds.toJavaDuration(),
                     val samples: Int = 5,
                 ): ConfigurationPart
             }
 
             data class Frequency(
                 val maxMessages: Int = 8,
-                val maxMessagesPer: Long = 25 * SECOND,
-                val minimalInterval: Long = (1.5 * SECOND).toLong(),
+                val maxMessagesPer: Duration = 25.seconds.toJavaDuration(),
+                val minimalInterval: Duration = 1.5.seconds.toJavaDuration(),
             ): ConfigurationPart
 
             data class IllegalCharacters(

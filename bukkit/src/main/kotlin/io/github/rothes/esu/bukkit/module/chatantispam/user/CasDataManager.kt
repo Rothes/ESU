@@ -64,7 +64,7 @@ object CasDataManager {
             // </editor-fold>
             SchemaUtils.create(ChatSpamTable)
             ChatSpamTable.deleteWhere {
-                lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter).localDateTime)
+                lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter.toMillis()).localDateTime)
             }
         }
         Bukkit.getOnlinePlayers().forEach { loadSpamData(it.user) }

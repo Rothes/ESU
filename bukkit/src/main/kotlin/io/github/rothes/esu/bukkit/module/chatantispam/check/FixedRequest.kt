@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import kotlin.math.abs
 
 object FixedRequest: Check("fixed-request") {

@@ -2,6 +2,8 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
+import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
 
 data class SpamData(
     @SerializedName("t", alternate = ["muteUntil"])
@@ -42,7 +44,7 @@ data class SpamData(
         }
 
         val currMute = if (muteUntil > now) muteUntil - now else 0
-        muteUntil = (now + config.muteHandler.baseMuteDuration * muteMultiplier).toLong()
+        muteUntil = (now + config.muteHandler.baseMuteDuration.toMillis() * muteMultiplier).toLong()
         lastAccess = muteUntil
         val muteDuration = muteUntil - now
         if (config.muteHandler.keepMessageRecords) {
@@ -58,13 +60,13 @@ data class SpamData(
     fun purge(): SpamData {
         val now = System.currentTimeMillis()
         records.removeHeadIf { config.expireTime.messageRecord.expired(now - it.time) }
-        if (config.expireTime.whisperTarget >= 0)
-            whisperTargets.removeIf { now - it.lastTime > config.expireTime.whisperTarget }
-        if (config.expireTime.chatRequest >= 0)
-            requests.removeHeadIf { now - it > config.expireTime.chatRequest }
-        if (config.expireTime.filtered >= 0)
-            filtered.removeHeadIf { now - it > config.expireTime.filtered }
-        if (config.expireTime.score >= 0)
+        if (config.expireTime.whisperTarget.valuePositive)
+            whisperTargets.removeIf { now - it.lastTime > config.expireTime.whisperTarget.toMillis() }
+        if (config.expireTime.chatRequest.valuePositive)
+            requests.removeHeadIf { now - it > config.expireTime.chatRequest.toMillis() }
+        if (config.expireTime.filtered.valuePositive)
+            filtered.removeHeadIf { now - it > config.expireTime.filtered.toMillis() }
+        if (config.expireTime.score > 0)
             scores.removeHeadIf { now - it.time > config.expireTime.score }
         return this
     }
