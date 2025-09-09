@@ -7,7 +7,7 @@ import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 
 object Frequency: Check("frequency") {
 
-    override val defaultBlockedMessage = "<ec>You are sending messages to frequently.".message
+    override val defaultBlockedMessage = "<ec>You are sending messages too frequently.".message
 
     override fun check(request: MessageRequest): CheckResult {
         val spamData = request.spamData
