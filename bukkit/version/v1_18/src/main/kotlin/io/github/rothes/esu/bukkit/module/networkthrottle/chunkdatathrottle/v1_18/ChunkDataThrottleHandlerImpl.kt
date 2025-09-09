@@ -537,7 +537,12 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 val storage = containerReader.getStorage(states)
                 val blockingArr = when (palette) {
                     is LinearPalette<BlockState>, is HashMapPalette<BlockState> ->
-                        BooleanArray(palette.size) { id -> palette.valueFor(id).blocksView }
+                        BooleanArray(palette.size + 1).apply {
+                            // We add one size for safe, cuz this is not thread-safe,
+                            // Players might place extra blocks to the chunk during the process below (storage.get())
+                            for (i in 0 until palette.size)
+                                this[i] = palette.valueFor(i).blocksView
+                        }
                     is net.minecraft.world.level.chunk.GlobalPalette<BlockState> ->
                         BLOCKS_VIEW
                     else ->
