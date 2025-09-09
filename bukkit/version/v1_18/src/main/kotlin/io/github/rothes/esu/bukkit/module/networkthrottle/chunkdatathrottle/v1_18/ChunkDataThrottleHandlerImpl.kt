@@ -85,11 +85,17 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         const val SECTION_BLOCKS = 16 * 16 * 16
         const val BITS_ALL_TRUE = -1L
 
+        const val BV_VISIBLE: Byte = 0
+        const val BV_OCCLUDING: Byte = 1
+        const val BV_LAVA: Byte = 11
+
         private var LAVA_MIN = Int.MAX_VALUE
         private var LAVA_MAX = Int.MIN_VALUE
-        private var BLOCKS_VIEW = BooleanArray(Block.BLOCK_STATE_REGISTRY.size())
+        private var BLOCKS_VIEW = ByteArray(Block.BLOCK_STATE_REGISTRY.size())
         val ITSELF = IntArray(BLOCKS_VIEW.size) { it }
         val FULL_CHUNK = PlayerChunk(BitSet(0))
+
+        private fun Boolean.toByte(): Byte = if (this) 1 else 0
 
     }
 
@@ -105,7 +111,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     override fun reload() {
         val nonInvisible = config.chunkDataThrottle.nonInvisibleBlocksOverrides
         BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
-            BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+            ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
                 val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
                 if (wrapped.type.materialType == MaterialType.LAVA) {
                     LAVA_MIN = min(id, LAVA_MIN)
@@ -117,11 +123,15 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
                 }
                 if (nonInvisible.contains(material))
-                    false
+                    false.toByte()
                 else when (material) {
-                    Material.GLOWSTONE -> true
-                    Material.BARRIER   -> false
-                    else               -> material.isOccluding
+                    Material.GLOWSTONE -> true.toByte()
+                    Material.BARRIER   -> false.toByte()
+                    else               -> material.isOccluding.toByte()
+                }
+            }.apply {
+                for (i in LAVA_MIN..LAVA_MAX) {
+                    this[i] = BV_LAVA
                 }
             }
         }
@@ -269,8 +279,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val world = player.world
                     val minHeight = world.minHeight
                     for (block in wrapper.blocks) {
-                        if (block.blockId.blocksView) {
-                            // Only check full chunk if blocks get broken or transformed to non-blocking
+                        if (block.blockId.blocksView == BV_OCCLUDING) {
+                            // Only check update if blocks get broken or transformed to non-blocksView
                             continue
                         }
                         checkBlockUpdate(player, block.x, block.y, block.z, minHeight)
@@ -279,8 +289,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                 PacketType.Play.Server.BLOCK_CHANGE       -> {
                     val wrapper = WrapperPlayServerBlockChange(event)
-                    if (wrapper.blockId.blocksView) {
-                        // Only check full chunk if blocks get broken or transformed to non-blocking
+                    if (wrapper.blockId.blocksView == BV_OCCLUDING) {
+                        // Only check update if blocks get broken or transformed to non-blocksView
                         return
                     }
                     checkBlockUpdate(event.getPlayer(), wrapper.blockPosition)
@@ -335,10 +345,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         val palette = section.chunkData.palette
                         if (palette is SingletonPalette) {
                             // This section contains only one block type, and it's already the smallest way.
-                            if (palette.idToState(0).blocksView) {
+                            if (palette.idToState(0).blocksView != BV_VISIBLE) {
                                 if (index > 0) {
                                     // Check if the surface on previous section is invisible
-                                    checkSurfaceInvisible(bvArr, invisible, id)
+                                    checkSurfaceInvisible(bvArr, invisible, id, palette.idToState(0).blocksView)
                                 }
                                 id += SECTION_BLOCKS
                                 for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
@@ -349,13 +359,13 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             val data = readBitsData(section.chunkData.storage)
                             val bits = palette.bits
                             val states: IntArray
-                            val blockingArr: BooleanArray
+                            val blockingArr: ByteArray
                             when (palette) {
                                 is ListPalette, is MapPalette -> {
                                     states = IntArray(section.chunkData.palette.size()) { i ->
                                         section.chunkData.palette.idToState(i)
                                     }
-                                    blockingArr = BooleanArray(states.size) { i -> states[i].blocksView }
+                                    blockingArr = ByteArray(states.size) { i -> states[i].blocksView }
                                 }
                                 is GlobalPalette -> {
                                     states = ITSELF
@@ -367,13 +377,20 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             }
 
                             for (i in 0 until SECTION_BLOCKS) {
-                                if (blockingArr[data[i]]) {
-                                    addNearby(bvArr, id)
-                                    // Make sure it's not out of bounds, while we are processing bedrock layer
-                                    if (id >= 0x100) {
-                                        // Check if previous block is complete invisible
-                                        val previous = id - 0x100
-                                        invisible[previous] = if (bvArr[previous] == INVISIBLE) 1 else 2
+                                when (blockingArr[data[i]]) {
+                                    BV_OCCLUDING -> {
+                                        addNearby(bvArr, id)
+                                        // Make sure it's not out of bounds, while we are processing bedrock layer
+                                        if (id >= 0x100) {
+                                            // Check if previous block is complete invisible
+                                            val previous = id - 0x100
+                                            invisible[previous] = if (bvArr[previous] == INVISIBLE) 1 else 2
+                                        }
+                                    }
+                                    BV_LAVA -> {
+                                        if (id >= 0x100) {
+                                            invisible[id - 0x100] = BV_LAVA
+                                        }
                                     }
                                 }
                                 id++
@@ -415,7 +432,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         // We could do the same thing to the top section,
                         // but it never happens in vanilla generated chunks,
                         // so, no.
-                        checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1))
+                        checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1), BV_OCCLUDING)
                     }
 
                     val array = invisible.toLongArray()
@@ -551,7 +568,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             val states = section.container
             val palette = containerReader.getPalette(states)
             if (palette is SingleValuePalette<BlockState>) {
-                if (palette.valueFor(0).blocksView) {
+                if (palette.valueFor(0).blocksView == BV_OCCLUDING) {
                     for (y in 0 until 16) {
                         for (j in 0 until 16) {
                             (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
@@ -566,7 +583,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 val storage = containerReader.getStorage(states)
                 val blockingArr = when (palette) {
                     is LinearPalette<BlockState>, is HashMapPalette<BlockState> ->
-                        BooleanArray(palette.size + 1).apply {
+                        ByteArray(palette.size + 1).apply {
                             // We add one size for safe, cuz this is not thread-safe,
                             // Players might place extra blocks to the chunk during the process below (storage.get())
                             for (i in 0 until palette.size)
@@ -580,7 +597,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
                 for (y in 0 until 16) {
                     for (j in 0 until 16) {
-                        if (blockingArr[storage.get(blockId and 0xfff)])
+                        if (blockingArr[storage.get(blockId and 0xfff)] == BV_OCCLUDING)
                             (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
                         blockId += bidStep
                     }
@@ -590,10 +607,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: ByteArray, id: Int) {
+    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: ByteArray, id: Int, setTo: Byte) {
         for (i in id - 1 downTo id - 0x101) {
             if (bvArr[i] == INVISIBLE) {
-                invisible[i] = 1
+                invisible[i] = setTo
                 return
             }
         }
@@ -733,7 +750,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     private val Int.blocksView
         get() = BLOCKS_VIEW[this]
 
-    private val BlockState.blocksView: Boolean
+    private val BlockState.blocksView
         get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocksView
 
     data class PlayerChunk(
