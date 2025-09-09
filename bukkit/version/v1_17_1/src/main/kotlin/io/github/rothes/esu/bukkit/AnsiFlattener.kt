@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit
 
-import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
@@ -32,7 +31,7 @@ object AnsiFlattener {
 
                 val translated = language.getOrDefault(translatable.key())
                 val matcher = PATTERN.matcher(translated)
-                val args = translatable.args() // arguments() is not there on Paper 1.20.1
+                val args = translatable.arguments()
                 var argId = 0
                 var right = 0
                 while (matcher.find()) {
