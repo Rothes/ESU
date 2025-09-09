@@ -2,8 +2,13 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.lastAccess
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
+import jdk.internal.net.http.common.Log.requests
+import net.minecraft.data.worldgen.placement.PlacementUtils.filtered
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 data class SpamData(
     @SerializedName("t", alternate = ["muteUntil"])
@@ -32,9 +37,12 @@ data class SpamData(
      */
     @SerializedName("ft", alternate = ["filtered"])
     val filtered: ArrayDeque<Long> = ArrayDeque(),
-    @Transient
-    var lastAccess: Long = -1,
 ) {
+
+    @OptIn(ExperimentalAtomicApi::class)
+    @Transient var consecutiveUnfiltered: AtomicInt = AtomicInt(0)
+    @Transient var lastAccess: Long = -1
+
     fun mute(): Long {
         val now = System.currentTimeMillis()
         if (now - muteUntil <= config.muteHandler.muteDurationMultiplier.maxMuteInterval) {

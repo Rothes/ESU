@@ -33,6 +33,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -99,6 +100,7 @@ object CasListeners: Listener {
         }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun checkBlocked(player: Player, message: String, messageMeta: MessageMeta): Boolean {
         val user = player.user
         if (user.hasPerm("bypass")) {
@@ -189,7 +191,15 @@ object CasListeners: Listener {
             }
         }
         if (!blockValue) {
+            if (config.consecutiveUnfilteredThreshold > 0 && spamData.filtered.isNotEmpty()) {
+                if (spamData.consecutiveUnfiltered.addAndFetch(1) >= config.consecutiveUnfilteredThreshold) {
+                    spamData.filtered.removeFirst()
+                    spamData.consecutiveUnfiltered.store(0)
+                }
+            }
             spamData.records.sizedAdd(config.expireSize.messageRecord, SpamData.MessageRecord(request.message, now))
+        } else {
+            spamData.consecutiveUnfiltered.store(0)
         }
         return blockValue
     }

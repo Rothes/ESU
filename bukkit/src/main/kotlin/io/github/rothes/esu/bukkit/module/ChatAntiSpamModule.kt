@@ -180,11 +180,17 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         get() = parsed("prefix", localed(locale) { this.prefix })
 
     data class ModuleConfig(
+        @Comment("Enable to notify console anti-spam messages")
         val notifyConsole: Boolean = true,
         val userDataExpiresAfter: Duration = 20.minutes.toJavaDuration(),
         val baseMuteDuration: Duration = 10.minutes.toJavaDuration(),
         val expireSize: ExpireSize = ExpireSize(),
         val expireTime: ExpireTime = ExpireTime(),
+        @Comment("""
+            Remove one oldest filtered record if the player sends multiple unfiltered chat message in a row.
+            Set to non-positive value to disable this, and record only expires after configured time above.
+        """)
+        val consecutiveUnfilteredThreshold: Int = 3,
         val muteHandler: MuteHandler = MuteHandler(),
         val spamCheck: DefaultedEnumMap<MessageType, SpamCheck> =
             DefaultedEnumMap(MessageType::class.java, SpamCheck()).apply {
