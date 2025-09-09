@@ -108,6 +108,15 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 overrideOld = ["Same with minimal-height but it's for nether roof."]
             )
             val netherRoofInvisibleCheck: Boolean = true,
+            @Comment("""
+                If a non-occluding block is surrounded by occluding blocks, the center block is invisible.
+                But should we consider all surrounded blocks invisible to this block face?
+                Unless the player joins the game with their eye in the non-occluding block,
+                 they will never naturally see those surrounded blocks.
+                This step takes extra ~0.02ms, so it's not enabled by default.
+                Enable this could help with saving bandwidth in nether, as there's many single-block lava.
+            """)
+            val detectInvisibleSingleBlock: Boolean = false,
             @RenamedFrom("single-valued-section-block-list")
             @Comment("""
                     This feature doesn't support running along with any other anti-xray plugins.

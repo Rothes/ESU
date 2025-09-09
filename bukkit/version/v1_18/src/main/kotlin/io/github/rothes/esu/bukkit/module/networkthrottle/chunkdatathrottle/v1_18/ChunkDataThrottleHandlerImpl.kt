@@ -43,6 +43,7 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjGetter
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.jpountz.lz4.LZ4Factory
@@ -312,7 +313,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
                     val bvArr = ByteArray((height shl 8) + 16 * 16) // BlocksViewArray
-                    val invisible = BooleanArray(height shl 8)
+                    val invisible = ByteArray(height shl 8) // 0: visible; 1: invisible; 2: visible, upper block blocks view
                     if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
                     // Handle neighbour chunks starts
                     handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS)
@@ -372,14 +373,42 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                     if (id >= 0x100) {
                                         // Check if previous block is complete invisible
                                         val previous = id - 0x100
-                                        if (bvArr[previous] == INVISIBLE) {
-                                            invisible[previous] = true
-                                        }
+                                        invisible[previous] = if (bvArr[previous] == INVISIBLE) 1 else 2
                                     }
                                 }
                                 id++
                             }
                             sectionDataArr[index] = SectionData(bits, data, states)
+                        }
+                    }
+                    if (config.detectInvisibleSingleBlock) {
+                        val pending = IntArrayList()
+                        id = invisible.size - 16 * 16 + 1
+                        while (--id >= 16 * 16) {
+                            if (invisible[id] != 1.toByte()) continue // Center block is invisible
+                            val x = id and 0xf
+                            val z = id shr 4 and 0xf
+                            // Surrounded blocks are all visible and upper block occluding
+                            if (invisible[id - 0x100] != 0.toByte() || invisible[id + 0x100] != 2.toByte()) continue
+                            if (x != 0  && invisible[id - 0x001] != 2.toByte()) continue
+                            if (x != 15 && invisible[id + 0x001] != 2.toByte()) continue
+                            if (z != 0  && invisible[id - 0x010] != 2.toByte()) continue
+                            if (z != 15 && invisible[id + 0x010] != 2.toByte()) continue
+                            // It's the case.
+                            addNearby(bvArr, id)
+                            invisible[id - 0x100] = 2.toByte()
+                            // Use pending, there might be piled single-block
+                            pending.add(id - 0x100)
+                            pending.add(id + 0x100)
+                            if (x != 0 ) pending.add(id - 0x001)
+                            if (x != 15) pending.add(id + 0x001)
+                            if (z != 0 ) pending.add(id - 0x010)
+                            if (z != 15) pending.add(id + 0x010)
+                        }
+                        for (i in pending.iterator()) {
+                            if (bvArr[i] == INVISIBLE) {
+                                invisible[i] = 1
+                            }
                         }
                     }
                     if (!config.netherRoofInvisibleCheck && world.environment == Environment.NETHER) {
@@ -424,7 +453,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             // Rebuild palette mapping
                             val frequency = ShortArray(sectionData.states.size)
                             for (i in 0 until SECTION_BLOCKS) {
-                                if (!invisible[id++])
+                                if (invisible[id++] != 1.toByte())
                                     frequency[sectionData.data[i]]++
                             }
 
@@ -478,7 +507,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         var shift = 0
                         var l = 0L
                         for (i in 0 until SECTION_BLOCKS) {
-                            if (!invisible[id++]) {
+                            if (invisible[id++] != 1.toByte()) {
                                 l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
                             }
 
@@ -561,10 +590,10 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: BooleanArray, id: Int) {
+    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: ByteArray, id: Int) {
         for (i in id - 1 downTo id - 0x101) {
             if (bvArr[i] == INVISIBLE) {
-                invisible[i] = true
+                invisible[i] = 1
                 return
             }
         }
@@ -580,7 +609,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
     }
 
-    private fun BooleanArray.toLongArray(): LongArray {
+    private fun ByteArray.toLongArray(): LongArray {
         val count = size shr 6
         val arr = LongArray(count)
 
@@ -588,7 +617,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         for (j in 0 until count) {
             var l = 0L
             for (k in 0 until 64) {
-                if (this[i++])
+                if (this[i++] == 1.toByte())
                     l = l or (0b1L shl k)
             }
             arr[j] = l
