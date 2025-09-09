@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     id("java-library")
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.10"
     `maven-publish`
     id("com.gradleup.shadow")
 //    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
