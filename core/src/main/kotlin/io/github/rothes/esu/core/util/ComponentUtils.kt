@@ -3,9 +3,11 @@ package io.github.rothes.esu.core.util
 import io.github.rothes.esu.core.config.EsuLocale
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.ComponentLike
+import io.github.rothes.esu.lib.net.kyori.adventure.text.flattener.ComponentFlattener
 import io.github.rothes.esu.lib.net.kyori.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.Tag
@@ -22,6 +24,17 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object ComponentUtils {
+
+    private var legacySerializer = LegacyComponentSerializer.legacySection()
+    private var plainTextSerializer = PlainTextComponentSerializer.plainText()
+
+    var flattener = ComponentFlattener.basic()
+        set(value) {
+            field = value
+            legacySerializer = LegacyComponentSerializer.builder().flattener(value).build()
+            plainTextSerializer = PlainTextComponentSerializer.builder().flattener(value).build()
+            LogUser.setFlattener(value)
+        }
 
     val capitalize = TagResolver.resolver("capitalize") { arg, context ->
         val deserialize = context.deserialize(arg.popOr("One argument expected for capitalize").value())
@@ -64,10 +77,10 @@ object ComponentUtils {
         .replace("&[Rr]".toRegex(), "<reset>")
 
     val Component.legacy
-        get() = LegacyComponentSerializer.legacySection().serialize(this)
+        get() = legacySerializer.serialize(this)
 
     val Component.plainText
-        get() = PlainTextComponentSerializer.plainText().serialize(this)
+        get() = plainTextSerializer.serialize(this)
 
     val Component.nonItalic
         get() = decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
