@@ -493,33 +493,50 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1), BV_INVISIBLE)
                     }
 
-                    val array = invisible.toLongArray()
                     id = 0
-                    for ((index, section) in sections.withIndex()) {
+                    section@ for ((index, section) in sections.withIndex()) {
                         section as Chunk_v1_18
                         val sectionData = sectionDataArr[index]
-                        var i = (index + 1 shl 6) - 1
                         if (sectionData == null) {
                             // This section is SingletonPalette
-                            if (i < array.size && array[i] == BITS_ALL_TRUE && array[i - 64 + 1] == BITS_ALL_TRUE) {
-                                section.chunkData.palette = SingletonPalette(randomBlockIds.random())
+                            for (i in id until id + 16 * 16) {
+                                if (invisible[i] != BV_INVISIBLE) {
+                                    id += SECTION_BLOCKS
+                                    continue@section
+                                }
                             }
+                            for (i in id + 16 * 16 * 15 until id + 16 * 16 * 16) {
+                                if (invisible[i] != BV_INVISIBLE) {
+                                    id += SECTION_BLOCKS
+                                    continue@section
+                                }
+                            }
+                            val newState = randomBlockIds.random()
+                            // detectSameStateUpdate
+                            if (section.chunkData.palette.idToState(0) == newState)
+                                invisible.fill(BV_VISIBLE, id, id + SECTION_BLOCKS)
+                            section.chunkData.palette = SingletonPalette(newState)
                             id += SECTION_BLOCKS
                             continue
                         }
-                        if (i < array.size) {
-                            var allInvisible = true
-                            for (k in 0 until (SECTION_BLOCKS / 64)) {
-                                if (array[i--] != BITS_ALL_TRUE) {
-                                    allInvisible = false
-                                    break
+                        var allInvisible = true
+                        for (i in id until id + SECTION_BLOCKS) {
+                            if (invisible[i] != BV_INVISIBLE) {
+                                allInvisible = false
+                                break
+                            }
+                        }
+                        if (allInvisible) {
+                            val newState = randomBlockIds.random()
+                            // detectSameStateUpdate
+                            for (i in 0 until SECTION_BLOCKS) {
+                                if (sectionData.states[sectionData.data[i]] == newState) {
+                                    invisible[id] = BV_VISIBLE
                                 }
+                                id++
                             }
-                            if (allInvisible) {
-                                section.chunkData.palette = SingletonPalette(randomBlockIds.random())
-                                id += SECTION_BLOCKS
-                                continue
-                            }
+                            section.chunkData.palette = SingletonPalette(newState)
+                            continue
                         }
                         // It's not a fully invisible section. Do what we can do to help with compression.
                         val bits: Int
@@ -582,9 +599,16 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         var shift = 0
                         var l = 0L
                         for (i in 0 until SECTION_BLOCKS) {
-                            if (invisible[id++] != 1.toByte()) {
-                                l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
+                            when (invisible[id]) {
+                                BV_INVISIBLE -> {
+                                    // detectSameStateUpdate
+                                    if (remappedState[0] == sectionData.states[sectionData.data[i]]) {
+                                        invisible[id] == BV_VISIBLE
+                                    }
+                                }
+                                else -> l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
                             }
+                            id++
 
                             shift += bits
                             if (shift == maxShift) {
@@ -601,8 +625,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     }
 
                     counter.minimalChunks++
-                    miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(array))
-//                    // benchmark starts
+                    miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(invisible.toLongArray()))
+                    // benchmark starts
 //                    val tim = System.nanoTime() - tm
 //                    if (tim < 600_000) timesl.add(tim)
 //                    if (timesl.size > 1000) println("AVG: ${timesl.takeLast(1000).average()}")
@@ -698,8 +722,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         var i = 0
         for (j in 0 until count) {
             var l = 0L
-            for (k in 0 until 64) {
-                if (this[i++] == 1.toByte())
+            for (k in 0 until Long.SIZE_BITS) {
+                if (this[i++] == BV_INVISIBLE)
                     l = l or (0b1L shl k)
             }
             arr[j] = l
