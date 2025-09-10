@@ -428,8 +428,9 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             if (invisible[id] != BV_INVISIBLE) continue // Center block is invisible
                             val x = id and 0xf
                             val z = id shr 4 and 0xf
-                            // Surrounded blocks are all visible and upper block occluding
-                            if (invisible[id - 0x100] != BV_VISIBLE || invisible[id + 0x100] != BV_UPPER_OCCLUDING) continue
+                            // Surrounded blocks are visible and upper block occluding
+                            if (invisible[id - 0x100] == BV_INVISIBLE) continue // Could be BV_LAVA_COVERED and BV_VISIBLE, due to center block
+                            if (invisible[id + 0x100] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
                             if (x != 0  && invisible[id - 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
                             if (x != 15 && invisible[id + 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
                             if (z != 0  && invisible[id - 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
