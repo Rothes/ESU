@@ -463,21 +463,22 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             val x = id and 0xf
                             val z = id shr 4 and 0xf
                             fun checkBlock(id: Int, b: Byte) {
-                                if (invisible[id] and BV_UPPER_OCCLUDING == BV_UPPER_OCCLUDING) {
+                                if (invisible[id] == BV_LAVA_COVERED) {
                                     bvArr[id] = bvArr[id] or b
-                                    pending.add(id)
                                 }
                             }
                             fun checkEdge(id: Int, check: Byte, set: Byte) {
-                                if (id in (0 ..< invisible.size) && bvArr[id] and check != 0.toByte()) {
-                                    bvArr[id] = bvArr[id] and set
+                                // it and upper block should both be lava-covered
+                                if (bvArr[id] and check != 0.toByte() && bvArr[id + 0x100] and check != 0.toByte()) {
+                                    bvArr[id] = bvArr[id] or set
                                 }
                             }
-                            if (x != 0 ) checkBlock(id - 0x001, X_PLUS ) else checkEdge(id - 0x001, X_LAVA, X_MINUS)
-                            if (x != 15) checkBlock(id + 0x001, X_MINUS) else checkEdge(id - 0x001, X_LAVA, X_PLUS )
-                            if (z != 0 ) checkBlock(id - 0x010, Z_PLUS ) else checkEdge(id - 0x010, Z_LAVA, Z_MINUS)
-                            if (z != 15) checkBlock(id + 0x010, Z_MINUS) else checkEdge(id - 0x010, Z_LAVA, Z_PLUS )
+                            if (x != 0 ) checkBlock(id - 0x001, X_PLUS ) else checkEdge(id, X_LAVA, X_MINUS)
+                            if (x != 15) checkBlock(id + 0x001, X_MINUS) else checkEdge(id, X_LAVA, X_PLUS )
+                            if (z != 0 ) checkBlock(id - 0x010, Z_PLUS ) else checkEdge(id, Z_LAVA, Z_MINUS)
+                            if (z != 15) checkBlock(id + 0x010, Z_MINUS) else checkEdge(id, Z_LAVA, Z_PLUS )
                             checkBlock(id + 0x100, Y_MINUS)
+                            pending.add(id)
                         }
                         val iterator = pending.intIterator()
                         while (iterator.hasNext()) {
