@@ -22,6 +22,7 @@ import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigura
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
 import net.kyori.adventure.text.Component
+import java.io.File
 import java.lang.reflect.Type
 import java.net.JarURLConnection
 import java.net.URLDecoder
@@ -341,6 +342,10 @@ object ConfigLoader {
                                     }
                                 }, factory.asTypeSerializer()
                             )
+                    }.let {
+                        if (resourceNode != null) {
+                            it.header(resourceNode.options().header())
+                        } else it
                     }
             }
     }
