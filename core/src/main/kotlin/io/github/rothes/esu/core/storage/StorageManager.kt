@@ -153,7 +153,7 @@ object StorageManager {
                                     }
                                 }
                                 doUpdateUser(user)
-                                EsuCore.instance.err("Re-attached name ${user.nameUnsafe} to user ${user.dbId}")
+                                EsuCore.instance.warn("Re-attached name ${user.nameUnsafe} to user ${user.dbId}")
                             }
                         }
                     }
