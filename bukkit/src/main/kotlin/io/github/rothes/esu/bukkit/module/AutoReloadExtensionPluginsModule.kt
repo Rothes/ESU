@@ -8,6 +8,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.util.extension.ConfigurationOptionsExt.headerIfNotNull
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import org.bukkit.Bukkit
@@ -22,10 +23,11 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     override val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder
         get() = {
-            it.defaultOptions {
-                it.header("""
+            it.defaultOptions { options ->
+                options.headerIfNotNull("""
                     |This module will automatically reload the plugins that depend
                     |on ESU when ESU is reloaded with a plugin management plugin.
+                    |Also, further improve the compatibility of hot reload/update ESU.
                     |PlugMan/PlugManX is required to enable this.
                     """.trimIndent().trimMargin()
                 )
