@@ -445,7 +445,9 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             if (z != 0 ) pending.add(id - 0x010)
                             if (z != 15) pending.add(id + 0x010)
                         }
-                        for (i in pending.iterator()) {
+                        val iterator = pending.intIterator()
+                        while (iterator.hasNext()) {
+                            val i = iterator.nextInt()
                             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                                 invisible[i] = BV_INVISIBLE
                             }
@@ -476,7 +478,9 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             if (z != 15) checkBlock(id + 0x010, Z_MINUS) else checkEdge(id - 0x010, Z_LAVA, Z_PLUS )
                             checkBlock(id + 0x100, Y_MINUS)
                         }
-                        for (i in pending.iterator()) {
+                        val iterator = pending.intIterator()
+                        while (iterator.hasNext()) {
+                            val i = iterator.nextInt()
                             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                                 invisible[i] = BV_INVISIBLE
                             }
