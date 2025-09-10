@@ -117,6 +117,13 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 Enable this could help with saving bandwidth in nether, as there's many single-block lava.
             """)
             val detectInvisibleSingleBlock: Boolean = false,
+            @Comment("""
+                Detect lava pool, and consider lava blocks which being covered invisible.
+                This step takes extra ~0.03ms, so it's not enabled by default.
+                It also makes the plugin detect nearby blocks everytime player moves.
+                Enable this could help with saving bandwidth, especially in nether.
+            """)
+            val detectLavaPool: Boolean = false,
             @RenamedFrom("single-valued-section-block-list")
             @Comment("""
                     This feature doesn't support running along with any other anti-xray plugins.
