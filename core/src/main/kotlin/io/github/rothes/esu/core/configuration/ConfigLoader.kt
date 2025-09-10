@@ -370,7 +370,7 @@ object ConfigLoader {
             langCache.put(classLoader, root)
             root
         }
-        val node = tree.getNode(path.split('/'))
+        val node = tree.getNode(path.split(File.separatorChar))
         return node?.value?.map { LangResource(it, node.path) } ?: listOf()
     }
 
