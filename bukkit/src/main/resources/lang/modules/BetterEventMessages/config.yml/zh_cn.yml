@@ -1,0 +1,5 @@
+# 调整消息行为。
+# 将 'message-color' 设为指定的颜色以覆盖原版消息的默认颜色，'disabled' 则不做改变。
+# 设置 'format' 以修改原始消息格式，设置为空则不显示消息。
+# 如果 'show-in-console' 为 false，只有游戏中玩家能看到消息。
+message: ~
