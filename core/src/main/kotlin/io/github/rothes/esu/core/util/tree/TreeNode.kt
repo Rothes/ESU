@@ -7,13 +7,12 @@ class TreeNode<T> private constructor(val parent: TreeNode<T>?, val key: String?
     private val map = hashMapOf<String, TreeNode<T>>()
 
     val path: String = buildString {
-        append('/')
         var node: TreeNode<T>? = this@TreeNode
         while (node?.key != null) {
-            insert(0, node.key).insert(0, '/')
+            insert(0, '/')
+            insert(0, node.key)
             node = node.parent
         }
-        deleteAt(0)
     }
     var value: T? = null
 
