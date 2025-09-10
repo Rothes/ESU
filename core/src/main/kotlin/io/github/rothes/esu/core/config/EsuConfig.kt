@@ -20,6 +20,7 @@ object EsuConfig {
         URLConnection.setDefaultUseCaches("jar", false)
     }
 
+    internal var initialized = false
     private lateinit var data: ConfigData
 
     init {
@@ -30,6 +31,7 @@ object EsuConfig {
 
     fun reloadConfig() {
         data = load()
+        initialized = true
 
         URLConnection.setDefaultUseCaches("jar", !data.disableJarFileCache)
     }

@@ -1,10 +1,12 @@
 package io.github.rothes.esu.core.configuration
 
+import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.*
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.util.tree.TreeNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.CommentedConfigurationNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.CommentedConfigurationNodeIntermediary
@@ -21,15 +23,22 @@ import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
 import net.kyori.adventure.text.Component
 import java.lang.reflect.Type
+import java.net.JarURLConnection
+import java.net.URLDecoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.TimeUnit
+import java.util.jar.JarFile
 import java.util.zip.ZipException
 import kotlin.io.path.*
-import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
+
+    private val langCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(8, TimeUnit.HOURS)
+        .build<ClassLoader, TreeNode<List<String>>>()
 
     private val serverAdventure = try {
         Component.text()
@@ -144,7 +153,22 @@ object ConfigLoader {
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
-        val loader = createBuilder().path(path).let(settings.yamlLoader).build()
+        val resourceNode =
+            if (settings.findResource) {
+                val p = settings.basePath.relativize(path)
+                val lang = getLangCache(clazz.classLoader, p.pathString)
+                val locale = if (EsuConfig.initialized) EsuConfig.get().locale else Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase()
+                val resource = lang.find { it.nameWithoutExtension == locale }
+                    ?: lang.firstOrNull { it.nameWithoutExtension.substringBefore('_') == locale.substringBefore('_') }
+                resource?.let {
+                    val conn = clazz.classLoader.getResource(it.resourcePath)!!.openConnection() as JarURLConnection
+                    conn.useCaches = false
+                    conn.connect()
+                    val reader = conn.getInputStream().bufferedReader()
+                    createBuilder(null).source { reader }.let(settings.yamlLoader).build().load()
+                }
+            } else null
+        val loader = createBuilder(resourceNode).path(path).let(settings.yamlLoader).build()
         val node = settings.nodeMapper(loader.load())
         val t = settings.modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
@@ -162,7 +186,7 @@ object ConfigLoader {
         println((serial as ObjectMapper.Factory).get(clazz).load(BasicConfigurationNode.root(node.options().shouldCopyDefaults(false))))
     }
 
-    fun save(path: Path, obj: Any, yamlLoader: YamlConfigurationLoader = createBuilder().path(path).build()) {
+    fun save(path: Path, obj: Any, yamlLoader: YamlConfigurationLoader = createBuilder(null).path(path).build()) {
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")
         }
@@ -171,7 +195,7 @@ object ConfigLoader {
         yamlLoader.save(node)
     }
 
-    fun createBuilder(): YamlConfigurationLoader.Builder {
+    fun createBuilder(resourceNode: ConfigurationNode?): YamlConfigurationLoader.Builder {
         return YamlConfigurationLoader.builder()
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
@@ -183,12 +207,15 @@ object ConfigLoader {
                     .addProcessor(Comment::class.java) { data, _ ->
                         Processor { _, destination ->
                             if (destination is CommentedConfigurationNodeIntermediary<*>) {
-                                if (data.overrideOld.isEmpty() || destination.comment() == null) {
-                                    destination.commentIfAbsent(data.value.trimIndent())
+                                val resourceComment = (resourceNode?.node(destination.path()) as? CommentedConfigurationNodeIntermediary<*>)?.comment()
+                                if (resourceComment != null && destination.comment() == data.value.trimIndent()) {
+                                    destination.comment(resourceComment)
+                                } else if (data.overrideOld.isEmpty() || destination.comment() == null) {
+                                    destination.commentIfAbsent(resourceComment ?: data.value.trimIndent())
                                 } else if (data.overrideOld.first() == OVERRIDE_ALWAYS) {
-                                    destination.comment(data.value.trimIndent())
+                                    destination.comment(resourceComment ?: data.value.trimIndent())
                                 } else if (data.overrideOld.map { it.trimIndent() }.contains(destination.comment())) {
-                                    destination.comment(data.value.trimIndent())
+                                    destination.comment(resourceComment ?: data.value.trimIndent())
                                 }
                             }
                         }
@@ -318,10 +345,44 @@ object ConfigLoader {
             }
     }
 
+    private fun getLangCache(classLoader: ClassLoader, path: String): List<LangResource> {
+        val tree = langCache.getIfPresent(classLoader) ?: let {
+            val root = TreeNode<List<String>>()
+            JarFile(URLDecoder.decode(javaClass.protectionDomain.codeSource.location.path, Charsets.UTF_8)).use { jarFile ->
+                val entries = jarFile.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    val fullName = entry.name
+                    if (fullName.startsWith("lang/") && fullName.last() != '/') {
+                        val split = fullName.substringAfter('/').split('/')
+                        val path = split.dropLast(1)
+                        val node = root.getOrCreateNode(path)
+                        val list = node.value as? MutableList<String> ?: mutableListOf<String>().also { node.value = it }
+                        list.add(split.last())
+                    }
+                }
+            }
+            langCache.put(classLoader, root)
+            root
+        }
+        val node = tree.getNode(path.split('/'))
+        return node?.value?.map { LangResource(it, node.path) } ?: listOf()
+    }
+
+    private class LangResource(
+        val name: String,
+        path: String,
+    ) {
+        val nameWithoutExtension = name.substringBeforeLast('.')
+        val resourcePath = "lang/$path$name"
+    }
+
     open class LoaderSettings<T>(
         val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
         val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-        val modifier: (T, Path) -> T = { it, _ -> it }
+        val modifier: (T, Path) -> T = { it, _ -> it },
+        val findResource: Boolean = true,
+        val basePath: Path = EsuCore.instance.baseConfigPath(),
     ) {
 
         class Builder<T> {
@@ -329,6 +390,8 @@ object ConfigLoader {
             var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
             var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
             var modifier: (T, Path) -> T = { it, _ -> it }
+            var findResource: Boolean = true
+            var basePath: Path = EsuCore.instance.baseConfigPath()
 
             fun yamlLoader(yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder): Builder<T> {
                 this.yamlLoader = yamlLoader
@@ -345,7 +408,17 @@ object ConfigLoader {
                 return this
             }
 
-            fun build() = LoaderSettings(yamlLoader, nodeMapper, modifier)
+            fun findResource(findResource: Boolean): Builder<T> {
+                this.findResource = findResource
+                return this
+            }
+
+            fun basePath(basePath: Path): Builder<T> {
+                this.basePath = basePath
+                return this
+            }
+
+            fun build() = LoaderSettings(yamlLoader, nodeMapper, modifier, findResource, basePath)
 
         }
     }
@@ -358,8 +431,10 @@ object ConfigLoader {
         val keyMapper: (Path) -> String = { it.nameWithoutExtension },
         yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
         nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-        modifier: (T, Path) -> T = { it, _ -> it }
-    ): LoaderSettings<T>(yamlLoader, nodeMapper, modifier) {
+        modifier: (T, Path) -> T = { it, _ -> it },
+        findResource: Boolean = true,
+        basePath: Path = EsuCore.instance.baseConfigPath(),
+    ): LoaderSettings<T>(yamlLoader, nodeMapper, modifier, findResource, basePath) {
 
         constructor(
             vararg forceLoad: String,
@@ -368,8 +443,10 @@ object ConfigLoader {
             yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
             keyMapper: (Path) -> String = { it.nameWithoutExtension },
             nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
-            modifier: (T, Path) -> T = { it, _ -> it }
-        ): this(forceLoad.toList(), create, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier)
+            modifier: (T, Path) -> T = { it, _ -> it },
+            findResource: Boolean = true,
+            basePath: Path = EsuCore.instance.baseConfigPath(),
+        ): this(forceLoad.toList(), create, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
 
 
         class Builder<T> {
@@ -381,6 +458,8 @@ object ConfigLoader {
             var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
             var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
             var modifier: (T, Path) -> T = { it, _ -> it }
+            var findResource: Boolean = true
+            var basePath: Path = EsuCore.instance.baseConfigPath()
 
             fun forceLoad(vararg forceLoad: String): Builder<T> {
                 this.forceLoad = forceLoad.toList()
@@ -422,7 +501,18 @@ object ConfigLoader {
                 return this
             }
 
-            fun build() = LoaderSettingsMulti(forceLoad, createKeys, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier)
+            fun findResource(findResource: Boolean): Builder<T> {
+                this.findResource = findResource
+                return this
+            }
+
+            fun basePath(basePath: Path): Builder<T> {
+                this.basePath = basePath
+                return this
+            }
+
+
+            fun build() = LoaderSettingsMulti(forceLoad, createKeys, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
 
         }
     }
