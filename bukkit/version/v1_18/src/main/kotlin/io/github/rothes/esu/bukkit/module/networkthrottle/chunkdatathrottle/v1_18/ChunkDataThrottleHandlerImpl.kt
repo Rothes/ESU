@@ -425,18 +425,18 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                         val pending = IntArrayList()
                         id = invisible.size - 16 * 16 + 1
                         while (--id >= 16 * 16) {
-                            if (invisible[id] != 1.toByte()) continue // Center block is invisible
+                            if (invisible[id] != BV_INVISIBLE) continue // Center block is invisible
                             val x = id and 0xf
                             val z = id shr 4 and 0xf
                             // Surrounded blocks are all visible and upper block occluding
-                            if (invisible[id - 0x100] != 0.toByte() || invisible[id + 0x100] != 2.toByte()) continue
-                            if (x != 0  && invisible[id - 0x001] != 2.toByte()) continue
-                            if (x != 15 && invisible[id + 0x001] != 2.toByte()) continue
-                            if (z != 0  && invisible[id - 0x010] != 2.toByte()) continue
-                            if (z != 15 && invisible[id + 0x010] != 2.toByte()) continue
+                            if (invisible[id - 0x100] != BV_VISIBLE || invisible[id + 0x100] != BV_UPPER_OCCLUDING) continue
+                            if (x != 0  && invisible[id - 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                            if (x != 15 && invisible[id + 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                            if (z != 0  && invisible[id - 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                            if (z != 15 && invisible[id + 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
                             // It's the case.
                             addNearby(bvArr, id)
-                            invisible[id - 0x100] = 2.toByte()
+                            invisible[id - 0x100] = BV_UPPER_OCCLUDING
                             // Use pending, there might be piled single-block
                             pending.add(id - 0x100)
                             pending.add(id + 0x100)
