@@ -39,6 +39,7 @@ object ConfigLoader {
 
     private val langCache = CacheBuilder.newBuilder()
         .expireAfterAccess(8, TimeUnit.HOURS)
+        .weakKeys()
         .build<ClassLoader, TreeNode<List<String>>>()
 
     private val serverAdventure = try {
