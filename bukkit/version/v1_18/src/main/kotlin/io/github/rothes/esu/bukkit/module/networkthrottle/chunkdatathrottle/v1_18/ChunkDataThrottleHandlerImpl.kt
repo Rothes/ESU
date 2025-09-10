@@ -469,7 +469,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                 }
                             }
                             fun checkEdge(id: Int, check: Byte, set: Byte) {
-                                if (bvArr[id] and check != 0.toByte()) {
+                                if (id in (0 ..< invisible.size) && bvArr[id] and check != 0.toByte()) {
                                     bvArr[id] = bvArr[id] and set
                                 }
                             }
