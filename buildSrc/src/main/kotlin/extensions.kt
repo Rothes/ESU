@@ -16,6 +16,12 @@ val Project.latestCommitHash
 val Project.latestCommitMessage
     get() = runGitCommand("log -1 --pretty=%B")
 
+val Project.isRelease
+    get() = !(project.version as String).contains('-')
+
+val Project.finalVersionName
+    get() = if (isRelease) project.version as String else "${project.version}-${rootProject.commitsSinceLastTag}"
+
 private fun Project.runGitCommand(arg: String): String {
     return providers.of(GitCommand::class.java) { parameters.arg.set(arg) }.get()
 }

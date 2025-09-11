@@ -1,6 +1,6 @@
 name: ESU
 main: io.github.rothes.esu.bukkit.EsuPluginBukkit
-version: @versionName@
+version: @finalVersionName@
 api-version: 1.13
 author: Rothes
 folia-supported: true

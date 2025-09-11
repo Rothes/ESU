@@ -12,14 +12,8 @@ plugins {
     id("com.modrinth.minotaur")
 }
 
-private val projectVersion
-    get() = project.version as String
-private val isRelease
-    get() = !projectVersion.contains('-')
-private val versionValue
-    get() = if (isRelease) projectVersion else "$projectVersion-${rootProject.commitsSinceLastTag}"
-
 project.modrinth {
+    val finalVersionName = finalVersionName
     val changelog = if (isRelease) {
         "Changelog waiting for edit..."
     } else {
@@ -28,11 +22,11 @@ project.modrinth {
             .replace("\n", "\\\n") // Markdown new line
         "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): $commitMessage"
     }
-    val versionName = "ESU-${project.name} $versionValue"
+    val versionName = "ESU-${project.name} $finalVersionName"
 
     token.set(System.getenv("MODRINTH_TOKEN"))
     projectId.set("ESU")
-    this.versionNumber.set(versionValue)
+    this.versionNumber.set(finalVersionName)
     this.versionName.set(versionName)
     this.changelog.set(changelog)
     versionType.set(if (isRelease) "release" else "alpha")
@@ -48,7 +42,7 @@ project.modrinth {
 }
 
 tasks.register("editChangelog") {
-    val versionNumber = System.getenv("GIT_TAG") ?: versionValue
+    val versionNumber = System.getenv("GIT_TAG") ?: finalVersionName
     val client = OkHttpClient.Builder().build()
     val response = client.newCall(
         Request.Builder()

@@ -110,7 +110,9 @@ tasks.processResources {
     val keys = listOf("versionName", "versionChannel", "versionId")
     val properties = rootProject.ext.properties.filter { keys.contains(it.key) }
     inputs.properties(properties)
+    inputs.property("finalVersionName", finalVersionName)
     filter<ReplaceTokens>("tokens" to properties)
+    filter<ReplaceTokens>("tokens" to mapOf("finalVersionName" to finalVersionName))
 }
 
 buildConfig {
