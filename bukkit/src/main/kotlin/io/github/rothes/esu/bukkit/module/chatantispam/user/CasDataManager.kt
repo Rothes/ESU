@@ -114,7 +114,7 @@ object CasDataManager {
     }
 
     fun saveSpamData(where: PlayerUser) {
-        val spamData = cacheById[where.dbId] ?: return
+        val spamData = latest(cacheById[where.dbId], cacheByIp[where.addr]) ?: return
         with(ChatSpamTable) {
             transaction(database) {
                 replace {
