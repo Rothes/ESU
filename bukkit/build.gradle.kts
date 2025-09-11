@@ -1,5 +1,4 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.codehaus.groovy.tools.shell.util.Preferences.keys
 
 plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
