@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.addr
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.lastAccess
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.tableName
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -20,9 +21,10 @@ import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.replace
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.json.json
 
 object CasDataManager {
@@ -63,9 +65,7 @@ object CasDataManager {
             })
             // </editor-fold>
             SchemaUtils.create(ChatSpamTable)
-            ChatSpamTable.deleteWhere {
-                lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter.toMillis()).localDateTime)
-            }
+            ChatSpamTable.deleteWhere { expiredOp }
         }
         Bukkit.getOnlinePlayers().forEach { loadSpamData(it.user) }
     }
@@ -115,13 +115,20 @@ object CasDataManager {
 
     fun saveSpamData(where: PlayerUser) {
         val spamData = latest(cacheById[where.dbId], cacheByIp[where.addr]) ?: return
+        val lastAccessValue = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
         with(ChatSpamTable) {
             transaction(database) {
-                replace {
+                val inserted = insertIgnore {
                     it[user] = where.dbId
                     it[ip] = where.addr
-                    it[lastAccess] = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
+                    it[lastAccess] = lastAccessValue
                     it[data] = spamData
+                }.insertedCount
+                if (inserted == 0) {
+                    update({ ((user eq where.dbId) or (ip eq where.addr)) and (lastAccess less lastAccessValue) }) {
+                        it[lastAccess] = lastAccessValue
+                        it[data] = spamData
+                    }
                 }
             }
         }
@@ -133,7 +140,7 @@ object CasDataManager {
         }
     }
 
-    fun deleteAsync(keys: List<Any?>) {
+    fun deleteExpiredAsync(keys: List<Any?>) {
         val byId = mutableListOf<Int>()
         val byIp = mutableListOf<String>()
         for (any in keys) {
@@ -149,13 +156,13 @@ object CasDataManager {
                     buildList {
                         if (byId.isNotEmpty()) add(user inList byId)
                         if (byIp.isNotEmpty()) add(ip   inList byIp)
-                    }.compoundOr()
+                    }.compoundOr() and expiredOp
                 }
             }
         }
     }
 
-    fun deleteAsync(key: Any?) {
+    fun deleteExpiredAsync(key: Any?) {
         val where = when (key) {
             is Int    -> ChatSpamTable.user eq key
             is String -> ChatSpamTable.ip   eq key
@@ -163,9 +170,12 @@ object CasDataManager {
         }
         StorageManager.coroutineScope.launch {
             transaction(database) {
-                ChatSpamTable.deleteWhere { where }
+                ChatSpamTable.deleteWhere { where and expiredOp }
             }
         }
     }
+
+    private val expiredOp
+        get() = lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter.toMillis()).localDateTime)
 
 }
