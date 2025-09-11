@@ -9,12 +9,16 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, CommandAntiSpamModule.ModuleLocale>(
     ModuleConfig::class.java, ModuleLocale::class.java
@@ -107,7 +111,7 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
             val cancelCount: Int = 3,
             val warnCount: Int = 3,
             val kickCount: Int = 5,
-            val expireInterval: Int = 20 * 1000,
+            val expireInterval: Duration = 20.seconds.toJavaDuration(),
         ): ConfigurationPart
     }
 
