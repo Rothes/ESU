@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
+import bukkit.com.rylinaux.plugman.PlugManBukkit
 import com.rylinaux.plugman.PlugMan
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule.ModuleConfig
@@ -46,7 +47,13 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
         for (pl in data.pluginsToLoad) {
             try {
-                PlugMan.getInstance().pluginUtil.load(pl)
+                try {
+                    // PlugMan v2
+                    PlugMan.getInstance().pluginUtil.load(pl)
+                } catch (_: NoClassDefFoundError) {
+                    // PlugManX v3
+                    PlugManBukkit.getInstance().pluginManager.load(pl)
+                }
             } catch (e: Throwable) {
                 plugin.err("Failed to load plugin $pl :", e)
             }
@@ -72,7 +79,14 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
             if (da.depend.contains(otherName) || da.softDepend.contains(otherName)) -1 else 1
         }
         plugins.forEach {
-            PlugMan.getInstance().pluginUtil.unload(it)
+            try {
+                // PlugMan v2
+                PlugMan.getInstance().pluginUtil.unload(it)
+            } catch (_: NoClassDefFoundError) {
+                // PlugManX v3
+                val manager = PlugManBukkit.getInstance().pluginManager
+                manager.unload(manager.getPluginByName(it.name))
+            }
             data.pluginsToLoad.add(it.name)
         }
         data.pluginsToLoad.reverse()
