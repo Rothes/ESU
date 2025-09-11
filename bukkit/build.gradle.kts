@@ -1,4 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.codehaus.groovy.tools.shell.util.Preferences.keys
 
 plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
@@ -107,11 +108,7 @@ tasks.shadowJar {
 }
 
 tasks.processResources {
-    val keys = listOf("versionName", "versionChannel", "versionId")
-    val properties = rootProject.ext.properties.filter { keys.contains(it.key) }
-    inputs.properties(properties)
     inputs.property("finalVersionName", finalVersionName)
-    filter<ReplaceTokens>("tokens" to properties)
     filter<ReplaceTokens>("tokens" to mapOf("finalVersionName" to finalVersionName))
 }
 
