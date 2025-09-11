@@ -175,6 +175,19 @@ object CasDataManager {
         }
     }
 
+    fun deleteAsync(key: Any?) {
+        val where = when (key) {
+            is Int    -> ChatSpamTable.user eq key
+            is String -> ChatSpamTable.ip   eq key
+            else      -> error("Unknown key type ${key?.javaClass?.name} ($key)")
+        }
+        StorageManager.coroutineScope.launch {
+            transaction(database) {
+                ChatSpamTable.deleteWhere { where }
+            }
+        }
+    }
+
     private val expiredOp
         get() = lastAccess.between((-1L).localDateTime, (System.currentTimeMillis() - config.userDataExpiresAfter.toMillis()).localDateTime)
 

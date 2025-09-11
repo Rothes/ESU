@@ -113,7 +113,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
-                CasDataManager.deleteExpiredAsync(playerUser.dbId)
+                CasDataManager.deleteAsync(playerUser.dbId)
                 CasDataManager.cacheById.remove(playerUser.dbId)
                 CasDataManager.cacheByIp.remove(playerUser.addr)
                 context.sender().message(locale, { command.reset.resetPlayer },
