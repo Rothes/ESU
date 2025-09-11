@@ -60,7 +60,7 @@ tasks.register("editChangelog") {
     val body = json.toRequestBody("application/json".toMediaType())
     val versions = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
         .fromJson<List<Version>>(response, object : TypeToken<List<Version>>() {}.type)
-        .filter { it.versionNumber == versionNumber }
+        .filter { it.versionNumber == versionNumber && it.name == "ESU-${project.name} $versionNumber" }
     for (version in versions) {
         client.newCall(
             Request.Builder()
@@ -72,6 +72,8 @@ tasks.register("editChangelog") {
         ).execute().use { response ->
             if (!response.isSuccessful) {
                 error("Failed to modify version ${version.id}: ${response.body?.string()}")
+            } else {
+                println("Successfully updated version ${version.id}")
             }
         }
     }
@@ -80,4 +82,5 @@ tasks.register("editChangelog") {
 data class Version(
     val id: String,
     val versionNumber: String,
+    val name: String,
 )
