@@ -129,5 +129,6 @@ modrinth {
     loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
     dependencies {
         optional.project("packetevents")
+        optional.project("PlugManX")
     }
 }
