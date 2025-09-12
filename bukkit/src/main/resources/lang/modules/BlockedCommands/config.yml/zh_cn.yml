@@ -1,0 +1,9 @@
+module-enabled: false
+blocking-commands:
+  - # 要发送给用户的消息密钥。您需要在区域设置配置中设置消息
+    blocked-message: no-suicide
+    # 要阻止的命令。使用正则表达式
+    commands:
+      - ^(.+:)?suicide$
+      - ^(.+:)?kill$
+    console-user-excluded: true

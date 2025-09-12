@@ -1,0 +1,69 @@
+module-enabled: false
+chat:
+  enabled: true
+
+  # 'player' 是玩家看到的格式，'console' 是打印到控制台的格式。
+  format:
+    player: \<<pd:sender>> <message>
+    console: <#48c0c0>\<<pd:sender>> <message>
+
+  # 启用此选项后，玩家只能接收来自附近（同一世界）玩家的聊天消息。
+  ranged-chat:
+    enabled: false
+    radius: 5000
+
+    # 拥有 `esu.esuchat.chat.shout` 权限的玩家可以使用此前缀来绕过范围聊天限制。
+    # 默认情况下，玩家拥有此权限。
+    # 在 prefixedMessageModifiers 之前使用此前缀。
+    shout-prefix: "!"
+    shout-format:
+      player: \<<pd:sender>> <pl:shout><message>
+      console: <#48c0c0>\<<pd:sender>> <pl:shout><message>
+
+  # 如果玩家发送的消息以 'messagePrefix' 开头且拥有相应权限，
+  # 则会将 'head' 和 'foot' 附加到聊天消息中。
+  prefixed-message-modifiers:
+    - message-prefix: ">"
+      remove-prefix: false
+      permission: ""
+      head: <green>
+      foot: </green>
+    - message-prefix: "*"
+      remove-prefix: true
+      permission: ""
+      head: <gradient:#c8b3fd:#4bacc8>
+      foot: </gradient>
+emote:
+  # 启用 esu 表情/me 命令。
+  enabled: true
+  format: <pl:prefix><pdc><pd:sender></pdc> <message>
+
+  # 启用此选项将重定向所有 emote 命令至 esu 的命令，以避免混合使用。
+  intercept-namespaces: true
+  prefixed-message-modifiers:
+    - message-prefix: ""
+      remove-prefix: true
+      permission: ""
+      head: <gray>
+      foot: </gray>
+whisper:
+  # 启用 esu 私聊/whisper 命令。
+  enabled: true
+  formats:
+    incoming: <pl:prefix><pdc><pd:sender> <sc>➡ <tdc><message><sound:minecraft:entity.silverfish.ambient:voice:0.2:2:-7007683334921848987>
+    outgoing: <pl:prefix><sc>➡ <pdc><pd:receiver> <tc><message>
+    spy:
+      send: <pl:prefix><pc>[<pdc><pd:sender> <sdc>➡ <tdc><pd:receiver><pc>] <tc><message>
+      reply: <pl:prefix><pc>[<tdc><pd:receiver> <sc>⬅ <pdc><pd:sender><pc>] <tdc><message>
+  intercept-namespaces: true
+  prefixed-message-modifiers:
+    - message-prefix: ">"
+      remove-prefix: false
+      permission: ""
+      head: <green>
+      foot: </green>
+    - message-prefix: "*"
+      remove-prefix: true
+      permission: ""
+      head: <gradient:#c8b3fd:#4bacc8>
+      foot: </gradient>

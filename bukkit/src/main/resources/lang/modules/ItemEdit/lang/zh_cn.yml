@@ -1,0 +1,4 @@
+player-only-command: <ec>只有玩家可以使用此命令
+item-in-hand-required: <ec>你的主手中必须持有物品
+attribute-cleared: <pc>属性 <pdc><attribute></pdc> 已被清除
+attribute-set: <pc>属性 <pdc><attribute></pdc> 已被设置为 <pdc><value></pdc>

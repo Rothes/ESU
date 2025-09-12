@@ -1,0 +1,25 @@
+# 此部分与 <pd:player_key> 配合使用
+player-display: <hover:show_text:'<pc>点击私聊 <pdc><player_key>'><click:suggest_command:/m <player_key_name> ><player_key></hover>
+chat:
+  placeholders:
+    shout: <pc><hover:show_text:'<pc>大喊频道消息'>📣 </hover>
+emote:
+  placeholders:
+    prefix: <pc><hover:show_text:'<pc>表情动作消息'>* </hover>
+whisper:
+  placeholders:
+    prefix: <sdc><hover:show_text:'<pc>私聊频道'>📨 </hover>
+  reply-no-last-target: <ec>不存在上一次的私聊对象
+  receiver-offline: <ec>接收者处于离线状态
+  spy:
+    placeholders:
+      prefix: "<sc>[<sdc>间谍<sc>] "
+    enabled: <pl:prefix><pdc><capitalize:'<enable-state>'> <pc>对 <pdc><user></pdc> 的间谍功能
+    disabled: <pl:prefix><pdc><capitalize:'<enable-state>'> <pc>对 <pdc><user></pdc> 的间谍功能
+    already-enabled: <pl:prefix><edc><user> <ec>的间谍功能已处于启用状态
+    already-disabled: <pl:prefix><edc><user> <ec>的间谍功能已处于禁用状态
+ignore:
+  placeholders:
+    prefix: "<sc>[<sdc>屏蔽<sc>] "
+  ignoring-player: <pl:prefix><nc>您已开始<vnc>屏蔽</vnc> <pdc><玩家></pdc>
+  receiving-player: <pl:prefix><pc>您已开始<vpc>接收</vpc> <pdc><玩家></pdc> 的消息

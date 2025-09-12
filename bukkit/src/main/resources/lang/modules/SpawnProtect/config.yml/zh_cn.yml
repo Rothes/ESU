@@ -1,0 +1,15 @@
+module-enabled: false
+spawn-wither-nerf:
+  - radius: 256
+    max-amount: 0
+    speed-modifier: 0.5
+    follow-range-modifier: 0.25
+  - radius: 1024
+    max-amount: 1
+    speed-modifier: 0.5
+    follow-range-modifier: 0.25
+waterlogged:
+  # 在出生点保护范围内禁用推动含水方块
+  # 设置为 -1 可取消该限制
+  # 用于防止海洋生成器机器运作
+  disable-spawn-push-radius: -1

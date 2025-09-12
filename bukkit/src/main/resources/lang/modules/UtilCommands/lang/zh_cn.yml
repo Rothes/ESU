@@ -1,0 +1,17 @@
+ping-command: <pdc><player><pc>的延迟为 <sdc><ping><sc>毫秒
+client-locale-command: <pdc><player><pc>的客户端语言是 <sdc><locale>
+ip-command: <pdc><player><pc>的IP地址是 <sdc><address>
+ip-group-command:
+  no-same-ip: <pc>没有使用相同IP的玩家
+  entry: "<tdc><address><tc>: <players>"
+  player-prefix: <sdc>
+  player-separator: <pc>, <sdc>
+tp-chunk-teleporting: <tc>正在传送 <tdc><player></tdc>...
+gen-rate-top:
+  no-data: <pc>当前没有区块生成数据
+  header: "<pdc>[玩家]<pc>: <sc>[区块生成速率 (tickets/秒)]"
+  entry: "<tdc><player><tc>: <sdc><rate>"
+load-rate-top:
+  no-data: <pc>当前没有区块加载数据
+  header: "<pdc>[玩家]<pc>: <sc>[区块加载速率 (tickets/秒)]"
+  entry: "<tdc><player><tc>: <sdc><rate>"

@@ -1,0 +1,30 @@
+prefix: "<sc><b>AS </b><pdc>» "
+notify:
+  filtered: "<prefix><pc><player><tc>: <sdc><message> <tc>已被过滤 (<pdc><check-type> <chat-type></pdc>)"
+  muted: <prefix><pc><player> <tc>已被禁言 (<pdc><duration>, <multiplier>x</pdc>)
+command:
+  data:
+    no-data: <prefix><pc>玩家 <pdc><player> <pc>没有聊天数据
+    data: |-
+      <prefix><pc>玩家 <pdc><player> 的数据：
+      <tdc><debug-data>
+      <sc>过滤次数： <sdc><filtered-size>
+      <pc>请求次数： <pdc><requested-size>
+      <sc>垃圾信息分数： <sdc><spam-score>
+      <pc>禁言时长： <pdc><mute-duration>
+    not-muted: 未被禁言
+  notify:
+    enabled: <prefix><vpc>开始接收垃圾信息通知
+    disabled: <prefix><vnc>停止接收垃圾信息通知
+  mute:
+    muted-player: <prefix><pc>已禁言玩家 <pdc><player></pdc>，时长 <pdc><duration></pdc>
+  reset:
+    reset-player: <prefix><pc>已重置玩家 <pdc><player></pdc> 的数据
+blocked-message:
+  whisper-targets: <ec>您正在向过多玩家发送私聊消息！
+  muting: <ec>您将被暂时禁言。请等待 <edc><duration><ec>，并注意言行规范。<br>您现在仍可向部分好友发送私聊消息
+  fixed-request: <ec>检测到可疑的机器人聊天行为
+  illegal-characters: <ec>您的消息包含非法字符
+  long-message: <ec>您的消息过长！
+  frequency: <ec>您发送消息过于频繁
+  similarity: <ec>您发送的消息过于相似
