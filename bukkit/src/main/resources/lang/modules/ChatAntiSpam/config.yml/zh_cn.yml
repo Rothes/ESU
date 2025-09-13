@@ -1,88 +1,53 @@
-module-enabled: false
+module-enabled: ~
 
 # 启用以在控制台通知反垃圾信息
-notify-console: true
-user-data-expires-after: 20m
-base-mute-duration: 10m
-expire-size:
-  chat-request: 10
-  filtered: -1
-  message-record: 30
-  whisper-target: -1
-  score: 10
+notify-console: ~
+user-data-expires-after: ~
+base-mute-duration: ~
+expire-size: ~
 expire-time:
-  chat-request: 6m
-  filtered: 4m 30s
+  chat-request: ~
+  filtered: ~
 
   # 使用基础值（硬性）加上二次函数并以一定速率检查是否过期。
   # 默认值：60 + 840 秒（总计15分钟）后完全过期
-  message-record:
-    hard-expire-time: 1m
-    quadratic-divider-offset: 60000.0
-    quadratic-divider: 90000.0
-    quadratic-height: 100.0
-  whisper-target: 4m
-  score: -1
+  message-record: ~
+  whisper-target: ~
+  score: ~
 
 # 如果玩家连续发送多条未过滤的聊天消息，则移除一条最旧的过滤记录。
 # 设置为非正值以禁用此功能，记录仅会在上述配置的时间后过期。
-consecutive-unfiltered-threshold: 3
+consecutive-unfiltered-threshold: ~
 mute-handler:
-  base-mute-duration: 10m
-  mute-on-filtered-size: 8
+  base-mute-duration: ~
+  mute-on-filtered-size: ~
   mute-duration-multiplier:
     # 最后一次禁言必须在此时间间隔内才能触发乘数效应
-    max-mute-interval: 15m
-    multiplier: 2.0
+    max-mute-interval: ~
+    multiplier: ~
   spam-score:
-    calculate-size: 6
-    mute-on-average-score: 0.5625
+    calculate-size: ~
+    mute-on-average-score: ~
 
     # 确保被禁言的玩家在解除禁言后其得分能落在此安全范围内
-    safe-score-on-mute: 0.3
-  keep-message-records: true
-  keep-scores: true
+    safe-score-on-mute: ~
+  keep-message-records: ~
+  keep-scores: ~
 spam-check:
   _default:
-    notify-filtered: true
+    notify-filtered: ~
 
     # 对具有固定发送速率的“垃圾信息（Spam）”模块有效
-    fixed-request-mute:
-      enabled: true
-      conditions:
-        - drift: 2s
-          min-request-interval: 20s
-          samples: 5
-    frequency:
-      max-messages: 8
-      max-messages-per: 25s
-      minimal-interval: 1.5s
-    illegal-characters:
-      enabled: true
-    letter-case:
-      uniform-on-check: true
-    long-message:
-      max-message-size: 144
-    random-characters:
-      remove-random-characters-on-check: true
-    similarity-check:
-      block-on-disallow-count:
-        6: 6
-        14: 4
-        36: 2
-        32767: 1
-      allow-rate-reduce-per-record: 0.015
-      base-allow-rate: 0.8
-      lowest-allow-rate: 0.55
-    spaces:
-      remove-extra-spaces-on-check: true
-      min-length: 9
-      space-rate: 0.333
-  chat: {}
-  death: {}
-  emote: {}
-  whisper: {}
-whisper-targets:
-  max-targets: 10
-  safe-targets: 2
-  safe-targets-max: 6
+    fixed-request-mute: ~
+    frequency: ~
+    illegal-characters: ~
+    letter-case: ~
+    long-message: ~
+    random-characters: ~
+    similarity-check: ~
+    spaces: ~
+  chat: ~
+  death: ~
+  emote: ~
+  whisper: ~
+whisper-targets: ~

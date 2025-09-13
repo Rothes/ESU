@@ -1,24 +1,21 @@
-module-enabled: false
+module-enabled: ~
 
 # 当玩家发送的命令符合任何条件时，插件将增加计数，
 # 并使用第一个触发的限制来处理限制。
 commands:
-  - commands:
-      - ^(.+:)?suicide$
-      - ^(.+:)?kill$
+  - commands: ~
     # 发送给用户的消息键。需要在区域设置配置中设置此消息
-    warn-message: suicide-spam
-    kick-message: suicide-spam
-    cancel-count: 3
-    warn-count: 3
-    kick-count: 5
-    expire-interval: 20000
-  - commands:
-      - .
+    warn-message: ~
+    kick-message: ~
+    cancel-count: ~
+    warn-count: ~
+    kick-count: ~
+    expire-interval: ~
+  - commands: ~
     # 发送给用户的消息键。需要在区域设置配置中设置此消息
-    warn-message: generic-spam
-    kick-message: generic-spam
-    cancel-count: 3
-    warn-count: 3
-    kick-count: 5
-    expire-interval: 20000
+    warn-message: ~
+    kick-message: ~
+    cancel-count: ~
+    warn-count: ~
+    kick-count: ~
+    expire-interval: ~

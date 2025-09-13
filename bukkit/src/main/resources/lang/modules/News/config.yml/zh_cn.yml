@@ -1,14 +1,9 @@
-module-enabled: false
+module-enabled: ~
 book-news:
   # 此服务器的新闻频道
   # 所有新闻数据均存储在数据库中，因此如果您有多个相同的服务器，可以使用同一频道
-  channel: main
-  show-unread-news-on-join: true
+  channel: ~
+  show-unread-news-on-join: ~
 
   # 创建新新闻时使用的默认布局
-  new-layout:
-    default: |-
-      <pdc><b>Title </b> 
-      <pc>Body
-
-      <tc><time:'yyyy-MM-dd HH:mm'>
+  new-layout: ~
