@@ -24,7 +24,7 @@ import io.leangen.geantyref.TypeToken
 import net.kyori.adventure.text.Component
 import java.io.File
 import java.lang.reflect.Type
-import java.net.JarURLConnection
+import java.net.URLConnection
 import java.net.URLDecoder
 import java.nio.file.Files
 import java.nio.file.Path
@@ -32,7 +32,10 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
 import java.util.zip.ZipException
+import kotlin.io.bufferedReader
+import kotlin.io.copyTo
 import kotlin.io.path.*
+import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
@@ -94,15 +97,33 @@ object ConfigLoader {
         if (dataClass.isInstance(EmptyConfiguration)) {
             return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
-        if (MultiLocaleConfiguration::class.java.isAssignableFrom(configClass) && path.notExists()) {
-            EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
-                val relativize = EsuCore.instance.baseConfigPath().relativize(path)
-                val source = linkTo.resolve(relativize)
-                if (!source.isDirectory()) {
-                    source.createDirectories()
+        if (MultiLocaleConfiguration::class.java.isAssignableFrom(configClass)) {
+            if (path.notExists()) {
+                EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
+                    val relativize = EsuCore.instance.baseConfigPath().relativize(path)
+                    val source = linkTo.resolve(relativize)
+                    if (!source.isDirectory()) {
+                        source.createDirectories()
+                    }
+                    Files.createSymbolicLink(path, source)
+                    EsuCore.instance.info("Created symbolic link: [$path] -> [$source]")
+                } ?: path.createDirectories()
+            }
+            if (settings.findResource) {
+                val p = settings.basePath.relativize(path)
+                val lang = getLangCache(dataClass.classLoader, p.pathString)
+                for (resource in lang) {
+                    val resolve = path.resolve(resource.name)
+                    if (resolve.notExists()) {
+                        resource.save(dataClass, resolve)
+                    } else {
+                        val loader = createBuilder(null).let(settings.yamlLoader).path(path).build()
+                        val config = loader.load()
+                        val read = resource.readConfig(dataClass, settings)
+                        config.mergeFrom(read)
+                        loader.save(config)
+                    }
                 }
-                Files.createSymbolicLink(path, source)
-                EsuCore.instance.info("Created symbolic link: [$path] -> [$source]")
             }
         }
         return configClass.getConstructor(Map::class.java).newInstance(
@@ -162,15 +183,9 @@ object ConfigLoader {
                 val locale = if (EsuConfig.initialized) EsuConfig.get().locale else Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase()
                 val resource = lang.find { it.nameWithoutExtension == locale }
                     ?: lang.firstOrNull { it.nameWithoutExtension.substringBefore('_') == locale.substringBefore('_') }
-                resource?.let {
-                    val conn = clazz.classLoader.getResource(it.resourcePath)!!.openConnection() as JarURLConnection
-                    conn.useCaches = false
-                    conn.connect()
-                    val reader = conn.getInputStream().bufferedReader()
-                    createBuilder(null).source { reader }.let(settings.yamlLoader).build().load()
-                }
+                resource?.readConfig(clazz, settings)
             } else null
-        val loader = createBuilder(resourceNode).path(path).let(settings.yamlLoader).build()
+        val loader = createBuilder(resourceNode).let(settings.yamlLoader).path(path).build()
         val node = settings.nodeMapper(loader.load())
         val t = settings.modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
@@ -379,8 +394,36 @@ object ConfigLoader {
         val name: String,
         path: String,
     ) {
-        val nameWithoutExtension = name.substringBeforeLast('.')
+        val nameWithoutExtension = name.substringBefore('.')
         val resourcePath = "lang/$path$name"
+
+        fun save(clazz: Class<*>, path: Path) {
+            save(clazz.classLoader, path)
+        }
+
+        fun save(classLoader: ClassLoader, path: Path) {
+            getConnection(classLoader).getInputStream().use { input ->
+                path.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+
+        fun readConfig(clazz: Class<*>, settings: LoaderSettings<*>): ConfigurationNode {
+            return readConfig(clazz.classLoader, createBuilder(null).let(settings.yamlLoader))
+        }
+
+        fun readConfig(classLoader: ClassLoader, yamlBuilder: YamlConfigurationLoader.Builder): ConfigurationNode {
+            val reader = getConnection(classLoader).getInputStream().bufferedReader()
+            return yamlBuilder.source { reader }.build().load()
+        }
+
+        private fun getConnection(classLoader: ClassLoader): URLConnection {
+            val conn = classLoader.getResource(resourcePath)!!.openConnection()
+            conn.useCaches = false
+            conn.connect()
+            return conn
+        }
     }
 
     open class LoaderSettings<T>(
