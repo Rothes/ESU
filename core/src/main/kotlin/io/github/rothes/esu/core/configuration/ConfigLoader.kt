@@ -45,6 +45,8 @@ object ConfigLoader {
         .weakKeys()
         .build<ClassLoader, TreeNode<List<String>>>()
 
+    private val PATCH_FILE_REGEX = "([^.]+)\\.patch\\.([^.]+).*".toRegex()
+
     private val serverAdventure = try {
         Component.text()
         true
@@ -364,6 +366,55 @@ object ConfigLoader {
                         } else it
                     }
             }
+    }
+
+    private fun sortPatches(paths: List<Path>): List<Path> {
+        data class ResolvedPath(val path: Path) {
+            val key: String
+            var requires: String?
+
+            init {
+                val match = PATCH_FILE_REGEX.matchEntire(path.name)
+                if (match != null) {
+                    key = match.groupValues[1]
+                    requires = match.groupValues[2]
+                } else {
+                    key = path.name.substringBefore('.')
+                    requires = null
+                }
+            }
+        }
+        val resolved = LinkedList(paths.map { ResolvedPath(it) })
+        val dependencies = mutableMapOf<String, MutableList<ResolvedPath>>()
+
+        for (path in resolved) {
+            val requires = path.requires
+            if (requires != null) {
+                dependencies.getOrPut(requires) { mutableListOf() }.add(path)
+            }
+        }
+
+        val result = mutableListOf<Path>()
+
+        var lastSize = 0
+        while (resolved.isNotEmpty()) {
+            if (lastSize == resolved.size) {
+                EsuCore.instance.warn("Failed to resolve graph of patch file ${resolved.map { it.path }}, skipping.")
+                break
+            }
+            lastSize = resolved.size
+            val iterator = resolved.iterator()
+            for (path in iterator) {
+                if (path.requires != null) continue
+                dependencies[path.key]?.forEach { dep ->
+                    dep.requires = null
+                }
+                result.add(path.path)
+                iterator.remove()
+            }
+        }
+
+        return result
     }
 
     private fun getLangCache(classLoader: ClassLoader, path: String): List<LangResource> {
