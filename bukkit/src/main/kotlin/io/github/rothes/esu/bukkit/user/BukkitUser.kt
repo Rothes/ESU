@@ -2,15 +2,11 @@ package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.config.data.ItemData
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
-import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
@@ -20,6 +16,13 @@ abstract class BukkitUser: User {
     abstract val commandSender: CommandSender
     override val audience: Audience by lazy {
         commandSender.audience
+    }
+    private val tagResolvers by lazy {
+        User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this))
+    }
+
+    override fun getTagResolvers(): Iterable<TagResolver> {
+        return tagResolvers
     }
 
     override var language: String?

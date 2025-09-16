@@ -45,6 +45,10 @@ interface User {
     val colorSchemeTagResolver
         get() = colorSchemeTagInstance.tagResolver
 
+    fun getTagResolvers(): Iterable<TagResolver> {
+        return DEFAULT_TAG_RESOLVERS
+    }
+
     fun hasPermission(permission: String): Boolean
 
     fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? {
@@ -110,7 +114,11 @@ interface User {
                 else
                     it
             },
-            *params, colorSchemeTagResolver, capitalize
+            TagResolver.builder()
+                .resolvers(*params)
+                .resolvers(getTagResolvers())
+                .resolvers(colorSchemeTagResolver)
+                .build()
         )
     }
 
@@ -196,6 +204,10 @@ interface User {
     }
     fun actionBar(message: net.kyori.adventure.text.Component) {
         actionBar(message.esu)
+    }
+
+    companion object {
+        val DEFAULT_TAG_RESOLVERS = listOf(capitalize)
     }
 
 }
