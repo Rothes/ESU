@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.papi
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -81,14 +82,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             fun whisper(sender: User, receiver: User, @Argument(parserName = "greedyString") message: String) {
                 val parsed = parseMessage(sender, message, config.whisper.prefixedMessageModifiers)
 
+                val papi = papi(sender)
                 val msg = component("message", parsed)
                 val pd = mapOf("sender" to sender, "receiver" to receiver)
 
-                sender.message(config.whisper.formats.outgoing, msg,
+                sender.message(config.whisper.formats.outgoing, msg,  papi,
                     playerDisplay(sender, pd),
                     pLang(sender, locale, { whisper.placeholders })
                 )
-                receiver.message(config.whisper.formats.incoming, msg,
+                receiver.message(config.whisper.formats.incoming, msg, papi,
                     playerDisplay(receiver, pd),
                     pLang(sender, locale, { whisper.placeholders })
                 )
@@ -100,7 +102,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     if (user.isOnline && user != sender && user != receiver)
                         user.message(
                             with(config.whisper.formats.spy) { if (initiative) send else reply },
-                            msg,
+                            msg, papi,
                             playerDisplay(receiver, pd),
                             pLang(sender, locale, { whisper.spy.placeholders })
                         )
@@ -220,10 +222,11 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             @Command("$EMOTE_COMMANDS <message>")
             fun emote(sender: User, @Argument(parserName = "greedyString") message: String) {
                 val msg = parseMessage(sender, message, config.emote.prefixedMessageModifiers)
+                val papi = papi(sender)
 
                 for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
                     val tags = arrayOf(
-                        playerDisplay(user, "sender", sender), component("message", msg)
+                        playerDisplay(user, "sender", sender), component("message", msg), papi
                     )
                     user.message(config.emote.format, pLang(user, locale, { emote.placeholders }), *tags)
                 }
@@ -272,16 +275,17 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     .map { it.user }
 
                 val message = component("message", msg)
+                val papi = papi(sender)
                 for (user in users) {
                     user.message(
-                        format.player, message,
+                        format.player, message, papi,
                         pLang(user, locale, { chat.placeholders }),
                         playerDisplay(user, "sender", sender)
                     )
                 }
 
                 ConsoleUser.message(
-                    format.console, message,
+                    format.console, message, papi,
                     pLang(ConsoleUser, locale, { chat.placeholders }),
                     playerDisplay(ConsoleUser, "sender", sender)
                 )
@@ -424,6 +428,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             if (user != null)
                 Tag.selfClosingInserting(
                     viewer.buildMiniMessage(locale, { playerDisplay },
+                        papi(user),
                         if (user is PlayerUser)
                             component("player_key", user.player.displayName_)
                         else
