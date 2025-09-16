@@ -115,9 +115,9 @@ interface User {
                     it
             },
             TagResolver.builder()
-                .resolvers(*params)
                 .resolvers(getTagResolvers())
                 .resolvers(colorSchemeTagResolver)
+                .resolvers(*params)
                 .build()
         )
     }
