@@ -33,6 +33,9 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.Leve
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.PalettedContainerReader
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.CoordinateUtils
+import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
+import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
@@ -770,8 +773,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         if (playerChunk === FULL_CHUNK) return
 
         val invisible = playerChunk.invisible
-        val updates = blocks.filter {
-            val bid = blockKeyChunk(it.x, it.y, it.z, minHeight)
+        val updates = blocks.filter { blockPos ->
+            val bid = CoordinateUtils.getBlockChunkKey(blockPos.x, blockPos.y, blockPos.z, minHeight)
             invisible.safeGet(bid).also { if (it) invisible[bid] = false }
         }
         if (updates.isEmpty()) return
@@ -826,21 +829,6 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     private val BlockState.id
         get() = Block.BLOCK_STATE_REGISTRY.getId(this)
-
-    private data class ChunkPos(val x: Int, val z: Int)
-    private data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
-
-    private val Long.chunkPos
-        get() = ChunkPos((this and 0xffffffffL).toInt(), (this shr 32).toInt())
-
-    private fun blockKeyChunk(x: Int, y: Int, z: Int, minHeight: Int): Int {
-        return (x and 0xf) or (z and 0xf shl 4) or (y - minHeight shl 8)
-    }
-    private fun getChunkKey(x: Int, z: Int): Long {
-        return x.toLong() and 0xffffffffL or ((z.toLong() and 0xffffffffL) shl 32)
-    }
-    private val Int.chunkBlockPos: ChunkBlockPos
-        get() = ChunkBlockPos(this and 0xf, this shr 8, this shr 4 and 0xf)
 
     private val Int.blocksView
         get() = BLOCKS_VIEW[this]
