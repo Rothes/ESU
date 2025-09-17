@@ -43,6 +43,7 @@ dependencies {
     compileOnly("org.ow2.asm:asm-commons:9.8")
 
     compileOnly("com.google.guava:guava:33.3.1-jre")
+    compileOnly("it.unimi.dsi:fastutil:8.5.15")
 }
 
 tasks.test {
