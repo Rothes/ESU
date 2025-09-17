@@ -7,6 +7,7 @@ import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
 
 object Scheduler {
 
@@ -72,6 +73,23 @@ object Scheduler {
             FoliaTask(Bukkit.getAsyncScheduler().runNow(plugin) { func.invoke() })
         else
             BukkitTask(Bukkit.getScheduler().runTaskAsynchronously(plugin, func))
+    }
+    fun async(delay: Duration, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (isFolia)
+            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
+                delay.inWholeMilliseconds, TimeUnit.MILLISECONDS))
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func,
+                delay.inWholeMilliseconds / 50))
+    }
+    fun async(delay: Duration, period: Duration, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+        return if (isFolia)
+            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
+                delay.inWholeMilliseconds, period.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+            )
+        else
+            BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func,
+                delay.inWholeMilliseconds / 50, period.inWholeMilliseconds / 50))
     }
     fun asyncTicks(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
         return if (isFolia)
