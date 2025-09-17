@@ -291,9 +291,9 @@ object ConfigLoader {
                                 }
                                 p
                             }
-                            val from = parent.node(*name.split('.').toTypedArray())
+                            val from = parent.node(*name.removePrefix("/").split('.').toTypedArray())
                             if (!from.virtual()) {
-                                destination.set(from.raw())
+                                destination.from(from)
                                 from.set(null)
                                 from.parent()!!.removeChild(from.key())
                             }
