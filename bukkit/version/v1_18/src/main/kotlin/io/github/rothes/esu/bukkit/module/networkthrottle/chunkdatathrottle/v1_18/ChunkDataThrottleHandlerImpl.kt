@@ -774,7 +774,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
         val invisible = playerChunk.invisible
         val updates = blocks.filter { blockPos ->
-            val bid = CoordinateUtils.getBlockChunkKey(blockPos.x, blockPos.y, blockPos.z, minHeight)
+            val bid = CoordinateUtils.getBlockChunkKey(blockPos.x, blockPos.y - minHeight, blockPos.z)
             invisible.safeGet(bid).also { if (it) invisible[bid] = false }
         }
         if (updates.isEmpty()) return

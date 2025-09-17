@@ -18,17 +18,22 @@ object CoordinateUtils {
     val Long.chunkPos
         get() = ChunkPos(chunkX, chunkZ)
 
-    fun getBlockChunkKey(x: Int, y: Int, z: Int, minHeight: Int): Int {
-        return (x and 0xf) or (z and 0xf shl 4) or (y - minHeight shl 8)
+    fun getBlockChunkKey(x: Int, y: Int, z: Int): Int {
+        return (x and 0xf) or (z and 0xf shl 4) or (y shl 8)
     }
     val Block.blockChunkKey
-        get() = getBlockChunkKey(x, y, z, world.minHeight)
-
-    fun Int.chunkBlockPos(minHeight: Int): ChunkBlockPos {
-        return ChunkBlockPos(this and 0xf, (this shr 8) + minHeight, this shr 4 and 0xf)
-    }
+        get() = getBlockChunkKey(x, y, z)
+    
+    val Int.blockChunkX: Int
+        get() = this and 0xf
+    val Int.blockChunkY: Int
+        get() = this shr 8
+    val Int.blockChunkZ: Int
+        get() = this shr 4 and 0xf
+    val Int.blockChunkPos
+        get() = BlockChunkPos(blockChunkX, blockChunkY, blockChunkZ)
 
     data class ChunkPos(val x: Int, val z: Int)
-    data class ChunkBlockPos(val x: Int, val y: Int, val z: Int)
+    data class BlockChunkPos(val x: Int, val y: Int, val z: Int)
 
 }
