@@ -48,12 +48,12 @@ abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
-    protected fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.plugin) {
+    fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.plugin) {
         Bukkit.getPluginManager().registerEvents(listener, plugin)
         registeredListeners.add(listener)
     }
 
-    protected fun unregisterListeners() {
+    fun unregisterListeners() {
         registeredListeners.removeIf {
             HandlerList.unregisterAll(it)
             true
