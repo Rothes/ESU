@@ -407,6 +407,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
     }
 
+    fun Component.setItem(sender: User): Component {
+        return if (sender is PlayerUser)
+            replaceText {
+                it.matchLiteral("[i]")
+                    .replacement { _ -> sender.player.inventory.itemInMainHand.displayName().esu }
+            }
+        else this
+    }
+
     private fun matchModifier(sender: User, text: String, modifiers: List<PrefixedMessageModifier>): PrefixedMessageModifier? {
         return modifiers.find {
             val perm = it.permission
