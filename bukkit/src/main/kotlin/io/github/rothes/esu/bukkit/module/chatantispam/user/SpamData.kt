@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.user
 
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
+import io.github.rothes.esu.core.util.CollectionUtils.removeWhile
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
 import kotlin.concurrent.atomics.AtomicInt
@@ -64,23 +65,16 @@ data class SpamData(
 
     fun purge(): SpamData {
         val now = System.currentTimeMillis()
-        records.removeHeadIf { config.expireTime.messageRecord.expired(now - it.time) }
+        records.removeWhile { config.expireTime.messageRecord.expired(now - it.time) }
         if (config.expireTime.whisperTarget.valuePositive)
             whisperTargets.removeIf { now - it.lastTime > config.expireTime.whisperTarget.toMillis() }
         if (config.expireTime.chatRequest.valuePositive)
-            requests.removeHeadIf { now - it > config.expireTime.chatRequest.toMillis() }
+            requests.removeWhile { now - it > config.expireTime.chatRequest.toMillis() }
         if (config.expireTime.filtered.valuePositive)
-            filtered.removeHeadIf { now - it > config.expireTime.filtered.toMillis() }
+            filtered.removeWhile { now - it > config.expireTime.filtered.toMillis() }
         if (config.expireTime.score > 0)
-            scores.removeHeadIf { now - it.time > config.expireTime.score }
+            scores.removeWhile { now - it.time > config.expireTime.score }
         return this
-    }
-
-    private fun <T> ArrayDeque<T>.removeHeadIf(predicate: (T) -> Boolean) {
-        val firstNotMatch = this.indexOfFirst { !predicate.invoke(it) }
-        for (i in 0 ..< firstNotMatch) {
-            this.removeFirst()
-        }
     }
 
     data class MessageRecord(

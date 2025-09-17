@@ -12,4 +12,15 @@ object CollectionUtils {
         }
     }
 
+    inline fun <T> MutableIterable<T>.removeWhile(predicate: (T) -> Boolean) {
+        val iterator = iterator()
+        for (element in iterator) {
+            if (predicate(element)) {
+                iterator.remove()
+            } else {
+                break
+            }
+        }
+    }
+
 }
