@@ -285,7 +285,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         // Need to use chunk.getBlockState on Folia
         val chunk = level.getChunkIfLoaded(player.blockPosition()) ?: return
         val pos = listOf(player.blockPosition(), player.blockPosition().offset(0, 1, 0), player.blockPosition().offset(0, -1, 0))
-        if (pos.find { chunk.getBlockState(it).bukkitMaterial == Material.LAVA } != null) {
+        if (pos.any { chunk.getBlockState(it).bukkitMaterial == Material.LAVA }) {
             checkBlockUpdate(player.bukkitEntity, player.blockPosition())
         }
     }

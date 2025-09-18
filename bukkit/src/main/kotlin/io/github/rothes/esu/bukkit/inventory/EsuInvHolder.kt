@@ -90,7 +90,7 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
     }
 
     open fun handleDrag(e: InventoryDragEvent) {
-        if (e.rawSlots.find { it < inv.size } != null)
+        if (e.rawSlots.any { it < inv.size })
             e.isCancelled = true
     }
 

@@ -43,7 +43,7 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
             private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
                 val config = config.waterlogged
                 if (config.disableWaterloggedBlockPush) {
-                    if (blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
+                    if (blocks.any { (it.blockData as? Waterlogged)?.isWaterlogged == true }) {
                         e.isCancelled = true
                         return
                     }

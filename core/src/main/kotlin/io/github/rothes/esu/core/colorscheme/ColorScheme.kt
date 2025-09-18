@@ -86,7 +86,7 @@ data class ColorScheme(
         }
 
         override fun has(name: String): Boolean {
-            return keys.find { it.equals(name, ignoreCase = true) } != null
+            return keys.any { it.equals(name, ignoreCase = true) }
         }
 
     }

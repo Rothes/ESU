@@ -60,12 +60,12 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         val esuId = plugin.container.description.id
         val plugins = plugin.server.pluginManager.plugins.filter {
             val description = it.description
-            !config.pluginBlacklist.contains(description.id) && description.dependencies.find { it.id == esuId } != null
+            !config.pluginBlacklist.contains(description.id) && description.dependencies.any { p -> p.id == esuId }
         }.sortedWith { a, b ->
             val da = a.description
             val db = b.description
             val otherId = db.id
-            if (da.dependencies.find { it.id == otherId } != null) -1 else 1
+            if (da.dependencies.any { it.id == otherId }) -1 else 1
         }
         plugins.forEach {
             VelocityPluginManager.get().unloadPlugin(it)

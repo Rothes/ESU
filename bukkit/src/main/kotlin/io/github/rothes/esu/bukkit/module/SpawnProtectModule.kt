@@ -151,7 +151,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
             if (config.disableSpawnPushRadius > 0) {
                 val dist = abs(e.block.x) + abs(e.block.z)
                 if (dist <= config.disableSpawnPushRadius
-                    && blocks.find { (it.blockData as? Waterlogged)?.isWaterlogged == true } != null) {
+                    && blocks.any { (it.blockData as? Waterlogged)?.isWaterlogged == true }) {
                     e.isCancelled = true
                 }
             }
