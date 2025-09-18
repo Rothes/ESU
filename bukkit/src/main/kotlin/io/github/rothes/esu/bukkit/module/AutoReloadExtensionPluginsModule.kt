@@ -36,7 +36,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         }
 
     override fun canUse(): Boolean {
-        return super.canUse() && !plugin.initialized && Bukkit.getPluginManager().getPlugin("PlugMan") != null
+        return super.canUse() && !plugin.initialized && listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) }
     }
 
     override fun enable() {
