@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.PalettedContainerReader
-import io.github.rothes.esu.core.util.UnsafeUtils.usObjGetter
+import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import net.minecraft.util.BitStorage
 import net.minecraft.world.level.chunk.Palette
 import net.minecraft.world.level.chunk.PalettedContainer
@@ -11,9 +11,9 @@ class PalettedContainerReaderImpl: PalettedContainerReader {
     private val dataField = PalettedContainer::class.java.declaredFields.last { field ->
         field.type == PalettedContainer::class.java.declaredClasses.first { it.declaredFields.size == 3 }
     }
-    private val data = dataField.usObjGetter
-    private val storage = dataField.type.declaredFields.first { it.type == BitStorage::class.java }.usObjGetter
-    private val palette = dataField.type.declaredFields.first { it.type == Palette::class.java }.usObjGetter
+    private val data = dataField.usObjAccessor
+    private val storage = dataField.type.declaredFields.first { it.type == BitStorage::class.java }.usObjAccessor
+    private val palette = dataField.type.declaredFields.first { it.type == Palette::class.java }.usObjAccessor
 
     override fun getStorage(container: PalettedContainer<*>): BitStorage {
         return storage[data[container]] as BitStorage

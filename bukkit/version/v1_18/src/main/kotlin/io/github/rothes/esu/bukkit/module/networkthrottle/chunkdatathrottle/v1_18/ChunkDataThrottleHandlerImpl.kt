@@ -39,7 +39,7 @@ import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
-import io.github.rothes.esu.core.util.UnsafeUtils.usObjGetter
+import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -889,7 +889,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         private object CB: SectionGetter {
 
             // This field is private on Spigot
-            private val getter = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }.usObjGetter
+            private val getter = LevelChunkSection::class.java.declaredFields.first { it.type == PalettedContainer::class.java }.usObjAccessor
 
             override fun getContainer(section: LevelChunkSection): PalettedContainer<BlockState> {
                 @Suppress("UNCHECKED_CAST")

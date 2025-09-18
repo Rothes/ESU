@@ -2,8 +2,7 @@ package io.github.rothes.esu.bukkit.module.optimizations.v1
 
 import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
-import io.github.rothes.esu.core.util.UnsafeUtils.usLongGetter
-import io.github.rothes.esu.core.util.UnsafeUtils.usLongSetter
+import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
 import net.minecraft.server.level.TicketType
 import java.lang.reflect.Modifier
 
@@ -50,14 +49,13 @@ class TicketTypeHandlerImpl: TicketTypeHandler {
         override val name: String = handle.toString()
 
         override var expiryTicks: Long
-            get() = getter[handle]
+            get() = accessor[handle]
             set(value) {
-                setter[handle] = value
+                accessor[handle] = value
             }
 
         companion object {
-            private val getter = expiryTicksField.usLongGetter
-            private val setter = expiryTicksField.usLongSetter
+            private val accessor = expiryTicksField.usLongAccessor
         }
     }
 
