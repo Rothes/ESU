@@ -7,8 +7,10 @@ folia-supported: true
 softdepend:
   - AuthMe
   - CraftEngine
-  - PlugMan
   - packetevents
+  - PlaceholderAPI
+  - PlugMan
+  - PlugManX
 
 permissions:
   'esu.antiCommandSpam.admin':
