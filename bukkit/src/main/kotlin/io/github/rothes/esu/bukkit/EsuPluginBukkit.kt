@@ -191,7 +191,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         ModuleManager.addModule(ChatAntiSpamModule)
         ModuleManager.addModule(CommandAntiSpamModule)
         ModuleManager.addModule(EsuChatModule)
-        ModuleManager.addModule(ExploitFixModule)
+        ModuleManager.addModule(ExploitFixesModule)
         ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(SpawnProtectModule)
