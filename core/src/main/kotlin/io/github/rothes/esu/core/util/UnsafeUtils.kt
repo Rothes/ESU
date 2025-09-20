@@ -4,6 +4,7 @@ import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import sun.misc.Unsafe
 import java.lang.invoke.MethodHandle
+import java.lang.management.ManagementFactory
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -18,10 +19,12 @@ object UnsafeUtils {
 
     init {
         val internalOffsetMethod = internalUnsafe.javaClass.getDeclaredMethod("objectFieldOffset", Field::class.java)
-        val bool = unsafe.getBoolean(internalOffsetMethod, 12)
-        unsafe.putBoolean(internalOffsetMethod, 12, true) // Make it accessible
+        val newHeader = Runtime.version().version().first() >= 24 && ManagementFactory.getRuntimeMXBean().inputArguments.any { it == "-XX:+UseCompactObjectHeaders" }
+        val accessibleOffset = if (newHeader) 8L else 12L
+        val bool = unsafe.getBoolean(internalOffsetMethod, accessibleOffset)
+        unsafe.putBoolean(internalOffsetMethod, accessibleOffset, true) // Make it accessible
         internalOffset = internalOffsetMethod.handle(pType = Any::class.java) // This checks for accessible when we get it
-        unsafe.putBoolean(internalOffsetMethod, 12, bool) // Set accessible back, we no longer need the hack
+        unsafe.putBoolean(internalOffsetMethod, accessibleOffset, bool) // Set accessible back, we no longer need the hack
     }
 
     fun <T> Field.usGet(obj: Any?): T {
