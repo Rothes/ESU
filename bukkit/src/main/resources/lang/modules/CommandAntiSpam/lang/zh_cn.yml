@@ -1,0 +1,6 @@
+warn-message:
+  suicide-spam: <ec>请勿刷屏式发送自杀信息。继续操作将导致踢出
+  generic-spam: <ec>请勿刷屏式发送指令。继续操作将导致踢出
+kick-message:
+  suicide-spam: <ec>请勿刷屏式发送自杀信息
+  generic-spam: <ec>请勿刷屏式发送指令
