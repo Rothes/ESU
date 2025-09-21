@@ -10,16 +10,14 @@ import java.lang.reflect.Modifier
 
 object UnsafeUtils {
 
-    val unsafe: Unsafe = Unsafe::class.java.getDeclaredField("theUnsafe").also {
-        it.isAccessible = true
-    }.get(null) as Unsafe
+    val unsafe: Unsafe = Unsafe::class.java.getDeclaredField("theUnsafe").accessibleGet(null) as Unsafe
 
     private val internalUnsafe = unsafe.javaClass.getDeclaredField("theInternalUnsafe").accessibleGet(null)
     private val internalOffset: MethodHandle
 
     init {
         val internalOffsetMethod = internalUnsafe.javaClass.getDeclaredMethod("objectFieldOffset", Field::class.java)
-        val newHeader = Runtime.version().version().first() >= 24 && ManagementFactory.getRuntimeMXBean().inputArguments.any { it == "-XX:+UseCompactObjectHeaders" }
+        val newHeader = Runtime.version().version().first() >= 24 && ManagementFactory.getRuntimeMXBean().inputArguments.contains("-XX:+UseCompactObjectHeaders")
         val accessibleOffset = if (newHeader) 8L else 12L
         val bool = unsafe.getBoolean(internalOffsetMethod, accessibleOffset)
         unsafe.putBoolean(internalOffsetMethod, accessibleOffset, true) // Make it accessible
