@@ -20,9 +20,12 @@ object UnsafeUtils {
         val newHeader = Runtime.version().version().first() >= 24 && ManagementFactory.getRuntimeMXBean().inputArguments.contains("-XX:+UseCompactObjectHeaders")
         val accessibleOffset = if (newHeader) 8L else 12L
         val bool = unsafe.getBoolean(internalOffsetMethod, accessibleOffset)
-        unsafe.putBoolean(internalOffsetMethod, accessibleOffset, true) // Make it accessible
-        internalOffset = internalOffsetMethod.handle(pType = Any::class.java) // This checks for accessible when we get it
-        unsafe.putBoolean(internalOffsetMethod, accessibleOffset, bool) // Set accessible back, we no longer need the hack
+        try {
+            unsafe.putBoolean(internalOffsetMethod, accessibleOffset, true) // Make it accessible
+            internalOffset = internalOffsetMethod.handle(pType = Any::class.java) // This checks for accessible when we get it
+        } finally {
+            unsafe.putBoolean(internalOffsetMethod, accessibleOffset, bool) // Set accessible back, we no longer need the hack
+        }
     }
 
     fun <T> Field.usGet(obj: Any?): T {
