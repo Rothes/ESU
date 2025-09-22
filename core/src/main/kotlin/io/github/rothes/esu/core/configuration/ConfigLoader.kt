@@ -115,7 +115,7 @@ object ConfigLoader {
                     if (resolve.notExists()) {
                         resource.save(dataClass, resolve)
                     } else {
-                        val loader = createBuilder(null).let(settings.yamlLoader).path(path).build()
+                        val loader = createBuilder(null).let(settings.yamlLoader).path(resolve).build()
                         val config = loader.load()
                         val read = resource.readConfig(dataClass, settings)
                         config.mergeFrom(read)
