@@ -109,7 +109,7 @@ object ConfigLoader {
             }
             if (settings.findResource) {
                 val p = settings.basePath.relativize(path)
-                val lang = getLangCache(dataClass.classLoader, p.pathString)
+                val lang = getLangCache(dataClass, p.pathString)
                 for (resource in lang) {
                     val resolve = path.resolve(resource.name)
                     if (resolve.notExists()) {
@@ -177,7 +177,7 @@ object ConfigLoader {
         val resourceNode =
             if (settings.findResource) {
                 val p = settings.basePath.relativize(path)
-                val lang = getLangCache(clazz.classLoader, p.pathString)
+                val lang = getLangCache(clazz, p.pathString)
                 val locale = if (EsuConfig.initialized) EsuConfig.get().locale else Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase()
                 val resource = lang.find { it.nameWithoutExtension == locale }
                     ?: lang.firstOrNull { it.nameWithoutExtension.substringBefore('_') == locale.substringBefore('_') }
@@ -413,10 +413,11 @@ object ConfigLoader {
         return result
     }
 
-    private fun getLangCache(classLoader: ClassLoader, path: String): List<LangResource> {
+    private fun getLangCache(clazz: Class<*>, path: String): List<LangResource> {
+        val classLoader = clazz.classLoader
         val tree = langCache.getIfPresent(classLoader) ?: let {
             val root = TreeNode<List<String>>()
-            javaClass.jarFile.use { jarFile ->
+            clazz.jarFile.use { jarFile ->
                 val entries = jarFile.entries()
                 while (entries.hasMoreElements()) {
                     val entry = entries.nextElement()
