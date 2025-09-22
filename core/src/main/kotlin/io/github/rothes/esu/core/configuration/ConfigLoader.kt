@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.*
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.core.util.tree.TreeNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.BasicConfigurationNode
 import io.github.rothes.esu.lib.org.spongepowered.configurate.CommentedConfigurationNode
@@ -25,17 +26,12 @@ import net.kyori.adventure.text.Component
 import java.io.File
 import java.lang.reflect.Type
 import java.net.URLConnection
-import java.net.URLDecoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.jar.JarFile
 import java.util.zip.ZipException
-import kotlin.io.bufferedReader
-import kotlin.io.copyTo
 import kotlin.io.path.*
-import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
@@ -420,7 +416,7 @@ object ConfigLoader {
     private fun getLangCache(classLoader: ClassLoader, path: String): List<LangResource> {
         val tree = langCache.getIfPresent(classLoader) ?: let {
             val root = TreeNode<List<String>>()
-            JarFile(URLDecoder.decode(javaClass.protectionDomain.codeSource.location.path, Charsets.UTF_8)).use { jarFile ->
+            javaClass.jarFile.use { jarFile ->
                 val entries = jarFile.entries()
                 while (entries.hasMoreElements()) {
                     val entry = entries.nextElement()

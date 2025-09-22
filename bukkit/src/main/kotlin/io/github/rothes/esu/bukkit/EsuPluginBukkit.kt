@@ -31,6 +31,7 @@ import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
+import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -53,9 +54,7 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
-import java.net.URLDecoder
 import java.nio.file.Path
-import java.util.jar.JarFile
 import java.util.logging.Level
 
 class EsuPluginBukkit: JavaPlugin(), EsuCore {
@@ -133,7 +132,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         tempFolder.deleteRecursively()
         tempFolder.mkdirs()
 
-        JarFile(URLDecoder.decode(javaClass.protectionDomain.codeSource.location.path, Charsets.UTF_8)).use { jarFile ->
+        javaClass.jarFile.use { jarFile ->
             val entries = jarFile.entries()
             while (entries.hasMoreElements()) {
                 val entry = entries.nextElement()
