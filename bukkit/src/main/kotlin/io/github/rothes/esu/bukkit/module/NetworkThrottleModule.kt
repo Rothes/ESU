@@ -87,7 +87,7 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
                 Set it to -1 will never resent chunk but keep updating nearby blocks, 
                  0 to always resent chunks.
                 """)
-            val thresholdToResentWholeChunk: Int = 448,
+            val thresholdToResentWholeChunk: Int = 768,
             @Comment("""
                 We updates the nearby blocks when a player digs a block immediately.
                 If this is enabled, we will check if the block is in the interaction range
