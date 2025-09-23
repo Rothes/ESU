@@ -4,9 +4,18 @@ Bukkit & Velocity plugin that helps with managing your server, provides a better
 
 For end users, please learn more and download at [**Modrinth** page](https://modrinth.com/plugin/esu).
 
-## Building
+## Dependencies
 
-1. Install Git, Gradle 8.14+, Java 21
+This project uses the following core dependencies to facilitate development. Thanks a lot!
+- [Cloud-minecraft](https://github.com/Incendo/cloud-minecraft): Command framework.
+- [Adventure](https://github.com/KyoriPowered/adventure): User interface library.
+- [Configurate](https://github.com/SpongePowered/Configurate): Configuration library.
+- [Exposed](https://www.jetbrains.com/exposed/): Kotlin SQL library.
+- [AutoRenamingTool](https://projects.neoforged.net/neoforged/autorenamingtool): Jar Remapper. For adaptive NMS support.
+
+## 🔨 Building
+
+1. Install Git, Gradle 8.14+, Java 21.
 2. Clone the repository:
    ```bash
    git clone https://github.com/Rothes/ESU.git
@@ -19,28 +28,18 @@ For end users, please learn more and download at [**Modrinth** page](https://mod
 4. Locate the artifacts under `bukkit/build/libs` and `velocity/build/libs`.
 
 
-## Dependencies
-
-This project uses the following core dependencies to facilitate development. Thanks a lot!
-- [Cloud-minecraft](https://github.com/Incendo/cloud-minecraft): Command framework.
-- [Adventure](https://github.com/KyoriPowered/adventure): User interface library.
-- [Configurate](https://github.com/SpongePowered/Configurate): Configuration library.
-- [Exposed](https://www.jetbrains.com/exposed/): Kotlin SQL library.
-- [AutoRenamingTool](https://projects.neoforged.net/neoforged/autorenamingtool): Runtime Jar Remapper. For multi-version support.
-
-
-## Contributing
+## 🤝 Contributing
 
 Pull requests are welcome! If you would like to contribute to this project, please feel free to do that. \
 We would communicate with you proactively to ensure your pull request meets the project standards!
 
-### New Features & Bug Fixes
+### 🔧 New Features & Bug Fixes
 
 If your PR about a short bug fix, it will likely be merged.
 If you are going to add a new feature, please contact us on [Discord](https://discord.gg/zwzzkmYCBb) in advance,
 so we can confirm that this feature is on the right track for project and provide with some guidance.
 
-### Translations
+### 🌏 Translations
 
 You can submit your translations to us. We really appreciate that!
 
@@ -59,7 +58,7 @@ For example, if you are adding translation for velocity modules, then go velocit
 
 #### Lang folder translations
 
-If you want to add a language resource to the lang directory, simply copy the en_us.yml file and modify it as is.
+If you want to add a language resource to the lang directory, simply copy the en_us.yml file and modify it.
 
 #### Config file translations
 
