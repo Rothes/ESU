@@ -32,6 +32,12 @@ subprojects {
         }
     }
 
+    configurations {
+        all {
+            exclude("me.lucko", "spark-paper") // me.lucko:spark-paper:1.10.84 is missing on 1.21.0
+        }
+    }
+
     tasks.shadowJar {
         archiveFileName = project.name + ".jar"
         val split = project.name.substring(1).split('_')
