@@ -30,6 +30,8 @@ This project uses the following core dependencies to facilitate development. Tha
 
 ## 🤝 Contributing
 
+ESU is licensed under [GNU Lesser General Public License v3](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+
 Pull requests are welcome! If you would like to contribute to this project, please feel free to do that. \
 We would communicate with you proactively to ensure your pull request meets the project standards!
 
