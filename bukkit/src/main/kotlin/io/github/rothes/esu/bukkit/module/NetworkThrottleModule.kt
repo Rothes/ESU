@@ -83,11 +83,20 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
         data class ChunkDataThrottle(
             val enabled: Boolean = true,
             @Comment("""
-                Plugin will resent whole chunk data if resent block amount exceeds this value.
+                Plugin will resent complete original chunk data if resent block amount exceeds this value.
                 Set it to -1 will never resent chunk but keep updating nearby blocks, 
-                 0 to always resent chunks.
-                """)
-            val thresholdToResentWholeChunk: Int = 768,
+                 0 to always resent original chunks.
+                Set this to a large value can prevent constantly sending block update packets.
+                Original chunk is not with anti-xray functionality. It is recommended to leave this value -1 .
+                """,
+                overrideOld = [
+                    """
+                    Plugin will resent whole chunk data if resent block amount exceeds this value.
+                    Set it to -1 will never resent chunk but keep updating nearby blocks, 
+                     0 to always resent chunks.
+                    """
+                ])
+            val thresholdToResentWholeChunk: Int = -1,
             @Comment("""
                 We updates the nearby blocks when a player digs a block immediately.
                 If this is enabled, we will check if the block is in the interaction range
