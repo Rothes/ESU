@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.util.AdventureConverter.esu
+import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
@@ -149,7 +150,7 @@ interface User {
     }
 
     fun message(message: String) {
-        message(LegacyComponentSerializer.legacySection().deserialize(message))
+        message(ComponentUtils.fromLegacy(message))
     }
     fun message(message: Component) {
         audience.sendMessage(message)

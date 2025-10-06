@@ -18,9 +18,9 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
+import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
-import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -48,7 +48,7 @@ object CasListeners: Listener {
         object : Listener {
             @EventHandler(priority = EventPriority.HIGH)
             fun onChat(event: AsyncChatEvent) {
-                if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(event.message().esu), Chat)) {
+                if (checkBlocked(event.player, event.message().esu.legacy, Chat)) {
                     event.isCancelled = true
                 }
             }
@@ -94,7 +94,7 @@ object CasListeners: Listener {
     fun onDeath(event: PlayerDeathEvent) {
         val deathMessage = event.deathMessage()?.esu
         if (deathMessage is TranslatableComponent) {
-            if (checkBlocked(event.player, LegacyComponentSerializer.legacySection().serialize(deathMessage), Death)) {
+            if (checkBlocked(event.player, deathMessage.legacy, Death)) {
                 return event.deathMessage(null)
             }
         }
