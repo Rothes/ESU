@@ -225,13 +225,24 @@ object ConfigLoader {
                                 val resourceComment = (resourceNode?.node(destination.path()) as? CommentedConfigurationNodeIntermediary<*>)?.comment()
                                 if (resourceComment != null && destination.comment() == data.value.trimIndent()) {
                                     destination.comment(resourceComment)
-                                } else if (data.overrideOld.isEmpty() || destination.comment() == null) {
+                                    return@Processor
+                                }
+                                val resourceOld = resourceNode?.node("_oc_")?.node(destination.path()) // _oc_ = _old_comments_
+                                val allOld = (
+                                        if (resourceOld != null && resourceOld.isList)
+                                            resourceOld.getList(String::class.java)!!.plus(data.overrideOld)
+                                        else
+                                            data.overrideOld.toList()
+                                        ).map { it.toString().trimIndent() }
+
+                                if (allOld.isEmpty() || destination.comment() == null) {
                                     destination.commentIfAbsent(resourceComment ?: data.value.trimIndent())
-                                } else if (data.overrideOld.first() == OVERRIDE_ALWAYS) {
+                                } else if (data.overrideOld.firstOrNull() == OVERRIDE_ALWAYS) {
                                     destination.comment(resourceComment ?: data.value.trimIndent())
-                                } else if (data.overrideOld.map { it.trimIndent() }.contains(destination.comment())) {
+                                } else if (allOld.contains(destination.comment())) {
                                     destination.comment(resourceComment ?: data.value.trimIndent())
                                 }
+
                             }
                         }
                     }
