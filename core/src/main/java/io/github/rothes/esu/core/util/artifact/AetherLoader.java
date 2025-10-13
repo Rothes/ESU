@@ -41,7 +41,7 @@ public class AetherLoader {
 
     private static void downloadAetherLib(String domain, File resolve) throws IOException {
         var url = URI.create("https://" + domain + "/Rothes/ESU/raw/refs/heads/raw/aether-library.jar").toURL();
-        EsuBootstrap.Companion.getInstance().info(String.format("Downloading %s from %s", url, domain));
+        EsuBootstrap.Companion.getInstance().info(String.format("Downloading %s to %s", url, resolve.toString()));
         resolve.getParentFile().mkdirs();
         resolve.createNewFile();
         try (
