@@ -124,7 +124,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
 
         loadVersions()
         Class.forName("io.github.rothes.esu.bukkit.AnsiFlattener")
-        enabledHot = byPluginMan()
+        enabledHot = byPlugMan()
     }
 
     private fun loadVersions() {
@@ -299,7 +299,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
 
     override fun onDisable() {
-        disabledHot = byPluginMan()
+        disabledHot = byPlugMan()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {
@@ -346,10 +346,11 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         return dataFolder.toPath()
     }
 
-    private fun byPluginMan(): Boolean {
+    private fun byPlugMan(): Boolean {
         var found = false
         StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach {
-            if (found || it.declaringClass.canonicalName.contains("plugman")) {
+            val name = it.declaringClass.canonicalName
+            if (found || (name != null && name.contains("plugman"))) {
                 found = true
             }
         }

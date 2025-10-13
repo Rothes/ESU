@@ -254,7 +254,8 @@ class EsuPluginVelocity(
     private fun byServerUtils(): Boolean {
         var found = false
         StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach {
-            if (found || it.declaringClass.canonicalName.contains("serverutils")) {
+            val name = it.declaringClass.canonicalName
+            if (found || (name != null && name.contains("serverutils"))) {
                 found = true
             }
         }
