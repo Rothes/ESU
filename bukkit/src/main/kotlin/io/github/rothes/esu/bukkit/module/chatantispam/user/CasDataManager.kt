@@ -51,8 +51,7 @@ object CasDataManager {
     init {
         transaction(database) {
             // <editor-fold desc="TableUpgrader">
-            TableUpgrader(ChatSpamTable, 4, {
-                println("Upgrading ChatSpamDataTable to 2")
+            TableUpgrader(ChatSpamTable, {
                 fun alter(column: String, type: String) {
                     exec("ALTER TABLE `$tableName` MODIFY COLUMN `$column` $type")
                 }
@@ -63,11 +62,9 @@ object CasDataManager {
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE NO ACTION")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `data` CHECK (json_valid(`data`))")
             }, {
-                println("Upgrading ChatSpamDataTable to 3")
                 exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE")
             }, {
-                println("Upgrading ChatSpamDataTable to 4")
                 exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
             })

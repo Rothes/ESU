@@ -67,8 +67,7 @@ object StorageManager {
         transaction(database) {
             SchemaUtils.create(MetaTable)
             // <editor-fold desc="TableUpgrader">
-            TableUpgrader(UsersTable, 2, {
-                println("Upgrading UsersTable")
+            TableUpgrader(UsersTable, {
                 exec("ALTER TABLE `$tableName` RENAME TO `${tableName}_old`")
                 val oldTable = object : Table("users_old") {
                     val dbId = integer("id").autoIncrement()
@@ -194,23 +193,31 @@ object StorageManager {
 
     class TableUpgrader(
         table: Table,
-        version: Int,
         vararg upgradeHandlers: () -> Unit,
     ) {
         init {
             val tableName = table.tableName
             val tbKey = "tbv_$tableName"
 
-            if (SchemaUtils.listTables().map { it.substringAfter('.') }.contains(tableName)) {
-                val schemaVer = MetaTable.select(MetaTable.value).where(MetaTable.key eq tbKey)
+            val version = upgradeHandlers.size + 1
+
+            var currentVer = 1
+            if (SchemaUtils.listTables().map { it.substringAfter('.') }.any { it.equals(tableName, true)}) {
+                currentVer = MetaTable.select(MetaTable.value).where(MetaTable.key eq tbKey)
                     .singleOrNull()?.let { it[MetaTable.value].toInt() } ?: 1
-                for (i in schemaVer until version) {
-                    upgradeHandlers[i - 1]()
+                for (i in currentVer until version) {
+                    EsuCore.instance.info("Upgrading schema of $tableName to $i")
+                    try {
+                        upgradeHandlers[i - 1]()
+                    } catch (e: Exception) {
+                        EsuCore.instance.err("Failed to upgrade schema of $tableName to $i, ignoring", e)
+                        break
+                    }
                 }
             }
             MetaTable.upsert {
                 it[key] = tbKey
-                it[value] = version.toString()
+                it[value] = currentVer.toString()
             }
         }
     }
