@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.util.artifact
 
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.util.FileHashes.Companion.sha1
 import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
+import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
 import java.io.IOException
 import java.net.URI
 
