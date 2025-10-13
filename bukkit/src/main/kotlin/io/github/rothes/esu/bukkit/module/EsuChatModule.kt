@@ -9,6 +9,8 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.papi
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MINECRAFT
@@ -323,13 +325,13 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         fun enable() {
-            Bukkit.getPluginManager().registerEvents(Listeners, plugin)
-            Bukkit.getPluginManager().registerEvents(chatListener, plugin)
+            Listeners.register()
+            chatListener.register()
         }
 
         fun disable() {
-            HandlerList.unregisterAll(Listeners)
-            HandlerList.unregisterAll(chatListener)
+            Listeners.unregister()
+            chatListener.unregister()
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

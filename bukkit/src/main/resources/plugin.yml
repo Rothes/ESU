@@ -1,5 +1,5 @@
 name: ESU
-main: io.github.rothes.esu.bukkit.EsuPluginBukkit
+main: io.github.rothes.esu.bukkit.EsuBootstrapBukkit
 version: @finalVersionName@
 api-version: 1.13
 author: Rothes

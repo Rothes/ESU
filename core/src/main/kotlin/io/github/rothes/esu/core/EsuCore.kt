@@ -5,18 +5,28 @@ import io.github.rothes.esu.core.util.InitOnce
 import org.incendo.cloud.CommandManager
 import java.nio.file.Path
 
-interface EsuCore {
+interface EsuCore : EsuLogger {
 
     val dependenciesResolved: Boolean
     val initialized: Boolean
     val commandManager: CommandManager<out User>
 
-    fun info(message: String)
-    fun warn(message: String)
-    fun err(message: String)
-    fun err(message: String, throwable: Throwable?)
+    override fun info(message: String) {
+        EsuBootstrap.instance.info(message)
+    }
+    override fun warn(message: String) {
+        EsuBootstrap.instance.warn(message)
+    }
+    override fun err(message: String) {
+        EsuBootstrap.instance.err(message)
+    }
+    override fun err(message: String, throwable: Throwable?) {
+        EsuBootstrap.instance.err(message, throwable)
+    }
 
-    fun baseConfigPath(): Path
+    fun baseConfigPath(): Path {
+        return EsuBootstrap.instance.baseConfigPath()
+    }
 
     companion object {
 

@@ -351,8 +351,9 @@ object ConfigLoader {
                                     GenericTypeReflector.erase(type).let { clazz ->
                                         try {
                                             clazz.kotlin.isData
-                                        } catch (_: KotlinReflectionNotSupportedError) {
+                                        } catch (e: KotlinReflectionNotSupportedError) {
                                             // If we don't have kotlin-reflect
+                                            EsuCore.instance.warn(e.toString())
                                             false
                                         } catch (e: Throwable) {
                                             if (e is ZipException) {

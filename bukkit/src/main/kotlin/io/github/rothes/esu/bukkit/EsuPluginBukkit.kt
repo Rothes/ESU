@@ -18,6 +18,7 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -57,7 +58,9 @@ import org.incendo.cloud.setting.ManagerSetting
 import java.nio.file.Path
 import java.util.logging.Level
 
-class EsuPluginBukkit: JavaPlugin(), EsuCore {
+class EsuPluginBukkit(
+    val bootstrap: EsuBootstrapBukkit
+): EsuCore {
 
     override var dependenciesResolved: Boolean = false
         private set
@@ -71,7 +74,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         EsuCore.instance = this
         BukkitDataSerializer // Register bukkit serializers
         if (!ServerCompatibility.isMojmap) {
-            AetherLoader // For Spigot 1.16.5 and older
             MavenResolver.loadDependencies(
                 listOf(
                     "net.neoforged:AutoRenamingTool:2.0.13",
@@ -128,7 +130,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
 
     private fun loadVersions() {
-        val tempFolder = dataFolder.resolve(".cache/minecraft_versions")
+        val tempFolder = bootstrap.dataFolder.resolve(".cache/minecraft_versions")
         tempFolder.deleteRecursively()
         tempFolder.mkdirs()
 
@@ -156,7 +158,7 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
     }
 
     override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
-        LegacyPaperCommandManager(this, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
+        LegacyPaperCommandManager(bootstrap, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
                 is ConsoleCommandSender -> ConsoleUser
                 is Player               -> it.user
@@ -175,7 +177,8 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
             EsuExceptionHandlers(exceptionController()).register()
         }
     }
-    override fun onEnable() {
+
+    fun onEnable() {
         adventure           // Init adventure
         EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
         BukkitEsuLocale     // Load global locale
@@ -289,16 +292,16 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
                     holder.onClose()
                 }
             }
-        }, this)
+        }, bootstrap)
         UserLoginEvent // Init
 
-        Metrics(this, 24645) // bStats
+        Metrics(bootstrap, 24645) // bStats
         Scheduler.global {
             initialized = true
         }
     }
 
-    override fun onDisable() {
+    fun onDisable() {
         disabledHot = byPlugMan()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
@@ -326,26 +329,6 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         adventure.close()
     }
 
-    override fun info(message: String) {
-        logger.log(Level.INFO, message)
-    }
-
-    override fun warn(message: String) {
-        logger.log(Level.WARNING, message)
-    }
-
-    override fun err(message: String) {
-        logger.log(Level.SEVERE, message)
-    }
-
-    override fun err(message: String, throwable: Throwable?) {
-        logger.log(Level.SEVERE, message, throwable)
-    }
-
-    override fun baseConfigPath(): Path {
-        return dataFolder.toPath()
-    }
-
     private fun byPlugMan(): Boolean {
         var found = false
         StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach {
@@ -356,5 +339,12 @@ class EsuPluginBukkit: JavaPlugin(), EsuCore {
         }
         return found
     }
+
+    // JavaPlugin methods
+    val isEnabled
+        get() = bootstrap.isEnabled
+    @Suppress("DEPRECATION")
+    val description
+        get() = bootstrap.description
 
 }

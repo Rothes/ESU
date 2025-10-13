@@ -20,7 +20,6 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
@@ -42,7 +41,7 @@ import org.slf4j.Logger
 import java.nio.file.Path
 
 class EsuPluginVelocity(
-    val bootstrap: EsuBootstrap,
+    val bootstrap: EsuBootstrapVelocity,
 ): EsuCore {
 
     override var dependenciesResolved: Boolean = false
@@ -68,7 +67,6 @@ class EsuPluginVelocity(
         EsuCore.instance = this
         enabledHot = byServerUtils()
 
-        AetherLoader
         MavenResolver.loadDependencies(
             listOf(
                 "org.jetbrains.exposed:exposed-core:${BuildConfig.EXPOSED_VERSION}",
@@ -229,26 +227,6 @@ class EsuPluginVelocity(
         VelocityUserManager.getCache(event.player.uniqueId)?.let {
             VelocityUserManager.unload(it)
         }
-    }
-
-    override fun info(message: String) {
-        logger.info(message)
-    }
-
-    override fun warn(message: String) {
-        logger.warn(message)
-    }
-
-    override fun err(message: String) {
-        logger.error(message)
-    }
-
-    override fun err(message: String, throwable: Throwable?) {
-        logger.error(message, throwable)
-    }
-
-    override fun baseConfigPath(): Path {
-        return dataDirectory
     }
 
     private fun byServerUtils(): Boolean {

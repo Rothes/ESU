@@ -9,13 +9,12 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEditBook
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
@@ -27,13 +26,13 @@ object EditorManager {
     private val confirming = mutableMapOf<Player, () -> Unit>()
 
     fun enable() {
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)
     }
 
     fun disable() {
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListeners)
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
     }
 
     fun getEditing(player: Player): EditData? {

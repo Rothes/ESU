@@ -1,18 +1,17 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWatchModule.ModuleLocale>(
@@ -23,7 +22,7 @@ object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWa
     val players: LinkedHashSet<Player> = LinkedHashSet()
 
     override fun enable() {
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
 
         Bukkit.getOnlinePlayers().forEach {
             it.spectatorTarget
@@ -32,7 +31,7 @@ object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWa
 
     override fun disable() {
         super.disable()
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
     }
 
     object Listeners: Listener {

@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
@@ -14,7 +15,7 @@ object JarRemapper {
 
     private const val REMAPPER_VERSION = "3"
 
-    private val cacheFolder = plugin.dataFolder.resolve(".cache/remapped")
+    private val cacheFolder = bootstrap.dataFolder.resolve(".cache/remapped")
     private val cached = FileHashes(cacheFolder)
 
     fun reobf(file: File): File {

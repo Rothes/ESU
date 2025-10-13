@@ -47,9 +47,5 @@ subprojects {
                 "org.bukkit.craftbukkit"
             )
         }
-        dependencies {
-            exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
-            exclude(dependency("org.jetbrains:annotations"))
-        }
     }
 }

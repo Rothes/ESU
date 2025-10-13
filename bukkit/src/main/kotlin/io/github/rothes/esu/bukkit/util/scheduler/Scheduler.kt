@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
-import io.github.rothes.esu.bukkit.plugin as esuPlugin
+import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
 import org.bukkit.Bukkit
 import org.bukkit.Location

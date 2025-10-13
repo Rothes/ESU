@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin
 
 object ListenerExt {
 
-    fun Listener.register(plugin: Plugin = io.github.rothes.esu.bukkit.plugin) {
+    fun Listener.register(plugin: Plugin = io.github.rothes.esu.bukkit.bootstrap) {
         Bukkit.getPluginManager().registerEvents(this, plugin)
     }
 

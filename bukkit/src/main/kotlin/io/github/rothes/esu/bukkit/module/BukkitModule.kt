@@ -48,7 +48,7 @@ abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart>(
         }
     }
 
-    fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.plugin) {
+    fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.bootstrap) {
         Bukkit.getPluginManager().registerEvents(listener, plugin)
         registeredListeners.add(listener)
     }

@@ -9,6 +9,9 @@ import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
+import io.github.rothes.esu.core.EsuBootstrap
+import io.github.rothes.esu.core.util.artifact.AetherLoader
+import io.github.rothes.esu.core.util.artifact.MavenResolver
 import org.bstats.velocity.Metrics
 import org.slf4j.Logger
 import java.nio.file.Path
@@ -26,23 +29,48 @@ import java.nio.file.Path
         Dependency("viaversion", true),
     ]
 )
-class EsuBootstrap @Inject constructor(
+class EsuBootstrapVelocity @Inject constructor(
     val server: ProxyServer,
     val logger: Logger,
     @DataDirectory val dataDirectory: Path,
     @Named("esu") val container: PluginContainer,
     val metricsFactory: Metrics.Factory
-) {
+): EsuBootstrap {
 
-    val esu by lazy {
-        EsuPluginVelocity(this)
+    init {
+        EsuBootstrap.setInstance(this)
+        AetherLoader.loadAether()
+        MavenResolver.loadKotlin()
     }
+
+    val esu = EsuPluginVelocity(this)
 
     @Subscribe
     fun onProxyInitialization(e: ProxyInitializeEvent) {
-        // Need this Bootstrap plugin, as velocity scan all methods, including commandManager getter
-        // whose dependency is loaded later
+        // Need this Bootstrap, as velocity scan all methods,
+        // including our dependencies which are loaded later.
         server.eventManager.register(this, esu)
         esu.onProxyInitialization()
     }
+
+    override fun info(message: String) {
+        logger.info(message)
+    }
+
+    override fun warn(message: String) {
+        logger.warn(message)
+    }
+
+    override fun err(message: String) {
+        logger.error(message)
+    }
+
+    override fun err(message: String, throwable: Throwable?) {
+        logger.error(message, throwable)
+    }
+
+    override fun baseConfigPath(): Path {
+        return dataDirectory
+    }
+
 }

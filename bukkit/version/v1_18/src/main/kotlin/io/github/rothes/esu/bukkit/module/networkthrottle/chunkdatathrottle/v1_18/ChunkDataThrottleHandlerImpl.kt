@@ -37,6 +37,8 @@ import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
@@ -59,7 +61,6 @@ import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
@@ -194,12 +195,12 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
             plugin.err("Failed to load hotData", e)
         }
         PacketEvents.getAPI().eventManager.registerListener(this)
-        Bukkit.getPluginManager().registerEvents(this, plugin)
+        register()
     }
 
     override fun disable() {
         PacketEvents.getAPI().eventManager.unregisterListener(this)
-        HandlerList.unregisterAll(this)
+        unregister()
 
         if (plugin.isEnabled || plugin.disabledHot) {
             val nanoTime = System.nanoTime()

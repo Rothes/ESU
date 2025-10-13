@@ -22,7 +22,11 @@ object ReflectionUtils {
             method.setAccessible(true)
         } catch (_: InaccessibleObjectException) {
         }
-        val pTypes = if (method.modifiers and Modifier.STATIC != 0) argTypes.toList() else listOf(pType, *argTypes)
+        // Not using buildList cuz stdlib is not loaded on bootstrap stage.
+        val pTypes = mutableListOf<Class<*>>().apply {
+            if (method.modifiers and Modifier.STATIC == 0) add(pType)
+            argTypes.forEach { add(it) }
+        }
         return LOOKUP.unreflect(method).asType(MethodType.methodType(rType, pTypes))
     }
 
@@ -48,8 +52,12 @@ object ReflectionUtils {
 
     // Easy functions
     fun Field.accessibleGet(any: Any?): Any {
+        return accessibleGetT(any)
+    }
+    fun <T> Field.accessibleGetT(any: Any?): T {
         isAccessible = true
-        return this.get(any)
+        @Suppress("UNCHECKED_CAST")
+        return this.get(any) as T
     }
 
 }

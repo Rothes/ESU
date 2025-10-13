@@ -1,6 +1,9 @@
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
 import io.github.rothes.esu.core.configuration.meta.Comment
@@ -14,14 +17,12 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Wither
 import org.bukkit.event.EventHandler
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockPistonEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
-import kotlin.jvm.java
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -31,7 +32,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
 
     override fun enable() {
         update()
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
     }
 
     override fun disable() {
@@ -40,7 +41,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
             // This can only run when enabled
             for (world in Bukkit.getWorlds()) {
                 for (chunk in world.loadedChunks) {
-                    Scheduler.schedule(chunk.getBlock(0, 0, 0).location, plugin) {
+                    Scheduler.schedule(chunk.getBlock(0, 0, 0).location) {
                         for (entity in chunk.entities) {
                             resetEntity(entity)
                         }
@@ -48,7 +49,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
                 }
             }
         }
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
     }
 
     override fun reloadConfig() {
@@ -61,7 +62,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
     fun update() {
         for (world in Bukkit.getWorlds()) {
             for (chunk in world.loadedChunks) {
-                Scheduler.schedule(chunk.getBlock(0, 0, 0).location, plugin) {
+                Scheduler.schedule(chunk.getBlock(0, 0, 0).location) {
                     for (entity in chunk.entities) {
                         handleEntity(entity)
                     }
@@ -70,7 +71,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
         }
     }
 
-    private val witherNerfKey = NamespacedKey.fromString("wither-mod", plugin)!!
+    private val witherNerfKey = NamespacedKey.fromString("wither-mod", bootstrap)!!
     fun handleEntity(e: Entity) {
         if (e !is Wither) return
 

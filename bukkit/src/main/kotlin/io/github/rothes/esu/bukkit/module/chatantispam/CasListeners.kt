@@ -12,9 +12,10 @@ import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
@@ -22,11 +23,9 @@ import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.net.kyori.adventure.text.TranslatableComponent
 import io.papermc.paper.event.player.AsyncChatEvent
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerChatEvent
@@ -65,13 +64,13 @@ object CasListeners: Listener {
     }
 
     fun enable() {
-        Bukkit.getPluginManager().registerEvents(CasListeners, plugin)
-        Bukkit.getPluginManager().registerEvents(chatListener, plugin)
+        CasListeners.register()
+        chatListener.register()
     }
 
     fun disable() {
-        HandlerList.unregisterAll(CasListeners)
-        HandlerList.unregisterAll(chatListener)
+        CasListeners.unregister()
+        chatListener.unregister()
     }
 
     @EventHandler

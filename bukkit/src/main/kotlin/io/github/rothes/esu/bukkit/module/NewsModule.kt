@@ -8,12 +8,15 @@ import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -21,7 +24,6 @@ import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.time
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
-import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.lib.net.kyori.adventure.inventory.Book
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.event.ClickEvent
@@ -30,11 +32,9 @@ import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolve
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
-import kotlin.jvm.java
 
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     ModuleConfig::class.java, ModuleLang::class.java
@@ -56,7 +56,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         EditorManager.enable()
         NewsDataManager.start()
         registerCommands(Commands)
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
         Bukkit.getOnlinePlayers().map { it.user }.forEach {
             checkedCache[it] = NewsDataManager.getChecked(it)
         }
@@ -65,7 +65,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     override fun disable() {
         super.disable()
         checkedCache.clear()
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
         EditorManager.disable()
         NewsDataManager.shutdown()
     }

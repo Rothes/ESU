@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.event
 
 import fr.xephi.authme.api.v3.AuthMeApi
 import fr.xephi.authme.events.LoginEvent
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -29,7 +30,7 @@ class UserLoginEvent(
 
         init {
             fun reg(listener: Listener, filter: (Player) -> Boolean) {
-                Bukkit.getPluginManager().registerEvents(listener, plugin)
+                Bukkit.getPluginManager().registerEvents(listener, bootstrap)
                 Bukkit.getOnlinePlayers().filter(filter).forEach { it.user.logonBefore = true }
             }
             if (Bukkit.getPluginManager().isPluginEnabled("AuthMe")) {
@@ -53,7 +54,7 @@ class UserLoginEvent(
                 fun onLogin(e: UserLoginEvent) {
                     e.user.logonBefore = true
                 }
-            }, plugin)
+            }, bootstrap)
         }
     }
 }

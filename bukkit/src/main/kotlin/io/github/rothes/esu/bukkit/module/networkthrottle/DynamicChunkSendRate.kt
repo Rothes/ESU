@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
@@ -46,7 +47,7 @@ object DynamicChunkSendRate {
             plugin.err("[DynamicChunkSendRate] Server not supported: $t")
         }
 
-        Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { channel, player, message ->
+        Bukkit.getMessenger().registerIncomingPluginChannel(bootstrap, CHANNEL_ID) { channel, player, message ->
             val chunkLoaderData = (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
 
             val max =
@@ -76,7 +77,7 @@ object DynamicChunkSendRate {
 
     fun disable() {
         if (running) {
-            Bukkit.getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL_ID)
+            Bukkit.getMessenger().unregisterIncomingPluginChannel(bootstrap, CHANNEL_ID)
             running = false
         }
     }

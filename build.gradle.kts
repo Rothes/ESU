@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     id("java-library")
-    kotlin("jvm") version "2.2.10"
+    kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
     id("com.gradleup.shadow")
 //    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
@@ -51,6 +51,14 @@ subprojects {
         targetCompatibility = javaVer.toString()
     }
 
+    tasks.shadowJar {
+        dependencies {
+            exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
+            exclude(dependency("org.jetbrains.kotlin:kotlin-reflect"))
+            exclude(dependency("org.jetbrains:annotations"))
+        }
+    }
+
     kotlin {
         compilerOptions {
             jvmTarget.value(JvmTarget.fromTarget(javaVer.toString()))
@@ -81,10 +89,13 @@ subprojects {
             }
         }
 
-        if (project.name != "core") {
-            apply(plugin = "com.github.gmazzo.buildconfig")
-            apply(plugin = "publish-modrinth")
-            buildConfig {
+        apply(plugin = "com.github.gmazzo.buildconfig")
+        apply(plugin = "publish-modrinth")
+        buildConfig {
+            if (project.name == "core") {
+                val kotlinVersion = rootProject.libs.versions.kotlin
+                buildConfigField("KOTLIN_VERSION", kotlinVersion)
+            } else {
                 val exposedVersion: String by project
                 val adventureVersion: String by project
                 buildConfigField("VERSION_NAME", provider { finalVersionName })
@@ -147,11 +158,6 @@ val sourcesRelocate by extra {
                     relocate(pattern, "$pkg.$pattern")
                 }
                 relocates.forEach { relocate(it) }
-
-                dependencies {
-                    exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
-                    exclude(dependency("org.jetbrains:annotations"))
-                }
 
                 mergeServiceFiles()
 

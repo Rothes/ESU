@@ -3,6 +3,8 @@ package io.github.rothes.esu.bukkit.module
 import com.google.common.collect.HashBasedTable
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -27,7 +29,7 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
     private var cacheTask: ScheduledTask? = null
 
     override fun enable() {
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
         cacheTask = Scheduler.asyncTicks(5 * 60 * 20L, 5 * 60 * 20L) {
             val now = System.currentTimeMillis()
             Listeners.hits.cellSet().toList().forEach { cell ->
@@ -48,7 +50,7 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
 
     override fun disable() {
         super.disable()
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
         cacheTask?.cancel()
         cacheTask = null
     }

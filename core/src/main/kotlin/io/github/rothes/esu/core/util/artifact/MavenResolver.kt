@@ -1,10 +1,16 @@
 package io.github.rothes.esu.core.util.artifact
 
-import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.config.EsuConfig
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import io.github.rothes.esu.core.BuildConfig
+import io.github.rothes.esu.core.EsuBootstrap
+import io.github.rothes.esu.core.util.JvmUtils
+import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
 import io.github.rothes.esu.core.util.artifact.injector.ReflectURLInjector
 import io.github.rothes.esu.core.util.artifact.injector.URLInjector
 import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
+import io.github.rothes.esu.core.util.extension.listOfJvm
+import io.github.rothes.esu.core.util.extension.mapJvm
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
@@ -26,12 +32,20 @@ import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transport.http.HttpTransporterFactory
 import org.eclipse.aether.util.filter.PatternExclusionsDependencyFilter
 import java.io.File
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.lang.reflect.InaccessibleObjectException
 import java.net.URL
+import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.Collections
+import kotlin.io.path.exists
+import kotlin.jvm.java
 
 object MavenResolver {
 
-    private val blockedGroupIds = setOf("org.jetbrains.kotlin")
+    private val loaded = mutableSetOf<String>()
 
     private val repository: RepositorySystem = MavenRepositorySystemUtils.newServiceLocator().apply {
         addService(RepositoryConnectorFactory::class.java, BasicRepositoryConnectorFactory::class.java)
@@ -43,7 +57,7 @@ object MavenResolver {
         localRepositoryManager = repository.newLocalRepositoryManager(this, LocalRepository("libraries"))
         transferListener = object : AbstractTransferListener() {
             override fun transferStarted(event: TransferEvent) {
-                EsuCore.instance.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
+                EsuBootstrap.instance.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
             }
         }
         setReadOnly()
@@ -54,13 +68,18 @@ object MavenResolver {
     private var injecter: URLInjector = UnsafeURLInjector
 
     private fun createRepositories(): List<RemoteRepository> {
-        val repo = EsuConfig.get().mavenRepo
-        return buildList {
+        val repo = loadRepoConfiguration()
+        return mutableListOf<RemoteRepository>().apply {
             add(RemoteRepository.Builder(repo.id, "default", repo.url).build())
-            if (repo.id == "central") {
+            @Suppress("ReplaceCallWithBinaryOperator") // Pure Java support
+            if (repo.id.equals("central")) {
                 add(RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build())
             }
         }
+    }
+
+    fun loadKotlin() {
+        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.KOTLIN_VERSION}")
     }
 
     fun loadUrl(url: URL) {
@@ -78,15 +97,50 @@ object MavenResolver {
 
     fun loadDependencies(libraries: List<String>, loader: (File, Artifact) -> File = { f, _ -> f }) {
         require(libraries.isNotEmpty()) { "Library must not be empty" }
-        val dependencies = libraries.map { Dependency(DefaultArtifact(it), null) }
+        for (lib in libraries) {
+            loadDependency(lib, loader)
+        }
+    }
+
+    fun loadDependency(library: String) {
+        val result = resolveDependency(library)
+
+        for (it in result.artifactResults) {
+            val artifact = it.artifact
+            val file = artifact.file
+            val url = file.toURI().toURL()
+            loadUrl(url)
+
+            val str = "${artifact.groupId}:${artifact.artifactId}"
+            loaded.add(str)
+        }
+    }
+
+    fun loadDependency(library: String, loader: (File, Artifact) -> File = { f, _ -> f }) {
+        val result = resolveDependency(library)
+
+        for (it in result.artifactResults) {
+            val artifact = it.artifact
+            val file = artifact.file
+            val toLoad = loader(file, artifact)
+            val url = toLoad.toURI().toURL()
+            loadUrl(url)
+
+            val str = "${artifact.groupId}:${artifact.artifactId}"
+            loaded.add(str)
+        }
+    }
+
+    private fun resolveDependency(library: String): DependencyResult {
+        val dependency = Dependency(DefaultArtifact(library), null)
         var result: DependencyResult
         var trys = 0
         while (true) {
             try {
                 result = repository.resolveDependencies(
                     session, DependencyRequest(
-                        CollectRequest(null as Dependency?, dependencies, repositories),
-                        PatternExclusionsDependencyFilter(blockedGroupIds.map { "$it:::" })
+                        CollectRequest(null as Dependency?, listOfJvm(dependency), repositories),
+                        PatternExclusionsDependencyFilter(loaded.mapJvm { "$it::" })
                     )
                 )
                 break
@@ -97,16 +151,7 @@ object MavenResolver {
                     throw RuntimeException("Error resolving libraries", e)
             }
         }
-
-        for (it in result.artifactResults) {
-            val artifact = it.artifact
-            if (blockedGroupIds.contains(artifact.groupId))
-                continue
-            val file = artifact.file
-            val toLoad = loader(file, artifact)
-            val url = toLoad.toURI().toURL()
-            loadUrl(url)
-        }
+        return result
     }
 
     fun testDependency(library: String, scope: () -> Unit) {
@@ -116,5 +161,61 @@ object MavenResolver {
             loadDependencies(listOf(library))
         }
     }
+
+    private fun loadRepoConfiguration(): MavenRepo {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val file = EsuBootstrap.instance.baseConfigPath().resolve("maven-repo.json")
+        fun useBest(): MavenRepo {
+            val best = findBestMavenRepo()
+            saveRepoConfiguration(gson, file, best)
+            return best
+        }
+        if (!file.exists()) {
+            return useBest()
+        }
+        val repo = gson.fromJson(InputStreamReader(Files.newInputStream(file), Charset.forName("UTF-8")), MavenRepo::class.java)
+        return repo ?: useBest()
+    }
+
+    private fun saveRepoConfiguration(gson: Gson, file: Path, repo: MavenRepo) {
+        val writer = OutputStreamWriter(Files.newOutputStream(file), Charset.forName("UTF-8"))
+        try {
+            writer.append(buildString {
+                append("// The Maven repository to download dependencies from. DO NOT change if you don't know about it.\n")
+                append("// Delete this file will re-run the latency test, and select the best automatically.\n")
+                append(gson.toJson(repo))
+            })
+        } finally {
+            writer.close()
+        }
+    }
+
+    private fun findBestMavenRepo(): MavenRepo {
+        EsuBootstrap.instance.info("Running latency test of maven repositories...")
+        val def = MavenRepo("central", "https://maven-central.storage-download.googleapis.com/maven2/")
+        val repos = listOfJvm(
+            MavenRepo("aliyun", "https://maven.aliyun.com/repository/public/"),
+            def,
+            MavenRepo("central", "https://maven-central-eu.storage-download.googleapis.com/maven2/"),
+            MavenRepo("central", "https://maven-central-asia.storage-download.googleapis.com/maven2/"),
+        )
+        data class TestResult(val repo: MavenRepo, val latency: Long)
+        // Pure java support, on bootstrap stage
+        val tested = repos.mapJvm { TestResult(repo = it, latency = it.url.uriLatency) }
+        fun compareLatency(it: TestResult) = if (it.latency >= 0) it.latency else Long.MAX_VALUE
+        Collections.sort(tested, Comparator { a, b ->
+            JvmUtils.compareLong(compareLatency(a), compareLatency(b))
+        })
+        for ((repo, latency) in tested) {
+            EsuBootstrap.instance.info("'${repo.url}': ${latency}ms")
+        }
+        val best = tested[0]
+        return if (best.latency != Long.MAX_VALUE) best.repo else def
+    }
+
+    data class MavenRepo(
+        val id: String,
+        val url: String,
+    )
 
 }

@@ -1,17 +1,16 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.configuration.meta.Comment
-import org.bukkit.Bukkit
+import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import org.bukkit.event.EventHandler
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.server.ServerCommandEvent
@@ -21,12 +20,12 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 ) {
 
     override fun enable() {
-        Bukkit.getPluginManager().registerEvents(Listeners, plugin)
+        Listeners.register()
     }
 
     override fun disable() {
         super.disable()
-        HandlerList.unregisterAll(Listeners)
+        Listeners.unregister()
     }
 
     object Listeners: Listener {

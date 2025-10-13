@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
@@ -24,7 +25,7 @@ object MappingsLoader {
     private val version = ServerCompatibility.serverVersion
     val hasSpigotMembers = version < Version.fromString("1.18")
 
-    private val cacheFolder = plugin.dataFolder.resolve(".cache/mappings/$version")
+    private val cacheFolder = bootstrap.dataFolder.resolve(".cache/mappings/$version")
     private val fileHashes = FileHashes(cacheFolder)
 
     private const val SERVER_CL = "serverCl.jar"

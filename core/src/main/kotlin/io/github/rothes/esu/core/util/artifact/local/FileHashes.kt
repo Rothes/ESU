@@ -1,7 +1,9 @@
 package io.github.rothes.esu.core.util.artifact.local
 
+import com.google.common.io.BaseEncoding
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
+import io.github.rothes.esu.core.util.artifact.HashUtils
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
@@ -59,20 +61,8 @@ class FileHashes(
     )
 
     companion object {
-        @OptIn(ExperimentalStdlibApi::class)
         val File.sha1: String
-            get() {
-                val messageDigest = MessageDigest.getInstance("SHA-1")
-                FileInputStream(this).use { input ->
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        messageDigest.update(buffer, 0, bytesRead)
-                    }
-                }
-                val hashBytes = messageDigest.digest()
-                return hashBytes.toHexString()
-            }
+            get() = HashUtils.calculateSha1(this)
     }
 
 }
