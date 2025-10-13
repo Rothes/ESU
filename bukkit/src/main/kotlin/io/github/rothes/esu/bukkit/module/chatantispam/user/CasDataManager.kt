@@ -30,7 +30,7 @@ import org.jetbrains.exposed.v1.json.json
 object CasDataManager {
 
     object ChatSpamTable: Table("chat_spam_data") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.NO_ACTION).uniqueIndex()
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_chat_spam_data_user__id").uniqueIndex()
         val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex()
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
@@ -51,7 +51,7 @@ object CasDataManager {
     init {
         transaction(database) {
             // <editor-fold desc="TableUpgrader">
-            TableUpgrader(ChatSpamTable, 3, {
+            TableUpgrader(ChatSpamTable, 4, {
                 println("Upgrading ChatSpamDataTable to 2")
                 fun alter(column: String, type: String) {
                     exec("ALTER TABLE `$tableName` MODIFY COLUMN `$column` $type")
@@ -66,6 +66,10 @@ object CasDataManager {
                 println("Upgrading ChatSpamDataTable to 3")
                 exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE")
+            }, {
+                println("Upgrading ChatSpamDataTable to 4")
+                exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
+                exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
             })
             // </editor-fold>
             SchemaUtils.create(ChatSpamTable)
