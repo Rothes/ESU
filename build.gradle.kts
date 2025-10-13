@@ -90,7 +90,6 @@ subprojects {
         }
 
         apply(plugin = "com.github.gmazzo.buildconfig")
-        apply(plugin = "publish-modrinth")
         buildConfig {
             if (project.name == "core") {
                 val kotlinVersion = rootProject.libs.versions.kotlin
@@ -104,6 +103,10 @@ subprojects {
                 buildConfigField("EXPOSED_VERSION", exposedVersion)
                 buildConfigField("ADVENTURE_VERSION", adventureVersion)
             }
+        }
+
+        if (project.name != "core") {
+            apply(plugin = "publish-modrinth")
         }
     }
 }
