@@ -33,6 +33,7 @@ import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
+import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import net.jpountz.lz4.LZ4Factory
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -101,6 +102,10 @@ class EsuPluginBukkit(
         }
         MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
             LZ4Factory.fastestInstance()
+        }
+        MavenResolver.testDependency("it.unimi.dsi:fastutil:8.5.15") {
+            // For 1.16.5
+            ShortArrayList()
         }
         MavenResolver.loadDependencies(
             listOf(
