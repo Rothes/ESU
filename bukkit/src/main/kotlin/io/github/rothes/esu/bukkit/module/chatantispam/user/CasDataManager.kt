@@ -7,8 +7,8 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatS
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.storage.StorageManager
-import io.github.rothes.esu.core.storage.StorageManager.TableUpgrader
 import io.github.rothes.esu.core.storage.StorageManager.database
+import io.github.rothes.esu.core.storage.StorageManager.upgrader
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
@@ -19,12 +19,8 @@ import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.between
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.v1.datetime.datetime
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
-import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.json.json
 
 object CasDataManager {
@@ -51,7 +47,7 @@ object CasDataManager {
     init {
         transaction(database) {
             // <editor-fold desc="TableUpgrader">
-            TableUpgrader(ChatSpamTable, {
+            ChatSpamTable.upgrader({
                 fun alter(column: String, type: String) {
                     exec("ALTER TABLE `$tableName` MODIFY COLUMN `$column` $type")
                 }

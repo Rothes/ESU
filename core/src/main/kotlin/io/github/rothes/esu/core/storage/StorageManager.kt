@@ -67,7 +67,7 @@ object StorageManager {
         transaction(database) {
             SchemaUtils.create(MetaTable)
             // <editor-fold desc="TableUpgrader">
-            TableUpgrader(UsersTable, {
+            UsersTable.upgrader({
                 exec("ALTER TABLE `$tableName` RENAME TO `${tableName}_old`")
                 val oldTable = object : Table("users_old") {
                     val dbId = integer("id").autoIncrement()
@@ -190,6 +190,10 @@ object StorageManager {
         val language: String?,
         val colorScheme: String?,
     )
+
+    fun Table.upgrader(vararg upgradeHandlers: () -> Unit) {
+        TableUpgrader(this, *upgradeHandlers)
+    }
 
     class TableUpgrader(
         table: Table,
