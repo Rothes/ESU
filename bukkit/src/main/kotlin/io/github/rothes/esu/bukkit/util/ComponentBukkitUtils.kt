@@ -34,14 +34,21 @@ object ComponentBukkitUtils {
 
     fun papi(user: User): TagResolver {
         val player = if (user is PlayerUser) user.player else null
-        return TagResolver.resolver(PAPI_TAG_NAMES) { arg, _ ->
+        return TagResolver.resolver(PAPI_TAG_NAMES) { arg, context ->
             val papi = arg.popOr("One argument expected for papi tag").value()
             if (HAS_PLACEHOLDER_API) {
                 val split = papi.split('_', limit = 2)
                 val expansion = PlaceholderAPIPlugin.getInstance().localExpansionManager.getExpansion(split[0].lowercase())
                     ?: return@resolver Tag.inserting(Component.text(papi))
                 val result = expansion.onRequest(player, split.getOrElse(1) { "" })
-                Tag.inserting(Component.text(result ?: papi))
+
+                val type = if (arg.hasNext()) arg.pop().lowerValue() else "plain"
+                when (type) {
+                    "plain" -> Tag.inserting(Component.text(result ?: papi))
+                    "minimessage" -> Tag.inserting(context.deserialize(result ?: papi))
+                    else -> error("Unknown text type $type")
+                }
+
             } else {
                 Tag.inserting(Component.text(papi))
             }
