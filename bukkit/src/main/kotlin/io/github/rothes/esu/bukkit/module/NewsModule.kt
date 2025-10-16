@@ -299,20 +299,20 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         }
 
         @ShortPerm("editor")
-        @Command("news editor editAgain")
-        fun editAgain(user: User) {
-            user as PlayerUser
-            EditorManager.editAgain(user.player)
-        }
-
-        @ShortPerm("editor")
-        @Command("news editor reEdit")
+        @Command("news editor cancel")
         fun editCancel(user: User) {
             user as PlayerUser
             if (!EditorManager.cancel(user.player))
                 user.message(locale, { bookNews.editor.nothingToConfirm })
             else
                 user.message(locale, { bookNews.editor.editCancelled })
+        }
+
+        @ShortPerm("editor")
+        @Command("news editor editAgain")
+        fun editAgain(user: User) {
+            user as PlayerUser
+            EditorManager.editAgain(user.player)
         }
 
         @ShortPerm("editor")
