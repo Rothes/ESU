@@ -30,7 +30,6 @@ import io.github.rothes.esu.lib.net.kyori.adventure.text.event.ClickEvent
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
-import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
@@ -199,14 +198,13 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             user as PlayerUser
             val player = user.player
             val content = config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: ""
-            val editorItem = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
             user.message(locale, { bookNews.editor.editStart })
-            EditorManager.startEdit(player, content, -1, lang, editorItem, {
+            EditorManager.startEdit(user, content, -1, lang, {
                 user.message(locale, { bookNews.editor.editCancelled })
             }, { result ->
-                val lang = result.lang
-                val item = NewsDataManager.NewsItem(mapOf(lang to result.content), result.time.localDateTime, result.newsId)
-                EditorManager.toConfirm(player) {
+                val lang = result.editData.lang
+                val item = NewsDataManager.NewsItem(mapOf(lang to result.content), result.editData.time.localDateTime, result.editData.newsId)
+                EditorManager.toConfirm(player, result) {
                     NewsDataManager.addNews(item) {
                         editor(user)
                     }
@@ -228,20 +226,19 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             }
 
             val content = item.msg[lang] ?: listOf(config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: "")
-            val editorItem = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
             user.message(locale, { bookNews.editor.editStart })
-            EditorManager.startEdit(player, content, id, lang, editorItem, {
+            EditorManager.startEdit(user, content, id, lang, {
                 user.message(locale, { bookNews.editor.editCancelled })
             }, { result ->
                 val map = item.msg.toMutableMap()
-                map[result.lang] = result.content
+                map[result.editData.lang] = result.content
                 val new = item.copy(msg = map)
-                EditorManager.toConfirm(player) {
+                EditorManager.toConfirm(player, result) {
                     NewsDataManager.updateNews(new) {
                         editor(user)
                     }
                 }
-                user.preview(new, result.lang)
+                user.preview(new, result.editData.lang)
             })
         }
 
@@ -287,8 +284,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val item = NewsDataManager.news.find { it.id == id }
 
             val content = item?.msg[lang] ?: listOf(config.bookNews.newLayout.values.firstOrNull()?.initLayout(user) ?: "")
-            val editorItem = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
-            EditorManager.startEdit(player, content, editing.newsId, lang, editorItem, editing.cancel, editing.complete)
+            EditorManager.startEdit(user, content, editing.newsId, lang, editing.cancel, editing.complete)
             user.message(locale, { bookNews.editor.changeLang.changedLang }, unparsed("lang", lang))
         }
 
@@ -301,7 +297,14 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         }
 
         @ShortPerm("editor")
-        @Command("news editor cancel")
+        @Command("news editor editAgain")
+        fun editAgain(user: User) {
+            user as PlayerUser
+            EditorManager.editAgain(user.player)
+        }
+
+        @ShortPerm("editor")
+        @Command("news editor reEdit")
         fun editCancel(user: User) {
             user as PlayerUser
             if (!EditorManager.cancel(user.player))
@@ -339,6 +342,8 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                             .clickEvent(ClickEvent.runCommand("/news editor confirm"))),
                         component("cancel", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.cancel })
                             .clickEvent(ClickEvent.runCommand("/news editor cancel"))),
+                        component("edit", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.edit })
+                            .clickEvent(ClickEvent.runCommand("/news editor editAgain"))),
                     )
                 }
             ) { bookNews.editor.bookLayout.previewLayout }
@@ -427,7 +432,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                     """.trimIndent(),
                     val previewLayout: String = """
                         <pdc><b>Preview</b> <id> <pc><lang>
-                          <confirm>   <cancel>
+                         <confirm> <edit> <cancel>
                         <reset><content>
                     """.trimIndent(),
                     val button: Button = Button(),
@@ -436,7 +441,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                         val new: String = "<pdc>[New]",
                         val edit: String = "<pdc>[Edit]",
                         val delete: String = "<vndc>[Del]",
-                        val confirm: String = "<vpdc>[Confirm]",
+                        val confirm: String = "<vpdc>[Save]",
                         val cancel: String = "<vndc>[Cancel]",
                     )
                 }

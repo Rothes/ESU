@@ -9,21 +9,24 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEditBook
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
+import io.github.rothes.esu.bukkit.module.NewsModule.locale
+import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BookMeta
 
 object EditorManager {
 
     private val editing = mutableMapOf<Player, EditData>()
-    private val confirming = mutableMapOf<Player, () -> Unit>()
+    private val confirming = mutableMapOf<Player, ConfirmData>()
 
     fun enable() {
         Listeners.register()
@@ -33,19 +36,24 @@ object EditorManager {
     fun disable() {
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListeners)
         Listeners.unregister()
+        editing.clear()
+        confirming.clear()
     }
 
     fun getEditing(player: Player): EditData? {
         return editing[player]
     }
 
-    fun startEdit(player: Player, content: String, newsId: Int, lang: String, item: ItemStack,
+    fun startEdit(user: PlayerUser, content: String, newsId: Int, lang: String,
                   cancel: () -> Unit, complete: (EditorResult) -> Unit, callCancel: Boolean = false) {
-        startEdit(player, listOf(content), newsId, lang, item, cancel, complete, callCancel)
+        startEdit(user, listOf(content), newsId, lang, cancel, complete, callCancel)
     }
 
-    fun startEdit(player: Player, content: List<String>, newsId: Int, lang: String, item: ItemStack,
+    fun startEdit(user: PlayerUser, content: List<String>, newsId: Int, lang: String,
                   cancel: () -> Unit, complete: (EditorResult) -> Unit, callCancel: Boolean = false) {
+        val item = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
+        val player = user.player
+
         cancelEdit(player, callCancel)
         val slot = player.inventory.heldItemSlot
         editing[player] = EditData(slot, newsId, lang, cancel, complete)
@@ -57,7 +65,7 @@ object EditorManager {
             -2, 0, slot,
             SpigotConversionUtil.fromBukkitItemStack(item)
         )
-        PacketEvents.getAPI().playerManager.sendPacket(player, packet)
+        PacketEvents.getAPI().playerManager.sendPacket(user.player, packet)
     }
 
     fun cancelEdit(player: Player, callCancel: Boolean) {
@@ -70,21 +78,27 @@ object EditorManager {
     fun completeEdit(player: Player, content: List<String>) {
         val data = editing.remove(player) ?: return
         restoreSlot(player, data.slot)
-        data.complete(EditorResult(data.newsId, data.lang, content, data.time))
+        data.complete(EditorResult(data, content))
     }
 
-    fun toConfirm(player: Player, block: () -> Unit) {
-        confirming[player] = block
+    fun toConfirm(player: Player, data: EditorResult, block: () -> Unit) {
+        confirming[player] = ConfirmData(data, block)
     }
 
     fun confirm(player: Player): Boolean {
-        confirming.remove(player)?.invoke() ?: return false
+        confirming.remove(player)?.block?.invoke() ?: return false
         return true
     }
 
     fun cancel(player: Player): Boolean {
         confirming.remove(player) ?: return false
         return true
+    }
+
+    fun editAgain(player: Player) {
+        val result = confirming.remove(player)?.editorResult ?: return
+        val (_, newsId, lang, cancel, complete) = result.editData
+        startEdit(player.user, result.content, newsId, lang, cancel, complete)
     }
 
     private fun restoreSlot(player: Player, slot: Int) {
@@ -165,9 +179,12 @@ object EditorManager {
     )
 
     data class EditorResult(
-        val newsId: Int,
-        val lang: String,
+        val editData: EditData,
         val content: List<String>,
-        val time: Long,
+    )
+
+    private data class ConfirmData(
+        val editorResult: EditorResult,
+        val block: () -> Unit,
     )
 }
