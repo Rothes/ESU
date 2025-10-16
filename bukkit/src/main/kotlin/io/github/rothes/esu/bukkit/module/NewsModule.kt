@@ -115,8 +115,6 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                     add(sb.toString())
                     sb.clear()
                 } else {
-                    if (sb.isNotEmpty())
-                        sb.append('\n')
                     sb.append(page)
                 }
             }
