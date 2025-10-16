@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMiniMessage
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
@@ -95,18 +96,15 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
     }
 
     fun User.context(
-        tags: NewsDataManager.NewsItem.() -> List<TagResolver> = { listOf() },
-        layout: ModuleLang.() -> String = { bookNews.layout }
+        layout: ModuleLang.() -> String,
+        tags: NewsDataManager.NewsItem.() -> List<TagResolver>,
     ): InterfaceContext {
         val layout = localed(locale, layout)
-        val check = component("check", buildMiniMessage(locale, { bookNews.checkButton })
-            .clickEvent(ClickEvent.runCommand("/news checked")))
-        val checked = checkedCache[this] ?: -1
-        return InterfaceContext(layout, check, checked, tags)
+        return InterfaceContext(layout, tags)
     }
 
-    fun NewsDataManager.NewsItem.toPages(user: User, interfaceContext: InterfaceContext = user.context()): List<Component> {
-        val (layout, check, checked, tags) = interfaceContext
+    fun NewsDataManager.NewsItem.toPages(user: User, interfaceContext: InterfaceContext): List<Component> {
+        val (layout, tags) = interfaceContext
 
         val pages = buildList {
             val sb = StringBuilder()
@@ -124,14 +122,8 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         }
 
         return pages.map { page ->
-            user.buildMiniMessage(layout, check,
+            user.buildMiniMessage(layout,
                 component("content", user.buildMiniMessage(page)),
-                component("new-placeholder",
-                    if (id > checked)
-                        user.buildMiniMessage(locale, { bookNews.newPlaceholder })
-                    else
-                        Component.empty()
-                ),
                 *tags().toTypedArray()
             )
         }
@@ -146,7 +138,21 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 user.message(locale, { bookNews.noNewsSet })
                 return
             }
-            val context = user.context()
+
+            val check = component("check", buildMiniMessage(locale, { bookNews.checkButton })
+                .clickEvent(ClickEvent.runCommand("/news checked")))
+            val checked = checkedCache[user] ?: -1
+            val context = user.context({ bookNews.layout }) {
+                listOf(
+                    check,
+                    component("new-placeholder",
+                        if (id > checked)
+                            user.buildMiniMessage(locale, { bookNews.newPlaceholder })
+                        else
+                            Component.empty()
+                    )
+                )
+            }
             user.openBook(Book.builder().pages(news.flatMap { it.toPages(user, context) }).build())
         }
 
@@ -173,18 +179,16 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 if (news.isEmpty()) {
                     listOf(user.buildMiniMessage(locale, { bookNews.editor.bookLayout.emptyLayout }, new))
                 } else {
-                    val context = user.context(
-                        {
-                            listOf(
-                                new,
-                                unparsed("id", id),
-                                component("edit", user.buildMiniMessage(locale, { bookNews.editor.bookLayout.button.edit })
-                                    .clickEvent(ClickEvent.runCommand("/news editor edit $id"))),
-                                component("delete", user.buildMiniMessage(locale, { bookNews.editor.bookLayout.button.delete })
-                                    .clickEvent(ClickEvent.runCommand("/news editor delete $id")))
-                            )
-                        }
-                    ) { bookNews.editor.bookLayout.pageLayout }
+                    val context = user.context({ bookNews.editor.bookLayout.pageLayout }) {
+                        listOf(
+                            new,
+                            unparsed("id", id),
+                            component("edit", user.buildMiniMessage(locale, { bookNews.editor.bookLayout.button.edit })
+                                .clickEvent(ClickEvent.runCommand("/news editor edit $id"))),
+                            component("delete", user.buildMiniMessage(locale, { bookNews.editor.bookLayout.button.delete })
+                                .clickEvent(ClickEvent.runCommand("/news editor delete $id")))
+                        )
+                    }
                     news.flatMap { it.toPages(user, context) }
                 }
             ).build())
@@ -331,20 +335,18 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         }
 
         private fun PlayerUser.preview(item: NewsDataManager.NewsItem, lang: String) {
-            val context = context(
-                {
-                    listOf(
-                        unparsed("id", item.id),
-                        unparsed("lang", lang),
-                        component("confirm", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.confirm })
-                            .clickEvent(ClickEvent.runCommand("/news editor confirm"))),
-                        component("cancel", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.cancel })
-                            .clickEvent(ClickEvent.runCommand("/news editor cancel"))),
-                        component("edit", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.edit })
-                            .clickEvent(ClickEvent.runCommand("/news editor editAgain"))),
-                    )
-                }
-            ) { bookNews.editor.bookLayout.previewLayout }
+            val context = context({ bookNews.editor.bookLayout.previewLayout }) {
+                listOf(
+                    unparsed("id", item.id),
+                    unparsed("lang", lang),
+                    component("confirm", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.confirm })
+                        .clickEvent(ClickEvent.runCommand("/news editor confirm"))),
+                    component("cancel", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.cancel })
+                        .clickEvent(ClickEvent.runCommand("/news editor cancel"))),
+                    component("edit", buildMiniMessage(locale, { bookNews.editor.bookLayout.button.edit })
+                        .clickEvent(ClickEvent.runCommand("/news editor editAgain"))),
+                )
+            }
             openBook(Book.builder().pages(item.toPages(this, context)))
         }
 
@@ -359,8 +361,6 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
 
     data class InterfaceContext(
         val layout: String,
-        val check: TagResolver,
-        val checked: Int,
         val tags: NewsDataManager.NewsItem.() -> List<TagResolver>
     )
 
