@@ -53,28 +53,48 @@ object ComponentUtils {
         get() = fromMiniMessage(this)
 
     val String.legacyColorCharParsed
-        get() = replace("&0", "<black>")
-        .replace("&1", "<dark_blue>")
-        .replace("&2", "<dark_green>")
-        .replace("&3", "<dark_aqua>")
-        .replace("&4", "<dark_red>")
-        .replace("&5", "<dark_purple>")
-        .replace("&6", "<gold>")
-        .replace("&7", "<gray>")
-        .replace("&8", "<dark_gray>")
-        .replace("&9", "<blue>")
-        .replace("&[Aa]".toRegex(), "<green>")
-        .replace("&[Bb]".toRegex(), "<aqua>")
-        .replace("&[Cc]".toRegex(), "<red>")
-        .replace("&[Dd]".toRegex(), "<light_purple>")
-        .replace("&[Ee]".toRegex(), "<yellow>")
-        .replace("&[Ff]".toRegex(), "<white>")
-        .replace("&[Kk]".toRegex(), "<obf>")
-        .replace("&[Ll]".toRegex(), "<b>")
-        .replace("&[Mm]".toRegex(), "<st>")
-        .replace("&[Nn]".toRegex(), "<u>")
-        .replace("&[Oo]".toRegex(), "<i>")
-        .replace("&[Rr]".toRegex(), "<reset>")
+        get() = if (isEmpty()) this else buildString(this.length) {
+            var last = this@legacyColorCharParsed[0]
+            var i = 1
+            while (i < this@legacyColorCharParsed.length) {
+                if (last == '&') {
+                    var parsed = true
+                    when (this@legacyColorCharParsed[i]) {
+                        '0' -> append("<black>")
+                        '1' -> append("<dark_blue>")
+                        '2' -> append("<dark_green>")
+                        '3' -> append("<dark_aqua>")
+                        '4' -> append("<dark_red>")
+                        '5' -> append("<dark_purple>")
+                        '6' -> append("<gold>")
+                        '7' -> append("<gray>")
+                        '8' -> append("<dark_gray>")
+                        '9' -> append("<blue>")
+                        'A', 'a' -> append("<green>")
+                        'B', 'b' -> append("<aqua>")
+                        'C', 'c' -> append("<red>")
+                        'D', 'd' -> append("<light_purple>")
+                        'E', 'e' -> append("<yellow>")
+                        'F', 'f' -> append("<white>")
+                        'K', 'k' -> append("<obf>")
+                        'L', 'l' -> append("<b>")
+                        'M', 'm' -> append("<st>")
+                        'N', 'n' -> append("<u>")
+                        'O', 'o' -> append("<i>")
+                        'R', 'r' -> append("<reset>")
+                        else -> {
+                            append(last)
+                            parsed = false
+                        }
+                    }
+                    if (parsed) i++
+                } else {
+                    append(last)
+                }
+                last = this@legacyColorCharParsed[i++]
+            }
+            append(last)
+        }
 
     val Component.legacy
         get() = legacySerializer.serialize(this)
