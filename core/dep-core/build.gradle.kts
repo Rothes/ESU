@@ -20,6 +20,6 @@ dependencies {
 }
 
 relocateSources {
-    relocates.add(Relocate_sources_gradle.RelocateSourcesExtension.Relocate("net.kyori"))
-    relocates.add(Relocate_sources_gradle.RelocateSourcesExtension.Relocate("net.kyori.adventure", "adventure"))
+    relocate("net.kyori")
+    relocate("net.kyori.adventure", "adventure")
 }

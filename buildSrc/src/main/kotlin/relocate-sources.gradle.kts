@@ -8,6 +8,10 @@ interface RelocateSourcesExtension {
     val relocates: ListProperty<Relocate>
     val postSources: Property<(String) -> String>
 
+    fun relocate(original: String, relocated: String = original) {
+        relocates.add(Relocate(original, relocated))
+    }
+
     data class Relocate(
         val original: String,
         val relocated: String = original,
