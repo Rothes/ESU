@@ -182,16 +182,4 @@ data class ItemData(
         return true
     }
 
-    // Legacy APIs
-
-    @Deprecated("Since 0.9.0, legacy api support only")
-    constructor(material: Material? = null, itemsAdderId: String? = null, mythicMobsItemId: String? = null,
-                mmoItemsItemType: String? = null, mmoItemsItemId: String? = null, craftEngineItemId: String? = null,
-                displayName: String? = null, lore: List<String>? = null, enchantments: Map<String, Int>? = null,
-                amount: Int = 1, playerTexture: String? = null, customModelData: Int? = null, itemModel: String? = null,
-                tooltipStyle: String? = null,
-    ): this(material, itemsAdderId, mythicMobsItemId, mmoItemsItemType, mmoItemsItemId, craftEngineItemId, displayName,
-        lore, enchantments, null, null, amount, playerTexture, customModelData, itemModel,
-        tooltipStyle)
-
 }

@@ -122,19 +122,6 @@ interface User {
         )
     }
 
-    @Deprecated("Since Esu 0.9.0, use {@link #miniMessage()} instead.")
-    fun minimessage(message: String, vararg params: TagResolver) {
-        miniMessage(message, params = params)
-    }
-    @Deprecated("Since Esu 0.9.0, use {@link #buildMiniMessage()} instead.")
-    fun <T: ConfigurationPart> buildMinimessage(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
-        return buildMiniMessage(locales, block, params = params)
-    }
-    @Deprecated("Since Esu 0.9.0, use {@link #buildMiniMessage()} instead.")
-    fun buildMinimessage(message: String, vararg params: TagResolver): Component {
-        return buildMiniMessage(message, params = params)
-    }
-
     fun message(messageData: MessageData, vararg params: TagResolver) {
         message(messageData.parsed(this, params = params))
     }
