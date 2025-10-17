@@ -99,7 +99,7 @@ class EsuPluginBukkit(
             )
         ) { file, artifact ->
             if (artifact.groupId == "net.kyori")
-                CachedRelocator.relocate(relocator, file, "2")
+                CachedRelocator.relocate(relocator, file, "3")
             else
                 file
         }

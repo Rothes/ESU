@@ -89,7 +89,7 @@ class EsuPluginVelocity(
             )
         )
         val relocator = PackageRelocator(
-            "net/kyori/adventure/" to "io/github/rothes/esu/lib/net/kyori/adventure/",
+            "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
             "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/"
         )
         MavenResolver.loadDependencies(
@@ -103,7 +103,7 @@ class EsuPluginVelocity(
             )
         ) { file, artifact ->
             if (artifact.groupId == "net.kyori")
-                CachedRelocator.relocate(relocator, file, "2")
+                CachedRelocator.relocate(relocator, file, "3")
             else
                 file
         }
