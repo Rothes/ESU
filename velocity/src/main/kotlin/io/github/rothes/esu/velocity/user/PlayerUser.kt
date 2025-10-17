@@ -2,15 +2,13 @@ package io.github.rothes.esu.velocity.user
 
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
-import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
-import io.github.rothes.esu.velocity.plugin
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import java.util.UUID
+import io.github.rothes.esu.velocity.plugin
+import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityUser() {
@@ -60,8 +58,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
     }
 
     override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.disconnect(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!).server)
+        player.disconnect(buildMiniMessage(locales, block, *params).server)
     }
 
     override fun equals(other: Any?): Boolean {

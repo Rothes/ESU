@@ -17,7 +17,6 @@ import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
 import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import io.github.rothes.esu.lib.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import io.github.rothes.esu.lib.net.kyori.adventure.title.Title
 import io.github.rothes.esu.lib.net.kyori.adventure.title.TitlePart
 import java.util.*

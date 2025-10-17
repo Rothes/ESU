@@ -16,8 +16,8 @@ object ConsoleUser: VelocityUser(), LogUser {
     override val commandSender: CommandSource = plugin.server.consoleCommandSource
     override val dbId: Int
     override val name: String = ConsoleConst.NAME
-    override val nameUnsafe: String? = name
-    override val clientLocale: String?
+    override val nameUnsafe: String = name
+    override val clientLocale: String
         get() = EsuConfig.get().locale
     override val uuid: UUID = ConsoleConst.UUID
 
