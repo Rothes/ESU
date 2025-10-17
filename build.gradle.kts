@@ -6,7 +6,6 @@ plugins {
     kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
     id("com.gradleup.shadow")
-//    id("com.xpdustry.kotlin-shadow-relocator") version "3.0.0-rc.1"
     id("com.github.gmazzo.buildconfig") version "5.5.1"
 }
 
@@ -92,16 +91,13 @@ subprojects {
         apply(plugin = "com.github.gmazzo.buildconfig")
         buildConfig {
             if (project.name == "core") {
-                val kotlinVersion = rootProject.libs.versions.kotlin
-                buildConfigField("KOTLIN_VERSION", kotlinVersion)
+                buildConfigField("DEP_KOTLIN_VERSION", rootProject.libs.versions.kotlin)
             } else {
-                val exposedVersion: String by project
-                val adventureVersion: String by project
                 buildConfigField("VERSION_NAME", provider { finalVersionName })
                 buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
                 buildConfigField("VERSION_ID", project.property("versionId").toString())
-                buildConfigField("EXPOSED_VERSION", exposedVersion)
-                buildConfigField("ADVENTURE_VERSION", adventureVersion)
+                buildConfigField("DEP_ADVENTURE_VERSION", rootProject.libs.versions.adventure)
+                buildConfigField("DEP_EXPOSED_VERSION", rootProject.libs.versions.exposed)
             }
         }
 

@@ -4,7 +4,7 @@ repositories {
 }
 
 dependencies {
-    val adventureVersion: String by project
+    val adventureVersion = rootProject.libs.versions.adventure.get()
     implementation("net.kyori:adventure-api:$adventureVersion")
     implementation("net.kyori:adventure-text-minimessage:$adventureVersion")
     implementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")

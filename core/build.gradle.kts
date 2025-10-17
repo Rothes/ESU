@@ -5,14 +5,13 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val exposedVersion: String by project
-
 dependencies {
     api(kotlin("reflect"))
 
     compileOnlyApi(project(":core:dep-core", configuration = "shadow"))
     api(project(":core:dep-impl-core", configuration = "shadow"))
 
+    val exposedVersion = rootProject.libs.versions.exposed.get()
     compileOnlyApi("org.jetbrains.exposed:exposed-core:$exposedVersion")
 //    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     compileOnlyApi("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
@@ -27,8 +26,8 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
 
-    val adventureVersion: String by project
-    compileOnly("net.kyori:adventure-text-minimessage:${adventureVersion}")
+    val adventureVersion = rootProject.libs.versions.adventure.get()
+    compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
     compileOnly("net.kyori:adventure-text-serializer-gson:$adventureVersion") {
         exclude("com.google.code.gson")
     }

@@ -69,10 +69,10 @@ class EsuPluginVelocity(
 
         MavenResolver.loadDependencies(
             listOf(
-                "org.jetbrains.exposed:exposed-core:${BuildConfig.EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-json:${BuildConfig.EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_EXPOSED_VERSION}",
+                "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_EXPOSED_VERSION}",
 
                 "com.zaxxer:HikariCP:6.3.0",
                 "org.incendo:cloud-core:2.0.0",
@@ -91,12 +91,12 @@ class EsuPluginVelocity(
         val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
         MavenResolver.loadDependencies(
             listOf(
-                "net.kyori:adventure-api:${BuildConfig.ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-minimessage:${BuildConfig.ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-gson:${BuildConfig.ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-plain:${BuildConfig.ADVENTURE_VERSION}",
+                "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
             )
         ) { file, artifact ->
             if (artifact.groupId == "net.kyori")
@@ -128,7 +128,7 @@ class EsuPluginVelocity(
     }
 
     fun onProxyInitialization() {
-        EsuConfig           // Load global config, in case of. MavenResolver should init it tho.
+        EsuConfig           // Load global config
         VelocityEsuLocale   // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
