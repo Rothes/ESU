@@ -14,9 +14,7 @@ import org.bukkit.Difficulty
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleConfig, EmptyConfiguration>(
-    ModuleConfig::class.java, EmptyConfiguration::class.java
-) {
+object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleConfig, EmptyConfiguration>() {
 
     override fun enable() {
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)

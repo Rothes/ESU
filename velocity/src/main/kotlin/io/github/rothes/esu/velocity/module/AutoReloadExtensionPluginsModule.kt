@@ -10,12 +10,9 @@ import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule.Mod
 import io.github.rothes.esu.velocity.plugin
 import net.frankheijden.serverutils.velocity.managers.VelocityPluginManager
 import org.incendo.cloud.parser.flag.FlagContext
-import kotlin.jvm.java
 import kotlin.jvm.optionals.getOrNull
 
-object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfiguration>(
-    ModuleConfig::class.java, EmptyConfiguration::class.java
-) {
+object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfiguration>() {
 
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")

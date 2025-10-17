@@ -18,6 +18,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedEnumMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
@@ -25,9 +26,8 @@ import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Bukkit
 import org.incendo.cloud.component.DefaultValue
 import java.time.Duration
@@ -39,9 +39,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAntiSpamModule.ModuleLocale>(
-    ModuleConfig::class.java, ModuleLocale::class.java
-) {
+object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAntiSpamModule.ModuleLocale>() {
 
     private var purgeTask: ScheduledTask? = null
 

@@ -15,9 +15,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.server.ServerCommandEvent
 
-object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, BlockedCommandsModule.ModuleLocale>(
-    ModuleConfig::class.java, ModuleLocale::class.java
-) {
+object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, BlockedCommandsModule.ModuleLocale>() {
 
     override fun enable() {
         Listeners.register()

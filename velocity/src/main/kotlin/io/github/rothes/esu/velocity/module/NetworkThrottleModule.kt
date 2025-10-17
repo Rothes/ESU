@@ -3,18 +3,15 @@ package io.github.rothes.esu.velocity.module
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
 import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.plugin
-import io.github.rothes.esu.core.configuration.meta.Comment
-import kotlin.jvm.java
 
-object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
-    ModuleConfig::class.java, ModuleLang::class.java
-) {
+object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>() {
 
     override fun enable() {
         if (plugin.server.pluginManager.getPlugin("packetevents") == null)

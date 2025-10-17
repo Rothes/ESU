@@ -3,11 +3,9 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import org.bukkit.block.Block
-import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Waterlogged
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -16,9 +14,7 @@ import org.bukkit.event.block.BlockPistonEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
 
-object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, EmptyConfiguration>(
-    ModuleConfig::class.java, EmptyConfiguration::class.java
-) {
+object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, EmptyConfiguration>() {
 
     override fun enable() {
         registerListener(object : Listener {

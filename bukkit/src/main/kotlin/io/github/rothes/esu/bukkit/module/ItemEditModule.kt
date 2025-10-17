@@ -12,9 +12,7 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.incendo.cloud.annotations.Command
 
-object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.ModuleLang>(
-    BaseModuleConfiguration::class.java, ModuleLang::class.java
-) {
+object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.ModuleLang>() {
 
     override fun enable() {
         registerCommands(object {

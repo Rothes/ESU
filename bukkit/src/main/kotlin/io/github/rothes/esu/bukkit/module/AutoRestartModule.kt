@@ -18,12 +18,7 @@ import org.bukkit.Bukkit
 import org.incendo.cloud.parser.standard.DurationParser
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.suggestion.SuggestionProvider
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
@@ -35,9 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KDuration
 
-object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoRestartModule.ModuleLocale>(
-    ModuleConfig::class.java, ModuleLocale::class.java
-) {
+object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoRestartModule.ModuleLocale>() {
 
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")

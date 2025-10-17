@@ -36,9 +36,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 
-object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
-    ModuleConfig::class.java, ModuleLang::class.java
-) {
+object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>() {
 
     private val checkedCache = mutableMapOf<User, Int>()
 

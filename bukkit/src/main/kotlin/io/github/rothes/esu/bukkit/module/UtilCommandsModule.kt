@@ -30,9 +30,7 @@ import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import java.lang.reflect.Field
 
-object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>(
-    BaseModuleConfiguration::class.java, ModuleLocale::class.java
-) {
+object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>() {
 
     override fun enable() {
         registerCommands(object {

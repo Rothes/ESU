@@ -3,7 +3,6 @@ package io.github.rothes.esu.bukkit.module
 import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -17,38 +16,31 @@ import io.github.rothes.esu.core.configuration.data.MINECRAFT
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.data.SOUND
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.enabled
-import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.pLang
+import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
-import io.github.rothes.esu.core.configuration.meta.Comment
-import io.papermc.paper.event.player.AsyncChatEvent
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.incendo.cloud.annotations.Argument
-import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.annotations.Commands
-import org.incendo.cloud.annotations.Flag
-import org.incendo.cloud.annotations.Permission
+import org.incendo.cloud.annotations.*
 import java.util.concurrent.TimeUnit
 
-object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>(
-    ModuleConfig::class.java, ModuleLang::class.java
-) {
+object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>() {
 
     const val WHISPER_COMMANDS = "whisper|msg|w|m|tell"
     const val REPLY_COMMANDS = "reply|r"

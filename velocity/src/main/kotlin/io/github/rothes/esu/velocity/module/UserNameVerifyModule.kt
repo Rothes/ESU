@@ -7,11 +7,8 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.velocity.user
-import kotlin.jvm.java
 
-object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, UserNameVerifyModule.ModuleLang>(
-    ModuleConfig::class.java, ModuleLang::class.java
-) {
+object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, UserNameVerifyModule.ModuleLang>() {
 
     override fun enable() {
         registerListener(Listener)

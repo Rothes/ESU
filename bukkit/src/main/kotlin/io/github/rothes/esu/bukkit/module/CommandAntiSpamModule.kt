@@ -1,30 +1,25 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.google.common.collect.HashBasedTable
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
-import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, CommandAntiSpamModule.ModuleLocale>(
-    ModuleConfig::class.java, ModuleLocale::class.java
-) {
+object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, CommandAntiSpamModule.ModuleLocale>() {
     
     private var cacheTask: ScheduledTask? = null
 

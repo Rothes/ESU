@@ -15,9 +15,7 @@ import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emit
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
 
-object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>(
-    ModuleConfig::class.java, EmptyConfiguration::class.java
-) {
+object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>() {
 
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")

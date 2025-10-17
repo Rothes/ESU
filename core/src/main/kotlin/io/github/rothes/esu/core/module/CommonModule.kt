@@ -8,16 +8,22 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.incendo.cloud.Command
+import java.lang.reflect.ParameterizedType
 import java.nio.file.Path
-import kotlin.jvm.java
-import kotlin.reflect.KClass
 
-abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart>(
-    val configClass: Class<C>,
-    val localeClass: Class<L>,
-): Module<C, L> {
+abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Module<C, L> {
 
-    constructor(configClass: KClass<C>, localeClass: KClass<L>): this(configClass.java, localeClass.java)
+    val configClass: Class<C>
+    val localeClass: Class<L>
+
+    init {
+        val actualTypeArguments = (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments
+
+        @Suppress("UNCHECKED_CAST")
+        configClass = actualTypeArguments[0] as Class<C>
+        @Suppress("UNCHECKED_CAST")
+        localeClass = actualTypeArguments[1] as Class<L>
+    }
 
     override val name: String = javaClass.simpleName.removeSuffix("Module")
     override lateinit var config: C

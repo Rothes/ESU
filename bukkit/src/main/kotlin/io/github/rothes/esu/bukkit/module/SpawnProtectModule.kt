@@ -26,9 +26,7 @@ import org.bukkit.event.world.ChunkLoadEvent
 import kotlin.math.abs
 import kotlin.math.max
 
-object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyConfiguration>(
-    ModuleConfig::class.java, EmptyConfiguration::class.java
-) {
+object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyConfiguration>() {
 
     override fun enable() {
         update()

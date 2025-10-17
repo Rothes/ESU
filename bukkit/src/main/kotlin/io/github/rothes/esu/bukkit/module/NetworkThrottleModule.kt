@@ -22,9 +22,7 @@ import java.time.Duration
 import java.util.*
 import kotlin.time.toJavaDuration
 
-object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>(
-    ModuleConfig::class.java, ModuleLang::class.java
-) {
+object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>() {
 
     lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")

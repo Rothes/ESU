@@ -14,9 +14,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.concurrent.ConcurrentHashMap
 
-object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWatchModule.ModuleLocale>(
-    ConfigData::class.java, ModuleLocale::class.java
-) {
+object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWatchModule.ModuleLocale>() {
 
     val watching: ConcurrentHashMap<PlayerUser, WatchOptions> = ConcurrentHashMap()
     val players: LinkedHashSet<Player> = LinkedHashSet()
