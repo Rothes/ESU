@@ -3,7 +3,7 @@ package io.github.rothes.esu.core.command
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.incendo.cloud.caption.Caption
 import org.incendo.cloud.caption.StandardCaptionKeys
 import org.incendo.cloud.exception.ArgumentParseException

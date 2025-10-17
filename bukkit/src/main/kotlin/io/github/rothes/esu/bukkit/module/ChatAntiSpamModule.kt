@@ -26,8 +26,8 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.incendo.cloud.component.DefaultValue
 import java.time.Duration

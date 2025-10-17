@@ -11,14 +11,14 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
-import io.github.rothes.esu.lib.net.kyori.adventure.inventory.Book
-import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import io.github.rothes.esu.lib.net.kyori.adventure.title.Title
-import io.github.rothes.esu.lib.net.kyori.adventure.title.TitlePart
+import io.github.rothes.esu.lib.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.inventory.Book
+import io.github.rothes.esu.lib.adventure.sound.Sound
+import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.title.Title
+import io.github.rothes.esu.lib.adventure.title.TitlePart
 import java.util.*
 import kotlin.experimental.ExperimentalTypeInference
 

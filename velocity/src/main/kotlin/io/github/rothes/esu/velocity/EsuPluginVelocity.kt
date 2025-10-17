@@ -88,7 +88,10 @@ class EsuPluginVelocity(
                 "org.ow2.asm:asm-commons:9.8",
             )
         )
-        val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
+        val relocator = PackageRelocator(
+            "net/kyori/adventure/" to "io/github/rothes/esu/lib/net/kyori/adventure/",
+            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/"
+        )
         MavenResolver.loadDependencies(
             listOf(
                 "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
@@ -100,7 +103,7 @@ class EsuPluginVelocity(
             )
         ) { file, artifact ->
             if (artifact.groupId == "net.kyori")
-                CachedRelocator.relocate(relocator, file)
+                CachedRelocator.relocate(relocator, file, "2")
             else
                 file
         }

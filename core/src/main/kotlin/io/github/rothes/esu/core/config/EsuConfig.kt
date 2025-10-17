@@ -5,8 +5,8 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.Setting
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*

@@ -13,9 +13,9 @@ import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.core.util.ComponentUtils.nonItalic
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl

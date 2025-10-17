@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.configurate.serialize.SerializationException
 import org.incendo.cloud.caption.Caption
 import org.incendo.cloud.caption.CaptionProvider
 import org.incendo.cloud.caption.ConstantCaptionProvider

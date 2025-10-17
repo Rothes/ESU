@@ -7,9 +7,9 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player

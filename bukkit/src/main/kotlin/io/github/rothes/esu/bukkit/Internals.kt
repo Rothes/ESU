@@ -6,9 +6,9 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.util.ComponentUtils
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
-import io.github.rothes.esu.lib.net.kyori.adventure.platform.bukkit.BukkitAudiences
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.platform.bukkit.BukkitAudiences
+import io.github.rothes.esu.lib.adventure.text.Component
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.util.*

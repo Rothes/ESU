@@ -21,7 +21,7 @@ class PackageRelocator(
         vararg relocates: Pair<String, String>,
         logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") },
         err: (String) -> Unit = { EsuCore.instance.err("[Relocator] $it") },
-    ): this(relocates.toMap(), logger, err)
+    ): this(relocates.toMap(LinkedHashMap()), logger, err)
 
     private val remapper = ClassNameRemapper(relocates)
 

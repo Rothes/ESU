@@ -83,7 +83,10 @@ class EsuPluginBukkit(
             if (ServerCompatibility.hasMojmap)
                 MappingsLoader
         }
-        val relocator = PackageRelocator("net/kyori/" to "io/github/rothes/esu/lib/net/kyori/")
+        val relocator = PackageRelocator(
+            "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
+            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/"
+        )
         MavenResolver.loadDependencies(
             listOf(
                 "net.kyori:adventure-platform-bukkit:4.4.1",
@@ -96,7 +99,7 @@ class EsuPluginBukkit(
             )
         ) { file, artifact ->
             if (artifact.groupId == "net.kyori")
-                CachedRelocator.relocate(relocator, file)
+                CachedRelocator.relocate(relocator, file, "2")
             else
                 file
         }

@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.config.BukkitEsuLocale.BukkitLocaleData
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.incendo.cloud.bukkit.BukkitDefaultCaptionsProvider
 import org.incendo.cloud.caption.ConstantCaptionProvider
 import org.incendo.cloud.caption.DelegatingCaptionProvider

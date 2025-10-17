@@ -16,7 +16,7 @@ import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.version.Version
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import java.time.Duration
 import java.util.*

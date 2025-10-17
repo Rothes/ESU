@@ -3,7 +3,7 @@ package io.github.rothes.esu.velocity.user
 import com.velocitypowered.api.command.CommandSource
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.MappedAudience
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.audience.Audience
 
 abstract class VelocityUser: User {
 

@@ -9,12 +9,13 @@ object CachedRelocator {
     private val cacheFolder = EsuCore.instance.baseConfigPath().toFile().resolve(".cache/relocated")
     private val cached = FileHashes(cacheFolder)
 
-    fun relocate(relocator: PackageRelocator, file: File): File {
+    fun relocate(relocator: PackageRelocator, file: File, version: String? = null): File {
         val output = cacheFolder.resolve(file.name)
 
         if (output.exists()
             && cached.verify(output)
-            && cached.verify(file, "original"))
+            && cached.verify(file, "original")
+            && (version == null || cached.verify(output, "ver", version)))
             return output
 
         output.parentFile.mkdirs()
@@ -22,6 +23,8 @@ object CachedRelocator {
 
         cached.store(output)
         cached.store(file, "original")
+        if (version != null)
+            cached.store(output, "ver", version)
         cached.save()
         return output
     }

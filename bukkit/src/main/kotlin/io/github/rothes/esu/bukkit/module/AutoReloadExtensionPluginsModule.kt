@@ -10,8 +10,8 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ConfigurationOptionsExt.headerIfNotNull
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter
+import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
+import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
 

@@ -8,7 +8,7 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.velocity.plugin
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import java.util.UUID
 
 object ConsoleUser: VelocityUser(), LogUser {

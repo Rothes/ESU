@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.configuration.data.MessageData
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.configurate.serialize.SerializationException
 import java.lang.reflect.Type
 import java.util.function.Predicate
 

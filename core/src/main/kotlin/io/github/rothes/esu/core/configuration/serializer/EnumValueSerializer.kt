@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
-import io.github.rothes.esu.lib.org.spongepowered.configurate.util.EnumLookup
+import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.configurate.util.EnumLookup
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
 import java.lang.reflect.Type

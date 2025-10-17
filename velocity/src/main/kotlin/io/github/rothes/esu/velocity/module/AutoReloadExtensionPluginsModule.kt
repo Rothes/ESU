@@ -3,9 +3,9 @@ package io.github.rothes.esu.velocity.module
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.internal.snakeyaml.emitter.Emitter
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.internal.snakeyaml.parser.ParserImpl
+import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
+import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
+import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.parser.ParserImpl
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.velocity.plugin
 import net.frankheijden.serverutils.velocity.managers.VelocityPluginManager

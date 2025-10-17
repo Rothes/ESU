@@ -1,9 +1,9 @@
 package io.github.rothes.esu.core.configuration.serializer
 
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationNode
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.SerializationException
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.TypeSerializer
+import io.github.rothes.esu.lib.configurate.ConfigurationNode
+import io.github.rothes.esu.lib.configurate.serialize.SerializationException
+import io.github.rothes.esu.lib.configurate.serialize.TypeSerializer
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*

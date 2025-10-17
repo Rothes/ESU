@@ -6,7 +6,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.incendo.cloud.Command
 import java.nio.file.Path
 import kotlin.jvm.java

@@ -7,10 +7,10 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.Tag
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import me.clip.placeholderapi.PlaceholderAPIPlugin
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player

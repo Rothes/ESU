@@ -2,7 +2,7 @@ package io.github.rothes.esu.core.configuration.data
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration

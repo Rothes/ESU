@@ -13,7 +13,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.incendo.cloud.parser.standard.DurationParser
 import org.incendo.cloud.parser.standard.StringParser

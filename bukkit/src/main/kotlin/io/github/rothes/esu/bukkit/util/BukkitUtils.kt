@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.util
 
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.util.AdventureConverter.server
-import io.github.rothes.esu.lib.net.kyori.adventure.sound.Sound
+import io.github.rothes.esu.lib.adventure.sound.Sound
 import org.bukkit.Location
 
 object BukkitUtils {

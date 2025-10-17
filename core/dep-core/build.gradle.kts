@@ -1,5 +1,5 @@
 plugins {
-    `sources-fat-jar`
+    `relocate-sources`
 }
 
 repositories {
@@ -19,6 +19,7 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
 }
 
-sourcesFatJar {
-    relocates.add("net.kyori")
+relocateSources {
+    relocates.add(Relocate_sources_gradle.RelocateSourcesExtension.Relocate("net.kyori"))
+    relocates.add(Relocate_sources_gradle.RelocateSourcesExtension.Relocate("net.kyori.adventure", "adventure"))
 }

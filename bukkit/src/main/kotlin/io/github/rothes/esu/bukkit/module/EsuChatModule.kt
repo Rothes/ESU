@@ -27,10 +27,10 @@ import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.papermc.paper.event.player.AsyncChatEvent
-import io.github.rothes.esu.lib.net.kyori.adventure.text.Component
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.MiniMessage
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.Tag
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

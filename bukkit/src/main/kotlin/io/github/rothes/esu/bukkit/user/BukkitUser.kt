@@ -6,8 +6,8 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
-import io.github.rothes.esu.lib.net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
 

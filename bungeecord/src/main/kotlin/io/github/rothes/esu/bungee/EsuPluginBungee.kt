@@ -14,7 +14,7 @@ import io.github.rothes.esu.bungee.config.BungeeEsuLocale
 import io.github.rothes.esu.bungee.user.BungeeUser
 import io.github.rothes.esu.bungee.user.BungeeUserManager
 import io.github.rothes.esu.bungee.user.ConsoleUser
-import io.github.rothes.esu.lib.net.kyori.adventure.platform.bungeecord.BungeeAudiences
+import io.github.rothes.esu.lib.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.PlayerDisconnectEvent

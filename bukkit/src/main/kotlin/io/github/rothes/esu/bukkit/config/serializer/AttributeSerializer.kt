@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.config.serializer
 
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter.Companion.key_
-import io.github.rothes.esu.lib.org.spongepowered.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 import org.bukkit.attribute.Attribute
 import java.lang.reflect.Type
 import java.util.function.Predicate

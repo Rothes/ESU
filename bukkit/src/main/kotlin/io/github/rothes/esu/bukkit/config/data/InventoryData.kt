@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit.config.data
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.NodeKey
-import io.github.rothes.esu.lib.org.spongepowered.configurate.objectmapping.meta.Setting
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.NodeKey
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.Setting
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryType
 

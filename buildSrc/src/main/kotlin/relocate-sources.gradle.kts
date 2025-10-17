@@ -4,12 +4,17 @@ plugins {
     id("com.gradleup.shadow")
 }
 
-interface SourcesFatJarExtension {
-    val relocates: ListProperty<String>
+interface RelocateSourcesExtension {
+    val relocates: ListProperty<Relocate>
     val postSources: Property<(String) -> String>
+
+    data class Relocate(
+        val original: String,
+        val relocated: String = original,
+    )
 }
 
-val extension = project.extensions.create<SourcesFatJarExtension>("sourcesFatJar")
+val extension = project.extensions.create<RelocateSourcesExtension>("relocateSources")
 extension.postSources.convention { it }
 
 val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
@@ -24,12 +29,17 @@ val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
         .forComponents(configurations.runtimeClasspath.get().incoming.resolutionResult.allDependencies.filter {
             !it.from.id.displayName.startsWith("org.jetbrains.kotlin:kotlin-stdlib")
         }.map { it.from.id }).withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java).execute()
+
+    val relocates = extension.relocates.get().sortedByDescending { it.original.length }
     val replace = { str: String ->
         val destPrefix = "io.github.rothes.${rootProject.name.lowercase()}.lib."
-        fun String.relocate(s: String) = replace(s, destPrefix + s)
         var res = str
-        extension.relocates.get().forEach { res = res.relocate(it) }
+        relocates.forEach { res = res.replace(it.original, destPrefix + it.relocated) }
         extension.postSources.get().invoke(res)
+    }
+    val rep = relocates.map { relocate ->
+        fun String.toPath() = replace('.', '/')
+        relocate.original.toPath() to "io/github/rothes/${rootProject.name.lowercase()}/lib/" + relocate.relocated.toPath()
     }
     for (component in result.resolvedComponents) {
         component.getArtifacts(SourcesArtifact::class.java).forEach {
@@ -41,11 +51,13 @@ val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
                     tmp.writeText(replace(file.readText()))
                     from(tmp) {
                         duplicatesStrategy = DuplicatesStrategy.WARN
-                        into(
-                            "io/github/rothes/${rootProject.name.lowercase()}/lib/" + path.substringBeforeLast(
-                                "/"
-                            )
-                        )
+                        var intoPath = path.substringBeforeLast("/")
+                        for ((from, dest) in rep) {
+                            if (intoPath.startsWith(from)) {
+                                intoPath = dest + intoPath.substring(from.length)
+                            }
+                        }
+                        into(intoPath)
                     }
                 }
             }
@@ -74,12 +86,11 @@ publishing {
 
 tasks.shadowJar {
     doFirst { // Wait for configuration
-        val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-        fun relocate(pattern: String) {
-            relocate(pattern, "$pkg.$pattern")
-        }
+        val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib."
 
-        extension.relocates.get().forEach { relocate(it) }
+        extension.relocates.get()
+            .sortedByDescending { it.original.length }
+            .forEach { relocate(it.original, pkg + it.relocated) }
 
         mergeServiceFiles()
     }

@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.util.extension
 
-import io.github.rothes.esu.lib.org.spongepowered.configurate.ConfigurationOptions
+import io.github.rothes.esu.lib.configurate.ConfigurationOptions
 
 object ConfigurationOptionsExt {
 

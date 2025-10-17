@@ -2,7 +2,7 @@ package io.github.rothes.esu.bungee.user
 
 import io.github.rothes.esu.bungee.adventure
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.net.kyori.adventure.audience.Audience
+import io.github.rothes.esu.lib.adventure.audience.Audience
 import net.md_5.bungee.api.CommandSender
 
 abstract class BungeeUser: User {
