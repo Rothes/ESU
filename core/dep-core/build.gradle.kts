@@ -1,3 +1,7 @@
+plugins {
+    `sources-fat-jar`
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -15,6 +19,6 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
 }
 
-val sourcesRelocate: (Project, List<String>, (String) -> String) -> Unit by rootProject.extra
-
-sourcesRelocate(project, listOf("net.kyori")) { it }
+sourcesFatJar {
+    relocates.add("net.kyori")
+}
