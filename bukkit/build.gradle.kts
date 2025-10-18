@@ -88,6 +88,8 @@ dependencies {
     }
     compileOnly("net.momirealms:craft-engine-core:0.0.49")
     compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
+
+    compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
 }
 
 kotlin {

@@ -124,6 +124,7 @@ class EsuPluginBukkit(
                 "org.mariadb.jdbc:mariadb-java-client:3.5.3",
 
                 "info.debatty:java-string-similarity:2.0.0",
+                "com.hankcs:aho-corasick-double-array-trie:1.2.2",
             )
         )
         dependenciesResolved = true
@@ -200,6 +201,7 @@ class EsuPluginBukkit(
         ModuleManager.addModule(ExploitFixesModule)
         ModuleManager.addModule(ItemEditModule)
         ModuleManager.addModule(NetworkThrottleModule)
+        ModuleManager.addModule(SocialFilterModule)
         ModuleManager.addModule(SpawnProtectModule)
         ModuleManager.addModule(NewsModule)
         ModuleManager.addModule(OptimizationsModule)
