@@ -215,11 +215,11 @@ object StorageManager {
                 currentVer = MetaTable.select(MetaTable.value).where(MetaTable.key eq tbKey)
                     .singleOrNull()?.let { it[MetaTable.value].toInt() } ?: 1
                 for (i in currentVer until version) {
-                    EsuCore.instance.info("Upgrading schema of $tableName to $i")
+                    EsuCore.instance.info("Upgrading schema of db table $tableName to $i")
                     try {
                         upgradeHandlers[i - 1]()
                     } catch (e: Exception) {
-                        EsuCore.instance.err("Failed to upgrade schema of $tableName to $i, ignoring", e)
+                        EsuCore.instance.err("Failed to upgrade schema of db table $tableName to $i, ignoring: ${e.message ?: e.toString()}")
                         break
                     }
                 }
