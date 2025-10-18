@@ -55,8 +55,8 @@ object StorageManager {
 
     object UsersTable : Table("users") {
         val dbId = integer("id").autoIncrement()
-        val uuid = uuid("uuid").uniqueIndex()
-        val name = varchar("name", 16, "utf8mb3_general_ci").nullable().uniqueIndex()
+        val uuid = uuid("uuid").uniqueIndex("uk_uuid")
+        val name = varchar("name", 16, "utf8mb3_general_ci").nullable().uniqueIndex("uk_name")
         val language = varchar("language", 12, "utf8mb3_general_ci").nullable()
         val colorScheme = varchar("color_scheme", 32, "utf8mb3_general_ci").nullable()
 
@@ -85,6 +85,11 @@ object StorageManager {
                     this[colorScheme] = data[oldTable.colorScheme]
                 }
                 SchemaUtils.drop(oldTable)
+            }, {
+                exec("ALTER TABLE `$tableName` DROP INDEX `users_uuid_unique`")
+                exec("ALTER TABLE `$tableName` DROP INDEX `users_name_unique`")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_uuid` (user)")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_name` (name)")
             })
             // </editor-fold>
             SchemaUtils.create(UsersTable)

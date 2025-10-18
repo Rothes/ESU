@@ -26,8 +26,8 @@ import org.jetbrains.exposed.v1.json.json
 object CasDataManager {
 
     object ChatSpamTable: Table("chat_spam_data") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_chat_spam_data_user__id").uniqueIndex()
-        val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex()
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_user__id").uniqueIndex("fk_user__id")
+        val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex("uk_ip")
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
     }
@@ -63,6 +63,13 @@ object CasDataManager {
             }, {
                 exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
+            }, {
+                exec("ALTER TABLE `$tableName` DROP INDEX `user`")
+                exec("ALTER TABLE `$tableName` DROP INDEX `ip`")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_user` (user)")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_ip` (ip)")
+                exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
+                exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
             })
             // </editor-fold>
             SchemaUtils.create(ChatSpamTable)

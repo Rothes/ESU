@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
+import io.github.rothes.esu.core.storage.StorageManager.upgrader
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
@@ -24,7 +25,7 @@ object NewsDataManager {
 
     object NewsTable: Table("news_data") {
         val id = integer("id").autoIncrement()
-        val channel = varchar("channel", 32).index()
+        val channel = varchar("channel", 32).index("ix_channel")
         val time = datetime("time")
         val data = json<NewsItem>("data", { it.serialize() }, { it.deserialize() })
 
@@ -32,7 +33,7 @@ object NewsDataManager {
     }
 
     object NewsCheckedTable: Table("news_checked") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.NO_ACTION)
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "uk_user__id")
         val channel = varchar("channel", 32)
         val checked = integer("checked")
 
@@ -47,6 +48,12 @@ object NewsDataManager {
         transaction(database) {
             SchemaUtils.create(NewsTable)
             SchemaUtils.create(NewsCheckedTable)
+            NewsTable.upgrader({
+                exec("ALTER TABLE `${NewsTable.tableName}` DROP INDEX `news_data_channel`")
+                exec("ALTER TABLE `${NewsTable.tableName}` ADD INDEX `ix_channel` (channel)")
+                exec("ALTER TABLE `${NewsTable.tableName}` DROP FOREIGN KEY `fk_news_checked_user__id`")
+                exec("ALTER TABLE `${NewsTable.tableName}` ADD CONSTRAINT `fk_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
+            })
         }
     }
 
