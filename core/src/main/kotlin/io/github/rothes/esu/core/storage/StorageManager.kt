@@ -88,7 +88,7 @@ object StorageManager {
             }, {
                 exec("ALTER TABLE `$tableName` DROP INDEX `users_uuid_unique`")
                 exec("ALTER TABLE `$tableName` DROP INDEX `users_name_unique`")
-                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_uuid` (user)")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_uuid` (uuid)")
                 exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_name` (name)")
             })
             // </editor-fold>

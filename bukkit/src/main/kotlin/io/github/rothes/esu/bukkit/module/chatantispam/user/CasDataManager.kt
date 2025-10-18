@@ -26,7 +26,7 @@ import org.jetbrains.exposed.v1.json.json
 object CasDataManager {
 
     object ChatSpamTable: Table("chat_spam_data") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_user__id").uniqueIndex("fk_user__id")
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_user__id").uniqueIndex("uk_user")
         val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex("uk_ip")
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
