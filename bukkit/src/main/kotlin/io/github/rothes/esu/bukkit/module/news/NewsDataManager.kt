@@ -33,7 +33,7 @@ object NewsDataManager {
     }
 
     object NewsCheckedTable: Table("news_checked") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "uk_user__id")
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_news_checked__user__id")
         val channel = varchar("channel", 32)
         val checked = integer("checked")
 
@@ -51,8 +51,10 @@ object NewsDataManager {
             NewsTable.upgrader({
                 exec("ALTER TABLE `${NewsTable.tableName}` DROP INDEX `news_data_channel`")
                 exec("ALTER TABLE `${NewsTable.tableName}` ADD INDEX `ix_channel` (channel)")
-                exec("ALTER TABLE `${NewsTable.tableName}` DROP FOREIGN KEY `fk_news_checked_user__id`")
-                exec("ALTER TABLE `${NewsTable.tableName}` ADD CONSTRAINT `fk_user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
+            })
+            NewsCheckedTable.upgrader({
+                exec("ALTER TABLE `${NewsCheckedTable.tableName}` DROP FOREIGN KEY `fk_news_checked_user__id`")
+                exec("ALTER TABLE `${NewsCheckedTable.tableName}` ADD CONSTRAINT `fk_news_checked__user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
             })
         }
     }
