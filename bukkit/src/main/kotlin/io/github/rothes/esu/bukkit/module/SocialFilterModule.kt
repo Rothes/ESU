@@ -17,7 +17,6 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.core.util.extension.ifLet
 import org.bukkit.entity.Player
@@ -72,7 +71,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
 
         @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
         fun onChat(e: UserChatEvent) {
-            val message = e.message.legacy
+            val message = e.message.plainText
             val find = filters.configs.values.find {
                 it.enabled && it.blockChat && it.contains(message)
             } ?: return
