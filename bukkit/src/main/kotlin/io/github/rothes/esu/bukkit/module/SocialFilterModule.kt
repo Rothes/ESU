@@ -45,7 +45,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         filters = ConfigLoader.loadMulti(
             moduleFolder.resolve("filters"),
             ConfigLoader.LoaderSettingsMulti<Filter>(
-                createKeys = listOf("example.yml")
+                createKeys = listOf("example")
             )
         )
     }

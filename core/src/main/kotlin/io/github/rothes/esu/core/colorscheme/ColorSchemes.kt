@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.colorscheme
 
-import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigLoader
 
 object ColorSchemes {
@@ -17,7 +17,7 @@ object ColorSchemes {
         return ConfigLoader.loadMulti<MultiColorSchemeConfiguration, ColorScheme>(
             EsuCore.instance.baseConfigPath().resolve("color_schemes"),
             ConfigLoader.LoaderSettingsMulti(
-                "${EsuConfig.get().defaultColorScheme}.yml",
+                EsuConfig.get().defaultColorScheme,
                 yamlLoader = {
                     it.defaultOptions {
                         it.header("""

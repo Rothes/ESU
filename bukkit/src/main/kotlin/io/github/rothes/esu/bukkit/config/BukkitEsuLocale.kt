@@ -1,8 +1,8 @@
 package io.github.rothes.esu.bukkit.config
 
-import io.github.rothes.esu.core.config.EsuLocale
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale.BukkitLocaleData
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.config.EsuLocale
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
@@ -18,7 +18,7 @@ object BukkitEsuLocale: EsuLocale<BukkitLocaleData>() {
     }
 
     override fun load(): MultiLocaleConfiguration<BukkitLocaleData> = ConfigLoader.loadMulti(
-        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us.yml"
+        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us"
     )
 
     class BukkitLocaleData: BaseEsuLocaleData() {

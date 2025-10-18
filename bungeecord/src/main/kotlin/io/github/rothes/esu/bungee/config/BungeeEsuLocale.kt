@@ -17,7 +17,7 @@ object BungeeEsuLocale: EsuLocale<BungeeLocaleData>() {
     }
 
     override fun load(): MultiLocaleConfiguration<BungeeLocaleData> = ConfigLoader.loadMulti(
-        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us.yml"
+        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us"
     )
 
     class BungeeLocaleData: BaseEsuLocaleData() {

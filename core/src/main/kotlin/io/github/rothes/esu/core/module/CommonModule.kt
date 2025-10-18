@@ -65,7 +65,7 @@ abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Module
 
     override fun reloadConfig() {
         config = ConfigLoader.load(configPath, configClass, ConfigLoader.LoaderSettings(yamlLoader = configLoader))
-        locale = ConfigLoader.loadMulti(localePath, localeClass, ConfigLoader.LoaderSettingsMulti("en_us.yml", yamlLoader = localeLoader))
+        locale = ConfigLoader.loadMulti(localePath, localeClass, ConfigLoader.LoaderSettingsMulti("en_us", yamlLoader = localeLoader))
     }
 
     fun User.hasPerm(shortPerm: String): Boolean {

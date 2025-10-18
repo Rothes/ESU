@@ -126,9 +126,9 @@ object ConfigLoader {
         }
         return configClass.getConstructor(Map::class.java).newInstance(
             buildMap {
-                val files = settings.forceLoad?.map { path.resolve(it) }?.toMutableSet() ?: mutableSetOf()
+                val files = settings.forceLoad?.map { path.resolve("$it.yml") }?.toMutableSet() ?: mutableSetOf()
                 if (settings.createKeys?.isNotEmpty() == true && path.notExists()) {
-                    files.addAll(settings.createKeys.map { path.resolve(it) })
+                    files.addAll(settings.createKeys.map { path.resolve("$it.yml") })
                 }
 
                 if (path.isDirectory()) {
