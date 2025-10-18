@@ -300,7 +300,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             ChatHandler.Chat.chat(e.user, e.message)
 
-            e.cancelledKt = true
+            e.isCancelled = true
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -316,7 +316,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             if (config.whisper.interceptNamespaces) {
                 val target = e.targetPlayer?.user ?: return
                 ChatHandler.Whisper.whisper(e.user, target, e.message)
-                e.cancelledKt = true
+                e.isCancelled = true
             }
         }
 
@@ -324,7 +324,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         fun onReply(e: UserReplyCommandEvent) {
             if (config.whisper.interceptNamespaces) {
                 ChatHandler.Whisper.reply(e.user, e.message)
-                e.cancelledKt = true
+                e.isCancelled = true
             }
         }
 

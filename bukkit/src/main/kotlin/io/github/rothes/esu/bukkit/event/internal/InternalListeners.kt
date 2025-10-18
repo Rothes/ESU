@@ -68,7 +68,7 @@ internal object InternalListeners : Listener {
                     priority,
                 )
                 event.callNested()
-                e.isCancelled = event.cancelledKt
+                e.isCancelled = event.isCancelled
             }
         } else if (replyCommands.contains(command)) {
             if (split.size >= 2 && UserReplyCommandEvent.getHandlerList().registeredListeners.isNotEmpty()) {
@@ -79,7 +79,7 @@ internal object InternalListeners : Listener {
                     priority,
                 )
                 event.callNested()
-                e.isCancelled = event.cancelledKt
+                e.isCancelled = event.isCancelled
             }
         }
     }

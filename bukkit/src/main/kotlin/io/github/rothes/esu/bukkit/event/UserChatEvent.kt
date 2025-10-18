@@ -44,7 +44,7 @@ class UserChatEvent(
                     UserChatEvent(event.isAsynchronous, event.player, message, event.isCancelled, priority)
                 esuEvent.callNested()
 
-                event.isCancelled = esuEvent.cancelledKt
+                event.isCancelled = esuEvent.isCancelled
                 return esuEvent
             }
 

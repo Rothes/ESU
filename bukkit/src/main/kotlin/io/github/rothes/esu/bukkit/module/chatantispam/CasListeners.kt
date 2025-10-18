@@ -49,7 +49,7 @@ object CasListeners: Listener {
     @EventHandler
     fun onChat(e: UserChatEvent) {
         if (checkBlocked(e.player, e.message.legacy, Chat)) {
-            e.cancelledKt = true
+            e.isCancelled = true
         }
     }
 
@@ -63,7 +63,7 @@ object CasListeners: Listener {
     @EventHandler
     fun onWhisper(e: UserWhisperCommandEvent) {
         if (checkBlocked(e.player, e.message, Whisper(e.target))) {
-            e.cancelledKt = true
+            e.isCancelled = true
         }
     }
 
