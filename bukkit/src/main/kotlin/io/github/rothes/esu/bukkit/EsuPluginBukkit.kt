@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
+import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUser
@@ -18,7 +19,6 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
-import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -28,7 +28,6 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
@@ -48,7 +47,6 @@ import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
@@ -56,8 +54,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
-import java.nio.file.Path
-import java.util.logging.Level
 
 class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
@@ -301,6 +297,7 @@ class EsuPluginBukkit(
                 }
             }
         }, bootstrap)
+        InternalListeners
         UserLoginEvent // Init
 
         Metrics(bootstrap, 24645) // bStats

@@ -1,7 +1,10 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.google.common.cache.CacheBuilder
-import io.github.rothes.esu.bukkit.event.UserLoginEvent
+import io.github.rothes.esu.bukkit.event.*
+import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent.Companion.EMOTE_COMMANDS
+import io.github.rothes.esu.bukkit.event.UserReplyCommandEvent.Companion.REPLY_COMMANDS
+import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -29,22 +32,15 @@ import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
-import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.player.AsyncPlayerChatEvent
-import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.*
 import java.util.concurrent.TimeUnit
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>() {
-
-    const val WHISPER_COMMANDS = "whisper|msg|w|m|tell"
-    const val REPLY_COMMANDS = "reply|r"
-    const val EMOTE_COMMANDS = "emote|me"
 
     override fun enable() {
         Listeners.enable()
@@ -289,63 +285,46 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     object Listeners: Listener {
 
-        private val chatListener = try {
-            AsyncChatEvent::class.java.toString()
-            object : Listener {
-                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-                fun onChat(event: AsyncChatEvent) {
-                    if (!config.chat.enabled)
-                        return
-
-                    ChatHandler.Chat.chat(event.player.user, event.message().esu)
-
-                    event.isCancelled = true
-                }
-            }
-        } catch (e: NoClassDefFoundError) {
-            object : Listener {
-                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-                fun onPlayerChat(event: AsyncPlayerChatEvent) {
-                    if (!config.chat.enabled)
-                        return
-
-                    ChatHandler.Chat.chat(event.player.user, event.message)
-
-                    event.isCancelled = true
-                }
-            }
-        }
-
         fun enable() {
             Listeners.register()
-            chatListener.register()
         }
 
         fun disable() {
             Listeners.unregister()
-            chatListener.unregister()
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onChatCommand(event: PlayerCommandPreprocessEvent) {
-            val message = event.message
-            val split = message.split(' ', limit = 3)
-            val command = split[0].substring(1).split(':').last().lowercase()
-            if (EMOTE_COMMANDS.split('|').contains(command)) {
-                if (config.emote.interceptNamespaces && split.size >= 2) {
-                    ChatHandler.Emote.emote(event.player.user, split.drop(1).joinToString(separator = " "))
-                    event.isCancelled = true
-                }
-            } else if (WHISPER_COMMANDS.split('|').contains(command)) {
-                if (config.whisper.interceptNamespaces && split.size >= 3) {
-                    ChatHandler.Whisper.whisper(event.player.user, Bukkit.getPlayer(split[1])?.user ?: return , split[2])
-                    event.isCancelled = true
-                }
-            } else if (REPLY_COMMANDS.split('|').contains(command)) {
-                if (config.whisper.interceptNamespaces && split.size >= 2) {
-                    ChatHandler.Whisper.reply(event.player.user, split.drop(1).joinToString(separator = " "))
-                    event.isCancelled = true
-                }
+        fun onChat(e: UserChatEvent) {
+            if (!config.chat.enabled)
+                return
+
+            ChatHandler.Chat.chat(e.user, e.message)
+
+            e.cancelledKt = true
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        fun onEmote(e: UserEmoteCommandEvent) {
+            if (config.emote.interceptNamespaces) {
+                ChatHandler.Emote.emote(e.user, e.message)
+                e.isCancelled = true
+            }
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        fun onWhisper(e: UserWhisperCommandEvent) {
+            if (config.whisper.interceptNamespaces) {
+                val target = e.targetPlayer?.user ?: return
+                ChatHandler.Whisper.whisper(e.user, target, e.message)
+                e.cancelledKt = true
+            }
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        fun onReply(e: UserReplyCommandEvent) {
+            if (config.whisper.interceptNamespaces) {
+                ChatHandler.Whisper.reply(e.user, e.message)
+                e.cancelledKt = true
             }
         }
 

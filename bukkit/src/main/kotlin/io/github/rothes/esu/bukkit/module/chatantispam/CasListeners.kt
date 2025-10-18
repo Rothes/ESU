@@ -1,12 +1,14 @@
 package io.github.rothes.esu.bukkit.module.chatantispam
 
+import io.github.rothes.esu.bukkit.event.UserChatEvent
+import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
+import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
-import io.github.rothes.esu.bukkit.module.EsuChatModule
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
@@ -22,14 +24,10 @@ import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
-import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.player.AsyncPlayerChatEvent
-import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -40,52 +38,32 @@ object CasListeners: Listener {
 
     val notifyUsers = hashSetOf<User>()
 
-    private val emoteCommands = EsuChatModule.EMOTE_COMMANDS.split('|').toSet()
-    private val whisperCommands = EsuChatModule.WHISPER_COMMANDS.split('|').toSet()
-    private val chatListener = try {
-        AsyncChatEvent::class.java.toString()
-        object : Listener {
-            @EventHandler(priority = EventPriority.HIGH)
-            fun onChat(event: AsyncChatEvent) {
-                if (checkBlocked(event.player, event.message().esu.legacy, Chat)) {
-                    event.isCancelled = true
-                }
-            }
-        }
-    } catch (e: NoClassDefFoundError) {
-        object : Listener {
-            @EventHandler(priority = EventPriority.HIGH)
-            fun onChat(event: AsyncPlayerChatEvent) {
-                if (checkBlocked(event.player, event.message, Chat)) {
-                    event.isCancelled = true
-                }
-            }
-        }
-    }
-
     fun enable() {
         CasListeners.register()
-        chatListener.register()
     }
 
     fun disable() {
         CasListeners.unregister()
-        chatListener.unregister()
     }
 
     @EventHandler
-    fun onChatCommand(event: PlayerCommandPreprocessEvent) {
-        val message = event.message
-        val split = message.split(' ', limit = 3)
-        val command = split[0].substring(1).split(':').last().lowercase()
-        if (emoteCommands.contains(command)) {
-            if (split.size >= 2 && checkBlocked(event.player, split.drop(1).joinToString(separator = " "), Emote)) {
-                event.isCancelled = true
-            }
-        } else if (whisperCommands.contains(command)) {
-            if (split.size >= 3 && checkBlocked(event.player, split[2], Whisper(split[1]))) {
-                event.isCancelled = true
-            }
+    fun onChat(e: UserChatEvent) {
+        if (checkBlocked(e.player, e.message.legacy, Chat)) {
+            e.cancelledKt = true
+        }
+    }
+
+    @EventHandler
+    fun onEmote(e: UserEmoteCommandEvent) {
+        if (checkBlocked(e.player, e.message, Emote)) {
+            e.isCancelled = true
+        }
+    }
+
+    @EventHandler
+    fun onWhisper(e: UserWhisperCommandEvent) {
+        if (checkBlocked(e.player, e.message, Whisper(e.target))) {
+            e.cancelledKt = true
         }
     }
 

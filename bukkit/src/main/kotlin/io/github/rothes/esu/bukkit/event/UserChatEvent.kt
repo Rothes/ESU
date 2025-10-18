@@ -1,29 +1,24 @@
 package io.github.rothes.esu.bukkit.event
 
 import io.github.rothes.esu.bukkit.legacy
-import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.lib.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.*
+import org.bukkit.event.player.PlayerEvent
 
 class UserChatEvent(
     async: Boolean,
-    val player: Player,
+    player: Player,
     message: Component,
-    private var cancelled: Boolean,
-): Event(async), Cancellable {
+    override var cancelledKt: Boolean,
+    override val parentPriority: EventPriority
+): EsuUserEvent(player, async), CancellableKt, Nested {
 
     private var changed: Boolean = false
-
-    val user: PlayerUser by lazy {
-        player.user
-    }
 
     var message: Component = message
         set(value) {
@@ -31,49 +26,65 @@ class UserChatEvent(
             field = value
         }
 
-    override fun isCancelled(): Boolean {
-        return cancelled
-    }
-    override fun setCancelled(cancel: Boolean) {
-        this.cancelled = cancel
-    }
-
     override fun getHandlers(): HandlerList = Companion.handlers
 
     companion object {
+
         private val handlers = HandlerList()
         @JvmStatic
         fun getHandlerList(): HandlerList = handlers
 
         init {
-            val listener = try {
+            fun <T> callChatEvent(
+                event: T,
+                message: Component,
+                priority: EventPriority
+            ): UserChatEvent where T : PlayerEvent, T : Cancellable {
+                val esuEvent =
+                    UserChatEvent(event.isAsynchronous, event.player, message, event.isCancelled, priority)
+                esuEvent.callNested()
+
+                event.isCancelled = esuEvent.cancelledKt
+                return esuEvent
+            }
+
+            try {
                 io.papermc.paper.event.player.AsyncChatEvent::class.java.toString()
                 object : Listener {
-                    @EventHandler(priority = EventPriority.HIGH)
-                    fun onChat(event: io.papermc.paper.event.player.AsyncChatEvent) {
-                        val esuEvent = UserChatEvent(event.isAsynchronous, event.player, event.message().esu, event.isCancelled)
-                        Bukkit.getPluginManager().callEvent(esuEvent)
+                    fun callPaper(event: io.papermc.paper.event.player.AsyncChatEvent, priority: EventPriority) {
+                        val esu = callChatEvent(event, event.message().esu, priority)
+                        if (esu.changed) event.message(esu.message.server)
+                    }
 
-                        event.isCancelled = esuEvent.isCancelled
-                        if (esuEvent.changed)
-                            event.message(esuEvent.message.server)
+                    @EventHandler(priority = EventPriority.HIGH)
+                    fun onChat3(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                        callPaper(event, EventPriority.HIGH)
+                    }
+                    @EventHandler(priority = EventPriority.HIGHEST)
+                    fun onChat4(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                        callPaper(event, EventPriority.HIGHEST)
                     }
                 }
             } catch (_: NoClassDefFoundError) {
+                @Suppress("DEPRECATION")
                 object : Listener {
-                    @Suppress("DEPRECATION")
-                    @EventHandler(priority = EventPriority.HIGH)
-                    fun onChat(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
-                        val esuEvent = UserChatEvent(event.isAsynchronous, event.player, event.message.legacy, event.isCancelled)
-                        Bukkit.getPluginManager().callEvent(esuEvent)
+                    fun callCb(event: org.bukkit.event.player.AsyncPlayerChatEvent, priority: EventPriority) {
+                        val esu = callChatEvent(event, event.message.legacy, priority)
+                        if (esu.changed) event.message = esu.message.legacy
+                    }
 
-                        event.isCancelled = esuEvent.isCancelled
-                        if (esuEvent.changed)
-                            event.message = esuEvent.message.legacy
+                    @EventHandler(priority = EventPriority.HIGH)
+                    fun onChat3(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                        callCb(event, EventPriority.HIGH)
+                    }
+                    @EventHandler(priority = EventPriority.HIGHEST)
+                    fun onChat4(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                        callCb(event, EventPriority.HIGHEST)
                     }
                 }
-            }
-            listener.register()
+            }.register()
         }
+
     }
+
 }
