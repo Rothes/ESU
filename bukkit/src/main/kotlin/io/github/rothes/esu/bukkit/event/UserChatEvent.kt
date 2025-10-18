@@ -56,6 +56,18 @@ class UserChatEvent(
                         if (esu.changed) event.message(esu.message.server)
                     }
 
+                    @EventHandler(priority = EventPriority.LOWEST)
+                    fun onChat0(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                        callPaper(event, EventPriority.LOWEST)
+                    }
+                    @EventHandler(priority = EventPriority.LOW)
+                    fun onChat1(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                        callPaper(event, EventPriority.LOW)
+                    }
+                    @EventHandler(priority = EventPriority.NORMAL)
+                    fun onChat2(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                        callPaper(event, EventPriority.NORMAL)
+                    }
                     @EventHandler(priority = EventPriority.HIGH)
                     fun onChat3(event: io.papermc.paper.event.player.AsyncChatEvent) {
                         callPaper(event, EventPriority.HIGH)
@@ -73,6 +85,18 @@ class UserChatEvent(
                         if (esu.changed) event.message = esu.message.legacy
                     }
 
+                    @EventHandler(priority = EventPriority.LOWEST)
+                    fun onChat0(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                        callCb(event, EventPriority.LOWEST)
+                    }
+                    @EventHandler(priority = EventPriority.LOW)
+                    fun onChat1(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                        callCb(event, EventPriority.LOW)
+                    }
+                    @EventHandler(priority = EventPriority.NORMAL)
+                    fun onChat2(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                        callCb(event, EventPriority.NORMAL)
+                    }
                     @EventHandler(priority = EventPriority.HIGH)
                     fun onChat3(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.HIGH)

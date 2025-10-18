@@ -22,6 +22,14 @@ internal object InternalListeners : Listener {
         register()
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onChatCommand0(e: PlayerCommandPreprocessEvent) {
+        onChatCommand(e, EventPriority.LOWEST)
+    }
+    @EventHandler(priority = EventPriority.LOW)
+    fun onChatCommand1(e: PlayerCommandPreprocessEvent) {
+        onChatCommand(e, EventPriority.LOW)
+    }
     @EventHandler(priority = EventPriority.NORMAL)
     fun onChatCommand2(e: PlayerCommandPreprocessEvent) {
         onChatCommand(e, EventPriority.NORMAL)
