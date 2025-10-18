@@ -214,14 +214,15 @@ object StorageManager {
             if (SchemaUtils.listTables().map { it.substringAfter('.') }.any { it.equals(tableName, true)}) {
                 currentVer = MetaTable.select(MetaTable.value).where(MetaTable.key eq tbKey)
                     .singleOrNull()?.let { it[MetaTable.value].toInt() } ?: 1
-                for (i in currentVer until version) {
-                    EsuCore.instance.info("Upgrading schema of db table $tableName to $i")
+                while (currentVer < version) {
+                    EsuCore.instance.info("Upgrading schema of db table $tableName to $currentVer")
                     try {
-                        upgradeHandlers[i - 1]()
+                        upgradeHandlers[currentVer - 1]()
                     } catch (e: Exception) {
-                        EsuCore.instance.err("Failed to upgrade schema of db table $tableName to $i, ignoring: ${e.message ?: e.toString()}")
+                        EsuCore.instance.err("Failed to upgrade schema of db table $tableName to $currentVer, ignoring: ${e.message ?: e.toString()}")
                         break
                     }
+                    currentVer++
                 }
             }
             MetaTable.upsert {
