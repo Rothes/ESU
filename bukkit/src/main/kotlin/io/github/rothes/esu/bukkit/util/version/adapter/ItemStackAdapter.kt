@@ -33,7 +33,7 @@ interface ItemStackAdapter {
             return this
         }
 
-        fun <T: ItemMeta, R> editMeta(itemStack: ItemStack, block: (T) -> R): R? {
+        inline fun <T: ItemMeta, R> editMeta(itemStack: ItemStack, block: (T) -> R): R? {
             val meta = itemStack.itemMeta ?: return null
             @Suppress("UNCHECKED_CAST")
             val ret = block(meta as T)
@@ -41,19 +41,19 @@ interface ItemStackAdapter {
             return ret
         }
 
-        fun <R: Any> ItemStack.metaGet(block: (meta: ItemMeta) -> R): R {
+        inline fun <R: Any> ItemStack.metaGet(block: (meta: ItemMeta) -> R): R {
             return editMeta(this, block) ?: throw IllegalArgumentException("ItemStack does not have a meta")
         }
         @JvmName("metaGetT")
-        fun <T: ItemMeta, R: Any> ItemStack.metaGet(block: (meta: T) -> R): R {
+        inline fun <T: ItemMeta, R: Any> ItemStack.metaGet(block: (meta: T) -> R): R {
             return editMeta(this, block) ?: throw IllegalArgumentException("ItemStack does not have a meta")
         }
 
-        fun ItemStack.meta(block: (meta: ItemMeta) -> Unit): Boolean {
+        inline fun ItemStack.meta(block: (meta: ItemMeta) -> Unit): Boolean {
             return editMeta(this, block) != null
         }
         @JvmName("metaT")
-        fun <T: ItemMeta> ItemStack.meta(block: (meta: T) -> Unit): Boolean {
+        inline fun <T: ItemMeta> ItemStack.meta(block: (meta: T) -> Unit): Boolean {
             return editMeta(this, block) != null
         }
 
