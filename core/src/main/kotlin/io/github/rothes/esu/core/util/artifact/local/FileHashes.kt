@@ -1,12 +1,9 @@
 package io.github.rothes.esu.core.util.artifact.local
 
-import com.google.common.io.BaseEncoding
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
 import io.github.rothes.esu.core.util.artifact.HashUtils
 import java.io.File
-import java.io.FileInputStream
-import java.security.MessageDigest
 
 private const val FILE_HASHES_FILENAME = "fileHashes"
 

@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.util.artifact.relocator
 
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
+import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
 import java.io.File
 
 object CachedRelocator {
@@ -18,7 +19,7 @@ object CachedRelocator {
         val output = cacheFolder.resolve("$outputName.jar")
         if (output.exists()
             && cached.verify(output)
-            && cached.verify(file, "original")
+            && cached.verify(output, "original", file.sha1)
             && (version == null || cached.verify(output, "ver", version)))
             return output
 
@@ -26,7 +27,7 @@ object CachedRelocator {
         relocator.relocate(file, output)
 
         cached.store(output)
-        cached.store(file, "original")
+        cached.store(output, "original", file.sha1)
         if (version != null)
             cached.store(output, "ver", version)
         cached.save()
