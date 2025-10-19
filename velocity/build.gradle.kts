@@ -25,6 +25,8 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.114.Final")
     // Project
     api(project(":core"))
+    compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))
+
     compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.10")
 
     compileOnly("org.apache.maven.resolver:maven-resolver-api:1.9.18")
@@ -48,9 +50,7 @@ tasks.shadowJar {
 
     val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
 
-    relocate("org.bstats", "$pkg.org.bstats")
-
-    mergeServiceFiles()
+    relocate("org.bstats", "$pkg.bstats")
 }
 
 buildConfig {

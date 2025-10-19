@@ -39,9 +39,8 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Collections
+import java.util.*
 import kotlin.io.path.exists
-import kotlin.jvm.java
 
 object MavenResolver {
 
@@ -75,6 +74,7 @@ object MavenResolver {
             if (repo.id.equals("central")) {
                 add(RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build())
             }
+            add(RemoteRepository.Builder("codemc", "default", "https://repo.codemc.org/repository/maven-public/").build())
         }
     }
 

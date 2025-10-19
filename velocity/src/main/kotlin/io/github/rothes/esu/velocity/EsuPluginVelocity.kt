@@ -20,9 +20,6 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.artifact.MavenResolver
-import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
-import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
@@ -66,47 +63,6 @@ class EsuPluginVelocity(
     init {
         EsuCore.instance = this
         enabledHot = byServerUtils()
-
-        MavenResolver.loadDependencies(
-            listOf(
-                "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_EXPOSED_VERSION}",
-
-                "com.zaxxer:HikariCP:6.3.0",
-                "org.incendo:cloud-core:2.0.0",
-                "org.incendo:cloud-annotations:2.0.0",
-                "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
-
-                "org.incendo:cloud-velocity:2.0.0-beta.10",
-
-                "com.h2database:h2:2.3.232",
-                "com.mysql:mysql-connector-j:8.4.0",
-                "org.mariadb.jdbc:mariadb-java-client:3.5.3",
-
-                "org.ow2.asm:asm-commons:9.8",
-            )
-        )
-        val relocator = PackageRelocator(
-            "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
-            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/"
-        )
-        MavenResolver.loadDependencies(
-            listOf(
-                "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
-            )
-        ) { file, artifact ->
-            if (artifact.groupId == "net.kyori")
-                CachedRelocator.relocate(relocator, file, "3")
-            else
-                file
-        }
         dependenciesResolved = true
     }
 

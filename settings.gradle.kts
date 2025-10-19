@@ -18,3 +18,4 @@ include("bukkit:version:v1_21_3")
 include("bukkit:version:v1_21_6")
 
 include("velocity")
+include("velocity:dep-velocity")

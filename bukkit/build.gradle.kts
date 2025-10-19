@@ -43,27 +43,14 @@ allprojects {
         compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
-    tasks.shadowJar {
-        val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
-        fun relocate(pattern: String) {
-            relocate(pattern, "$pkg.$pattern")
-        }
-
-        relocate("org.bstats")
-        relocate("de.tr7zw.changeme.nbtapi")
-
-        mergeServiceFiles()
-    }
 }
 
 dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":core"))
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
-    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.10")
 
-    implementation("org.bstats:bstats-bukkit:3.1.0")
-    implementation("de.tr7zw:item-nbt-api:2.15.1")
+    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.10")
 
     compileOnly("info.debatty:java-string-similarity:2.0.0")
 

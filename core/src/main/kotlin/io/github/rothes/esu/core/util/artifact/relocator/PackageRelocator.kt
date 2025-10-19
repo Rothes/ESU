@@ -1,6 +1,6 @@
 package io.github.rothes.esu.core.util.artifact.relocator
 
-import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.EsuBootstrap
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
@@ -9,18 +9,17 @@ import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
-import kotlin.collections.iterator
 
 class PackageRelocator(
     relocates: Map<String, String>,
-    val logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") },
-    val err: (String) -> Unit = { EsuCore.instance.err("[Relocator] $it") },
+    val logger: (String) -> Unit = { EsuBootstrap.instance.info("[Relocator] $it") },
+    val err: (String) -> Unit = { EsuBootstrap.instance.err("[Relocator] $it") },
 ) {
 
     constructor(
         vararg relocates: Pair<String, String>,
-        logger: (String) -> Unit = { EsuCore.instance.info("[Relocator] $it") },
-        err: (String) -> Unit = { EsuCore.instance.err("[Relocator] $it") },
+        logger: (String) -> Unit = { EsuBootstrap.instance.info("[Relocator] $it") },
+        err: (String) -> Unit = { EsuBootstrap.instance.err("[Relocator] $it") },
     ): this(relocates.toMap(LinkedHashMap()), logger, err)
 
     private val remapper = ClassNameRemapper(relocates)

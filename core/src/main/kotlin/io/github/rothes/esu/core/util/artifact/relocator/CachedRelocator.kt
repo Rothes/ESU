@@ -1,12 +1,12 @@
 package io.github.rothes.esu.core.util.artifact.relocator
 
-import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import java.io.File
 
 object CachedRelocator {
 
-    private val cacheFolder = EsuCore.instance.baseConfigPath().toFile().resolve(".cache/relocated")
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().toFile().resolve(".cache/relocated")
     private val cached = FileHashes(cacheFolder)
 
     fun relocate(relocator: PackageRelocator, file: File, version: String? = null): File {

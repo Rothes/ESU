@@ -32,9 +32,9 @@ import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
+import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import net.jpountz.lz4.LZ4Factory
-import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -81,7 +81,10 @@ class EsuPluginBukkit(
         }
         val relocator = PackageRelocator(
             "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
-            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/"
+            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
+
+            "org/bstats" to "io/github/rothes/esu/lib/bstats",
+            "de/tr7zw/changeme/nbtapi" to "io/github/rothes/esu/lib/nbtapi",
         )
         MavenResolver.loadDependencies(
             listOf(
@@ -92,9 +95,11 @@ class EsuPluginBukkit(
                 "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
                 "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
                 "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                "org.bstats:bstats-bukkit:3.1.0",
+                "de.tr7zw:item-nbt-api:2.15.3",
             )
         ) { file, artifact ->
-            if (artifact.groupId == "net.kyori")
+            if (setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
                 CachedRelocator.relocate(relocator, file, "3")
             else
                 file

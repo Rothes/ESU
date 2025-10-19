@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit.util
 
 import com.google.gson.*
-import de.tr7zw.changeme.nbtapi.NBT
 import io.github.rothes.esu.bukkit.config.serializer.AttributeSerializer
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.util.DataSerializer
+import io.github.rothes.esu.lib.nbtapi.NBT
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
