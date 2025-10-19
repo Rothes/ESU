@@ -88,8 +88,8 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "de.tr7zw:item-nbt-api:2.15.3",
                 )
             ) { file, artifact ->
-                if (setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
-                    CachedRelocator.relocate(relocator, file, "3")
+                if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
+                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
             }

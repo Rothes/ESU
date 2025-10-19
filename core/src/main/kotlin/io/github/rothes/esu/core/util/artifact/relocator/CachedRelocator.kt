@@ -9,9 +9,13 @@ object CachedRelocator {
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().toFile().resolve(".cache/relocated")
     private val cached = FileHashes(cacheFolder)
 
-    fun relocate(relocator: PackageRelocator, file: File, version: String? = null): File {
-        val output = cacheFolder.resolve(file.name)
-
+    fun relocate(
+        relocator: PackageRelocator,
+        file: File,
+        outputName: String = file.nameWithoutExtension,
+        version: String? = null
+    ): File {
+        val output = cacheFolder.resolve("$outputName.jar")
         if (output.exists()
             && cached.verify(output)
             && cached.verify(file, "original")

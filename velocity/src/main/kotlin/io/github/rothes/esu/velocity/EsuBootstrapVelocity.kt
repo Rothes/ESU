@@ -99,8 +99,8 @@ class EsuBootstrapVelocity @Inject constructor(
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
                 )
             ) { file, artifact ->
-                if (setOf("net.kyori").contains(artifact.groupId))
-                    CachedRelocator.relocate(relocator, file, "3")
+                if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))
+                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
             }
