@@ -18,7 +18,6 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
-import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -28,13 +27,8 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.artifact.MavenResolver
-import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
-import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
-import it.unimi.dsi.fastutil.shorts.ShortArrayList
-import net.jpountz.lz4.LZ4Factory
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -59,8 +53,6 @@ class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
 ): EsuCore {
 
-    override var dependenciesResolved: Boolean = false
-        private set
     override var initialized: Boolean = false
         private set
 
@@ -70,69 +62,6 @@ class EsuPluginBukkit(
     init {
         EsuCore.instance = this
         BukkitDataSerializer // Register bukkit serializers
-        if (!ServerCompatibility.isMojmap) {
-            MavenResolver.loadDependencies(
-                listOf(
-                    "net.neoforged:AutoRenamingTool:2.0.13",
-                )
-            )
-            if (ServerCompatibility.hasMojmap)
-                MappingsLoader
-        }
-        val relocator = PackageRelocator(
-            "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
-            "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
-
-            "org/bstats" to "io/github/rothes/esu/lib/bstats",
-            "de/tr7zw/changeme/nbtapi" to "io/github/rothes/esu/lib/nbtapi",
-        )
-        MavenResolver.loadDependencies(
-            listOf(
-                "net.kyori:adventure-platform-bukkit:4.4.1",
-                "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                "org.bstats:bstats-bukkit:3.1.0",
-                "de.tr7zw:item-nbt-api:2.15.3",
-            )
-        ) { file, artifact ->
-            if (setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
-                CachedRelocator.relocate(relocator, file, "3")
-            else
-                file
-        }
-        MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
-            LZ4Factory.fastestInstance()
-        }
-        MavenResolver.testDependency("it.unimi.dsi:fastutil:8.5.15") {
-            // For 1.16.5
-            ShortArrayList()
-        }
-        MavenResolver.loadDependencies(
-            listOf(
-                "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_EXPOSED_VERSION}",
-                "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_EXPOSED_VERSION}",
-
-                "com.zaxxer:HikariCP:6.3.0",
-                "org.incendo:cloud-core:2.0.0",
-                "org.incendo:cloud-annotations:2.0.0",
-                "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
-
-                "org.incendo:cloud-paper:2.0.0-beta.10",
-
-                "com.h2database:h2:2.3.232",
-                "org.mariadb.jdbc:mariadb-java-client:3.5.3",
-
-                "info.debatty:java-string-similarity:2.0.0",
-                "com.hankcs:aho-corasick-double-array-trie:1.2.2",
-            )
-        )
-        dependenciesResolved = true
 
         loadVersions()
         Class.forName("io.github.rothes.esu.bukkit.AnsiFlattener")

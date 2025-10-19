@@ -41,8 +41,6 @@ class EsuPluginVelocity(
     val bootstrap: EsuBootstrapVelocity,
 ): EsuCore {
 
-    override var dependenciesResolved: Boolean = false
-        private set
     override var initialized: Boolean = false
         private set
     var enabled: Boolean = false
@@ -63,7 +61,6 @@ class EsuPluginVelocity(
     init {
         EsuCore.instance = this
         enabledHot = byServerUtils()
-        dependenciesResolved = true
     }
 
     override val commandManager: VelocityCommandManager<VelocityUser> by lazy {

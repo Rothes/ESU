@@ -7,7 +7,6 @@ import java.nio.file.Path
 
 interface EsuCore : EsuLogger {
 
-    val dependenciesResolved: Boolean
     val initialized: Boolean
     val commandManager: CommandManager<out User>
 

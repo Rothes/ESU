@@ -315,11 +315,6 @@ object ConfigLoader {
                     .build()
                 options.mapFactory(MapFactories.insertionOrdered())
                     .serializers {
-                        if (EsuCore.instance.dependenciesResolved) {
-                            it.register(CaptionSerializer)
-                                .register(ComponentSerializer)
-                                .register(TextColorSerializer)
-                        }
                         if (serverAdventure) {
                             it.register(ServerComponentSerializer)
                             it.register(ServerTextColorSerializer)
@@ -338,6 +333,8 @@ object ConfigLoader {
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
                             .register(TypeToken.get(Unit::class.java), EmptySerializer())
+                            .register(CaptionSerializer)
+                            .register(ComponentSerializer)
                             .register(DurationSerializer)
                             .register(EnumValueSerializer)
                             .register(JavaDurationSerializer)
@@ -346,6 +343,7 @@ object ConfigLoader {
                             .register(MessageDataSerializer)
                             .register(PathSerializer)
                             .register(RegexSerializer)
+                            .register(TextColorSerializer)
                             .register(
                                 { type ->
                                     GenericTypeReflector.erase(type).let { clazz ->

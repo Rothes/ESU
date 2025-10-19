@@ -88,7 +88,6 @@ class EsuBootstrapVelocity @Inject constructor(
             val relocator = PackageRelocator(
                 "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
                 "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
-                "org/bstats" to "io/github/rothes/esu/lib/bstats",
             )
             MavenResolver.loadDependencies(
                 listOf(
