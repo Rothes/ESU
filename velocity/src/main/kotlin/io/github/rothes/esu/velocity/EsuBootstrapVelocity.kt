@@ -91,12 +91,12 @@ class EsuBootstrapVelocity @Inject constructor(
             )
             MavenResolver.loadDependencies(
                 listOf(
-                    "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
+                    "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                 )
             ) { file, artifact ->
                 if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))
@@ -107,21 +107,21 @@ class EsuBootstrapVelocity @Inject constructor(
 
             MavenResolver.loadDependencies(
                 listOf(
-                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_EXPOSED_VERSION}",
+                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_VERSION_EXPOSED}",
 
-                    "com.zaxxer:HikariCP:6.3.0",
+                    "com.zaxxer:HikariCP:${BuildConfig.DEP_VERSION_HIKARICP}",
                     "org.incendo:cloud-core:2.0.0",
                     "org.incendo:cloud-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
 
                     "org.incendo:cloud-velocity:2.0.0-beta.10",
 
-                    "com.h2database:h2:2.3.232",
+                    "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
                     "com.mysql:mysql-connector-j:8.4.0",
-                    "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+                    "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
                 )
             )
         }

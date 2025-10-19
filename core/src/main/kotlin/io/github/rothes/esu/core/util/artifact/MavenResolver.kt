@@ -79,7 +79,7 @@ object MavenResolver {
     }
 
     fun loadKotlin() {
-        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.DEP_KOTLIN_VERSION}")
+        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.DEP_VERSION_KOTLIN}")
     }
 
     fun loadUrl(url: URL) {

@@ -39,7 +39,7 @@ allprojects {
     }
 
     dependencies {
-        compileOnly("com.github.retrooper:packetevents-spigot:2.9.3")
+        compileOnly(rootProject.libs.packetevents.spigot)
         compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
@@ -105,6 +105,7 @@ tasks.processResources {
 
 buildConfig {
     buildConfigField("PLUGIN_PLATFORM", "bukkit")
+    buildConfigField("DEP_VERSION_NBTAPI", rootProject.libs.versions.nbt.api)
 }
 
 

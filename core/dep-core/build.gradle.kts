@@ -8,15 +8,14 @@ repositories {
 }
 
 dependencies {
-    val adventureVersion = rootProject.libs.versions.adventure.get()
-    implementation("net.kyori:adventure-api:$adventureVersion")
-    implementation("net.kyori:adventure-text-minimessage:$adventureVersion")
-    implementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
-    implementation("net.kyori:adventure-text-serializer-gson:$adventureVersion") {
+    implementation(libs.adventure.api)
+    implementation(libs.adventure.text.minimessage)
+    implementation(libs.adventure.text.serializer.ansi)
+    implementation(libs.adventure.text.serializer.gson) {
         exclude("com.google.code.gson")
     }
-    implementation("net.kyori:adventure-text-serializer-legacy:$adventureVersion")
-    implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+    implementation(libs.adventure.text.serializer.legacy)
+    implementation(libs.adventure.text.serializer.plain)
 }
 
 relocateSources {

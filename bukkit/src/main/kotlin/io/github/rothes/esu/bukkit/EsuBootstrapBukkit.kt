@@ -77,15 +77,15 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             )
             MavenResolver.loadDependencies(
                 listOf(
+                    "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-platform-bukkit:4.4.1",
-                    "net.kyori:adventure-api:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_ADVENTURE_VERSION}",
-                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_ADVENTURE_VERSION}",
                     "org.bstats:bstats-bukkit:3.1.0",
-                    "de.tr7zw:item-nbt-api:2.15.3",
+                    "de.tr7zw:item-nbt-api:${BuildConfig.DEP_VERSION_NBTAPI}",
                 )
             ) { file, artifact ->
                 if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
@@ -102,20 +102,20 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             }
             MavenResolver.loadDependencies(
                 listOf(
-                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_EXPOSED_VERSION}",
-                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_EXPOSED_VERSION}",
+                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_VERSION_EXPOSED}",
 
-                    "com.zaxxer:HikariCP:6.3.0",
+                    "com.zaxxer:HikariCP:${BuildConfig.DEP_VERSION_HIKARICP}",
                     "org.incendo:cloud-core:2.0.0",
                     "org.incendo:cloud-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
 
                     "org.incendo:cloud-paper:2.0.0-beta.10",
 
-                    "com.h2database:h2:2.3.232",
-                    "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+                    "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
+                    "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
 
                     "info.debatty:java-string-similarity:2.0.0",
                     "com.hankcs:aho-corasick-double-array-trie:1.2.2",

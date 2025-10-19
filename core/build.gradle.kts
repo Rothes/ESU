@@ -11,13 +11,11 @@ dependencies {
     compileOnlyApi(project(":core:dep-core", configuration = "shadow"))
     api(project(":core:dep-impl-core", configuration = "shadow"))
 
-    val exposedVersion = rootProject.libs.versions.exposed.get()
-    compileOnlyApi("org.jetbrains.exposed:exposed-core:$exposedVersion")
-//    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-    compileOnlyApi("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    compileOnlyApi("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-    compileOnlyApi("org.jetbrains.exposed:exposed-json:$exposedVersion")
-    compileOnlyApi("com.zaxxer:HikariCP:6.3.0")
+    compileOnlyApi(libs.exposed.core)
+    compileOnlyApi(libs.exposed.jdbc)
+    compileOnlyApi(libs.exposed.kotlin.datetime)
+    compileOnlyApi(libs.exposed.json)
+    compileOnlyApi(libs.hikariCP)
 
     compileOnlyApi("org.incendo:cloud-core:2.0.0")
     compileOnlyApi("org.incendo:cloud-annotations:2.0.0")
