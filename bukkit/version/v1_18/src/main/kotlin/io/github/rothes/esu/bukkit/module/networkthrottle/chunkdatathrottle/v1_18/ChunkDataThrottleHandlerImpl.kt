@@ -94,13 +94,12 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         const val Z_LAVA: Byte    = 0b10_00000
 
         const val SECTION_BLOCKS = 16 * 16 * 16
-        const val BITS_ALL_TRUE = -1L
 
         const val BV_VISIBLE: Byte = 0b0
         const val BV_INVISIBLE: Byte = 0b1
         const val BV_LAVA_COVERED: Byte = 0b1011 // Why this value? flowing-lava id is 11, also the bit on BV_UPPER_OCCLUDING is 1
 
-        const val BV_UPPER_OCCLUDING: Byte = 0b10
+        const val BV_UPPER_OCCLUDING: Byte = 0b10 // Visible, but the block on its top is occluding
 
         private var LAVA_MIN = Int.MAX_VALUE
         private var LAVA_MAX = Int.MIN_VALUE
@@ -350,7 +349,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                     val sections = column.chunks
                     val height = event.user.totalWorldHeight
                     val bvArr = ByteArray((height shl 8) + 16 * 16) // BlocksViewArray
-                    val invisible = ByteArray(height shl 8) // 0: visible; 1: invisible; 2: visible, upper block blocks view
+                    val invisible = ByteArray(height shl 8) // Stores BV_ bytes
                     if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
                     // Handle neighbour chunks starts
                     handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS,  X_LAVA)
@@ -473,7 +472,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             }
                             fun checkEdge(id: Int, check: Byte, set: Byte) {
                                 // it and upper block should both be lava-covered
-                                if (bvArr[id] and check != 0.toByte() && bvArr[id + 0x100] and check != 0.toByte()) {
+                                if (bvArr[id] and check == check && bvArr[id + 0x100] and check == check) {
                                     bvArr[id] = bvArr[id] or set
                                 }
                             }
@@ -551,7 +550,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             // Rebuild palette mapping
                             val frequency = ShortArray(sectionData.states.size)
                             for (i in 0 until SECTION_BLOCKS) {
-                                if (invisible[id++] != 1.toByte())
+                                if (invisible[id++] != BV_INVISIBLE)
                                     frequency[sectionData.data[i]]++
                             }
 
