@@ -10,7 +10,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.*
 import org.bukkit.event.player.PlayerEvent
 
-class UserChatEvent(
+class RawUserChatEvent(
     async: Boolean,
     player: Player,
     message: Component,
@@ -39,9 +39,9 @@ class UserChatEvent(
                 event: T,
                 message: Component,
                 priority: EventPriority
-            ): UserChatEvent where T : PlayerEvent, T : Cancellable {
+            ): RawUserChatEvent where T : PlayerEvent, T : Cancellable {
                 val esuEvent =
-                    UserChatEvent(event.isAsynchronous, event.player, message, event.isCancelled, priority)
+                    RawUserChatEvent(event.isAsynchronous, event.player, message, event.isCancelled, priority)
                 esuEvent.callNested()
 
                 event.isCancelled = esuEvent.isCancelled

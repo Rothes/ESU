@@ -1,11 +1,11 @@
 package io.github.rothes.esu.bukkit.event.internal
 
-import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent
-import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent.Companion.EMOTE_COMMANDS
-import io.github.rothes.esu.bukkit.event.UserReplyCommandEvent
-import io.github.rothes.esu.bukkit.event.UserReplyCommandEvent.Companion.REPLY_COMMANDS
-import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent
-import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent.Companion.WHISPER_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
+import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent.Companion.EMOTE_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserReplyEvent
+import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
+import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -48,8 +48,8 @@ internal object InternalListeners : Listener {
         val split = message.split(' ', limit = 3)
         val command = split[0].substring(1).split(':').last().lowercase()
         if (emoteCommands.contains(command)) {
-            if (split.size >= 2 && UserEmoteCommandEvent.getHandlerList().registeredListeners.isNotEmpty()) {
-                val event = UserEmoteCommandEvent(
+            if (split.size >= 2 && RawUserEmoteEvent.getHandlerList().registeredListeners.isNotEmpty()) {
+                val event = RawUserEmoteEvent(
                     e.player,
                     split.drop(1).joinToString(separator = " "),
                     e.isCancelled,
@@ -59,8 +59,8 @@ internal object InternalListeners : Listener {
                 e.isCancelled = event.isCancelled
             }
         } else if (whisperCommands.contains(command)) {
-            if (split.size >= 3 && UserWhisperCommandEvent.getHandlerList().registeredListeners.isNotEmpty()) {
-                val event = UserWhisperCommandEvent(
+            if (split.size >= 3 && RawUserWhisperEvent.getHandlerList().registeredListeners.isNotEmpty()) {
+                val event = RawUserWhisperEvent(
                     e.player,
                     split[1],
                     split[2],
@@ -71,8 +71,8 @@ internal object InternalListeners : Listener {
                 e.isCancelled = event.isCancelled
             }
         } else if (replyCommands.contains(command)) {
-            if (split.size >= 2 && UserReplyCommandEvent.getHandlerList().registeredListeners.isNotEmpty()) {
-                val event = UserReplyCommandEvent(
+            if (split.size >= 2 && RawUserReplyEvent.getHandlerList().registeredListeners.isNotEmpty()) {
+                val event = RawUserReplyEvent(
                     e.player,
                     split.drop(1).joinToString(separator = " "),
                     e.isCancelled,

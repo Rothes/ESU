@@ -1,9 +1,9 @@
 package io.github.rothes.esu.bukkit.module.chatantispam
 
-import io.github.rothes.esu.bukkit.event.UserChatEvent
-import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent
+import io.github.rothes.esu.bukkit.event.RawUserChatEvent
+import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
+import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
-import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
@@ -47,21 +47,21 @@ object CasListeners: Listener {
     }
 
     @EventHandler
-    fun onChat(e: UserChatEvent) {
+    fun onChat(e: RawUserChatEvent) {
         if (checkBlocked(e.player, e.message.legacy, Chat)) {
             e.isCancelled = true
         }
     }
 
     @EventHandler
-    fun onEmote(e: UserEmoteCommandEvent) {
+    fun onEmote(e: RawUserEmoteEvent) {
         if (checkBlocked(e.player, e.message, Emote)) {
             e.isCancelled = true
         }
     }
 
     @EventHandler
-    fun onWhisper(e: UserWhisperCommandEvent) {
+    fun onWhisper(e: RawUserWhisperEvent) {
         if (checkBlocked(e.player, e.message, Whisper(e.target))) {
             e.isCancelled = true
         }

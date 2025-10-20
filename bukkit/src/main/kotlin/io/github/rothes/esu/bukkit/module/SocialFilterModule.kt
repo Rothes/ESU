@@ -1,9 +1,9 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.hankcs.algorithm.AhoCorasickDoubleArrayTrie
-import io.github.rothes.esu.bukkit.event.UserChatEvent
-import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent
-import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent
+import io.github.rothes.esu.bukkit.event.RawUserChatEvent
+import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
+import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
@@ -70,7 +70,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         }
 
         @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-        fun onChat(e: UserChatEvent) {
+        fun onChat(e: RawUserChatEvent) {
             val message = e.message.plainText
             val find = filters.configs.values.find {
                 it.enabled && it.blockChat && it.contains(message)
@@ -81,7 +81,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         }
 
         @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-        fun onEmote(e: UserEmoteCommandEvent) {
+        fun onEmote(e: RawUserEmoteEvent) {
             val message = e.message
             val find = filters.configs.values.find {
                 it.enabled && it.blockChat && it.contains(message)
@@ -92,7 +92,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         }
 
         @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-        fun onWhisper(e: UserWhisperCommandEvent) {
+        fun onWhisper(e: RawUserWhisperEvent) {
             val message = e.message
             val find = filters.configs.values.find {
                 it.enabled && it.blockChat && it.contains(message)

@@ -5,7 +5,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 
-class UserWhisperCommandEvent(
+class RawUserWhisperEvent(
     player: Player,
     val target: String,
     message: String,

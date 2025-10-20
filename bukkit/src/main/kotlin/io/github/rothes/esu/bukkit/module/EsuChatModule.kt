@@ -2,9 +2,9 @@ package io.github.rothes.esu.bukkit.module
 
 import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.bukkit.event.*
-import io.github.rothes.esu.bukkit.event.UserEmoteCommandEvent.Companion.EMOTE_COMMANDS
-import io.github.rothes.esu.bukkit.event.UserReplyCommandEvent.Companion.REPLY_COMMANDS
-import io.github.rothes.esu.bukkit.event.UserWhisperCommandEvent.Companion.WHISPER_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent.Companion.EMOTE_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMANDS
+import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -294,7 +294,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onChat(e: UserChatEvent) {
+        fun onChat(e: RawUserChatEvent) {
             if (!config.chat.enabled)
                 return
 
@@ -304,7 +304,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onEmote(e: UserEmoteCommandEvent) {
+        fun onEmote(e: RawUserEmoteEvent) {
             if (config.emote.interceptNamespaces) {
                 ChatHandler.Emote.emote(e.user, e.message)
                 e.isCancelled = true
@@ -312,7 +312,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onWhisper(e: UserWhisperCommandEvent) {
+        fun onWhisper(e: RawUserWhisperEvent) {
             if (config.whisper.interceptNamespaces) {
                 val target = e.targetPlayer?.user ?: return
                 ChatHandler.Whisper.whisper(e.user, target, e.message)
@@ -321,7 +321,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        fun onReply(e: UserReplyCommandEvent) {
+        fun onReply(e: RawUserReplyEvent) {
             if (config.whisper.interceptNamespaces) {
                 ChatHandler.Whisper.reply(e.user, e.message)
                 e.isCancelled = true
