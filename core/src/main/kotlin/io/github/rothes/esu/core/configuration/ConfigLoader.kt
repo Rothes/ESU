@@ -308,7 +308,7 @@ object ConfigLoader {
                     }
                     .addNodeResolver { name, _ ->
                         // Skip kotlin delegate(e.g. lazy) properties
-                        if (name.endsWith("\$delegate")) {
+                        if (name.endsWith($$"$delegate")) {
                             NodeResolver.SKIP_FIELD
                         } else null
                     }
