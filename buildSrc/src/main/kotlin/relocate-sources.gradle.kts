@@ -30,9 +30,13 @@ val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
     tmpDir.deleteRecursively()
 
     val result = dependencies.createArtifactResolutionQuery()
-        .forComponents(configurations.runtimeClasspath.get().incoming.resolutionResult.allDependencies.filter {
-            !it.from.id.displayName.startsWith("org.jetbrains.kotlin:kotlin-stdlib")
-        }.map { it.from.id }).withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java).execute()
+        .forComponents(
+            configurations.runtimeClasspath.get().resolvedConfiguration.lenientConfiguration.artifacts
+                .filter { it.name != "kotlin-stdlib" && it.name != "annotations" }
+                .map { it.id.componentIdentifier }
+        )
+        .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java)
+        .execute()
 
     val relocates = extension.relocates.get().sortedByDescending { it.original.length }
     val replace = { str: String ->
