@@ -1,10 +1,5 @@
 package io.github.rothes.esu.velocity.module.networkthrottle.channel
 
-import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper
-import com.github.retrooper.packetevents.protocol.PacketSide
-import com.github.retrooper.packetevents.protocol.packettype.PacketType
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.PostLoginEvent
@@ -12,6 +7,11 @@ import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.proxy.VelocityServer
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import com.velocitypowered.proxy.network.ConnectionManager
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.netty.buffer.ByteBufHelper
+import io.github.rothes.esu.lib.packetevents.protocol.PacketSide
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketTypeCommon
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.networkthrottle.UnknownPacketType
 import io.github.rothes.esu.velocity.plugin
@@ -21,7 +21,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.ChannelInitializer
 import io.netty.handler.codec.MessageToByteEncoder
-import com.github.retrooper.packetevents.protocol.player.User as PEUser
+import io.github.rothes.esu.lib.packetevents.protocol.player.User as PEUser
 
 object Injector {
 

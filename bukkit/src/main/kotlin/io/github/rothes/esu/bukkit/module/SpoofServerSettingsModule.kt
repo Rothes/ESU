@@ -1,15 +1,15 @@
 package io.github.rothes.esu.bukkit.module
 
-import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.event.PacketListenerAbstract
-import com.github.retrooper.packetevents.event.PacketListenerPriority
-import com.github.retrooper.packetevents.event.PacketSendEvent
-import com.github.retrooper.packetevents.protocol.packettype.PacketType
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDifficulty
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateSimulationDistance
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateViewDistance
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
+import io.github.rothes.esu.lib.packetevents.event.PacketSendEvent
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerDifficulty
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUpdateSimulationDistance
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUpdateViewDistance
 import org.bukkit.Difficulty
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -28,7 +28,7 @@ object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleC
 
         override fun onPacketSend(event: PacketSendEvent) {
             when (event.packetType) {
-                PacketType.Play.Server.UPDATE_VIEW_DISTANCE -> {
+                PacketType.Play.Server.UPDATE_VIEW_DISTANCE       -> {
                     val wrapper = WrapperPlayServerUpdateViewDistance(event)
                     config.viewDistance.getOrNull()?.let {
                         wrapper.viewDistance = it
@@ -43,7 +43,7 @@ object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleC
                 PacketType.Play.Server.SERVER_DIFFICULTY -> {
                     val wrapper = WrapperPlayServerDifficulty(event)
                     config.difficulty.getOrNull()?.let {
-                        wrapper.difficulty = com.github.retrooper.packetevents.protocol.world.Difficulty.valueOf(it.name)
+                        wrapper.difficulty = io.github.rothes.esu.lib.packetevents.protocol.world.Difficulty.valueOf(it.name)
                     }
                 }
             }

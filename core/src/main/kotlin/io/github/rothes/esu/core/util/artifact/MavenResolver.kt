@@ -12,6 +12,7 @@ import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
 import io.github.rothes.esu.core.util.extension.listOfJvm
 import io.github.rothes.esu.core.util.extension.mapJvm
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
+import org.eclipse.aether.DefaultRepositoryCache
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
 import org.eclipse.aether.artifact.Artifact
@@ -44,7 +45,12 @@ import kotlin.io.path.exists
 
 object MavenResolver {
 
-    private val loaded = mutableSetOf<String>()
+    object MavenRepos {
+        val NEO_FORGED = RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build()!!
+        val CODEMC = RemoteRepository.Builder("codemc", "default", "https://repo.codemc.org/repository/maven-public/").build()!!
+    }
+
+    private val filter = mutableSetOf<String>()
 
     private val repository: RepositorySystem = MavenRepositorySystemUtils.newServiceLocator().apply {
         addService(RepositoryConnectorFactory::class.java, BasicRepositoryConnectorFactory::class.java)
@@ -54,6 +60,8 @@ object MavenResolver {
         setSystemProperties(System.getProperties())
         checksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_FAIL
         localRepositoryManager = repository.newLocalRepositoryManager(this, LocalRepository("libraries"))
+        cache = DefaultRepositoryCache()
+        updatePolicy = RepositoryPolicy.UPDATE_POLICY_DAILY
         transferListener = object : AbstractTransferListener() {
             override fun transferStarted(event: TransferEvent) {
                 EsuBootstrap.instance.info("Downloading " + event.resource.repositoryUrl + event.resource.resourceName)
@@ -68,18 +76,13 @@ object MavenResolver {
 
     private fun createRepositories(): List<RemoteRepository> {
         val repo = loadRepoConfiguration()
-        return mutableListOf<RemoteRepository>().apply {
+        return mutableListOf<RemoteRepository>().apply { // no-stdlib support
             add(RemoteRepository.Builder(repo.id, "default", repo.url).build())
-            @Suppress("ReplaceCallWithBinaryOperator") // Pure Java support
-            if (repo.id.equals("central")) {
-                add(RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build())
-            }
-            add(RemoteRepository.Builder("codemc", "default", "https://repo.codemc.org/repository/maven-public/").build())
         }
     }
 
     fun loadKotlin() {
-        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.DEP_VERSION_KOTLIN}")
+        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.DEP_VERSION_KOTLIN}", listOfJvm())
     }
 
     fun loadUrl(url: URL) {
@@ -95,15 +98,22 @@ object MavenResolver {
         }
     }
 
-    fun loadDependencies(libraries: List<String>, loader: (File, Artifact) -> File = { f, _ -> f }) {
+    fun loadDependencies(libraries: List<String>, extraRepo: List<RemoteRepository> = listOf()) {
         require(libraries.isNotEmpty()) { "Library must not be empty" }
         for (lib in libraries) {
-            loadDependency(lib, loader)
+            loadDependency(lib, extraRepo)
         }
     }
 
-    fun loadDependency(library: String) {
-        val result = resolveDependency(library)
+    fun loadDependencies(libraries: List<String>, extraRepo: List<RemoteRepository> = listOf(), loader: (File, Artifact) -> File) {
+        require(libraries.isNotEmpty()) { "Library must not be empty" }
+        for (lib in libraries) {
+            loadDependency(lib, extraRepo, loader)
+        }
+    }
+
+    fun loadDependency(library: String, extraRepo: List<RemoteRepository>) {
+        val result = resolveDependency(library, extraRepo)
 
         for (it in result.artifactResults) {
             val artifact = it.artifact
@@ -111,13 +121,13 @@ object MavenResolver {
             val url = file.toURI().toURL()
             loadUrl(url)
 
-            val str = "${artifact.groupId}:${artifact.artifactId}"
-            loaded.add(str)
+            val str = "${artifact.groupId}:${artifact.artifactId}::"
+            filter.add(str)
         }
     }
 
-    fun loadDependency(library: String, loader: (File, Artifact) -> File = { f, _ -> f }) {
-        val result = resolveDependency(library)
+    fun loadDependency(library: String, extraRepo: List<RemoteRepository> = listOf(), loader: (File, Artifact) -> File) {
+        val result = resolveDependency(library, extraRepo)
 
         for (it in result.artifactResults) {
             val artifact = it.artifact
@@ -126,21 +136,23 @@ object MavenResolver {
             val url = toLoad.toURI().toURL()
             loadUrl(url)
 
-            val str = "${artifact.groupId}:${artifact.artifactId}"
-            loaded.add(str)
+            val str = "${artifact.groupId}:${artifact.artifactId}::"
+            filter.add(str)
         }
     }
 
-    private fun resolveDependency(library: String): DependencyResult {
+    private fun resolveDependency(library: String, extraRepo: List<RemoteRepository>): DependencyResult {
         val dependency = Dependency(DefaultArtifact(library), null)
         var result: DependencyResult
         var trys = 0
         while (true) {
             try {
+                val repo = ArrayList(repositories)
+                repo.addAll(extraRepo)
                 result = repository.resolveDependencies(
                     session, DependencyRequest(
-                        CollectRequest(null as Dependency?, listOfJvm(dependency), repositories),
-                        PatternExclusionsDependencyFilter(loaded.mapJvm { "$it::" })
+                        CollectRequest(null as Dependency?, listOfJvm(dependency), repo),
+                        PatternExclusionsDependencyFilter(filter)
                     )
                 )
                 break
@@ -162,7 +174,7 @@ object MavenResolver {
         }
     }
 
-    private fun loadRepoConfiguration(): MavenRepo {
+    fun loadRepoConfiguration(): MavenRepo {
         val gson = GsonBuilder().setPrettyPrinting().create()
         val file = EsuBootstrap.instance.baseConfigPath().resolve("maven-repo.json")
         fun useBest(): MavenRepo {

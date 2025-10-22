@@ -15,7 +15,9 @@ import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import org.bstats.velocity.Metrics
+import org.eclipse.aether.artifact.Artifact
 import org.slf4j.Logger
+import java.io.File
 import java.nio.file.Path
 
 @Plugin(
@@ -25,8 +27,8 @@ import java.nio.file.Path
     authors = ["Rothes"],
     url = "https://github.com/Rothes/ESU",
     dependencies = [
-        Dependency("packetevents", true),
         // Let those plugins load first, so we can restore our ServerChannelInitializerHolder
+        Dependency("packetevents", true),
         Dependency("sonar", true),
         Dependency("viaversion", true),
     ]
@@ -88,7 +90,15 @@ class EsuBootstrapVelocity @Inject constructor(
             val relocator = PackageRelocator(
                 "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
                 "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
+                "io/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
+                "com/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
             )
+            val loader = { file: File, artifact: Artifact ->
+                if (artifact.extension == "jar" && setOf("net.kyori", "com.github.retrooper").contains(artifact.groupId))
+                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
+                else
+                    file
+            }
             MavenResolver.loadDependencies(
                 listOf(
                     "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
@@ -97,13 +107,17 @@ class EsuBootstrapVelocity @Inject constructor(
                     "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                )
-            ) { file, artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))
-                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
-                else
-                    file
-            }
+                    "net.kyori:adventure-nbt:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                ),
+                loader = loader,
+            )
+            MavenResolver.loadDependencies(
+                listOf(
+                    "com.github.retrooper:packetevents-velocity:${BuildConfig.DEP_VERSION_PACKETEVENTS}",
+                ),
+                extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
+                loader = loader,
+            )
 
             MavenResolver.loadDependencies(
                 listOf(

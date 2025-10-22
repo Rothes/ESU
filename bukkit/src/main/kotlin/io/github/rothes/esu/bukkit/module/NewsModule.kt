@@ -5,7 +5,6 @@ import io.github.rothes.esu.bukkit.config.data.ItemData
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMiniMessage
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -39,16 +38,6 @@ import org.incendo.cloud.annotations.Command
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>() {
 
     private val checkedCache = mutableMapOf<User, Int>()
-
-    override fun canUse(): Boolean {
-        if (!super.canUse())
-            return false
-        if (!Bukkit.getPluginManager().isPluginEnabled("packetevents")) {
-            plugin.err("[NewsModule] This module requires packetevents plugin!")
-            return false
-        }
-        return true
-    }
 
     override fun enable() {
         EditorManager.enable()

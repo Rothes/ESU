@@ -1,14 +1,5 @@
 package io.github.rothes.esu.bukkit.module.news
 
-import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.event.PacketListenerAbstract
-import com.github.retrooper.packetevents.event.PacketListenerPriority
-import com.github.retrooper.packetevents.event.PacketReceiveEvent
-import com.github.retrooper.packetevents.event.PacketSendEvent
-import com.github.retrooper.packetevents.protocol.packettype.PacketType
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEditBook
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
-import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NewsModule.locale
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -16,6 +7,15 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
+import io.github.rothes.esu.lib.packetevents.event.PacketReceiveEvent
+import io.github.rothes.esu.lib.packetevents.event.PacketSendEvent
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
+import io.github.rothes.esu.lib.packetevents.util.SpigotConversionUtil
+import io.github.rothes.esu.lib.packetevents.wrapper.play.client.WrapperPlayClientEditBook
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -62,8 +62,7 @@ object EditorManager {
             meta.pages = content
         }
         val packet = WrapperPlayServerSetSlot(
-            -2, 0, slot,
-            SpigotConversionUtil.fromBukkitItemStack(item)
+            -2, 0, slot, SpigotConversionUtil.fromBukkitItemStack(item)
         )
         PacketEvents.getAPI().playerManager.sendPacket(user.player, packet)
     }
@@ -104,8 +103,7 @@ object EditorManager {
     private fun restoreSlot(player: Player, slot: Int) {
         val item = player.inventory.getItem(slot)
         val packet = WrapperPlayServerSetSlot(
-            -2, 0, slot,
-            SpigotConversionUtil.fromBukkitItemStack(item)
+            -2, 0, slot, SpigotConversionUtil.fromBukkitItemStack(item)
         )
         PacketEvents.getAPI().playerManager.sendPacket(player, packet)
     }

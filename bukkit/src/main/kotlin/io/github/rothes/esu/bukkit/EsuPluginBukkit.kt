@@ -29,6 +29,8 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -117,6 +119,11 @@ class EsuPluginBukkit(
         }
     }
 
+    fun onLoad() {
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(bootstrap))
+        PacketEvents.getAPI().load()
+    }
+
     fun onEnable() {
         adventure           // Init adventure
         EsuConfig           // Load global config
@@ -124,6 +131,8 @@ class EsuPluginBukkit(
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
+
+        PacketEvents.getAPI().init()
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
@@ -268,6 +277,7 @@ class EsuPluginBukkit(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
+        PacketEvents.getAPI().terminate()
     }
 
     private fun byPlugMan(): Boolean {

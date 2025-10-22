@@ -9,13 +9,10 @@ import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
 import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
-import io.github.rothes.esu.velocity.plugin
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>() {
 
     override fun enable() {
-        if (plugin.server.pluginManager.getPlugin("packetevents") == null)
-            error("PacketEvents is required!")
         Injector.enable()
         TrafficMonitor.enable()
         Analyser.enable()

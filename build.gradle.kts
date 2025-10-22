@@ -101,6 +101,7 @@ subprojects {
                 buildConfigField("DEP_VERSION_H2DATABASE", rootProject.libs.versions.h2database)
                 buildConfigField("DEP_VERSION_HIKARICP", rootProject.libs.versions.hikariCP)
                 buildConfigField("DEP_VERSION_MARIADB_CLIENT", rootProject.libs.versions.mariadb.client)
+                buildConfigField("DEP_VERSION_PACKETEVENTS", rootProject.libs.versions.packetevents)
             }
         }
 

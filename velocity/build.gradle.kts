@@ -34,7 +34,6 @@ dependencies {
     implementation(libs.bstats.velocity)
 
     compileOnly("com.github.Rothes.ServerUtils:ServerUtils-Velocity:master-SNAPSHOT") // Official repo is down
-    compileOnly(libs.packetevents.velocity)
 
 }
 

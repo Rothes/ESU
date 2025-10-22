@@ -1,11 +1,5 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
-import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.event.PacketListenerAbstract
-import com.github.retrooper.packetevents.event.PacketListenerPriority
-import com.github.retrooper.packetevents.event.PacketReceiveEvent
-import com.github.retrooper.packetevents.protocol.packettype.PacketType
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.locale
@@ -16,6 +10,12 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
+import io.github.rothes.esu.lib.packetevents.event.PacketReceiveEvent
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
+import io.github.rothes.esu.lib.packetevents.wrapper.play.client.WrapperPlayClientSettings
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player

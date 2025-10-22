@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
@@ -17,6 +16,7 @@ import io.github.rothes.esu.core.configuration.serializer.MapSerializer.Defaulte
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.lib.packetevents.util.SpigotConversionUtil
 import org.bukkit.Material
 import java.time.Duration
 import java.util.*

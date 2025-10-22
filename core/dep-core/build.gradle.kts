@@ -5,6 +5,8 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+
+    maven("https://repo.codemc.io/repository/maven-releases/")
 }
 
 dependencies {
@@ -16,9 +18,13 @@ dependencies {
     }
     implementation(libs.adventure.text.serializer.legacy)
     implementation(libs.adventure.text.serializer.plain)
+
+    implementation(libs.packetevents.api)
 }
 
 relocateSources {
     relocate("net.kyori")
     relocate("net.kyori.adventure", "adventure")
+    relocate("com.github.retrooper.packetevents", "packetevents")
+    relocate("io.github.retrooper.packetevents", "packetevents")
 }

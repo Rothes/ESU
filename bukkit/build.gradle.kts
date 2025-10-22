@@ -36,10 +36,10 @@ allprojects {
             name = "NeoForged"
             url = uri("https://maven.neoforged.net/releases/")
         }
+        maven("https://jitpack.io")
     }
 
     dependencies {
-        compileOnly(rootProject.libs.packetevents.spigot)
         compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
@@ -108,17 +108,9 @@ buildConfig {
     buildConfigField("DEP_VERSION_NBTAPI", rootProject.libs.versions.nbt.api)
 }
 
-
-allprojects {
-    repositories {
-        maven("https://jitpack.io")
-    }
-}
-
 modrinth {
     loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
     dependencies {
-        optional.project("packetevents")
         optional.project("PlaceholderAPI")
         optional.project("PlugManX")
     }

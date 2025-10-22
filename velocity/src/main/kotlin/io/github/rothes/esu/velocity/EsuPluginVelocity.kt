@@ -20,6 +20,8 @@ import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.InitOnce
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.velocity.factory.VelocityPacketEventsBuilder
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLocale
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
@@ -89,6 +91,9 @@ class EsuPluginVelocity(
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
+
+        PacketEvents.setAPI(VelocityPacketEventsBuilder.build(server, container, logger, dataDirectory))
+        PacketEvents.getAPI().init()
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(NetworkThrottleModule)
@@ -161,6 +166,7 @@ class EsuPluginVelocity(
         }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
+        PacketEvents.getAPI().terminate()
     }
 
     @Subscribe(order = PostOrder.LAST)

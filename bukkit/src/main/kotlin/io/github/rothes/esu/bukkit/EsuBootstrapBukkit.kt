@@ -10,6 +10,8 @@ import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import net.jpountz.lz4.LZ4Factory
 import org.bukkit.plugin.java.JavaPlugin
+import org.eclipse.aether.artifact.Artifact
+import java.io.File
 import java.nio.file.Path
 import java.util.logging.Level
 
@@ -25,7 +27,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
     val esu = EsuPluginBukkit(this)
 
     override fun onLoad() {
-        super.onLoad()
+        esu.onLoad()
     }
 
     override fun onEnable() {
@@ -63,7 +65,8 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                 MavenResolver.loadDependencies(
                     listOf(
                         "net.neoforged:AutoRenamingTool:2.0.13",
-                    )
+                    ),
+                    extraRepo = if (MavenResolver.loadRepoConfiguration().id == "aliyun") listOf() else listOf(MavenResolver.MavenRepos.NEO_FORGED)
                 )
                 if (ServerCompatibility.hasMojmap)
                     MappingsLoader
@@ -71,10 +74,18 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             val relocator = PackageRelocator(
                 "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
                 "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
+                "io/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
+                "com/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
 
                 "org/bstats" to "io/github/rothes/esu/lib/bstats",
                 "de/tr7zw/changeme/nbtapi" to "io/github/rothes/esu/lib/nbtapi",
             )
+            val loader = { file: File, artifact: Artifact ->
+                if (artifact.extension == "jar" && setOf("net.kyori", "com.github.retrooper", "org.bstats", "de.tr7zw").contains(artifact.groupId))
+                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
+                else
+                    file
+            }
             MavenResolver.loadDependencies(
                 listOf(
                     "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
@@ -84,15 +95,18 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-platform-bukkit:4.4.1",
+                ),
+                loader = loader,
+            )
+            MavenResolver.loadDependencies(
+                listOf(
+                    "com.github.retrooper:packetevents-spigot:${BuildConfig.DEP_VERSION_PACKETEVENTS}",
                     "org.bstats:bstats-bukkit:3.1.0",
                     "de.tr7zw:item-nbt-api:${BuildConfig.DEP_VERSION_NBTAPI}",
-                )
-            ) { file, artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
-                    CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
-                else
-                    file
-            }
+                ),
+                extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
+                loader = loader,
+            )
             MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
                 LZ4Factory.fastestInstance()
             }

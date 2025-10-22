@@ -1,30 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18
 
-import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.event.PacketListenerAbstract
-import com.github.retrooper.packetevents.event.PacketListenerPriority
-import com.github.retrooper.packetevents.event.PacketReceiveEvent
-import com.github.retrooper.packetevents.event.PacketSendEvent
-import com.github.retrooper.packetevents.protocol.packettype.PacketType
-import com.github.retrooper.packetevents.protocol.player.DiggingAction
-import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
-import com.github.retrooper.packetevents.protocol.world.MaterialType
-import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
-import com.github.retrooper.packetevents.protocol.world.chunk.storage.BaseStorage
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
-import com.github.retrooper.packetevents.util.Vector3i
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import com.google.common.io.ByteStreams
 import com.google.common.primitives.Ints
-import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
@@ -42,6 +19,29 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
+import io.github.rothes.esu.lib.packetevents.PacketEvents
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
+import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
+import io.github.rothes.esu.lib.packetevents.event.PacketReceiveEvent
+import io.github.rothes.esu.lib.packetevents.event.PacketSendEvent
+import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
+import io.github.rothes.esu.lib.packetevents.protocol.player.DiggingAction
+import io.github.rothes.esu.lib.packetevents.protocol.stream.NetStreamInput
+import io.github.rothes.esu.lib.packetevents.protocol.world.MaterialType
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.GlobalPalette
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.ListPalette
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.MapPalette
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.SingletonPalette
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.storage.BaseStorage
+import io.github.rothes.esu.lib.packetevents.protocol.world.states.WrappedBlockState
+import io.github.rothes.esu.lib.packetevents.util.SpigotConversionUtil
+import io.github.rothes.esu.lib.packetevents.util.Vector3i
+import io.github.rothes.esu.lib.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerChunkData
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
+import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -76,7 +76,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
-import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
+import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 
 class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {
@@ -393,7 +393,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                                     }
                                     blockingArr = ByteArray(states.size) { i -> states[i].blocksView }
                                 }
-                                is GlobalPalette -> {
+                                is GlobalPalette              -> {
                                     states = ITSELF
                                     blockingArr = BLOCKS_VIEW
                                 }
@@ -557,7 +557,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             val empty = frequency.count { it == 0.toShort() } // The amount we don't need to put into the new mapping
                             if (frequency.size - empty == 1) {
                                 // Only contains 1 block type, we can convert it into SingletonPalette
-                                section.chunkData.palette = SingletonPalette(sectionData.states[frequency.indexOfFirst { it != 0.toShort() }])
+                                section.chunkData.palette =
+                                    SingletonPalette(sectionData.states[frequency.indexOfFirst { it != 0.toShort() }])
                                 continue
                             }
 
@@ -800,15 +801,13 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
 
         for ((section, blocks) in groupBy) {
-            val wrapper = if (blocks.size > 1)
-                WrapperPlayServerMultiBlockChange(
-                    Vector3i(section.x, section.y, section.z), true, blocks.map {
-                        WrapperPlayServerMultiBlockChange.EncodedBlock(
-                            chunk.getBlockState(it).id,
-                            it.x and 0xf, it.y and 0xf, it.z and 0xf
-                        )
-                    }.toTypedArray()
-                )
+            val wrapper = if (blocks.size > 1) WrapperPlayServerMultiBlockChange(
+                Vector3i(section.x, section.y, section.z), true, blocks.map {
+                    WrapperPlayServerMultiBlockChange.EncodedBlock(
+                        chunk.getBlockState(it).id, it.x and 0xf, it.y and 0xf, it.z and 0xf
+                    )
+                }.toTypedArray()
+            )
             else
                 blocks.first().let {
                     WrapperPlayServerBlockChange(
