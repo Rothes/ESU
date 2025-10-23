@@ -69,16 +69,17 @@ object MavenResolver {
         }
         setReadOnly()
     }
-    private val repositories: List<RemoteRepository> =
-        repository.newResolutionRepositories(session, createRepositories())
+    private val repositories: List<RemoteRepository>
+    val usingAliyun: Boolean
 
-    private var injecter: URLInjector = UnsafeURLInjector
+    private var injector: URLInjector = UnsafeURLInjector
 
-    private fun createRepositories(): List<RemoteRepository> {
+
+    init {
         val repo = loadRepoConfiguration()
-        return mutableListOf<RemoteRepository>().apply { // no-stdlib support
-            add(RemoteRepository.Builder(repo.id, "default", repo.url).build())
-        }
+        repositories = repository.newResolutionRepositories(session, listOfJvm(RemoteRepository.Builder(repo.id, "default", repo.url).build()))
+        @Suppress("ReplaceCallWithBinaryOperator") // no-stdlib support
+        usingAliyun = repo.id.equals("aliyun")
     }
 
     fun loadKotlin() {
@@ -87,11 +88,11 @@ object MavenResolver {
 
     fun loadUrl(url: URL) {
         try {
-            injecter.addURL(url)
+            injector.addURL(url)
         } catch (e: InaccessibleObjectException) {
-            if (injecter == UnsafeURLInjector) {
-                injecter = ReflectURLInjector
-                injecter.addURL(url)
+            if (injector == UnsafeURLInjector) {
+                injector = ReflectURLInjector
+                injector.addURL(url)
             } else {
                 throw e
             }
