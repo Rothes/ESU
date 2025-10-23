@@ -7,7 +7,7 @@ fun <T> listOfJvm(element: T): List<T> {
 }
 
 fun <T> listOfJvm(vararg elements: T): List<T> {
-    return mutableListOf<T>().apply {
+    return ArrayList<T>(elements.size).apply {
         elements.forEach {
             add(it)
         }
