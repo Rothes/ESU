@@ -1,0 +1,35 @@
+module-enabled: ~
+chat:
+  enabled: ~
+
+  # 'player' 是玩家看到的格式，'console' 是打印到控制台的格式。
+  format: ~
+
+  # 启用此选项后，玩家只能接收来自附近（同一世界）玩家的聊天消息。
+  ranged-chat:
+    enabled: ~
+    radius: ~
+
+    # 拥有 `esu.esuchat.chat.shout` 权限的玩家可以使用此前缀来绕过范围聊天限制。
+    # 默认情况下，玩家拥有此权限。
+    # 在 prefixedMessageModifiers 之前使用此前缀。
+    shout-prefix: ~
+    shout-format: ~
+
+  # 如果玩家发送的消息以 'messagePrefix' 开头且拥有相应权限，
+  # 则会将 'head' 和 'foot' 附加到聊天消息中。
+  prefixed-message-modifiers: ~
+emote:
+  # 启用 esu 表情/me 命令。
+  enabled: ~
+  format: ~
+
+  # 启用此选项将重定向所有 emote 命令至 esu 的命令，以避免混合使用。
+  intercept-namespaces: ~
+  prefixed-message-modifiers: ~
+whisper:
+  # 启用 esu 私聊/whisper 命令。
+  enabled: ~
+  formats: ~
+  intercept-namespaces: ~
+  prefixed-message-modifiers: ~
