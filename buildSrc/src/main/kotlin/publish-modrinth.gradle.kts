@@ -15,7 +15,7 @@ plugins {
 project.modrinth {
     val finalVersionName = finalVersionName
     val changelog = if (isRelease) {
-        "Changelog waiting for edit..."
+        "Changelog pending, please wait a moment..."
     } else {
         val commitHash = rootProject.latestCommitHash
         val commitMessage = rootProject.latestCommitMessage
