@@ -224,6 +224,8 @@ object StorageManager {
                     }
                     currentVer++
                 }
+            } else {
+                currentVer = version
             }
             MetaTable.upsert {
                 it[key] = tbKey
