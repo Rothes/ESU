@@ -191,6 +191,12 @@ object MavenResolver {
     }
 
     private fun saveRepoConfiguration(gson: Gson, file: Path, repo: MavenRepo) {
+        if (!file.exists()) {
+            // no-stdlib
+            val f = file.toFile()
+            f.parentFile.mkdirs()
+            f.createNewFile()
+        }
         val writer = OutputStreamWriter(Files.newOutputStream(file), Charset.forName("UTF-8"))
         try {
             writer.append(buildString {
