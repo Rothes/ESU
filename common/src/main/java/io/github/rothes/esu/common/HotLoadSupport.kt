@@ -61,6 +61,10 @@ class HotLoadSupport(
         if (!isHot) return
         val data = peUserData[uuid]
         val user = PacketEvents.getAPI().playerManager.getUser(player)
+
+        user.profile.uuid = uuid
+        user.profile.name = name
+
         if (data == null) {
             user.connectionState = ConnectionState.PLAY
             user.clientVersion = PacketEvents.getAPI().serverManager.version.toClientVersion()
@@ -72,8 +76,6 @@ class HotLoadSupport(
         user.decoderState = decoderState
         user.encoderState = encoderState
         user.entityId = entityId
-        user.profile.uuid = uuid
-        user.profile.name = name
         user.profile.textureProperties = texture
     }
 
