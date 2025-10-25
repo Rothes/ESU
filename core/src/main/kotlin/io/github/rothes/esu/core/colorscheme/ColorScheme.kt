@@ -30,8 +30,9 @@ data class ColorScheme(
     val errorDim: TextColor = hex("#ff5050"),
 ): ConfigurationPart {
 
+    @Transient
     @Suppress("SpellCheckingInspection")
-    private val colors by lazy {
+    private val colors =
         listOf(
             primary to "pc",
             primaryDim to "pdc",
@@ -46,10 +47,10 @@ data class ColorScheme(
             error to "ec",
             errorDim to "edc",
         )
-    }
 
+    @Transient
     @Suppress("SpellCheckingInspection")
-    val tagResolver: TagResolver by lazy {
+    val tagResolver: TagResolver =
         TagResolver.builder()
             .color(primary, "pc", "primary_color")
             .color(primaryDim, "pdc", "primary_dim_color")
@@ -65,7 +66,6 @@ data class ColorScheme(
             .color(errorDim, "edc", "error_dim_color")
             .resolver(ColorTagResolver())
             .build()
-    }
 
     private fun TagResolver.Builder.color(color: TextColor, vararg keys: String): TagResolver.Builder {
         resolver(EsuColorTagResolver(keys.toList(), color))
