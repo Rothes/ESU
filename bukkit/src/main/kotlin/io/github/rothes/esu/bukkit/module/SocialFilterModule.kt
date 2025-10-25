@@ -127,6 +127,8 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         val blockSign: Boolean = true,
         @Comment("Ignore case on matching texts.")
         val ignoreCase: Boolean = true,
+        @Comment("Normalize text to fix bypassing by characters like blank.")
+        val normalizeText: Boolean = true,
         @Comment("""
             The message to send when blocked by this file.
             This is the key in the 'blocked-message' map in lang files.
@@ -137,18 +139,24 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
 
         val searcher by lazy {
             AhoCorasickDoubleArrayTrie<Filter>().also { trie ->
-                trie.build(keywords.ifLet(ignoreCase) { map { it.lowercase() } }.associateWith { this })
+                trie.build(keywords.map { preprocessText(it) }.associateWith { this })
             }
         }
 
         fun contains(text: String): Boolean {
-            return searcher.findFirst(text.ifLet(ignoreCase) { lowercase() }) != null
+            return searcher.findFirst(preprocessText(text)) != null
         }
 
         fun messageBlocked(user: User) {
             if (blockedMessageKey.isEmpty()) return
             val message = user.localedOrNull(locale) { blockedMessage[blockedMessageKey] } ?: blockedMessageKey.message
             user.message(message)
+        }
+
+        fun preprocessText(text: String): String {
+            return text
+                .ifLet(ignoreCase) { lowercase() }
+                .ifLet(normalizeText) { filterNot { it == ' ' } }
         }
 
     }
