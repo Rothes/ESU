@@ -31,6 +31,8 @@ import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import io.github.rothes.esu.lib.packetevents.PacketEvents
 import io.github.rothes.esu.lib.packetevents.factory.spigot.SpigotPacketEventsBuilder
+import io.github.rothes.esu.lib.packetevents.injector.connection.ServerConnectionInitializer
+import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -132,6 +134,16 @@ class EsuPluginBukkit(
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
+        for (player in Bukkit.getOnlinePlayers()) {
+            // TODO handle packevents hot-load
+            val channel = PacketEvents.getAPI().playerManager.getChannel(player)
+            ServerConnectionInitializer.initChannel(channel, ConnectionState.CONFIGURATION)
+            val peUser = PacketEvents.getAPI().playerManager.getUser(player)
+            peUser.connectionState = ConnectionState.PLAY
+            peUser.clientVersion = PacketEvents.getAPI().serverManager.version.toClientVersion()
+            peUser.profile.uuid = player.uniqueId
+            peUser.profile.name = player.name
+        }
         PacketEvents.getAPI().init()
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
