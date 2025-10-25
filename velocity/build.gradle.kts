@@ -24,7 +24,7 @@ dependencies {
     compileOnly("com.github.rothes.velocity:velocity-proxy:dev~3.0.0-SNAPSHOT")
     compileOnly("io.netty:netty-all:4.1.114.Final")
     // Project
-    api(project(":core"))
+    api(project(":common"))
     compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))
 
     compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.10")

@@ -90,23 +90,24 @@ subprojects {
 
         apply(plugin = "com.github.gmazzo.buildconfig")
         buildConfig {
-            if (project.name == "core") {
-                buildConfigField("DEP_VERSION_KOTLIN", rootProject.libs.versions.kotlin)
-            } else {
-                buildConfigField("VERSION_NAME", provider { finalVersionName })
-                buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
-                buildConfigField("VERSION_ID", project.property("versionId").toString())
-                buildConfigField("DEP_VERSION_ADVENTURE", rootProject.libs.versions.adventure)
-                buildConfigField("DEP_VERSION_EXPOSED", rootProject.libs.versions.exposed)
-                buildConfigField("DEP_VERSION_H2DATABASE", rootProject.libs.versions.h2database)
-                buildConfigField("DEP_VERSION_HIKARICP", rootProject.libs.versions.hikariCP)
-                buildConfigField("DEP_VERSION_MARIADB_CLIENT", rootProject.libs.versions.mariadb.client)
-                buildConfigField("DEP_VERSION_PACKETEVENTS", rootProject.libs.versions.packetevents)
+            when (project.name) {
+                "common" -> {}
+                "core" -> {
+                    buildConfigField("DEP_VERSION_KOTLIN", rootProject.libs.versions.kotlin)
+                }
+                else -> {
+                    apply(plugin = "publish-modrinth")
+                    buildConfigField("VERSION_NAME", provider { finalVersionName })
+                    buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
+                    buildConfigField("VERSION_ID", project.property("versionId").toString())
+                    buildConfigField("DEP_VERSION_ADVENTURE", rootProject.libs.versions.adventure)
+                    buildConfigField("DEP_VERSION_EXPOSED", rootProject.libs.versions.exposed)
+                    buildConfigField("DEP_VERSION_H2DATABASE", rootProject.libs.versions.h2database)
+                    buildConfigField("DEP_VERSION_HIKARICP", rootProject.libs.versions.hikariCP)
+                    buildConfigField("DEP_VERSION_MARIADB_CLIENT", rootProject.libs.versions.mariadb.client)
+                    buildConfigField("DEP_VERSION_PACKETEVENTS", rootProject.libs.versions.packetevents)
+                }
             }
-        }
-
-        if (project.name != "core") {
-            apply(plugin = "publish-modrinth")
         }
     }
 }
