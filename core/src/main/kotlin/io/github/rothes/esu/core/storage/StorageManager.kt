@@ -34,13 +34,7 @@ object StorageManager {
         password        = EsuConfig.get().database.password
     })
     val database: Database = try {
-        Database.connect(datasource).also {
-            if (EsuConfig.get().database.url.startsWith("jdbc:h2:")) {
-                transaction(it) {
-                    exec("SET MODE=MYSQL")
-                }
-            }
-        }
+        Database.connect(datasource)
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)
     }
