@@ -18,6 +18,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
+import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -134,15 +135,12 @@ class EsuPluginBukkit(
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
+        val hotLoadSupport = HotLoadSupport(enabledHot)
+        hotLoadSupport.onEnable()
         for (player in Bukkit.getOnlinePlayers()) {
-            // TODO handle packevents hot-load
             val channel = PacketEvents.getAPI().playerManager.getChannel(player)
-            ServerConnectionInitializer.initChannel(channel, ConnectionState.CONFIGURATION)
-            val peUser = PacketEvents.getAPI().playerManager.getUser(player)
-            peUser.connectionState = ConnectionState.PLAY
-            peUser.clientVersion = PacketEvents.getAPI().serverManager.version.toClientVersion()
-            peUser.profile.uuid = player.uniqueId
-            peUser.profile.name = player.name
+            ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
+            hotLoadSupport.loadPEUser(player, player.uniqueId, player.name)
         }
         PacketEvents.getAPI().init()
 
@@ -265,6 +263,7 @@ class EsuPluginBukkit(
 
     fun onDisable() {
         disabledHot = byPlugMan()
+        HotLoadSupport(disabledHot).onDisable()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {

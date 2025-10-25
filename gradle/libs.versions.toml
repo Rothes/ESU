@@ -5,6 +5,7 @@ bstats = "3.1.0"
 exposed = "1.0.0-rc-1"
 h2database = "2.2.224"
 hikariCP = "7.0.1"
+kotlinx-io-core = "0.8.0"
 mariadb-client = "3.5.6"
 nbt-api = "2.15.3"
 packetevents = "2.10.0"
@@ -24,6 +25,7 @@ exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version
 exposed-kotlin-datetime = { group = "org.jetbrains.exposed", name = "exposed-kotlin-datetime", version.ref = "exposed" }
 exposed-json = { group = "org.jetbrains.exposed", name = "exposed-json", version.ref = "exposed" }
 hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
+kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-core" }
 nbt-api = { group = "de.tr7zw", name = "item-nbt-api", version.ref = "nbt-api" }
 packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", version.ref = "packetevents" }
 packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents" }

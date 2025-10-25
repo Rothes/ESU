@@ -30,7 +30,7 @@ object Injector {
     private const val DECODER_NAME_PRE = "esu-decoder-pre"
     private const val DECODER_NAME_FIN = "esu-decoder-fin"
 
-    private val connectionManager by lazy {
+    val connectionManager by lazy {
         val server = plugin.server as VelocityServer
         VelocityServer::class.java.declaredFields
             .first { it.type == ConnectionManager::class.java }

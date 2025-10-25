@@ -94,6 +94,7 @@ subprojects {
                 "common" -> {}
                 "core" -> {
                     buildConfigField("DEP_VERSION_KOTLIN", rootProject.libs.versions.kotlin)
+                    buildConfigField("DEP_VERSION_KOTLINX_IO_CORE", rootProject.libs.versions.kotlinx.io.core)
                 }
                 else -> {
                     apply(plugin = "publish-modrinth")
