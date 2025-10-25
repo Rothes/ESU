@@ -2,12 +2,15 @@ package io.github.rothes.esu.common
 
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.extension.*
+import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import io.github.rothes.esu.lib.packetevents.PacketEvents
 import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import io.github.rothes.esu.lib.packetevents.protocol.player.ClientVersion
 import io.github.rothes.esu.lib.packetevents.protocol.player.TextureProperty
 import io.github.rothes.esu.lib.packetevents.protocol.player.User
 import kotlinx.io.*
+import org.incendo.cloud.parser.flag.FlagContext
+import org.jetbrains.exposed.v1.core.statements.UpdateStatement
 import java.io.ByteArrayOutputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -95,6 +98,12 @@ class HotLoadSupport(
     }
 
     private fun loadCriticalClasses() {
+        // Load the classes those are easily to break the hot plugin update.
+        Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
+        FlagContext::class.java.toString()
+        Charsets::class.java.toString()
+        UpdateStatement::class.java.toString()
+
         // Velocity ServerUtils support
         Buffer().apply {
             writeAscii("Load classes")

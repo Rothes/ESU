@@ -4,12 +4,9 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
-import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
-import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.parser.ParserImpl
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.velocity.plugin
 import net.frankheijden.serverutils.velocity.managers.VelocityPluginManager
-import org.incendo.cloud.parser.flag.FlagContext
 import kotlin.jvm.optionals.getOrNull
 
 object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfiguration>() {
@@ -35,7 +32,6 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
     override fun enable() {
         data = ConfigLoader.load(dataPath)
-        loadCriticalClasses()
         if (!plugin.enabledHot)
             return
 
@@ -70,13 +66,6 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
-    }
-
-    private fun loadCriticalClasses() {
-        // Load the classes those are easily to break the hot plugin update.
-        Emitter::class.java.declaredClasses // This may cause break when empty data loaded and saving with flow node
-        ParserImpl::class.java
-        FlagContext::class.java
     }
 
     data class ModuleData(
