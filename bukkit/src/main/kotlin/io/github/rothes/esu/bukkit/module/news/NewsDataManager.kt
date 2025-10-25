@@ -42,8 +42,6 @@ object NewsDataManager {
 
     init {
         transaction(database) {
-            SchemaUtils.create(NewsTable)
-            SchemaUtils.create(NewsCheckedTable)
             NewsTable.upgrader({
                 exec("ALTER TABLE `${NewsTable.tableName}` DROP INDEX `news_data_channel`")
                 exec("ALTER TABLE `${NewsTable.tableName}` ADD INDEX `ix_channel` (channel)")
@@ -52,6 +50,8 @@ object NewsDataManager {
                 exec("ALTER TABLE `${NewsCheckedTable.tableName}` DROP FOREIGN KEY `fk_news_checked_user__id`")
                 exec("ALTER TABLE `${NewsCheckedTable.tableName}` ADD CONSTRAINT `fk_news_checked__user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
             })
+            SchemaUtils.create(NewsTable)
+            SchemaUtils.create(NewsCheckedTable)
         }
     }
 
