@@ -16,6 +16,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.core.user.User
@@ -23,6 +24,7 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -69,10 +71,14 @@ object CasListeners: Listener {
 
     @EventHandler
     fun onDeath(event: PlayerDeathEvent) {
-        val deathMessage = event.deathMessage()?.esu
+        val server = event.deathMessage() ?: return
+        val deathMessage = server.esu
         if (deathMessage is TranslatableComponent) {
             if (checkBlocked(event.player, deathMessage.legacy, Death)) {
-                return event.deathMessage(null)
+                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= Version.fromString("1.21.5")) {
+                    event.deathScreenMessageOverride(server)
+                }
+                event.deathMessage(null)
             }
         }
     }
