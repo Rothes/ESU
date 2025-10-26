@@ -37,15 +37,6 @@ import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
-import org.bukkit.event.Listener
-import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryDragEvent
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
@@ -207,52 +198,7 @@ class EsuPluginBukkit(
         }
 
         Bukkit.getOnlinePlayers().forEach { it.user }
-        Bukkit.getPluginManager().registerEvents(object : Listener {
-
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun onLogin(event: AsyncPlayerPreLoginEvent) {
-                if (event.loginResult == AsyncPlayerPreLoginEvent.Result.ALLOWED)
-                    BukkitUserManager[event.uniqueId]
-                else
-                    BukkitUserManager.unload(event.uniqueId)
-            }
-            @EventHandler(priority = EventPriority.LOWEST)
-            fun onLogin(event: PlayerJoinEvent) {
-                val user = BukkitUserManager[event.player]
-                UpdateCheckerMan.onJoin(user)
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun onQuit(event: PlayerQuitEvent) {
-                BukkitUserManager.getCache(event.player.uniqueId)?.let {
-                    StorageManager.updateUserAsync(it)
-                    BukkitUserManager.unload(it)
-                }
-            }
-
-            @EventHandler(priority = EventPriority.LOWEST)
-            fun onClick(e: InventoryClickEvent) {
-                val holder = e.inventory.holder
-                if (holder is EsuInvHolder<*>) {
-                    holder.handleClick(e)
-                }
-            }
-            @EventHandler(priority = EventPriority.LOWEST)
-            fun onClick(e: InventoryDragEvent) {
-                val holder = e.inventory.holder
-                if (holder is EsuInvHolder<*>) {
-                    holder.handleDrag(e)
-                }
-            }
-
-            @EventHandler(priority = EventPriority.HIGH)
-            fun onClick(e: InventoryCloseEvent) {
-                val holder = e.inventory.holder
-                if (holder is EsuInvHolder<*>) {
-                    holder.onClose()
-                }
-            }
-        }, bootstrap)
-        InternalListeners
+        InternalListeners // Init
         UserLoginEvent // Init
 
         Metrics(bootstrap, 24645) // bStats
