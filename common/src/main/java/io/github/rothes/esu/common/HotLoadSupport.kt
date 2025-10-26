@@ -19,8 +19,9 @@ import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
-class HotLoadSupport(
+open class HotLoadSupport(
     val isHot: Boolean,
+    val hasPacketEventsPlugin: Boolean,
 ) {
 
     private val dataFile = EsuBootstrap.instance.baseConfigPath().resolve("hot-data.tmp")
@@ -32,7 +33,9 @@ class HotLoadSupport(
             try {
                 if (!dataFile.exists()) return
                 dataFile.inputStream().asSource().buffered().use {
-                    loadPacketEventsData(it)
+                    if (!hasPacketEventsPlugin) {
+                        loadPacketEventsData(it)
+                    }
                 }
                 dataFile.deleteIfExists()
             } catch (e: Throwable) {
@@ -46,7 +49,9 @@ class HotLoadSupport(
         if (isHot) {
             try {
                 val buffer = Buffer()
-                savePacketEventsData(buffer)
+                if (!hasPacketEventsPlugin) {
+                    savePacketEventsData(buffer)
+                }
                 dataFile.outputStream(StandardOpenOption.CREATE).use {
                     buffer.copyTo(it)
                 }
@@ -57,10 +62,22 @@ class HotLoadSupport(
         }
     }
 
-    fun loadPEUser(player: Any, uuid: UUID, name: String) {
+    fun loadPEUser(channel: Any, uuid: UUID, name: String) {
+        if (hasPacketEventsPlugin) {
+            val user = PacketEvents.getAPI().protocolManager.getUser(channel)
+            val server = com.github.retrooper.packetevents.PacketEvents.getAPI().protocolManager.getUser(channel) ?: return
+            user.clientVersion = ClientVersion.valueOf(server.clientVersion.name)
+            user.decoderState = ConnectionState.valueOf(server.decoderState.name)
+            user.encoderState = ConnectionState.valueOf(server.encoderState.name)
+            user.entityId = server.entityId
+            user.profile.uuid = uuid
+            user.profile.name = name
+            user.profile.textureProperties = server.profile.textureProperties.map { TextureProperty(it.name, it.value, it.signature) }
+            return
+        }
         if (!isHot) return
         val data = peUserData[uuid]
-        val user = PacketEvents.getAPI().playerManager.getUser(player)
+        val user = PacketEvents.getAPI().protocolManager.getUser(channel)
 
         user.profile.uuid = uuid
         user.profile.name = name

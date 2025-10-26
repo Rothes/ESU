@@ -101,13 +101,13 @@ class EsuPluginVelocity(
         UpdateCheckerMan    // Init update checker
 
         PacketEvents.setAPI(VelocityPacketEventsBuilder.build(server, container, logger, dataDirectory))
-        val hotLoadSupport = HotLoadSupport(enabledHot)
+        val hotLoadSupport = ServerHotLoadSupport(enabledHot)
         PacketEvents.getAPI().load()
         hotLoadSupport.onEnable()
         for (player in server.allPlayers) {
             val channel = PacketEvents.getAPI().playerManager.getChannel(player) as Channel
             ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
-            hotLoadSupport.loadPEUser(player, player.uniqueId, player.username)
+            hotLoadSupport.loadPEUser(channel, player.uniqueId, player.username)
         }
         PacketEvents.getAPI().init()
 
@@ -172,7 +172,7 @@ class EsuPluginVelocity(
     fun onDisable(e: ProxyShutdownEvent) {
         enabled = false
         disabledHot = byServerUtils()
-        HotLoadSupport(disabledHot).onDisable()
+        ServerHotLoadSupport(disabledHot).onDisable()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in server.allPlayers) {
@@ -244,5 +244,7 @@ class EsuPluginVelocity(
             err("Failed to uninject packetevents VelocityChannelInitializer", e)
         }
     }
+
+    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot, plugin.server.pluginManager.isLoaded("packetevents"))
 
 }

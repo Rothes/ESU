@@ -135,12 +135,12 @@ class EsuPluginBukkit(
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
-        val hotLoadSupport = HotLoadSupport(enabledHot)
+        val hotLoadSupport = ServerHotLoadSupport(enabledHot)
         hotLoadSupport.onEnable()
         for (player in Bukkit.getOnlinePlayers()) {
             val channel = PacketEvents.getAPI().playerManager.getChannel(player)
             ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
-            hotLoadSupport.loadPEUser(player, player.uniqueId, player.name)
+            hotLoadSupport.loadPEUser(channel, player.uniqueId, player.name)
         }
         PacketEvents.getAPI().init()
 
@@ -263,7 +263,7 @@ class EsuPluginBukkit(
 
     fun onDisable() {
         disabledHot = byPlugMan()
-        HotLoadSupport(disabledHot).onDisable()
+        ServerHotLoadSupport(disabledHot).onDisable()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {
@@ -308,5 +308,7 @@ class EsuPluginBukkit(
     @Suppress("DEPRECATION")
     val description
         get() = bootstrap.description
+
+    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot, Bukkit.getPluginManager().isPluginEnabled("packetevents"))
 
 }
