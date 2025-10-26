@@ -71,7 +71,8 @@ open class HotLoadSupport(
             user.profile.textureProperties = server.profile.textureProperties.map { TextureProperty(it.name, it.value, it.signature) }
             return
         }
-        if (!isHot) return
+
+        if (!isHot) return // peUserData is not init, don't do anything.
         val data = peUserData[uuid]
         val user = PacketEvents.getAPI().protocolManager.getUser(channel)
 
