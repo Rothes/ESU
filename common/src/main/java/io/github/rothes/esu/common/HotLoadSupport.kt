@@ -33,9 +33,7 @@ open class HotLoadSupport(
             try {
                 if (!dataFile.exists()) return
                 dataFile.inputStream().asSource().buffered().use {
-                    if (!hasPacketEventsPlugin) {
-                        loadPacketEventsData(it)
-                    }
+                    loadPacketEventsData(it)
                 }
                 dataFile.deleteIfExists()
             } catch (e: Throwable) {
@@ -49,9 +47,7 @@ open class HotLoadSupport(
         if (isHot) {
             try {
                 val buffer = Buffer()
-                if (!hasPacketEventsPlugin) {
-                    savePacketEventsData(buffer)
-                }
+                savePacketEventsData(buffer)
                 dataFile.outputStream(StandardOpenOption.CREATE).use {
                     buffer.copyTo(it)
                 }
@@ -99,6 +95,7 @@ open class HotLoadSupport(
     private fun loadPacketEventsData(source: Source) {
         peUserData = mutableMapOf()
         with(source) {
+            if (readBool()) return // hasPacketEventsPlugin, skipped
             for (i in 0 until readInt()) {
                 val user = readUser()
                 peUserData[user.uuid] = user
@@ -107,6 +104,8 @@ open class HotLoadSupport(
     }
 
     private fun savePacketEventsData(buffer: Buffer) {
+        buffer.writeBool(hasPacketEventsPlugin)
+        if (hasPacketEventsPlugin) return
         val protocolManager = PacketEvents.getAPI().protocolManager
         val users = protocolManager.users
         buffer.writeInt(users.size)
