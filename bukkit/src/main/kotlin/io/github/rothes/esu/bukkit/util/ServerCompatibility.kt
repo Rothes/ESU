@@ -13,7 +13,7 @@ object ServerCompatibility {
     val serverVersion: Version = Version.fromString(Bukkit.getServer().bukkitVersion.split('-')[0])
 
     val isPaper = try {
-        Class.forName("com.destroystokyo.paper.VersionHistoryManager\$VersionData")
+        Class.forName($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
         true
     } catch (_: ClassNotFoundException) {
         false
