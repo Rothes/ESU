@@ -11,9 +11,6 @@ interface Module<C: ConfigurationPart, L: ConfigurationPart>: Feature<C, L> {
 
     fun doReload() {
         onReload()
-        for (child in getFeatures()) {
-            child.onReload()
-        }
     }
 
 }
