@@ -4,8 +4,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
-import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.module.configuration.EnableTogglable
 import io.github.rothes.esu.core.user.User
 
 interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
@@ -57,10 +56,7 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
 
     fun isAvailable(): AvailableCheck {
         val config = config
-        if (config is BaseModuleConfiguration && !config.moduleEnabled)
-            return AvailableCheck(false) { "Module not enabled".message }
-
-        if (config is BaseFeatureConfiguration && !config.enabled)
+        if (config is EnableTogglable && !config.enabled)
             return AvailableCheck(false) { "Feature not enabled".message }
 
         var parent = parent

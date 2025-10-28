@@ -5,5 +5,5 @@ import io.github.rothes.esu.core.configuration.meta.MoveToTop
 
 open class BaseFeatureConfiguration(
     @MoveToTop
-    val enabled: Boolean = false,
-): ConfigurationPart
+    override val enabled: Boolean = false,
+): EnableTogglable, ConfigurationPart
