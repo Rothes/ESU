@@ -8,15 +8,14 @@ import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.core.util.tree.TreeNode
-import io.github.rothes.esu.lib.configurate.BasicConfigurationNode
-import io.github.rothes.esu.lib.configurate.CommentedConfigurationNode
-import io.github.rothes.esu.lib.configurate.CommentedConfigurationNodeIntermediary
-import io.github.rothes.esu.lib.configurate.ConfigurationNode
+import io.github.rothes.esu.lib.configurate.*
 import io.github.rothes.esu.lib.configurate.loader.HeaderMode
+import io.github.rothes.esu.lib.configurate.objectmapping.ConfigSerializable
 import io.github.rothes.esu.lib.configurate.objectmapping.ObjectMapper
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.NodeResolver
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.Processor
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
+import io.github.rothes.esu.lib.configurate.serialize.TypeSerializer
 import io.github.rothes.esu.lib.configurate.util.MapFactories
 import io.github.rothes.esu.lib.configurate.yaml.NodeStyle
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
@@ -219,32 +218,11 @@ object ConfigLoader {
             .lineLength(150)
             .commentsEnabled(true)
             .defaultOptions { options ->
+                val commentProcesser = CommentProcesser(resourceNode)
                 val factory: ObjectMapper.Factory = ObjectMapper.factoryBuilder()
                     .addProcessor(Comment::class.java) { data, _ ->
                         Processor { _, destination ->
-                            if (destination is CommentedConfigurationNodeIntermediary<*>) {
-                                val resourceComment = (resourceNode?.node(destination.path()) as? CommentedConfigurationNodeIntermediary<*>)?.comment()
-                                if (resourceComment != null && destination.comment() == data.value.trimIndent()) {
-                                    destination.comment(resourceComment)
-                                    return@Processor
-                                }
-                                val resourceOld = resourceNode?.node("_oc_")?.node(destination.path()) // _oc_ = _old_comments_
-                                val allOld = (
-                                        if (resourceOld != null && resourceOld.isList)
-                                            resourceOld.getList(String::class.java)!!.plus(data.overrideOld)
-                                        else
-                                            data.overrideOld.toList()
-                                        ).map { it.toString().trimIndent() }
-
-                                if (allOld.isEmpty() || destination.comment() == null) {
-                                    destination.commentIfAbsent(resourceComment ?: data.value.trimIndent())
-                                } else if (data.overrideOld.firstOrNull() == OVERRIDE_ALWAYS) {
-                                    destination.comment(resourceComment ?: data.value.trimIndent())
-                                } else if (allOld.contains(destination.comment())) {
-                                    destination.comment(resourceComment ?: data.value.trimIndent())
-                                }
-
-                            }
+                            commentProcesser.process(data, destination)
                         }
                     }
                     .addProcessor(MoveToTop::class.java) { _, _ ->
@@ -314,6 +292,7 @@ object ConfigLoader {
                         } else null
                     }
                     .build()
+                val objectSerializer = ClassProceedSerializer(commentProcesser, factory.asTypeSerializer())
                 options.mapFactory(MapFactories.insertionOrdered())
                     .serializers {
                         if (serverAdventure) {
@@ -328,8 +307,12 @@ object ConfigLoader {
                                 GenericTypeReflector.erase(type).let { clazz ->
                                     ConfigurationPart::class.java.isAssignableFrom(clazz)
                                 }
-                            }, factory.asTypeSerializer())
-                            .registerAnnotatedObjects(factory)
+                            }, objectSerializer)
+                            .register( // registerAnnotatedObjects(factory)
+                                { type ->
+                                    GenericTypeReflector.annotate(type).isAnnotationPresent(ConfigSerializable::class.java)
+                                }, objectSerializer
+                            )
                             .register(TypeToken.get(List::class.java), ListSerializer)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
@@ -365,7 +348,7 @@ object ConfigLoader {
                                             false
                                         }
                                     }
-                                }, factory.asTypeSerializer()
+                                }, objectSerializer
                             )
                     }.let {
                         if (resourceNode != null) {
@@ -623,6 +606,55 @@ object ConfigLoader {
             fun build() = LoaderSettingsMulti(forceLoadConfigs, initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
 
         }
+    }
+
+    private class CommentProcesser(val resourceNode: ConfigurationNode?) {
+
+        fun process(comment: Comment, node: ConfigurationNode) {
+            if (node is CommentedConfigurationNodeIntermediary<*>) {
+                val resourceComment =
+                    (resourceNode?.node(node.path()) as? CommentedConfigurationNodeIntermediary<*>)?.comment()
+                if (resourceComment != null && node.comment() == comment.value.trimIndent()) {
+                    node.comment(resourceComment)
+                    return
+                }
+                val resourceOld = resourceNode?.node("_oc_")?.node(node.path()) // _oc_ = _old_comments_
+                val allOld = (if (resourceOld != null && resourceOld.isList) resourceOld.getList(String::class.java)!!
+                    .plus(comment.overrideOld)
+                else comment.overrideOld.toList()).map { it.toString().trimIndent() }
+
+                if (allOld.isEmpty() || node.comment() == null) {
+                    node.commentIfAbsent(resourceComment ?: comment.value.trimIndent())
+                } else if (comment.overrideOld.firstOrNull() == OVERRIDE_ALWAYS) {
+                    node.comment(resourceComment ?: comment.value.trimIndent())
+                } else if (allOld.contains(node.comment())) {
+                    node.comment(resourceComment ?: comment.value.trimIndent())
+                }
+            }
+        }
+    }
+
+    private class ClassProceedSerializer(
+        private val commentProcesser: CommentProcesser,
+        private val factory: TypeSerializer<Any>,
+    ): TypeSerializer<Any> {
+
+        override fun deserialize(type: Type?, node: ConfigurationNode?): Any? {
+            return factory.deserialize(type, node)
+        }
+
+        override fun serialize(type: Type?, obj: Any?, node: ConfigurationNode?) {
+            factory.serialize(type, obj, node)
+
+            node ?: return
+            val comment = obj?.javaClass?.getAnnotation(Comment::class.java) ?: return
+            commentProcesser.process(comment, node)
+        }
+
+        override fun emptyValue(specificType: Type?, options: ConfigurationOptions?): Any? {
+            return factory.emptyValue(specificType, options)
+        }
+
     }
 
 }
