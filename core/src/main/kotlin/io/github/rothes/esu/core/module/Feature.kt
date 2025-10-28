@@ -21,30 +21,28 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
     val lang: MultiLangConfiguration<L>
 
     fun setConfigInstance(instance: C) {}
-    fun setEnabled(value: Boolean) {
-        if (!value) {
-            for (feature in getFeatures()) {
-                if (feature.enabled) {
-                    feature.setEnabled(false)
-                    feature.onDisable()
-                }
-            }
-        }
-    }
+    fun setEnabled(value: Boolean) {}
     fun setParent(parent: Feature<*, *>?) {}
 
     fun toggleByAvailable(): AvailableCheck {
         val available = isAvailable()
 
+        var changed = false
         if (available.value && !enabled) {
             onEnable()
             setEnabled(true)
-            for (feature in getFeatures()) {
-                feature.toggleByAvailable()
-            }
+            changed = true
         } else if (!available.value && enabled) {
             setEnabled(false)
             onDisable()
+            changed = true
+        }
+
+        if (changed) {
+            // Notify children
+            for (feature in getFeatures()) {
+                feature.toggleByAvailable()
+            }
         }
 
         return available
