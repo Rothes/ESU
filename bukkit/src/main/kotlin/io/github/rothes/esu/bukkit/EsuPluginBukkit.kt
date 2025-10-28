@@ -34,6 +34,7 @@ import io.github.rothes.esu.lib.packetevents.PacketEvents
 import io.github.rothes.esu.lib.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.github.rothes.esu.lib.packetevents.injector.connection.ServerConnectionInitializer
 import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
+import io.netty.channel.Channel
 import org.bukkit.Bukkit
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -129,8 +130,11 @@ class EsuPluginBukkit(
         val hotLoadSupport = ServerHotLoadSupport(enabledHot)
         hotLoadSupport.onEnable()
         for (player in Bukkit.getOnlinePlayers()) {
-            val channel = PacketEvents.getAPI().playerManager.getChannel(player)
-            ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
+            val channel = PacketEvents.getAPI().playerManager.getChannel(player) as Channel
+            // load() do the late inject on paper, but not on folia
+            if (channel.pipeline().get(PacketEvents.ENCODER_NAME) == null) {
+                ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
+            }
             hotLoadSupport.loadPEUser(channel, player.uniqueId, player.name)
         }
         PacketEvents.getAPI().init()
