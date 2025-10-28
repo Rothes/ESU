@@ -4,9 +4,9 @@ interface ChunkDataThrottleHandler {
 
     val counter: Counter
 
-    fun enable()
-    fun disable()
-    fun reload()
+    fun onEnable()
+    fun onReload()
+    fun onTerminate()
 
     data class Counter(
         var minimalChunks: Long = 0,

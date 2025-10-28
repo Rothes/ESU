@@ -3,7 +3,8 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_
 import com.google.common.io.ByteStreams
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
+import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
+import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.config
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkSender
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.LevelHandler
@@ -120,8 +121,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     override val counter = ChunkDataThrottleHandler.Counter()
 
-    override fun reload() {
-        val nonInvisible = config.chunkDataThrottle.nonInvisibleBlocksOverrides
+    override fun onReload() {
+        val nonInvisible = config.nonInvisibleBlocksOverrides
         BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
             ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
                 val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
@@ -149,8 +150,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         }
     }
 
-    override fun enable() {
-        reload()
+    override fun onEnable() {
         try {
             val toFile = hotDataFile.toFile()
             if (toFile.exists()) {
@@ -197,11 +197,11 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
         register()
     }
 
-    override fun disable() {
+    override fun onTerminate() {
         PacketEvents.getAPI().eventManager.unregisterListener(this)
         unregister()
 
-        if (plugin.isEnabled || plugin.disabledHot) {
+        if (plugin.disabledHot) {
             val nanoTime = System.nanoTime()
             var bufferSize = 4 // Map size
             val filter = minimalChunks.entries.filter { it.value.isNotEmpty() }
@@ -263,7 +263,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 if (wrapper.action == DiggingAction.START_DIGGING) {
                     val player = event.getPlayer<Player>()
                     val pos = wrapper.blockPosition
-                    if (config.chunkDataThrottle.updateOnLegalInteractOnly) {
+                    if (config.updateOnLegalInteractOnly) {
                         val eye = player.eyeLocation
                         val dist = (eye.x - pos.x).pow(2) + (eye.y - pos.y).pow(2) + (eye.z - pos.z).pow(2)
                         if (dist > 6.0 * 6.0) {
@@ -278,7 +278,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onMove(e: PlayerMoveEvent) {
-        if (!config.chunkDataThrottle.detectLavaPool)
+        if (!config.detectLavaPool)
             return
         val player = e.player.nms
         val level = levelHandler.level(player)
@@ -323,8 +323,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                 }
 
                 PacketType.Play.Server.CHUNK_DATA         -> {
-                    val config = config.chunkDataThrottle
-                    if (!config.enabled) {
+                    val config = config
+                    if (!ChunkDataThrottle.enabled) {
                         return
                     }
 //                val tm = System.nanoTime()
@@ -746,8 +746,8 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     }
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
-        val fullUpdateThreshold = config.chunkDataThrottle.thresholdToResentWholeChunk
-        val updateDistance = config.chunkDataThrottle.updateDistance
+        val fullUpdateThreshold = config.thresholdToResentWholeChunk
+        val updateDistance = config.updateDistance
 
         val miniChunks = player.miniChunks
         val groups = buildList {
