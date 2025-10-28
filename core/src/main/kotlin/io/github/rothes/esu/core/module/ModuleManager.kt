@@ -6,7 +6,7 @@ object ModuleManager {
 
     private val modules = LinkedHashMap<String, Module<*, *>>()
 
-    fun registeredModules() = modules.values
+    fun registeredModules(): List<Module<*, *>> = modules.values.toList()
 
     operator fun get(moduleName: String) = modules[moduleName]
 
@@ -31,6 +31,7 @@ object ModuleManager {
             if (module.enabled) {
                 forceDisableModule(module)
             }
+            module.onTerminate()
         }
     }
 

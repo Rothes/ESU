@@ -173,7 +173,7 @@ class EsuPluginVelocity(
         enabled = false
         disabledHot = byServerUtils()
         ServerHotLoadSupport(disabledHot).onDisable()
-        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.forceDisableModule(it) }
+        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.removeModule(it) }
 
         for (player in server.allPlayers) {
             VelocityUserManager.getCache(player.uniqueId)?.let {

@@ -78,6 +78,10 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
         toggleByAvailable()
     }
 
+    fun onTerminate() {
+        getFeatures().forEach { it.onTerminate() }
+    }
+
     class AvailableCheck(
         val value: Boolean,
         val messageBuilder: ((User) -> MessageData)?

@@ -209,7 +209,7 @@ class EsuPluginBukkit(
     fun onDisable() {
         disabledHot = byPlugMan()
         ServerHotLoadSupport(disabledHot).onDisable()
-        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.forceDisableModule(it) }
+        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.removeModule(it) }
 
         for (player in Bukkit.getOnlinePlayers()) {
             try {
