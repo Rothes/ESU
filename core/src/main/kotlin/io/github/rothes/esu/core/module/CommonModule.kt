@@ -8,6 +8,8 @@ import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper.Companio
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.incendo.cloud.Command
+import org.incendo.cloud.component.CommandComponent
+import org.incendo.cloud.internal.CommandNode
 import java.nio.file.Path
 
 abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : CommonFeature<C, L>(), Module<C, L> {
@@ -19,7 +21,23 @@ abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Common
     protected fun unregisterCommands() {
         with(EsuCore.instance.commandManager) {
             registeredCommands.forEach {
-                deleteRootCommand(it.rootComponent().name())
+                val components = it.components()
+                if (components.size == 1) {
+                    deleteRootCommand(it.rootComponent().name())
+                } else {
+                    @Suppress("UNCHECKED_CAST")
+                    var node = commandTree().rootNode() as CommandNode<User>
+                    for (component in components) {
+                        node = node.getChild(component as CommandComponent<User>) ?: return@forEach
+                    }
+                    var parent = node.parent()!!
+                    parent.removeChild(node)
+                    while (parent.children().isEmpty() && parent.command() == null) {
+                        val p = parent.parent() ?: break
+                        p.removeChild(parent)
+                        parent = p
+                    }
+                }
             }
             registeredCommands.clear()
         }
