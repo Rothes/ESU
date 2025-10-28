@@ -5,7 +5,7 @@ import io.github.rothes.esu.core.configuration.meta.MoveToTop
 
 open class BaseModuleConfiguration(
     @MoveToTop
-    val moduleEnabled: Boolean = false,
+    private val moduleEnabled: Boolean = false,
 ): EnableTogglable, ConfigurationPart {
 
     override val enabled: Boolean
