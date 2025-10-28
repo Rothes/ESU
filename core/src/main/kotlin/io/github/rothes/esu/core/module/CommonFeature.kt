@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import java.lang.reflect.ParameterizedType
 
 abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Feature<C, L> {
@@ -27,7 +27,7 @@ abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Featu
 
     final override lateinit var config: C
         protected set
-    final override val lang: MultiLocaleConfiguration<L> = MultiLocaleConfiguration(mutableMapOf())
+    final override val lang: MultiLangConfiguration<L> = MultiLangConfiguration(mutableMapOf())
 
     final override fun setConfigInstance(instance: C) {
         config = instance

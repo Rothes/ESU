@@ -3,7 +3,7 @@ package io.github.rothes.esu.core.util
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.core.EsuCore
-import io.github.rothes.esu.core.config.EsuLocale
+import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
@@ -41,7 +41,7 @@ class UpdateChecker(
     fun run() {
         val info = fetch()
         for (message in info.errorMessage) {
-            console.log(EsuLocale.get(), message.scope, *message.args)
+            console.log(EsuLang.get(), message.scope, *message.args)
         }
         if (info.notifications == null)
             return
@@ -80,10 +80,10 @@ class UpdateChecker(
 
     fun fetch(): CheckedInfo {
         val fetch = getResponse("ghfast.top/https://raw.githubusercontent.com")
-        val errors = mutableListOf<LocaledMessage>()
+        val errors = mutableListOf<LocaleMessage>()
 
-        fun err(vararg arg: TagResolver, scope: EsuLocale.BaseEsuLocaleData.() -> String?) {
-            errors.add(LocaledMessage(*arg, scope = scope))
+        fun err(vararg arg: TagResolver, scope: EsuLang.BaseEsuLangData.() -> String?) {
+            errors.add(LocaleMessage(*arg, scope = scope))
         }
 
         fetch.errorMessage?.let { errors.add(it) }
@@ -128,7 +128,7 @@ class UpdateChecker(
             }
             if (errorCount < 3) {
                 errorCount++
-                return FetchedResponse(errorMessage = LocaledMessage(unparsed("message", e)) {
+                return FetchedResponse(errorMessage = LocaleMessage(unparsed("message", e)) {
                     updater.checker.networkError
                 })
             }
@@ -138,7 +138,7 @@ class UpdateChecker(
 
     private data class FetchedResponse(
         val response: Response? = null,
-        val errorMessage: LocaledMessage? = null,
+        val errorMessage: LocaleMessage? = null,
     )
 
 
@@ -160,7 +160,7 @@ class UpdateChecker(
     data class CheckedInfo(
         val notifications: List<Notification>?,
         val latestVersionName: String,
-        val errorMessage: List<LocaledMessage> = listOf(),
+        val errorMessage: List<LocaleMessage> = listOf(),
     )
 
     data class Notification(
@@ -176,9 +176,9 @@ class UpdateChecker(
         PROHIBIT
     }
 
-    class LocaledMessage(
+    class LocaleMessage(
         vararg val args: TagResolver,
-        val scope: EsuLocale.BaseEsuLocaleData.() -> String?,
+        val scope: EsuLang.BaseEsuLangData.() -> String?,
     )
 
     class RemoteMessage(

@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
-import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.config.BukkitEsuLang
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
@@ -101,7 +101,7 @@ class EsuPluginBukkit(
         }, { it.commandSender })).apply {
             settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
             captionRegistry().registerProvider { caption, recipient ->
-                recipient.localedOrNull(BukkitEsuLocale.get()) {
+                recipient.localedOrNull(BukkitEsuLang.get()) {
                     commandCaptions[caption]
                 }
             }
@@ -120,7 +120,7 @@ class EsuPluginBukkit(
     fun onEnable() {
         adventure           // Init adventure
         EsuConfig           // Load global config
-        BukkitEsuLocale     // Load global locale
+        BukkitEsuLang     // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
@@ -158,7 +158,7 @@ class EsuPluginBukkit(
                 esu.literal("reload")
                     .handler { context ->
                         EsuConfig.reloadConfig()
-                        BukkitEsuLocale.reloadConfig()
+                        BukkitEsuLang.reloadConfig()
                         ColorSchemes.reload()
                         UpdateCheckerMan.reload()
                         ModuleManager.reloadModules()

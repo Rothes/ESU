@@ -1,17 +1,14 @@
 package io.github.rothes.esu.core.config
 
-import io.github.rothes.esu.core.config.EsuLocale.BaseEsuLocaleData
+import io.github.rothes.esu.core.config.EsuLang.BaseEsuLangData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
-import io.github.rothes.esu.core.configuration.data.MessageData
-import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.util.InitOnce
-import jdk.javadoc.internal.doclint.Checker
 import org.incendo.cloud.caption.Caption
 
-abstract class EsuLocale<T: BaseEsuLocaleData> {
+abstract class EsuLang<T: BaseEsuLangData> {
 
-    private var data: MultiLocaleConfiguration<T> = load()
+    private var data: MultiLangConfiguration<T> = load()
 
     fun get() = data
 
@@ -19,9 +16,9 @@ abstract class EsuLocale<T: BaseEsuLocaleData> {
         data = load()
     }
 
-    protected abstract fun load(): MultiLocaleConfiguration<T>
+    protected abstract fun load(): MultiLangConfiguration<T>
 
-    open class BaseEsuLocaleData(
+    open class BaseEsuLangData(
         val updater: Updater = Updater(),
         val booleans: Booleans = Booleans(),
         val format: Format = Format(),
@@ -62,7 +59,7 @@ abstract class EsuLocale<T: BaseEsuLocaleData> {
     }
 
     companion object {
-        var instance: EsuLocale<out BaseEsuLocaleData> by InitOnce()
+        var instance: EsuLang<out BaseEsuLangData> by InitOnce()
 
         fun get() = instance.data
     }

@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.config.BukkitEsuLocale
+import io.github.rothes.esu.bukkit.config.BukkitEsuLang
 import io.github.rothes.esu.bukkit.config.data.ItemData
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.news.EditorManager
@@ -245,7 +245,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val item = NewsDataManager.news.find { it.id == id }
 
             val builder = Component.text()
-            for (lang in BukkitEsuLocale.get().configs.keys) {
+            for (lang in BukkitEsuLang.get().configs.keys) {
                 builder.append(
                     user.buildMiniMessage(NewsModule.lang, {
                         if (item != null && item.msg.containsKey(lang))

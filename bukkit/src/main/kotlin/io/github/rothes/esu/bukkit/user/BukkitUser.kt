@@ -4,7 +4,7 @@ import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.config.data.ItemData
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.adventure.audience.Audience
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
@@ -43,7 +43,7 @@ abstract class BukkitUser: User {
         return commandSender.hasPermission(permission)
     }
 
-    fun <T: ConfigurationPart> item(locales: MultiLocaleConfiguration<T>, block: T.() -> ItemData?, vararg params: TagResolver): ItemStack {
+    fun <T: ConfigurationPart> item(locales: MultiLangConfiguration<T>, block: T.() -> ItemData?, vararg params: TagResolver): ItemStack {
         val itemData = localedOrNull(locales, block) ?: throw NullPointerException()
         return item(itemData, *params)
     }

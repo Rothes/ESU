@@ -2,7 +2,7 @@ package io.github.rothes.esu.core.user
 
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
@@ -18,12 +18,12 @@ interface LogUser: User {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("logMessage")
-    fun <T: ConfigurationPart> log(locales: MultiLocaleConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver) {
+    fun <T: ConfigurationPart> log(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver) {
         val messageData = localed(locales, block)
         log(messageData, params = params)
     }
 
-    fun <T: ConfigurationPart> log(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    fun <T: ConfigurationPart> log(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         val message = localed(locales, block)
         miniMessage("[ESU] $message", params = params)
     }

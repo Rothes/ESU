@@ -28,7 +28,7 @@ import io.github.rothes.esu.lib.packetevents.injector.ServerConnectionInitialize
 import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import io.github.rothes.esu.lib.packetevents.velocity.factory.VelocityPacketEventsBuilder
 import io.github.rothes.esu.velocity.command.parser.UserParser
-import io.github.rothes.esu.velocity.config.VelocityEsuLocale
+import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
@@ -83,7 +83,7 @@ class EsuPluginVelocity(
         }, { it.commandSender })).apply {
             settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
             captionRegistry().registerProvider { caption, recipient ->
-                recipient.localedOrNull(VelocityEsuLocale.get()) {
+                recipient.localedOrNull(VelocityEsuLang.get()) {
                     commandCaptions[caption]
                 }
             }
@@ -95,7 +95,7 @@ class EsuPluginVelocity(
 
     fun onProxyInitialization() {
         EsuConfig           // Load global config
-        VelocityEsuLocale   // Load global locale
+        VelocityEsuLang   // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
@@ -122,7 +122,7 @@ class EsuPluginVelocity(
                 esu.literal("reload")
                     .handler { context ->
                         EsuConfig.reloadConfig()
-                        VelocityEsuLocale.reloadConfig()
+                        VelocityEsuLang.reloadConfig()
                         ColorSchemes.reload()
                         UpdateCheckerMan.reload()
                         ModuleManager.reloadModules()

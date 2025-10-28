@@ -3,13 +3,13 @@ package io.github.rothes.esu.velocity.user
 import com.velocitypowered.api.command.CommandSource
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.LogUser
-import io.github.rothes.esu.velocity.plugin
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
-import java.util.UUID
+import io.github.rothes.esu.velocity.plugin
+import java.util.*
 
 object ConsoleUser: VelocityUser(), LogUser {
 
@@ -33,7 +33,7 @@ object ConsoleUser: VelocityUser(), LogUser {
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T : ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
     }
 

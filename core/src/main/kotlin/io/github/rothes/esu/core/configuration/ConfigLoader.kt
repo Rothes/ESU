@@ -95,7 +95,7 @@ object ConfigLoader {
         if (dataClass.isInstance(EmptyConfiguration)) {
             return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
-        if (MultiLocaleConfiguration::class.java.isAssignableFrom(configClass)) {
+        if (MultiLangConfiguration::class.java.isAssignableFrom(configClass)) {
             if (path.notExists()) {
                 EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
                     val relativize = EsuCore.instance.baseConfigPath().relativize(path)

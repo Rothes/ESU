@@ -1,7 +1,7 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
@@ -19,7 +19,7 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
     val langClass: Class<L>
 
     val config: C
-    val lang: MultiLocaleConfiguration<L>
+    val lang: MultiLangConfiguration<L>
 
     fun setConfigInstance(instance: C) {}
     fun setEnabled(value: Boolean) {

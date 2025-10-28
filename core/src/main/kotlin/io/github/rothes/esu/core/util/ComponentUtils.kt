@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.util
 
-import io.github.rothes.esu.core.config.EsuLocale
+import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.adventure.text.Component
@@ -127,9 +127,9 @@ object ComponentUtils {
     fun duration(duration: Duration, user: User, key: String = "duration"): TagResolver.Single {
         return Placeholder.parsed(key, duration.toComponents { d, h, m, s, ns ->
             buildString {
-                val separator = user.localed(EsuLocale.get()) { format.duration.separator }
-                val append = fun(block: EsuLocale.BaseEsuLocaleData.() -> String?, v: Number) {
-                    append(user.localed(EsuLocale.get(), block).replace("<value>", v.toString()))
+                val separator = user.localed(EsuLang.get()) { format.duration.separator }
+                val append = fun(block: EsuLang.BaseEsuLangData.() -> String?, v: Number) {
+                    append(user.localed(EsuLang.get(), block).replace("<value>", v.toString()))
                     append(separator)
                 }
                 if (d > 0) append({ format.duration.day }, d)
@@ -172,8 +172,8 @@ object ComponentUtils {
     fun Boolean.on(user: User): Component = duel(user, { on }) { off }
     fun Boolean.yes(user: User): Component = duel(user, { yes }) { no }
 
-    private fun Boolean.duel(user: User, t: EsuLocale.BaseEsuLocaleData.Booleans.() -> String, f: EsuLocale.BaseEsuLocaleData.Booleans.() -> String): Component {
-        return user.buildMiniMessage(EsuLocale.get(), { if (this@duel) t(booleans) else f(booleans) })
+    private fun Boolean.duel(user: User, t: EsuLang.BaseEsuLangData.Booleans.() -> String, f: EsuLang.BaseEsuLangData.Booleans.() -> String): Component {
+        return user.buildMiniMessage(EsuLang.get(), { if (this@duel) t(booleans) else f(booleans) })
     }
 
     fun Component.capitalize(): Component {
@@ -186,7 +186,7 @@ object ComponentUtils {
     }
 
     fun <T: ConfigurationPart> pLang(viewer: User,
-                                     locales: MultiLocaleConfiguration<T>, block: T.() -> Map<String, String>?,
+                                     locales: MultiLangConfiguration<T>, block: T.() -> Map<String, String>?,
                                      vararg params: TagResolver): TagResolver {
         val langMap = viewer.localed(locales, block)
         return pLang(viewer, langMap, params = params)

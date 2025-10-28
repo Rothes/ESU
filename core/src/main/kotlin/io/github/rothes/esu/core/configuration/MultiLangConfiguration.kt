@@ -2,7 +2,7 @@ package io.github.rothes.esu.core.configuration
 
 import io.github.rothes.esu.core.config.EsuConfig
 
-class MultiLocaleConfiguration<T : ConfigurationPart>(configs: Map<String, T>) : MultiConfiguration<T>(configs) {
+class MultiLangConfiguration<T : ConfigurationPart>(configs: Map<String, T>) : MultiConfiguration<T>(configs) {
 
     override fun <R> get(key: String?, block: (T) -> R?): R? {
         return configs[key]?.let(block)

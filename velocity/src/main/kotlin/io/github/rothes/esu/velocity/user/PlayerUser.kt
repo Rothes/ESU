@@ -3,7 +3,7 @@ package io.github.rothes.esu.velocity.user
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
@@ -57,7 +57,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T : ConfigurationPart> kick(locales: MultiLocaleConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T : ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         player.disconnect(buildMiniMessage(locales, block, *params).server)
     }
 
