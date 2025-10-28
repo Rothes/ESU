@@ -18,6 +18,7 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
+import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -210,6 +211,7 @@ class EsuPluginBukkit(
         disabledHot = byPlugMan()
         ServerHotLoadSupport(disabledHot).onDisable()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.removeModule(it) }
+        commandManager.shutdown()
 
         for (player in Bukkit.getOnlinePlayers()) {
             try {
