@@ -1,5 +1,6 @@
 package io.github.rothes.esu.core.module
 
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -33,15 +34,14 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
         val available = isAvailable()
 
         if (available.value && !enabled) {
-            onEnable()
-            setEnabled(true)
+            enableInternal()
         } else if (!available.value && enabled) {
-            setEnabled(false)
-            onDisable()
+            disableInternal()
         }
 
         return available
     }
+
     fun getFeatureMap(): Map<String, Feature<*, *>>
     fun getFeatures(): List<Feature<*, *>>
     fun getFeature(name: String): Feature<*, *>?
@@ -86,6 +86,29 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
             val OK = AvailableCheck(true, null)
             fun fail(messageBuilder: (User) -> MessageData) = AvailableCheck(false, messageBuilder)
         }
+    }
+
+    private companion object {
+
+        private fun Feature<*, *>.enableInternal() {
+            try {
+                onEnable()
+                setEnabled(true)
+            } catch (e: Throwable) {
+                EsuBootstrap.instance.err("An exception occurred while enabling $name", e)
+                disableInternal()
+            }
+        }
+
+        private fun Feature<*, *>.disableInternal() {
+            try {
+                setEnabled(false)
+                onDisable()
+            } catch (e: Throwable) {
+                EsuBootstrap.instance.err("An exception occurred while disabling $name", e)
+            }
+        }
+
     }
 
 }
