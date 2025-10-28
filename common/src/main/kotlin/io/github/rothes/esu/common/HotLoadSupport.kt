@@ -122,6 +122,7 @@ open class HotLoadSupport(
         FlagContext::class.java.toString()
         Charsets::class.java.toString()
         UpdateStatement::class.java.toString()
+        loadClass("io/github/rothes/esu/common/util/extension/CommandManagersKt")
 
         // Velocity ServerUtils support
         Buffer().apply {
@@ -129,6 +130,14 @@ open class HotLoadSupport(
             copyTo(ByteArrayOutputStream())
         }
         PEUserData::class.java.toString()
+    }
+
+    private fun loadClass(clazz: String) {
+        try {
+            Class.forName(clazz.replace('/', '.'))
+        } catch (e: ClassNotFoundException) {
+            EsuBootstrap.instance.warn("HotLoadSupport - Class $clazz not found")
+        }
     }
 
     data class PEUserData(
