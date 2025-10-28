@@ -6,7 +6,7 @@ import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
-import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.locale
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.lang
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
@@ -190,7 +190,7 @@ object CasListeners: Listener {
     private fun handleFiltered(player: Player, message: String, messageMeta: MessageMeta, checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
         if (notify) {
             notifyUsers.forEach {
-                it.message(locale, { this.notify.filtered },
+                it.message(lang, { this.notify.filtered },
                     player(player), it.msgPrefix,
                     unparsed("message", message), unparsed("check-type", checkType), unparsed("chat-type", messageMeta)
                 )
@@ -211,7 +211,7 @@ object CasListeners: Listener {
     private fun handleMuted(player: Player, spamData: SpamData) {
         val duration = spamData.mute()
         notifyUsers.forEach {
-            it.message(locale, { this.notify.muted },
+            it.message(lang, { this.notify.muted },
                 player(player), it.msgPrefix,
                 duration(duration.milliseconds, it),
                 unparsed("multiplier", String.format("%.1f", spamData.muteMultiplier)),

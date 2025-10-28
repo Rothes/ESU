@@ -10,7 +10,7 @@ import io.github.rothes.esu.velocity.user
 
 object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, UserNameVerifyModule.ModuleLang>() {
 
-    override fun enable() {
+    override fun onEnable() {
         registerListener(Listener)
     }
 
@@ -23,8 +23,8 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
             for ((key, regex) in config.requirements) {
                 if (regex.matchEntire(username) == null) {
                     val user = e.player.user
-                    user.kick(locale, { kickMessage.messages[key] },
-                        component("prefix", user.buildMiniMessage(locale, { kickMessage.prefix }))
+                    user.kick(lang, { kickMessage.messages[key] },
+                        component("prefix", user.buildMiniMessage(lang, { kickMessage.prefix }))
                     )
                     e.result = ServerPreConnectEvent.ServerResult.denied()
                     break

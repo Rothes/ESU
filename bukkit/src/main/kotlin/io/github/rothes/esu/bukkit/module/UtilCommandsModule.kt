@@ -32,24 +32,24 @@ import java.lang.reflect.Field
 
 object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsModule.ModuleLocale>() {
 
-    override fun enable() {
+    override fun onEnable() {
         registerCommands(object {
             @Command("ping [player]")
             @ShortPerm("ping")
             fun ping(sender: User, player: Player = sender.player) {
-                sender.message(locale, { pingCommand }, player(player), unparsed("ping", player.ping))
+                sender.message(lang, { pingCommand }, player(player), unparsed("ping", player.ping))
             }
 
             @Command("clientLocale [player]")
             @ShortPerm("clientLocale")
             fun clientLocale(sender: User, player: User = sender) {
-                sender.message(locale, { clientLocaleCommand }, user(player), unparsed("locale", player.clientLocale))
+                sender.message(lang, { clientLocaleCommand }, user(player), unparsed("locale", player.clientLocale))
             }
 
             @Command("ip [player]")
             @ShortPerm("ip")
             fun ip(sender: User, player: Player = sender.player) {
-                sender.message(locale, { ipCommand }, player(player), unparsed("address", player.address!!.hostString))
+                sender.message(lang, { ipCommand }, player(player), unparsed("address", player.address!!.hostString))
             }
 
             @Command("ipGroup")
@@ -63,22 +63,22 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                     .asReversed()
                 if (list.isNotEmpty()) {
                     list.forEach {
-                        sender.message(locale, { ipGroupCommand.entry },
+                        sender.message(lang, { ipGroupCommand.entry },
                             unparsed("address", it.key),
                             parsed("players", it.value.joinToString(
-                                prefix = sender.localed(locale) { ipGroupCommand.playerPrefix },
-                                separator = sender.localed(locale) { ipGroupCommand.playerSeparator })
+                                prefix = sender.localed(lang) { ipGroupCommand.playerPrefix },
+                                separator = sender.localed(lang) { ipGroupCommand.playerSeparator })
                             ))
                     }
                 } else {
-                    sender.message(locale, { ipGroupCommand.noSameIp } )
+                    sender.message(lang, { ipGroupCommand.noSameIp } )
                 }
             }
 
             @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("tpChunk")
             fun tpChunk(sender: User, chunk: ChunkLocation, world: World = sender.player.location.world, player: Player = sender.player) {
-                sender.message(locale, { tpChunkTeleporting }, player(player))
+                sender.message(lang, { tpChunkTeleporting }, player(player))
                 val location = Location(world, (chunk.chunkX shl 4) + 8.5, 0.0, (chunk.chunkZ shl 4) + 8.5)
                 Scheduler.schedule(location) {
                     val y = if (world.environment == World.Environment.NETHER) {
@@ -103,8 +103,8 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
         PaperChunkCommands.enable()
     }
 
-    override fun disable() {
-        super.reloadConfig()
+    override fun onDisable() {
+        super.onReload()
     }
 
     private object PaperChunkCommands {
@@ -200,12 +200,12 @@ object UtilCommandsModule: BukkitModule<BaseModuleConfiguration, UtilCommandsMod
                             value != null && value > 0
                         }.toList().sortedByDescending { it.second }
                         if (map.isEmpty()) {
-                            sender.message(locale, { lang().noData })
+                            sender.message(UtilCommandsModule.lang, { this.lang().noData })
                         } else {
-                            sender.message(locale, { lang().header })
+                            sender.message(UtilCommandsModule.lang, { this.lang().header })
                             map.forEach { (p, v) ->
                                 sender.message(
-                                    locale, { lang().entry }, player(p), unparsed("rate", v)
+                                    UtilCommandsModule.lang, { this.lang().entry }, player(p), unparsed("rate", v)
                                 )
                             }
                         }

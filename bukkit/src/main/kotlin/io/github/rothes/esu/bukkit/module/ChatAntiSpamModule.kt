@@ -43,7 +43,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
     private var purgeTask: ScheduledTask? = null
 
-    override fun enable() {
+    override fun onEnable() {
         CasDataManager
         purgeTask = Scheduler.asyncTicks(20, 5 * 60 * 20) { purgeCache(true) }
         CasListeners.enable()
@@ -60,9 +60,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val playerUser = context.get<PlayerUser>("player")
                 val spamData = CasDataManager.cacheByIp[playerUser.addr]
                 if (spamData == null) {
-                    sender.message(locale, { command.data.noData }, user(playerUser), sender.msgPrefix)
+                    sender.message(lang, { command.data.noData }, user(playerUser), sender.msgPrefix)
                 } else {
-                    sender.message(locale, { command.data.data },
+                    sender.message(lang, { command.data.data },
                         user(playerUser), unparsed("debug-data", spamData),
                         sender.msgPrefix,
                         unparsed("filtered-size", spamData.filtered.size),
@@ -74,7 +74,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                             if (spamData.muteUntil > System.currentTimeMillis())
                                 (spamData.muteUntil - System.currentTimeMillis()).milliseconds
                             else
-                                sender.localed(locale) { command.data.notMuted }
+                                sender.localed(lang) { command.data.notMuted }
                         )
                     )
                 }
@@ -85,10 +85,10 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val user = context.sender()
                 if (notifyUsers.contains(user)) {
                     notifyUsers.remove(user)
-                    user.message(locale, { command.notify.disabled }, user.msgPrefix)
+                    user.message(lang, { command.notify.disabled }, user.msgPrefix)
                 } else {
                     notifyUsers.add(user)
-                    user.message(locale, { command.notify.enabled }, user.msgPrefix)
+                    user.message(lang, { command.notify.enabled }, user.msgPrefix)
                 }
             }
         }
@@ -98,7 +98,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
                 val duration = playerUser.spamData.mute()
-                context.sender().message(locale, { command.mute.mutedPlayer },
+                context.sender().message(lang, { command.mute.mutedPlayer },
                     context.sender().msgPrefix,
                     user(playerUser),
                     duration(duration.milliseconds, playerUser),
@@ -114,7 +114,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 CasDataManager.deleteAsync(playerUser.dbId)
                 CasDataManager.cacheById.remove(playerUser.dbId)
                 CasDataManager.cacheByIp.remove(playerUser.addr)
-                context.sender().message(locale, { command.reset.resetPlayer },
+                context.sender().message(lang, { command.reset.resetPlayer },
                     context.sender().msgPrefix,
                     component("player", playerUser.player.displayName_)
                 )
@@ -126,8 +126,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         purgeTask?.cancel()
         purgeTask = null
         CasListeners.disable()
@@ -140,8 +140,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         Bukkit.getOnlinePlayers().forEach { CasDataManager.saveSpamData(it.user) }
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         if (config.notifyConsole) {
             notifyUsers.add(ConsoleUser)
         } else {
@@ -175,7 +175,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         get() = player.address!!.hostString
 
     val User.msgPrefix: TagResolver
-        get() = parsed("prefix", localed(locale) { this.prefix })
+        get() = parsed("prefix", localed(lang) { this.prefix })
 
     data class ModuleConfig(
         @Comment("Enable to notify console anti-spam messages")

@@ -39,15 +39,15 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
     private var pausing: Boolean = false
     private var restartOn: Long? = null
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         data = ConfigLoader.load(dataPath)
         if (enabled) {
             scheduleTask()
         }
     }
 
-    override fun enable() {
+    override fun onEnable() {
         scheduleTask()
 
         val cmd = plugin.commandManager.commandBuilder("autorestart", "ar")
@@ -57,7 +57,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
                 val user = context.sender()
                 val restartOn = restartOn
                 if (restartOn == null) {
-                    user.message(locale, { noTask })
+                    user.message(lang, { noTask })
                 } else {
                     user.messageTimeParsed((restartOn - System.currentTimeMillis()).milliseconds) { notify }
                 }
@@ -67,7 +67,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
             admin.literal("reset").handler { context ->
                 data.restartOnOverride = null
                 scheduleTask()
-                context.sender().message(locale, { overridesReset })
+                context.sender().message(lang, { overridesReset })
                 ConfigLoader.save(dataPath, data)
             }
         }
@@ -83,15 +83,15 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
         registerCommand {
             admin.literal("schedule").required("dateTime", StringParser.greedyStringParser(),
                 SuggestionProvider.blockingStrings { context, _ ->
-                    listOf(context.sender().localed(locale) { timeFormatter })
+                    listOf(context.sender().localed(lang) { timeFormatter })
                 }).handler { context ->
                 val raw = context.get<String>("dateTime")
                 val localDateTime = try {
                     LocalDateTime.parse(raw, DateTimeFormatterBuilder().parseCaseInsensitive()
                         .parseDefaulting(ChronoField.YEAR, LocalDate.now().year.toLong())
-                        .appendPattern(context.sender().localed(locale) { timeFormatter }).toFormatter() )
+                        .appendPattern(context.sender().localed(lang) { timeFormatter }).toFormatter() )
                 } catch (e: DateTimeParseException) {
-                    return@handler context.sender().message(locale, { couldNotParseTime }, Placeholder.unparsed("message", e.message ?: ""))
+                    return@handler context.sender().message(lang, { couldNotParseTime }, Placeholder.unparsed("message", e.message ?: ""))
                 }
                 data.restartOnOverride = localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 scheduleTask()
@@ -103,13 +103,13 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
             admin.literal("pause").handler { context ->
                 pausing = !pausing
                 scheduleTask()
-                context.sender().message(locale, { toggledPausing }, Placeholder.unparsed("state", pausing.toString()))
+                context.sender().message(lang, { toggledPausing }, Placeholder.unparsed("state", pausing.toString()))
             }
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         task?.cancel()
         task = null
     }
@@ -152,7 +152,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
                 ConfigLoader.save(dataPath, data)
 
                 Bukkit.getOnlinePlayers().map { it.user }.forEach { user ->
-                    user.kick(locale, { kickMessage })
+                    user.kick(lang, { kickMessage })
                 }
 
                 Scheduler.global(2) { // Make sure all players are disconnected on their region thread
@@ -171,8 +171,8 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
 
     private fun BukkitUser.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> MessageData?) {
         val instant = Instant.ofEpochMilli(restartOn!!).atZone(ZoneId.systemDefault())
-        val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(locale) { timeFormatterP })
-        message(locale, block, duration(duration, this, "interval"), unparsed("time", time))
+        val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(lang) { timeFormatterP })
+        message(lang, block, duration(duration, this, "interval"), unparsed("time", time))
     }
 
     data class ModuleData(

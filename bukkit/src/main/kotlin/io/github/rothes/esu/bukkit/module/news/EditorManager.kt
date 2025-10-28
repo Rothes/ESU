@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module.news
 
-import io.github.rothes.esu.bukkit.module.NewsModule.locale
+import io.github.rothes.esu.bukkit.module.NewsModule
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
@@ -51,7 +51,7 @@ object EditorManager {
 
     fun startEdit(user: PlayerUser, content: List<String>, newsId: Int, lang: String,
                   cancel: () -> Unit, complete: (EditorResult) -> Unit, callCancel: Boolean = false) {
-        val item = user.item(locale, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
+        val item = user.item(NewsModule.lang, { bookNews.editor.editItem.copy(material = Material.WRITABLE_BOOK) })
         val player = user.player
 
         cancelEdit(player, callCancel)

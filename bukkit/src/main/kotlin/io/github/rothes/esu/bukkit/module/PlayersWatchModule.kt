@@ -19,7 +19,7 @@ object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWa
     val watching: ConcurrentHashMap<PlayerUser, WatchOptions> = ConcurrentHashMap()
     val players: LinkedHashSet<Player> = LinkedHashSet()
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.register()
 
         Bukkit.getOnlinePlayers().forEach {
@@ -27,8 +27,8 @@ object PlayersWatchModule: BukkitModule<PlayersWatchModule.ConfigData, PlayersWa
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Listeners.unregister()
     }
 

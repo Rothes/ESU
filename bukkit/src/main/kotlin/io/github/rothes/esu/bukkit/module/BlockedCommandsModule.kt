@@ -17,12 +17,12 @@ import org.bukkit.event.server.ServerCommandEvent
 
 object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, BlockedCommandsModule.ModuleLocale>() {
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.register()
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Listeners.unregister()
     }
 
@@ -50,7 +50,7 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
             }
             if (matched != null) {
                 val key = matched.blockedMessage
-                user.message(user.localedOrNull(locale) { blockedMessage[key] } ?: key.message)
+                user.message(user.localedOrNull(lang) { blockedMessage[key] } ?: key.message)
                 return true
             }
             return false

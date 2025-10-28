@@ -27,23 +27,23 @@ object NetworkThrottleModule: BukkitModule<NetworkThrottleModule.ModuleConfig, N
     lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
-    override fun enable() {
+    override fun onEnable() {
         data = ConfigLoader.load(dataPath)
         HighLatencyAdjust.onEnable()
         ChunkDataThrottle.onEnable()
         DynamicChunkSendRate.enable()
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         ChunkDataThrottle.onDisable()
         HighLatencyAdjust.onDisable()
         DynamicChunkSendRate.disable()
         ConfigLoader.save(dataPath, data)
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         if (enabled) {
             if (config.dynamicChunkSendRate.enabled) {
                 DynamicChunkSendRate.enable()

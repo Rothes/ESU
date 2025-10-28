@@ -3,35 +3,16 @@ package io.github.rothes.esu.core.module
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiLocaleConfiguration
-import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper
+import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper.Companion.nodeMapper
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.incendo.cloud.Command
-import java.lang.reflect.ParameterizedType
 import java.nio.file.Path
 
-abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Module<C, L> {
-
-    val configClass: Class<C>
-    val localeClass: Class<L>
-
-    init {
-        val actualTypeArguments = (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments
-
-        @Suppress("UNCHECKED_CAST")
-        configClass = actualTypeArguments[0] as Class<C>
-        @Suppress("UNCHECKED_CAST")
-        localeClass = actualTypeArguments[1] as Class<L>
-    }
+abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : CommonFeature<C, L>(), Module<C, L> {
 
     override val name: String = javaClass.simpleName.removeSuffix("Module")
-    override lateinit var config: C
-        protected set
-    override lateinit var locale: MultiLocaleConfiguration<L>
-        protected set
-    protected open val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
-    protected open val localeLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
 
     protected val registeredCommands = LinkedHashSet<Command<out User>>()
 
@@ -44,7 +25,7 @@ abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Module
         }
     }
 
-    override fun disable() {
+    override fun onDisable() {
         unregisterCommands()
     }
 
@@ -54,19 +35,41 @@ abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Module
     override val configPath: Path by lazy {
         moduleFolder.resolve("config.yml")
     }
-    override val localePath: Path by lazy {
+    override val langPath: Path by lazy {
         moduleFolder.resolve("lang")
     }
-    override var enabled: Boolean = false
 
-    override fun canUse(): Boolean {
-        return (config as? BaseModuleConfiguration)?.moduleEnabled ?: true
+    override fun doReload() {
+        ConfigLoader.load(
+            configPath,
+            configClass,
+            ConfigLoader.LoaderSettings(
+                yamlLoader = { buildConfigLoader(it); it },
+                nodeMapper = nodeMapper(FeatureNodeMapper.TargetClass.CONFIG)
+            )
+        )
+        fun clearLang(feature: Feature<*, *>) {
+            val map = feature.lang.configs as MutableMap
+            map.clear()
+            for (feature in feature.getFeatures()) {
+                clearLang(feature)
+            }
+        }
+        clearLang(this)
+        ConfigLoader.loadMulti(
+            langPath,
+            langClass,
+            ConfigLoader.LoaderSettingsMulti(
+                "en_us",
+                yamlLoader = { buildLangLoader(it); it },
+                nodeMapper = nodeMapper(FeatureNodeMapper.TargetClass.LANG)
+            )
+        )
+        super.doReload()
     }
 
-    override fun reloadConfig() {
-        config = ConfigLoader.load(configPath, configClass, ConfigLoader.LoaderSettings(yamlLoader = configLoader))
-        locale = ConfigLoader.loadMulti(localePath, localeClass, ConfigLoader.LoaderSettingsMulti("en_us", yamlLoader = localeLoader))
-    }
+    open fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) { }
+    open fun buildLangLoader(builder: YamlConfigurationLoader.Builder) { }
 
     fun User.hasPerm(shortPerm: String): Boolean {
         return hasPermission(perm(shortPerm))

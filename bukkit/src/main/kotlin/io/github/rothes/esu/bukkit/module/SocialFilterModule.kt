@@ -32,20 +32,20 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
     lateinit var filters: MultiConfiguration<Filter>
         private set
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.register()
     }
 
-    override fun disable() {
+    override fun onDisable() {
         Listeners.unregister()
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         filters = ConfigLoader.loadMulti(
             moduleFolder.resolve("filters"),
             ConfigLoader.LoaderSettingsMulti<Filter>(
-                createKeys = listOf("example")
+                initializeConfigs = listOf("example")
             )
         )
     }
@@ -149,7 +149,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
 
         fun messageBlocked(user: User) {
             if (blockedMessageKey.isEmpty()) return
-            val message = user.localedOrNull(locale) { blockedMessage[blockedMessageKey] } ?: blockedMessageKey.message
+            val message = user.localedOrNull(lang) { blockedMessage[blockedMessageKey] } ?: blockedMessageKey.message
             user.message(message)
         }
 

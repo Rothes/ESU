@@ -28,13 +28,13 @@ import kotlin.math.max
 
 object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyConfiguration>() {
 
-    override fun enable() {
+    override fun onEnable() {
         update()
         Listeners.register()
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         if (plugin.isEnabled) {
             // This can only run when enabled
             for (world in Bukkit.getWorlds()) {
@@ -50,8 +50,8 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
         Listeners.unregister()
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         if (enabled) {
             update()
         }

@@ -12,15 +12,15 @@ import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>() {
 
-    override fun enable() {
+    override fun onEnable() {
         Injector.enable()
         TrafficMonitor.enable()
         Analyser.enable()
         DynamicChunkSendRate.enable()
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Injector.disable()
         TrafficMonitor.disable()
         Analyser.disable()
@@ -28,8 +28,8 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         DynamicChunkSendRate.disable()
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         if (config.dynamicChunkSendRate.enabled) {
             DynamicChunkSendRate.enable()
         } else {

@@ -16,7 +16,7 @@ import org.bukkit.event.block.BlockPistonRetractEvent
 
 object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, EmptyConfiguration>() {
 
-    override fun enable() {
+    override fun onEnable() {
         registerListener(object : Listener {
             @EventHandler
             fun onLiquidSpread(e: BlockFromToEvent) {
@@ -63,8 +63,8 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
         applyTicketType()
     }
 
-    override fun reloadConfig() {
-        super.reloadConfig()
+    override fun onReload() {
+        super.onReload()
         if (enabled)
             applyTicketType()
     }

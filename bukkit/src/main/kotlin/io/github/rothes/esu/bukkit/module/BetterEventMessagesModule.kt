@@ -32,12 +32,12 @@ import java.util.*
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>() {
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.register()
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Listeners.unregister()
     }
 

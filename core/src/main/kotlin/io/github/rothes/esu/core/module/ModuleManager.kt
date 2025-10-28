@@ -11,28 +11,12 @@ object ModuleManager {
     operator fun get(moduleName: String) = modules[moduleName]
 
     fun addModule(module: Module<*, *>) {
-        removeModule(module.name)
-        modules.putIfAbsent(module.name, module)
+        synchronized(modules) {
+            removeModule(module.name)
+            modules.putIfAbsent(module.name, module)
+        }
 
         reloadModule(module)
-        try {
-            if (module.canUse()) {
-                enableModule(module)
-            }
-        } catch(e: Throwable) {
-            EsuCore.instance.err("Failed to check&enable module ${module.name}", e)
-        }
-    }
-
-    fun enableModule(module: Module<*, *>): Boolean {
-        try {
-            module.enable()
-            module.enabled = true
-            return true
-        } catch (e: Throwable) {
-            EsuCore.instance.err("Failed to enable module ${module.name}", e)
-            return false
-        }
     }
 
     fun removeModule(module: Module<*, *>) {
@@ -40,17 +24,31 @@ object ModuleManager {
     }
 
     fun removeModule(name: String) {
-        modules.remove(name)?.let { module ->
+        val removed = synchronized(modules) {
+            modules.remove(name)
+        }
+        removed?.let { module ->
             if (module.enabled) {
-                disableModule(module)
+                forceDisableModule(module)
             }
         }
     }
 
-    fun disableModule(module: Module<*, *>): Boolean {
+    fun forceEnableModule(module: Module<*, *>): Boolean {
         try {
-            module.enabled = false
-            module.disable()
+            module.onEnable()
+            module.setEnabled(true)
+            return true
+        } catch (e: Throwable) {
+            EsuCore.instance.err("Failed to enable module ${module.name}", e)
+            return false
+        }
+    }
+
+    fun forceDisableModule(module: Module<*, *>): Boolean {
+        try {
+            module.setEnabled(false)
+            module.onDisable()
             return true
         } catch (e: Throwable) {
             EsuCore.instance.err("Failed to disable module ${module.name}", e)
@@ -66,7 +64,7 @@ object ModuleManager {
 
     private fun reloadModule(module: Module<*, *>) {
         try {
-            module.reloadConfig()
+            module.doReload()
         } catch (e: Throwable) {
             EsuCore.instance.err("Failed to read config of module ${module.name}", e)
         }

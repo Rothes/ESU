@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>() {
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.enable()
         if (config.whisper.enabled)
             registerCommands(ChatHandler.Whisper)
@@ -54,8 +54,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Listeners.disable()
     }
 
@@ -78,11 +78,11 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
                 sender.message(config.whisper.formats.outgoing, msg,  papi,
                     playerDisplay(sender, pd),
-                    pLang(sender, locale, { whisper.placeholders })
+                    pLang(sender, lang, { whisper.placeholders })
                 )
                 receiver.message(config.whisper.formats.incoming, msg, papi,
                     playerDisplay(receiver, pd),
-                    pLang(sender, locale, { whisper.placeholders })
+                    pLang(sender, lang, { whisper.placeholders })
                 )
                 val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
                     it == null || it.user != sender || !it.initiative
@@ -94,7 +94,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                             with(config.whisper.formats.spy) { if (initiative) send else reply },
                             msg, papi,
                             playerDisplay(receiver, pd),
-                            pLang(sender, locale, { whisper.spy.placeholders })
+                            pLang(sender, lang, { whisper.spy.placeholders })
                         )
                 }
             }
@@ -104,15 +104,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val last = last.getIfPresent(sender)?.user
                 if (last == null) {
                     sender.message(
-                        locale, { whisper.replyNoLastTarget },
-                        pLang(sender, locale, { whisper.placeholders }),
+                        lang, { whisper.replyNoLastTarget },
+                        pLang(sender, lang, { whisper.placeholders }),
                     )
                     return
                 }
                 if (!last.isOnline) {
                     sender.message(
-                        locale, { whisper.receiverOffline },
-                        pLang(sender, locale, { whisper.placeholders }),
+                        lang, { whisper.receiverOffline },
+                        pLang(sender, lang, { whisper.placeholders }),
                     )
                     return
                 }
@@ -152,17 +152,17 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             fun spyEnable(sender: User, user: User = sender, @Flag("silent") silent: Boolean = false) {
                 val added = spying.add(user)
                 if (added) {
-                    sender.message(locale, { whisper.spy.enabled },
-                        pLang(sender, locale, { whisper.spy.placeholders }),
+                    sender.message(lang, { whisper.spy.enabled },
+                        pLang(sender, lang, { whisper.spy.placeholders }),
                         user(user, "user"), component("enable-state", true.enabled(sender)) )
                     if (!silent && sender != user) {
-                        user.message(locale, { whisper.spy.enabled },
-                            pLang(sender, locale, { whisper.spy.placeholders }),
+                        user.message(lang, { whisper.spy.enabled },
+                            pLang(sender, lang, { whisper.spy.placeholders }),
                             user(user, "user"), component("enable-state", true.enabled(sender)) )
                     }
                 } else {
-                    sender.message(locale, { whisper.spy.alreadyEnabled },
-                        pLang(sender, locale, { whisper.spy.placeholders }),
+                    sender.message(lang, { whisper.spy.alreadyEnabled },
+                        pLang(sender, lang, { whisper.spy.placeholders }),
                         user(user, "user"))
                 }
             }
@@ -172,16 +172,16 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             fun spyDisable(sender: User, user: User = sender, @Flag("silent") silent: Boolean = false) {
                 val removed = spying.remove(user)
                 if (removed) {
-                    sender.message(locale, { whisper.spy.disabled },
-                        pLang(sender, locale, { whisper.spy.placeholders }),
+                    sender.message(lang, { whisper.spy.disabled },
+                        pLang(sender, lang, { whisper.spy.placeholders }),
                         user(user, "user"), component("enable-state", false.enabled(sender)) )
                     if (!silent && sender != user)
-                        user.message(locale, { whisper.spy.disabled },
-                            pLang(sender, locale, { whisper.spy.placeholders }),
+                        user.message(lang, { whisper.spy.disabled },
+                            pLang(sender, lang, { whisper.spy.placeholders }),
                             user(user, "user"), component("enable-state", false.enabled(sender)) )
                 } else {
-                    sender.message(locale, { whisper.spy.alreadyDisabled },
-                        pLang(sender, locale, { whisper.spy.placeholders }),
+                    sender.message(lang, { whisper.spy.alreadyDisabled },
+                        pLang(sender, lang, { whisper.spy.placeholders }),
                         user(user, "user"))
                 }
             }
@@ -218,7 +218,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     val tags = arrayOf(
                         playerDisplay(user, "sender", sender), component("message", msg), papi
                     )
-                    user.message(config.emote.format, pLang(user, locale, { emote.placeholders }), *tags)
+                    user.message(config.emote.format, pLang(user, lang, { emote.placeholders }), *tags)
                 }
             }
         }
@@ -269,14 +269,14 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 for (user in users) {
                     user.message(
                         format.player, message, papi,
-                        pLang(user, locale, { chat.placeholders }),
+                        pLang(user, lang, { chat.placeholders }),
                         playerDisplay(user, "sender", sender)
                     )
                 }
 
                 ConsoleUser.message(
                     format.console, message, papi,
-                    pLang(ConsoleUser, locale, { chat.placeholders }),
+                    pLang(ConsoleUser, lang, { chat.placeholders }),
                     playerDisplay(ConsoleUser, "sender", sender)
                 )
             }
@@ -409,7 +409,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val user = map[id]
             if (user != null)
                 Tag.selfClosingInserting(
-                    viewer.buildMiniMessage(locale, { playerDisplay },
+                    viewer.buildMiniMessage(lang, { playerDisplay },
                         papi(user),
                         if (user is PlayerUser)
                             component("player_key", user.player.displayName_)

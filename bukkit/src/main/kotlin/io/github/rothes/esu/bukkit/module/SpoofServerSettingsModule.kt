@@ -16,11 +16,11 @@ import kotlin.jvm.optionals.getOrNull
 
 object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleConfig, EmptyConfiguration>() {
 
-    override fun enable() {
+    override fun onEnable() {
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)
     }
 
-    override fun disable() {
+    override fun onDisable() {
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListeners)
     }
 

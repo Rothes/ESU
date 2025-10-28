@@ -19,9 +19,9 @@ abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart> : Common
 
     protected val registeredListeners = linkedSetOf<Listener>()
 
-    override fun disable() {
+    override fun onDisable() {
         unregisterListeners()
-        super.disable()
+        super.onDisable()
     }
 
     fun registerCommand(block: BukkitCommandManager<BukkitUser>.() -> Command.Builder<BukkitUser>) {

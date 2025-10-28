@@ -9,7 +9,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
-import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
+import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
@@ -60,7 +60,7 @@ object TrafficMonitor {
                 }
 
             for ((user, unit) in viewers) {
-                user.message(locale, { trafficMonitor.message },
+                user.message(lang, { trafficMonitor.message },
                     traffic(bytesO, "outgoing-traffic", unit),
                     amount(   ppsO, "outgoing-pps"),
                     traffic(bytesI, "incoming-traffic", unit),
@@ -83,13 +83,13 @@ object TrafficMonitor {
             @ShortPerm("trafficMonitor")
             fun enable(sender: User, @Flag("unit") unit: Unit = Unit.BIT) {
                 addViewer(sender, unit)
-                sender.message(locale, { trafficMonitor.enabled })
+                sender.message(lang, { trafficMonitor.enabled })
             }
             @Command("vnetwork trafficMonitor disable")
             @ShortPerm("trafficMonitor")
             fun disable(sender: User) {
                 removeViewer(sender)
-                sender.message(locale, { trafficMonitor.disabled })
+                sender.message(lang, { trafficMonitor.disabled })
             }
         })
     }

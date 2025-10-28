@@ -131,13 +131,13 @@ class EsuPluginVelocity(
             )
             val moduleCmd = esu.literal("module")
             command(
-                moduleCmd.literal("enable")
+                moduleCmd.literal("forceEnable")
                     .required("module", ModuleParser.parser(), ModuleParser())
                     .handler { context ->
                         val module = context.get<Module<*, *>>("module")
                         if (module.enabled) {
                             context.sender().message("§2Module ${module.name} is already enabled.")
-                        } else if (ModuleManager.enableModule(module)) {
+                        } else if (ModuleManager.forceEnableModule(module)) {
                             context.sender().message("§aModule ${module.name} is enabled.")
                         } else {
                             context.sender().message("§cFailed to enable module ${module.name}.")
@@ -145,13 +145,13 @@ class EsuPluginVelocity(
                     }
             )
             command(
-                moduleCmd.literal("disable")
+                moduleCmd.literal("forceDisable")
                     .required("module", ModuleParser.parser(), ModuleParser())
                     .handler { context ->
                         val module = context.get<Module<*, *>>("module")
                         if (!module.enabled) {
                             context.sender().message("§4Module ${module.name} is already disabled.")
-                        } else if (ModuleManager.disableModule(module)) {
+                        } else if (ModuleManager.forceDisableModule(module)) {
                             context.sender().message("§cModule ${module.name} is disabled.")
                         } else {
                             context.sender().message("§cFailed to disable module ${module.name}.")
@@ -173,7 +173,7 @@ class EsuPluginVelocity(
         enabled = false
         disabledHot = byServerUtils()
         ServerHotLoadSupport(disabledHot).onDisable()
-        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.disableModule(it) }
+        ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.forceDisableModule(it) }
 
         for (player in server.allPlayers) {
             VelocityUserManager.getCache(player.uniqueId)?.let {

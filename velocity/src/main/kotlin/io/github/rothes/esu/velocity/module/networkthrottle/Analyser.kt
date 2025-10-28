@@ -10,7 +10,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.packetevents.protocol.PacketSide
 import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketTypeCommon
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
-import io.github.rothes.esu.velocity.module.NetworkThrottleModule.locale
+import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
@@ -48,9 +48,9 @@ object Analyser {
             @ShortPerm("analyser")
             fun analyserStart(sender: User) {
                 if (start()) {
-                    sender.message(locale, { analyser.started })
+                    sender.message(lang, { analyser.started })
                 } else {
-                    sender.message(locale, { analyser.alreadyStarted })
+                    sender.message(lang, { analyser.alreadyStarted })
                 }
             }
 
@@ -58,9 +58,9 @@ object Analyser {
             @ShortPerm("analyser")
             fun analyserStop(sender: User) {
                 if (disable()) {
-                    sender.message(locale, { analyser.stopped })
+                    sender.message(lang, { analyser.stopped })
                 } else {
-                    sender.message(locale, { analyser.alreadyStopped })
+                    sender.message(lang, { analyser.alreadyStopped })
                 }
             }
 
@@ -68,7 +68,7 @@ object Analyser {
             @ShortPerm("analyser")
             fun analyserReset(sender: User) {
                 reset()
-                sender.message(locale, { analyser.reset })
+                sender.message(lang, { analyser.reset })
             }
 
             @Command("vnetwork analyser view")
@@ -100,15 +100,15 @@ object Analyser {
                     }
                     .entries.sortedByDescending { it.value.second.second }
                 if (entries.isEmpty()) {
-                    sender.message(locale, { analyser.view.noData })
+                    sender.message(lang, { analyser.view.noData })
                     return
                 }
-                sender.message(locale, { analyser.view.header })
+                sender.message(lang, { analyser.view.header })
                 for ((k, entry) in entries.take(limit)) {
                     val (counts, v) = entry
                     val (uncompressed, compressed) = v
                     sender.message(
-                        locale, { analyser.view.entry },
+                        lang, { analyser.view.entry },
                         unparsed("packet-type", k.name.lowercase()),
                         unparsed("counts", counts),
                         bytes(uncompressed, "uncompressed-size"),
@@ -116,7 +116,7 @@ object Analyser {
                     )
                 }
                 sender.message(
-                    locale, { analyser.view.footer },
+                    lang, { analyser.view.footer },
                     duration(
                         (if (running) {
                             System.currentTimeMillis() - startTime

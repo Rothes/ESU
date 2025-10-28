@@ -126,16 +126,17 @@ object ConfigLoader {
         }
         return configClass.getConstructor(Map::class.java).newInstance(
             buildMap {
-                val files = settings.forceLoad?.map { path.resolve("$it.yml") }?.toMutableSet() ?: mutableSetOf()
-                if (settings.createKeys?.isNotEmpty() == true && path.notExists()) {
-                    files.addAll(settings.createKeys.map { path.resolve("$it.yml") })
+                val files = settings.forceLoadConfigs?.map { path.resolve("$it.yml") }?.toMutableSet() ?: mutableSetOf()
+                if (settings.initializeConfigs?.isNotEmpty() == true && path.notExists()) {
+                    files.addAll(settings.initializeConfigs.map { path.resolve("$it.yml") })
                 }
 
                 if (path.isDirectory()) {
                     loadDirectory(path, files, settings.loadSubDirectories)
                 }
                 files.forEach { file ->
-                    put(settings.keyMapper(file), load(file, dataClass, settings))
+                    val configKey = settings.configKeyMapper(file)
+                    put(configKey, load(file, dataClass, settings, configKey))
                 }
             }
         )
@@ -167,7 +168,7 @@ object ConfigLoader {
         return load(path, clazz, LoaderSettings())
     }
 
-    fun <T> load(path: Path, clazz: Class<T>, settings: LoaderSettings<T>): T {
+    fun <T> load(path: Path, clazz: Class<T>, settings: LoaderSettings<T>, configKey: String = ""): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return clazz.cast(EmptyConfiguration)
         }
@@ -184,7 +185,7 @@ object ConfigLoader {
                 resource?.readConfig(clazz, settings)
             } else null
         val loader = createBuilder(resourceNode).let(settings.yamlLoader).path(path).build()
-        val node = settings.nodeMapper(loader.load())
+        val node = settings.nodeMapper(configKey, loader.load())
         val t = settings.modifier.invoke(node.require(clazz), path)
         node.set(clazz, t)
         loader.save(node)
@@ -486,7 +487,7 @@ object ConfigLoader {
 
     open class LoaderSettings<T>(
         val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+        val nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
         val modifier: (T, Path) -> T = { it, _ -> it },
         val findResource: Boolean = true,
         val basePath: Path = EsuCore.instance.baseConfigPath(),
@@ -495,7 +496,7 @@ object ConfigLoader {
         class Builder<T> {
 
             var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
-            var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
+            var nodeMapper: (String, ConfigurationNode) -> ConfigurationNode = { _, node -> node }
             var modifier: (T, Path) -> T = { it, _ -> it }
             var findResource: Boolean = true
             var basePath: Path = EsuCore.instance.baseConfigPath()
@@ -505,7 +506,7 @@ object ConfigLoader {
                 return this
             }
 
-            fun nodeMapper(mapper: (ConfigurationNode) -> ConfigurationNode): Builder<T> {
+            fun nodeMapper(mapper: (String, ConfigurationNode) -> ConfigurationNode): Builder<T> {
                 this.nodeMapper = mapper
                 return this
             }
@@ -532,54 +533,54 @@ object ConfigLoader {
 
 
     class LoaderSettingsMulti<T>(
-        val forceLoad: List<String>? = null,
-        val createKeys: List<String>? = null,
+        val forceLoadConfigs: List<String>? = null,
+        val initializeConfigs: List<String>? = null,
         val loadSubDirectories: Boolean = false,
-        val keyMapper: (Path) -> String = { it.nameWithoutExtension },
+        val configKeyMapper: (Path) -> String = { it.nameWithoutExtension },
         yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+        nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
         modifier: (T, Path) -> T = { it, _ -> it },
         findResource: Boolean = true,
         basePath: Path = EsuCore.instance.baseConfigPath(),
     ): LoaderSettings<T>(yamlLoader, nodeMapper, modifier, findResource, basePath) {
 
         constructor(
-            vararg forceLoad: String,
-            create: List<String>? = null,
+            vararg forceLoadConfigs: String,
+            initializeConfigs: List<String>? = null,
             loadSubDirectories: Boolean = false,
             yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
             keyMapper: (Path) -> String = { it.nameWithoutExtension },
-            nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it },
+            nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
             modifier: (T, Path) -> T = { it, _ -> it },
             findResource: Boolean = true,
             basePath: Path = EsuCore.instance.baseConfigPath(),
-        ): this(forceLoad.toList(), create, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
+        ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
 
 
         class Builder<T> {
 
-            var forceLoad: List<String>? = null
-            var createKeys: List<String>? = null
+            var forceLoadConfigs: List<String>? = null
+            var initializeConfigs: List<String>? = null
             var loadSubDirectories: Boolean = false
             var keyMapper: (Path) -> String = { it.nameWithoutExtension }
             var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
-            var nodeMapper: (ConfigurationNode) -> ConfigurationNode = { it }
+            var nodeMapper: (String, ConfigurationNode) -> ConfigurationNode = { _, node -> node }
             var modifier: (T, Path) -> T = { it, _ -> it }
             var findResource: Boolean = true
             var basePath: Path = EsuCore.instance.baseConfigPath()
 
-            fun forceLoad(vararg forceLoad: String): Builder<T> {
-                this.forceLoad = forceLoad.toList()
+            fun forceLoadConfigs(vararg forceLoadConfigs: String): Builder<T> {
+                this.forceLoadConfigs = forceLoadConfigs.toList()
                 return this
             }
 
-            fun forceLoad(forceLoad: List<String>?): Builder<T> {
-                this.forceLoad = forceLoad
+            fun forceLoadConfigs(forceLoadConfigs: List<String>?): Builder<T> {
+                this.forceLoadConfigs = forceLoadConfigs
                 return this
             }
 
-            fun create(create: List<String>?): Builder<T> {
-                this.createKeys = create
+            fun initializeConfigs(initializeConfigs: List<String>?): Builder<T> {
+                this.initializeConfigs = initializeConfigs
                 return this
             }
 
@@ -598,7 +599,7 @@ object ConfigLoader {
                 return this
             }
 
-            fun nodeMapper(mapper: (ConfigurationNode) -> ConfigurationNode): Builder<T> {
+            fun nodeMapper(mapper: (String, ConfigurationNode) -> ConfigurationNode): Builder<T> {
                 this.nodeMapper = mapper
                 return this
             }
@@ -619,7 +620,7 @@ object ConfigLoader {
             }
 
 
-            fun build() = LoaderSettingsMulti(forceLoad, createKeys, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
+            fun build() = LoaderSettingsMulti(forceLoadConfigs, initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
 
         }
     }

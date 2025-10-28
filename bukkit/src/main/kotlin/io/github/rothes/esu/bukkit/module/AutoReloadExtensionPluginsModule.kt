@@ -7,6 +7,8 @@ import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule.Modul
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter
 import io.github.rothes.esu.core.configuration.ConfigLoader
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ConfigurationOptionsExt.headerIfNotNull
@@ -18,24 +20,16 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
-    override val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder
-        get() = {
-            it.defaultOptions { options ->
-                options.headerIfNotNull("""
-                    |This module will automatically reload the plugins that depend
-                    |on ESU when ESU is reloaded with a plugin management plugin.
-                    |Also, further improve the compatibility of hot reload/update ESU.
-                    |PlugMan/PlugManX is required to enable this.
-                    """.trimIndent().trimMargin()
-                )
-            }
-        }
-
-    override fun canUse(): Boolean {
-        return super.canUse() && !plugin.initialized && listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) }
+    override fun isAvailable(): Feature.AvailableCheck {
+        val sp = super.isAvailable()
+        if (!sp.value) return sp
+        if (plugin.initialized) return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+        if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
+            return Feature.AvailableCheck.fail { "PlugMan not found".message }
+        return sp
     }
 
-    override fun enable() {
+    override fun onEnable() {
         data = ConfigLoader.load(dataPath)
         loadCriticalClasses()
         if (!plugin.enabledHot)
@@ -59,8 +53,8 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     }
 
     @Suppress("DEPRECATION")
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         if (plugin.isEnabled)
             return
         val esuName = plugin.description.name
@@ -87,6 +81,19 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
+    }
+
+    override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
+        super.buildConfigLoader(builder)
+        builder.defaultOptions { options ->
+            options.headerIfNotNull("""
+                    This module will automatically reload the plugins that depend
+                    on ESU when ESU is reloaded with a plugin management plugin.
+                    Also, further improve the compatibility of hot reload/update ESU.
+                    PlugMan/PlugManX is required to enable this.
+                    """.trimIndent()
+            )
+        }
     }
 
     private fun loadCriticalClasses() {

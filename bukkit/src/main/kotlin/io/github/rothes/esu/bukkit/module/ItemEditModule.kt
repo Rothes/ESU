@@ -14,7 +14,7 @@ import org.incendo.cloud.annotations.Command
 
 object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.ModuleLang>() {
 
-    override fun enable() {
+    override fun onEnable() {
         registerCommands(object {
             @Command("itemEdit customModelData clear")
             fun customModelData(sender: User) {
@@ -42,21 +42,21 @@ object ItemEditModule: BukkitModule<BaseModuleConfiguration, ItemEditModule.Modu
     private val User.hand: ItemStack?
         get() {
             if (this !is PlayerUser) {
-                message(locale, { playerOnlyCommand })
+                message(lang, { playerOnlyCommand })
                 return null
             }
             val hand = player.inventory.itemInMainHand
             if (hand.type == Material.AIR) {
-                message(locale, { itemInHandRequired })
+                message(lang, { itemInHandRequired })
                 return null
             }
             return hand
         }
     private fun User.cleared(attribute: String) {
-        message(locale, { attributeCleared }, unparsed("attribute", attribute))
+        message(lang, { attributeCleared }, unparsed("attribute", attribute))
     }
     private fun User.set(attribute: String, value: Any) {
-        message(locale, { attributeSet }, unparsed("attribute", attribute), unparsed("value", value))
+        message(lang, { attributeSet }, unparsed("attribute", attribute), unparsed("value", value))
     }
 
     data class ModuleLang(

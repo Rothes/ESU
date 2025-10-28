@@ -23,7 +23,7 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
     
     private var cacheTask: ScheduledTask? = null
 
-    override fun enable() {
+    override fun onEnable() {
         Listeners.register()
         cacheTask = Scheduler.asyncTicks(5 * 60 * 20L, 5 * 60 * 20L) {
             val now = System.currentTimeMillis()
@@ -43,8 +43,8 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         Listeners.unregister()
         cacheTask?.cancel()
         cacheTask = null
@@ -80,9 +80,9 @@ object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, C
                 }
 
                 if (matched.kickCount in 0..count) {
-                    user.kick(locale, { kickMessage[matched.kickMessage] })
+                    user.kick(lang, { kickMessage[matched.kickMessage] })
                 } else if (matched.warnCount >= 0 && count >= matched.cancelCount) {
-                    user.message(locale, { warnMessage[matched.warnMessage] })
+                    user.message(lang, { warnMessage[matched.warnMessage] })
                 }
             }
         }

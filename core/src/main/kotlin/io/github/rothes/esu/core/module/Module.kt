@@ -1,22 +1,19 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.MultiConfiguration
 import java.nio.file.Path
 
-interface Module<C: ConfigurationPart, L: ConfigurationPart> {
+interface Module<C: ConfigurationPart, L: ConfigurationPart>: Feature<C, L> {
 
-    val name: String
-    val config: C
-    val locale: MultiConfiguration<L>
     val moduleFolder: Path
     val configPath: Path
-    val localePath: Path
-    var enabled: Boolean
+    val langPath: Path
 
-    fun canUse(): Boolean
-    fun enable()
-    fun disable()
-    fun reloadConfig()
+    fun doReload() {
+        onReload()
+        for (child in getFeatures()) {
+            child.onReload()
+        }
+    }
 
 }

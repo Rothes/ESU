@@ -14,7 +14,7 @@ abstract class Check(val type: String) {
     abstract fun check(request: MessageRequest): CheckResult
 
     fun notifyBlocked(user: PlayerUser, vararg params: TagResolver) {
-        user.message(ChatAntiSpamModule.locale, { blockedMessage[type] }, *params)
+        user.message(ChatAntiSpamModule.lang, { blockedMessage[type] }, *params)
     }
 
     open val defaultBlockedMessage: MessageData? = null

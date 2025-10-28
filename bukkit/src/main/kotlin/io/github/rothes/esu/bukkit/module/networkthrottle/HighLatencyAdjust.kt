@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.config
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.locale
+import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.lang
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
@@ -73,7 +73,7 @@ object HighLatencyAdjust: PacketListenerAbstract(PacketListenerPriority.HIGHEST)
                             }
                             player.sendViewDistance--
                         }
-                        player.user.message(locale, { highLatencyAdjust.adjustedWarning })
+                        player.user.message(lang, { highLatencyAdjust.adjustedWarning })
                     } else {
                         startTime.removeLong(player)
                     }

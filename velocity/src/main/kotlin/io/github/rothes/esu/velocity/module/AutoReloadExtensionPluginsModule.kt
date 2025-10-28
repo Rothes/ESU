@@ -1,6 +1,8 @@
 package io.github.rothes.esu.velocity.module
 
 import io.github.rothes.esu.core.configuration.ConfigLoader
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
@@ -14,23 +16,16 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
-    override val configLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder
-        get() = {
-            it.defaultOptions {
-                it.header("""
-                    |This module will automatically reload the plugins that depend
-                    |on ESU when ESU is reloaded with a plugin management plugin.
-                    |ServerUtils is required to enable this.
-                    """.trimIndent().trimMargin()
-                )
-            }
-        }
-
-    override fun canUse(): Boolean {
-        return super.canUse() && !plugin.initialized && plugin.server.pluginManager.getPlugin("serverutils") != null
+    override fun isAvailable(): Feature.AvailableCheck {
+        val sp = super.isAvailable()
+        if (!sp.value) return sp
+        if (plugin.initialized) return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+        if (plugin.server.pluginManager.getPlugin("serverutils") == null)
+            return Feature.AvailableCheck.fail { "ServerUtils not found".message }
+        return sp
     }
 
-    override fun enable() {
+    override fun onEnable() {
         data = ConfigLoader.load(dataPath)
         if (!plugin.enabledHot)
             return
@@ -46,8 +41,8 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
     }
 
     @Suppress("DEPRECATION")
-    override fun disable() {
-        super.disable()
+    override fun onDisable() {
+        super.onDisable()
         if (plugin.enabled)
             return
         val esuId = plugin.container.description.id
@@ -66,6 +61,18 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
+    }
+
+    override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
+        super.buildConfigLoader(builder)
+        builder.defaultOptions {
+            it.header("""
+                    This module will automatically reload the plugins that depend
+                    on ESU when ESU is reloaded with a plugin management plugin.
+                    ServerUtils is required to enable this.
+                    """.trimIndent()
+            )
+        }
     }
 
     data class ModuleData(
