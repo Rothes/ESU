@@ -20,13 +20,14 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
-    override fun isAvailable(): Feature.AvailableCheck {
-        val sp = super.isAvailable()
-        if (!sp.value) return sp
-        if (plugin.initialized) return Feature.AvailableCheck.fail { "Esu is already initialized".message }
-        if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
-            return Feature.AvailableCheck.fail { "PlugMan not found".message }
-        return sp
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: let {
+            if (plugin.initialized)
+                return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+            if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
+                return Feature.AvailableCheck.fail { "PlugMan not found".message }
+            null
+        }
     }
 
     override fun onEnable() {

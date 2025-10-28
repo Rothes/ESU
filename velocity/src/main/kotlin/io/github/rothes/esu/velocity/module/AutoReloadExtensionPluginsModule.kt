@@ -16,13 +16,14 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
     private lateinit var data: ModuleData
     private val dataPath = moduleFolder.resolve("data.yml")
 
-    override fun isAvailable(): Feature.AvailableCheck {
-        val sp = super.isAvailable()
-        if (!sp.value) return sp
-        if (plugin.initialized) return Feature.AvailableCheck.fail { "Esu is already initialized".message }
-        if (plugin.server.pluginManager.getPlugin("serverutils") == null)
-            return Feature.AvailableCheck.fail { "ServerUtils not found".message }
-        return sp
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: let {
+            if (plugin.initialized)
+                return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+            if (plugin.server.pluginManager.getPlugin("serverutils") == null)
+                return Feature.AvailableCheck.fail { "ServerUtils not found".message }
+            null
+        }
     }
 
     override fun onEnable() {

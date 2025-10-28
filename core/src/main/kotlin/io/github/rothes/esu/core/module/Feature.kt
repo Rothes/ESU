@@ -53,10 +53,12 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
     fun registerFeature(child: Feature<*, *>)
 
     fun isAvailable(): AvailableCheck {
+        return checkUnavailable() ?: AvailableCheck.OK
+    }
+    fun checkUnavailable(): AvailableCheck? {
         val config = config
         if (config is EnableTogglable && !config.enabled)
-            return AvailableCheck(false) { "Feature not enabled".message }
-
+            return AvailableCheck.fail { "Feature not enabled".message }
         var parent = parent
         while (parent != null) {
             if (!parent.enabled) {
@@ -64,9 +66,9 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
             }
             parent = parent.parent
         }
-
-        return AvailableCheck.OK
+        return null
     }
+
     fun onEnable()
     fun onDisable() {}
     fun onReload() {
