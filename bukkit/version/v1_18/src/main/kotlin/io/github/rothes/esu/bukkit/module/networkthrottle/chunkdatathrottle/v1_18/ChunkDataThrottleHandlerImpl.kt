@@ -151,6 +151,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     }
 
     override fun onEnable() {
+        onReload()
         try {
             val toFile = hotDataFile.toFile()
             if (toFile.exists()) {

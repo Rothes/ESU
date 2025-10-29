@@ -40,7 +40,8 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
 
     override fun onReload() {
         super.onReload()
-        versioned.onReload()
+        if (enabled)
+            versioned.onReload()
     }
 
     override fun onEnable() {
