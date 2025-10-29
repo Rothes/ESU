@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
-import io.github.rothes.esu.bukkit.bootstrap
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFilePath
@@ -9,13 +8,12 @@ import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
 import java.io.File
-import kotlin.text.startsWith
 
 object JarRemapper {
 
     private const val REMAPPER_VERSION = "3"
 
-    private val cacheFolder = bootstrap.dataFolder.resolve(".cache/remapped")
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/remapped").toFile()
     private val cached = FileHashes(cacheFolder)
 
     fun reobf(file: File): File {
@@ -35,7 +33,7 @@ object JarRemapper {
                 add(Transformer.renamerFactory(it, false))
             }
             add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
-            lib(File(plugin.javaClass.jarFilePath))
+            lib(File(EsuBootstrap::class.java.jarFilePath))
             MappingsLoader.loadedFiles.servers.values.forEach {
                 lib(it)
             }
@@ -47,7 +45,7 @@ object JarRemapper {
                     || it == "Sorting"
                     || it.startsWith("Conflicting propagated mapping"))
                     return@logger
-                plugin.info("[Remapper] $it")
+                EsuBootstrap.instance.info("[Remapper] $it")
             }
         }.build()
         renamer.run(file, output)
