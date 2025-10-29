@@ -4,7 +4,7 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
@@ -23,7 +23,7 @@ import org.incendo.cloud.annotations.Command
 
 object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyConfiguration>() {
 
-    val versioned by Versioned(ChunkDataThrottleHandler::class.java)
+    val versioned by lazy { ChunkDataThrottleHandler::class.java.versioned() }
     val counter
         get() = versioned.counter
     private var wasEnabled = false
