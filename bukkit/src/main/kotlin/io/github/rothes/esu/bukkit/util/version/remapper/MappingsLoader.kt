@@ -1,11 +1,10 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
-import io.github.rothes.esu.bukkit.bootstrap
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
+import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
 import io.github.rothes.esu.core.util.version.Version
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
@@ -25,7 +24,7 @@ object MappingsLoader {
     private val version = ServerCompatibility.serverVersion
     val hasSpigotMembers = version < Version.fromString("1.18")
 
-    private val cacheFolder = bootstrap.dataFolder.resolve(".cache/mappings/$version")
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$version").toFile()
     private val fileHashes = FileHashes(cacheFolder)
 
     private const val SERVER_CL = "serverCl.jar"
@@ -96,14 +95,14 @@ object MappingsLoader {
         val server = getActualServerJar()
         fileHashes.store(server)
 
-        plugin.info("Remapping server jars")
+        EsuBootstrap.instance.info("Remapping server jars")
         val serverMojmap = cacheFolder.resolve(SERVER_MOJMAP)
         Renamer.builder().apply {
             add(Transformer.renamerFactory(mappings.mojmap.reverse(), false))
             add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
             threads(1)
             logger {
-                plugin.info("[Remapper] $it")
+                EsuBootstrap.instance.info("[Remapper] $it")
             }
         }.build().run(server, serverMojmap)
         fileHashes.store(serverMojmap)
@@ -115,7 +114,7 @@ object MappingsLoader {
                 add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
                 threads(1)
                 logger {
-                    plugin.info("[Remapper] $it")
+                    EsuBootstrap.instance.info("[Remapper] $it")
                 }
             }.build().run(server, serverCl)
             fileHashes.store(serverCl)
@@ -144,7 +143,7 @@ object MappingsLoader {
     }
 
     private fun downloadFiles() {
-        plugin.info("Downloading mappings, this might take a while as it's the first run")
+        EsuBootstrap.instance.info("Downloading mappings, this might take a while as it's the first run")
         val commit = getSpigotCommit()
         val version = getMinecraftVersion()
         val pkg = version.packageObject
@@ -170,7 +169,7 @@ object MappingsLoader {
                     break
                 } catch (e: IOException) {
                     if (trys < 2) {
-                        plugin.info("Failed to download, retrying: $e")
+                        EsuBootstrap.instance.info("Failed to download, retrying: $e")
                         trys++
                     } else {
                         throw IOException("Failed to download ${it.second} to $file", e)
