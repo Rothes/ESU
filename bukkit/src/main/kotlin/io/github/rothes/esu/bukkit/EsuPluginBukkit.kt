@@ -7,7 +7,6 @@ import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
-import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
@@ -27,6 +26,7 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
@@ -36,6 +36,7 @@ import io.github.rothes.esu.lib.packetevents.injector.connection.ServerConnectio
 import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import io.netty.channel.Channel
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import org.incendo.cloud.SenderMapper
@@ -52,6 +53,8 @@ class EsuPluginBukkit(
 
     override var initialized: Boolean = false
         private set
+
+    override val basePermissionNode: String = "esu"
 
     var enabledHot: Boolean by InitOnce()
     var disabledHot: Boolean by InitOnce()
@@ -93,14 +96,14 @@ class EsuPluginBukkit(
         }
     }
 
-    override val commandManager: BukkitCommandManager<BukkitUser> by lazy {
-        LegacyPaperCommandManager(bootstrap, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
+    override val commandManager: BukkitCommandManager<User> by lazy {
+        LegacyPaperCommandManager<User>(bootstrap, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
                 is ConsoleCommandSender -> ConsoleUser
                 is Player               -> it.user
                 else                    -> GenericUser(it)
             }
-        }, { it.commandSender })).apply {
+        }, { it.commandSender as CommandSender })).apply {
             settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
             captionRegistry().registerProvider { caption, recipient ->
                 recipient.localedOrNull(BukkitEsuLang.get()) {

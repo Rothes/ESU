@@ -7,7 +7,7 @@ import io.github.rothes.esu.lib.adventure.audience.Audience
 
 abstract class VelocityUser: User {
 
-    abstract val commandSender: CommandSource
+    abstract override val commandSender: CommandSource
     override val audience: Audience by lazy {
         MappedAudience(commandSender)
     }

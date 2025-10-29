@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack
 
 abstract class BukkitUser: User {
 
-    abstract val commandSender: CommandSender
+    abstract override val commandSender: CommandSender
     override val audience: Audience by lazy {
         commandSender.audience
     }

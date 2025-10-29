@@ -1,7 +1,17 @@
 package io.github.rothes.esu.core.module
 
+import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
+import io.github.rothes.esu.core.user.User
+import org.incendo.cloud.CloudCapability
+import org.incendo.cloud.Command
+import org.incendo.cloud.CommandManager
+import org.incendo.cloud.annotations.AnnotationParser
+import org.incendo.cloud.component.CommandComponent
+import org.incendo.cloud.internal.CommandNode
+import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import java.lang.reflect.ParameterizedType
 
 abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Feature<C, L> {
@@ -28,6 +38,12 @@ abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Featu
     final override lateinit var config: C
         protected set
     final override val lang: MultiLangConfiguration<L> = MultiLangConfiguration(mutableMapOf())
+
+    override val permissionNode: String by lazy { (parent?.permissionNode ?: EsuCore.instance.basePermissionNode) + "." + name.lowercase() }
+
+    override fun onDisable() {
+        unregisterCommands()
+    }
 
     final override fun setConfigInstance(instance: C) {
         config = instance
@@ -75,6 +91,56 @@ abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Featu
             }
             children[child.name.lowercase()] = child
             child.setParent(this)
+        }
+    }
+
+    protected val registeredCommands = LinkedHashSet<Command<out User>>()
+
+    protected fun unregisterCommands() {
+        with(EsuCore.instance.commandManager) {
+            registeredCommands.forEach {
+                val components = it.components()
+                if (components.size == 1) {
+                    if (hasCapability(CloudCapability.StandardCapabilities.ROOT_COMMAND_DELETION))
+                        deleteRootCommand(it.rootComponent().name())
+                } else {
+                    @Suppress("UNCHECKED_CAST")
+                    var node = commandTree().rootNode() as CommandNode<User>
+                    for (component in components) {
+                        node = node.getChild(component as CommandComponent<User>) ?: return@forEach
+                    }
+                    var parent = node.parent()!!
+                    parent.removeChild(node)
+                    while (parent.children().isEmpty() && parent.command() == null) {
+                        val p = parent.parent() ?: break
+                        p.removeChild(parent)
+                        parent = p
+                    }
+                }
+            }
+            registeredCommands.clear()
+        }
+    }
+
+    fun registerCommand(block: CommandManager<User>.() -> Command.Builder<User>) {
+        with(EsuCore.instance.commandManager) {
+            val command = block.invoke(this).build()
+            command(command)
+            registeredCommands.add(command)
+        }
+    }
+
+    fun registerCommands(obj: Any, modifier: ((AnnotationParser<User>) -> Unit)? = null) {
+        with(EsuCore.instance.commandManager) {
+            val annotationParser = AnnotationParser(this, User::class.java).installCoroutineSupport()
+            annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
+                val perm = if (a.value.isNotEmpty()) "command.${a.value}" else "command"
+                b.permission(perm(perm))
+            }
+            modifier?.invoke(annotationParser)
+
+            val commands = annotationParser.parse(obj)
+            registeredCommands.addAll(commands)
         }
     }
 

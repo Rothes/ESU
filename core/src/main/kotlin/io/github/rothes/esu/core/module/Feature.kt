@@ -21,6 +21,8 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
     val config: C
     val lang: MultiLangConfiguration<L>
 
+    val permissionNode: String
+
     fun setConfigInstance(instance: C) {}
     fun setEnabled(value: Boolean) {
         // Notify children
@@ -76,6 +78,8 @@ interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
     fun onTerminate() {
         getFeatures().forEach { it.onTerminate() }
     }
+
+    fun perm(shortPerm: String): String = "$permissionNode.${shortPerm.lowercase()}"
 
     class AvailableCheck(
         val value: Boolean,

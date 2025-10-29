@@ -9,6 +9,7 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryValueSerializers
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
@@ -67,8 +68,9 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
     override fun onEnable() {
         start()
-        module.registerCommands(object {
+        registerCommands(object {
             @Command("esu networkThrottle entityCulling benchmark")
+            @ShortPerm
             fun benchmark(sender: User) {
                 val user = sender as PlayerUser
                 val player = user.player
@@ -115,6 +117,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
             }
 
             @Command("esu networkThrottle entityCulling stats")
+            @ShortPerm
             fun stats(sender: User) {
                 sender.message("previousElapsedTime: ${previousElapsedTime}ms ; previousDelayTime: ${previousDelayTime}ms")
             }
@@ -123,6 +126,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     }
 
     override fun onDisable() {
+        super.onDisable()
         coroutine?.close()
         coroutine = null
         lastThreads = 0

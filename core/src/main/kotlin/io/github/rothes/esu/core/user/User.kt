@@ -24,6 +24,7 @@ import kotlin.experimental.ExperimentalTypeInference
 
 interface User {
 
+    val commandSender: Any
     val audience: Audience
 
     val name: String

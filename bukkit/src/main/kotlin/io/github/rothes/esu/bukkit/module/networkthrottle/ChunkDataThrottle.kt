@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
@@ -48,7 +47,7 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
         wasEnabled = true
         versioned.onEnable()
 
-        NetworkThrottleModule.registerCommands(object {
+        registerCommands(object {
             @Command("esu networkThrottle chunkDataThrottle stats")
             @ShortPerm("chunkDataThrottle")
             fun chunkDataThrottleView(sender: User) {

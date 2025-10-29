@@ -2,7 +2,6 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
@@ -11,6 +10,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
@@ -169,7 +169,7 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
         }
     }
 
-    private fun BukkitUser.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> MessageData?) {
+    private fun User.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> MessageData?) {
         val instant = Instant.ofEpochMilli(restartOn!!).atZone(ZoneId.systemDefault())
         val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(lang) { timeFormatterP })
         message(lang, block, duration(duration, this, "interval"), unparsed("time", time))

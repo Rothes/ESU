@@ -8,7 +8,8 @@ import java.nio.file.Path
 interface EsuCore : EsuLogger {
 
     val initialized: Boolean
-    val commandManager: CommandManager<out User>
+    val commandManager: CommandManager<User>
+    val basePermissionNode: String
 
     override fun info(message: String) {
         EsuBootstrap.instance.info(message)

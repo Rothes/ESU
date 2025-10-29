@@ -1,5 +1,6 @@
 package io.github.rothes.esu.velocity
 
+import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
@@ -21,6 +22,7 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGetT
 import io.github.rothes.esu.lib.packetevents.PacketEvents
@@ -34,7 +36,6 @@ import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.user.ConsoleUser
-import io.github.rothes.esu.velocity.user.VelocityUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -53,6 +54,8 @@ class EsuPluginVelocity(
 
     override var initialized: Boolean = false
         private set
+    override val basePermissionNode: String = "vesu"
+
     var enabled: Boolean = false
         private set
 
@@ -73,14 +76,14 @@ class EsuPluginVelocity(
         enabledHot = byServerUtils()
     }
 
-    override val commandManager: VelocityCommandManager<VelocityUser> by lazy {
-        VelocityCommandManager(container, server, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
+    override val commandManager: VelocityCommandManager<User> by lazy {
+        VelocityCommandManager<User>(container, server, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
             when (it) {
                 is ConsoleCommandSource -> ConsoleUser
                 is Player               -> it.user
                 else                    -> throw IllegalArgumentException("Unsupported user type: ${it.javaClass.name}")
             }
-        }, { it.commandSender })).apply {
+        }, { it.commandSender as CommandSource })).apply {
             settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
             captionRegistry().registerProvider { caption, recipient ->
                 recipient.localedOrNull(VelocityEsuLang.get()) {

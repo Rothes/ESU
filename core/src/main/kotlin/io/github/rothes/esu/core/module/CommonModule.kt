@@ -7,45 +7,11 @@ import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper
 import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper.Companion.nodeMapper
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
-import org.incendo.cloud.Command
-import org.incendo.cloud.component.CommandComponent
-import org.incendo.cloud.internal.CommandNode
 import java.nio.file.Path
 
 abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : CommonFeature<C, L>(), Module<C, L> {
 
     override val name: String = javaClass.simpleName.removeSuffix("Module")
-
-    protected val registeredCommands = LinkedHashSet<Command<out User>>()
-
-    protected fun unregisterCommands() {
-        with(EsuCore.instance.commandManager) {
-            registeredCommands.forEach {
-                val components = it.components()
-                if (components.size == 1) {
-                    deleteRootCommand(it.rootComponent().name())
-                } else {
-                    @Suppress("UNCHECKED_CAST")
-                    var node = commandTree().rootNode() as CommandNode<User>
-                    for (component in components) {
-                        node = node.getChild(component as CommandComponent<User>) ?: return@forEach
-                    }
-                    var parent = node.parent()!!
-                    parent.removeChild(node)
-                    while (parent.children().isEmpty() && parent.command() == null) {
-                        val p = parent.parent() ?: break
-                        p.removeChild(parent)
-                        parent = p
-                    }
-                }
-            }
-            registeredCommands.clear()
-        }
-    }
-
-    override fun onDisable() {
-        unregisterCommands()
-    }
 
     override val moduleFolder: Path by lazy {
         EsuCore.instance.baseConfigPath().resolve("modules").resolve(name)
@@ -92,7 +58,5 @@ abstract class CommonModule<C: ConfigurationPart, L: ConfigurationPart> : Common
     fun User.hasPerm(shortPerm: String): Boolean {
         return hasPermission(perm(shortPerm))
     }
-
-    open fun perm(shortPerm: String): String = "esu.${name.lowercase()}.${shortPerm.lowercase()}"
 
 }
