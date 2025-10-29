@@ -4,12 +4,11 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
 import java.io.File
+import java.lang.reflect.Modifier
 import java.net.URL
 import java.util.jar.JarFile
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
-import kotlin.text.dropLast
-
 
 class Versioned<T, V>(
     target: Class<V>,
@@ -19,8 +18,8 @@ class Versioned<T, V>(
 
     val handle =
         try {
-            if (!target.isInterface)
-                error("${target.canonicalName} is not an interface.")
+            if (!target.isInterface && !Modifier.isAbstract(target.modifiers))
+                error("${target.canonicalName} is not an interface or abstract class.")
 
             val prefix = target.packageName + ".v"
             val find = classes
