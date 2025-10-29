@@ -6,9 +6,6 @@ import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.config
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkSender
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.LevelHandler
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.PalettedContainerReader
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
@@ -19,6 +16,9 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.lib.packetevents.PacketEvents
 import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract

@@ -123,6 +123,8 @@ open class HotLoadSupport(
         Charsets::class.java.toString()
         UpdateStatement::class.java.toString()
         loadClass("io/github/rothes/esu/common/util/extension/CommandManagersKt")
+        loadClass("kotlinx.coroutines.DebugKt") // For JobSupport.nameString(), coroutine exception on shutdown
+        loadClass("kotlinx.coroutines.DebugStringsKt") // For JobSupport.nameString(), coroutine exception on shutdown
 
         // Velocity ServerUtils support
         Buffer().apply {
