@@ -268,17 +268,13 @@ object MappingsLoader {
             val mojmap: IMappingFile,
             val cbCl: IMappingFile,
             val cbMembers: IMappingFile?,
-        ) {
-            val values = listOfNotNull(mojmap, cbCl, cbMembers)
-        }
+        )
 
         data class Servers(
             val server: File,
             val serverCl: File?,
             val serverMojmap: File,
-        ) {
-            val values = listOfNotNull(server, serverCl, serverMojmap)
-        }
+        )
     }
 
     private data class StashCommits(
