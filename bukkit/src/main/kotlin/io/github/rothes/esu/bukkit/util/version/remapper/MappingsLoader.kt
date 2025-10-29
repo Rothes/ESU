@@ -183,15 +183,17 @@ object MappingsLoader {
             fun String.prefixed() = "$prefix${substringAfterLast('/')}"
 
             with(cacheFolder.resolve("bukkit-cl.csrg")) {
-                writeText(readLines().joinToString("\n") { line ->
-                    if (!line.startsWith('#')) {
-                        val split = line.split(' ')
-                        require(split.size == 2) { "Invalid line format: $line" }
-                        "${split[0]} ${split[1].prefixed()}"
-                    } else {
-                        line
-                    }
-                })
+                writeText(
+                    readLines().joinToString("\n") { line ->
+                        if (!line.startsWith('#')) {
+                            val split = line.split(' ')
+                            require(split.size == 2) { "Invalid line format: $line" }
+                            "${split[0]} ${split[1].prefixed()}"
+                        } else {
+                            line
+                        }
+                    } + "\nnet/minecraft/server/MinecraftServer net/minecraft/server/$craftBukkitPackage/MinecraftServer"
+                )
             }
             with(cacheFolder.resolve("bukkit-members.csrg")) {
                 val regex = "L([^;)]+)".toRegex()
@@ -203,19 +205,21 @@ object MappingsLoader {
                         "L${it.groupValues[1].prefixed()}"
                 }
 
-                writeText(readLines().joinToString("\n") { line ->
-                    if (!line.startsWith('#')) {
-                        val split = line.split(' ')
-                        require(split.size in 3..4) { "Invalid line format: $line" }
-                        when (split.size) {
-                            3 -> "${split[0].prefixed()} ${split[1].handleArgs()} ${split[2]}"
-                            4 -> "${split[0].prefixed()} ${split[1]} ${split[2].handleArgs()} ${split[3]}"
-                            else -> error("?")
+                writeText(
+                    readLines().joinToString("\n") { line ->
+                        if (!line.startsWith('#')) {
+                            val split = line.split(' ')
+                            require(split.size in 3..4) { "Invalid line format: $line" }
+                            when (split.size) {
+                                3 -> "${split[0].prefixed()} ${split[1].handleArgs()} ${split[2]}"
+                                4 -> "${split[0].prefixed()} ${split[1]} ${split[2].handleArgs()} ${split[3]}"
+                                else -> error("?")
+                            }
+                        } else {
+                            line
                         }
-                    } else {
-                        line
                     }
-                })
+                )
             }
         }
         files.forEach {
