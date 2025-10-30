@@ -39,8 +39,12 @@ object AutoRestartModule: BukkitModule<AutoRestartModule.ModuleConfig, AutoResta
     private var pausing: Boolean = false
     private var restartOn: Long? = null
 
-    override fun onReload() {
+    override fun doReload() {
         data = ConfigLoader.load(dataPath)
+        super.doReload()
+    }
+
+    override fun onReload() {
         super.onReload()
         if (enabled) {
             scheduleTask()
