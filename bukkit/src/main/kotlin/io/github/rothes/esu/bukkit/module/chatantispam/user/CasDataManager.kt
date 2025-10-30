@@ -15,6 +15,7 @@ import io.github.rothes.esu.core.util.DataSerializer.serialize
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.vendors.H2Dialect
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -23,7 +24,7 @@ import org.jetbrains.exposed.v1.json.json
 object CasDataManager {
 
     object ChatSpamTable: Table("chat_spam_data") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_user__id").uniqueIndex("fk_chat_spam_data__user__id")
+        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_chat_spam_data__user__id").uniqueIndex("uk_user")
         val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex("uk_ip")
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
@@ -64,9 +65,20 @@ object CasDataManager {
                 exec("ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_chat_spam_data_user__id`")
                 exec("ALTER TABLE `$tableName` DROP INDEX `user`")
                 exec("ALTER TABLE `$tableName` DROP INDEX `ip`")
-                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_user` (user)")
+                exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_user` (`user`)")
                 exec("ALTER TABLE `$tableName` ADD UNIQUE INDEX `uk_ip` (ip)")
                 exec("ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data__user__id` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE")
+            }, {
+                try {
+                    val column = if (database.dialect is H2Dialect) """"user"""" else "`user`"
+                    // Create index names are wrong, but upgrading was ok...
+                    exec("""ALTER TABLE `$tableName` DROP INDEX `fk_chat_spam_data__user__id`""")
+                    exec("""ALTER TABLE `$tableName` ADD CONSTRAINT `uk_user` UNIQUE ($column)""")
+                    exec("""ALTER TABLE `$tableName` DROP FOREIGN KEY `fk_user__id`""")
+                    exec("""ALTER TABLE `$tableName` ADD CONSTRAINT `fk_chat_spam_data__user__id` FOREIGN KEY ($column) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE""")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             })
             // </editor-fold>
             SchemaUtils.create(ChatSpamTable)
