@@ -47,11 +47,13 @@ class UserCullData(
         if (++tickedTime >= 60 * 2 * 20) {
             checkEntitiesValid()
         }
-        val iterator = toRemoveCache.listIterator()
-        while (iterator.hasNext()) {
-            hiddenEntities.remove(iterator.nextInt())
+        synchronized(toRemoveCache) {
+            val iterator = toRemoveCache.listIterator()
+            while (iterator.hasNext()) {
+                hiddenEntities.remove(iterator.nextInt())
+            }
+            toRemoveCache.clear()
         }
-        toRemoveCache.clear()
         updateChanges()
     }
 
@@ -79,8 +81,10 @@ class UserCullData(
     }
 
     fun onEntityRemove(entityId: Int) {
-        // Delay to tick, thread safe
-        toRemoveCache.add(entityId)
+        synchronized(toRemoveCache) {
+            // Delay to tick, thread safe
+            toRemoveCache.add(entityId)
+        }
     }
 
     fun checkEntitiesValid() {
