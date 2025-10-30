@@ -41,7 +41,6 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         data.pluginsToLoad.clear()
     }
 
-    @Suppress("DEPRECATION")
     override fun onDisable() {
         super.onDisable()
         if (plugin.enabled)
@@ -62,6 +61,7 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
+        dataPath.toFile().deleteOnExit()
     }
 
     override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {

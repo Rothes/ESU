@@ -82,6 +82,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)
+        dataPath.toFile().deleteOnExit()
     }
 
     override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
