@@ -17,6 +17,9 @@ class UserCullData(
     private val pendingChanges = mutableListOf<CulledChange>()
     private val toRemoveCache = IntArrayList()
     private var tickedTime = 0
+    private var markedReset = false
+    private var isRemoved = false
+    private var terminated = false
 
     fun hiddenEntities(): List<Entity> {
         return hiddenEntities.values.toList()
@@ -33,14 +36,13 @@ class UserCullData(
     }
 
     fun showAll() {
-        val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-        for (entry in iterator) {
-            val id = entry.intKey
-            val entity = entry.value
-            iterator.remove()
-            pendingChanges.add(CulledChange(entity, id, false))
+        if (isRemoved) {
+            reset()
+            updateChanges()
+            terminated = true
+        } else {
+            markedReset = true
         }
-        updateChanges()
     }
 
     fun tick() {
@@ -54,10 +56,48 @@ class UserCullData(
             }
             toRemoveCache.clear()
         }
+        if (markedReset)
+            reset()
         updateChanges()
     }
 
+    fun onEntityRemove(entityId: Int) {
+        synchronized(toRemoveCache) {
+            // Delay to tick, thread safe
+            toRemoveCache.add(entityId)
+        }
+    }
+
+    fun markRemoved() {
+        isRemoved = true
+    }
+
+    private fun reset() {
+        val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+        for (entry in iterator) {
+            val id = entry.intKey
+            val entity = entry.value
+            iterator.remove()
+            pendingChanges.add(CulledChange(entity, id, false))
+        }
+    }
+
+    private fun checkEntitiesValid() {
+        try {
+            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+            for (entry in iterator) {
+                val entity = entry.value
+                if (entity.isDead) {
+                    iterator.remove()
+                }
+            }
+        } catch (e: Throwable) {
+            plugin.err("[EntityCulling] Failed to check entities valid for player ${player.name}", e)
+        }
+    }
+
     private fun updateChanges() {
+        if (terminated) return
         if (pendingChanges.isEmpty()) return
 
         val list = pendingChanges.toList()
@@ -80,31 +120,10 @@ class UserCullData(
         }
     }
 
-    fun onEntityRemove(entityId: Int) {
-        synchronized(toRemoveCache) {
-            // Delay to tick, thread safe
-            toRemoveCache.add(entityId)
-        }
-    }
-
-    fun checkEntitiesValid() {
-        try {
-            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-            for (entry in iterator) {
-                val entity = entry.value
-                if (entity.isDead) {
-                    iterator.remove()
-                }
-            }
-        } catch (e: Throwable) {
-            plugin.err("[EntityCulling] Failed to check entities valid for player ${player.name}", e)
-        }
-    }
-
     private fun pendCulledChange(entity: Entity, entityId: Int, culled: Boolean) {
         pendingChanges.add(CulledChange(entity, entityId, culled))
     }
 
-    data class CulledChange(val entity: Entity, val entityId: Int, val culled: Boolean)
+    private data class CulledChange(val entity: Entity, val entityId: Int, val culled: Boolean)
 
 }

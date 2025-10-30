@@ -47,8 +47,11 @@ object CullDataManager {
     }
 
     fun shutdown() {
-        showAll()
         lock.write {
+            map.values.forEach {
+                it.markRemoved()
+                it.showAll()
+            }
             map.clear()
         }
     }
