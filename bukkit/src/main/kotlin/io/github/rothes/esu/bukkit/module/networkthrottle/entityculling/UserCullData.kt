@@ -49,8 +49,9 @@ class UserCullData(
     }
 
     private fun updateChanges() {
+        if (pendingChanges.isEmpty()) return
+
         val list = pendingChanges.toList()
-        if (list.isEmpty()) return
         pendingChanges.clear()
         if (plugin.isEnabled) {
             Scheduler.schedule(player) {
