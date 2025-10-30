@@ -7,7 +7,7 @@ repositories {
 
 dependencies {
     api(kotlin("reflect"))
-    api(libs.kotlinx.io.core)
+    compileOnlyApi(libs.kotlinx.io.core)
 
     compileOnlyApi(project(":core:dep-core", configuration = "shadow"))
     api(project(":core:dep-impl-core", configuration = "shadow"))
