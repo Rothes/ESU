@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
-import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -8,6 +7,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
 
 object Scheduler {
 
@@ -30,21 +30,21 @@ object Scheduler {
             BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
     }
 
-    fun schedule(entity: Entity, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(entity: Entity, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.run(plugin, { func.invoke() }, null)!!)
+            FoliaTask(entity.scheduler.run(plugin, { func.invoke() }, null) ?: return null)
         else
             BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
     }
-    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks)!!)
+            FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks) ?: return null)
         else
             BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
     }
-    fun schedule(entity: Entity, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(entity: Entity, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.runAtFixedRate(plugin, { func.invoke() }, null, delayTicks, periodTicks)!!)
+            FoliaTask(entity.scheduler.runAtFixedRate(plugin, { func.invoke() }, null, delayTicks, periodTicks) ?: return null)
         else
             BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
     }
