@@ -32,6 +32,14 @@ object CullDataManager {
         }
     }
 
+    fun broadcastEntityRemove(entityId: Int) {
+        lock.read {
+            for (data in map.values) {
+                data.onEntityRemove(entityId)
+            }
+        }
+    }
+
     fun showAll() {
         lock.read {
             map.values.forEach { it.showAll() }

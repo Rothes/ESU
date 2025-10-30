@@ -22,6 +22,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.util.NumberConversions
@@ -95,6 +96,10 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     override fun raytrace(from: Vector, to: Vector, world: World): Boolean {
         return raytraceStep(from.toVec3(), to.toVec3(), (world as CraftWorld).handle)
+    }
+
+    override fun getEntityId(entity: org.bukkit.entity.Entity): Int {
+        return (entity as CraftEntity).handle.id
     }
 
     private fun Vector.toVec3(): Vec3 {

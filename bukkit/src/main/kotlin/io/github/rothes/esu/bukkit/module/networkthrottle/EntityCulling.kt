@@ -20,10 +20,16 @@ import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
+import org.bukkit.entity.Entity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityRemoveEvent
+import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerTeleportEvent
 import org.incendo.cloud.annotations.Command
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
 
 object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfiguration>() {
@@ -124,6 +130,8 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
             }
         })
         Listeners.register()
+        if (EntityRemoveListeners.isSupported)
+            EntityRemoveListeners.register()
     }
 
     override fun onDisable() {
@@ -132,16 +140,28 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
         coroutine = null
         lastThreads = 0
         Listeners.unregister()
+        if (EntityRemoveListeners.isSupported)
+            EntityRemoveListeners.unregister()
         CullDataManager.shutdown()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun start() {
         coroutine?.close()
         val nThreads = config.raytraceThreads
-        val context = newFixedThreadPoolContext(nThreads, "ESU-EntityCulling")
+
+        val name = "ESU-EntityCulling"
+        val threadNo = AtomicInteger()
+        val executor = Executors.newScheduledThreadPool(nThreads) { runnable ->
+            Thread(runnable, if (nThreads == 1) name else name + "-" + threadNo.incrementAndGet())
+                .apply {
+                    priority = Thread.NORM_PRIORITY - 1
+                    isDaemon = true
+                }
+        }
+        val context = Executors.unconfigurableExecutorService(executor).asCoroutineDispatcher()
         val raytraceHandler = raytraceHandler as RaytraceHandler<*, *>
-        CoroutineScope(context).launch {
+        val scope = CoroutineScope(context)
+        scope.launch {
             while (isActive) {
                 val millis = System.currentTimeMillis()
                 Bukkit.getOnlinePlayers().map { bukkitPlayer ->
@@ -160,8 +180,26 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 delay(delay)
             }
         }
+        scope.launch {
+            while (isActive) {
+                Bukkit.getOnlinePlayers().map { bukkitPlayer ->
+                    try {
+                        CullDataManager[bukkitPlayer].checkEntitiesValid()
+                    } catch (e: Throwable) {
+                        plugin.err("[EntityCulling] Failed to check entities valid for player ${bukkitPlayer.name}", e)
+                    }
+                }
+                delay(120.seconds)
+            }
+        }
         lastThreads = nThreads
         coroutine = context
+    }
+
+    private fun broadcastRemoved(entity: Entity) {
+        val handler = raytraceHandler as RaytraceHandler<*, *>
+        val id = handler.getEntityId(entity)
+        CullDataManager.broadcastEntityRemove(id)
     }
 
     private object Listeners: Listener {
@@ -169,6 +207,37 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
         @EventHandler
         fun onPlayerQuit(event: PlayerQuitEvent) {
             CullDataManager.remove(event.player)
+            broadcastRemoved(event.player)
+        }
+
+        @EventHandler
+        fun onChangeWorld(event: PlayerChangedWorldEvent) {
+            plugin.info("CHANGE WORLD")
+            // Release memory
+            CullDataManager[event.player].showAll()
+        }
+
+        @EventHandler
+        fun onChangeWorld(event: PlayerTeleportEvent) {
+            plugin.info("TELEPORT")
+            // Release memory
+            CullDataManager[event.player].showAll()
+        }
+
+    }
+
+    private object EntityRemoveListeners: Listener {
+
+        val isSupported = try {
+            Class.forName("org.bukkit.event.entity.EntityRemoveEvent")
+            true
+        } catch (_: ClassNotFoundException) {
+            false
+        }
+
+        @EventHandler
+        fun onEntityRemove(event: EntityRemoveEvent) {
+            broadcastRemoved(event.entity)
         }
 
     }

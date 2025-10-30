@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -18,12 +19,12 @@ class UserCullData(
         return hiddenEntities.values.toList()
     }
 
-    fun setCulled(entity: Entity, entityId: Int, culled: Boolean) {
+    fun setCulled(entity: Entity, entityId: Int, culled: Boolean, pend: Boolean = true) {
         if (culled) {
-            if (hiddenEntities.put(entityId, entity) == null)
+            if (hiddenEntities.put(entityId, entity) == null && pend)
                 pendCulledChange(entity, entityId, true)
         } else {
-            if (hiddenEntities.remove(entityId) != null)
+            if (hiddenEntities.remove(entityId) != null && pend)
                 pendCulledChange(entity, entityId, false)
         }
     }
@@ -43,18 +44,35 @@ class UserCullData(
         val list = pendingChanges.toList()
         if (list.isEmpty()) return
         pendingChanges.clear()
-        Scheduler.schedule(player) {
-            for (change in list) {
-                try {
+        if (plugin.isEnabled) {
+            Scheduler.schedule(player) {
+                for (change in list) {
+                    if (change.entity.isDead) continue
+                    if (!change.entity.checkTickThread()) {
+                        // Not on tick thread, we can only save it
+                        setCulled(change.entity, change.entityId, change.culled, false)
+                        continue
+                    }
                     if (change.culled)
                         player.hideEntity(bootstrap, change.entity)
                     else
                         player.showEntity(bootstrap, change.entity)
-                } catch (e: IllegalStateException) {
-                    plugin.err("[EntityCulling] Failed to update entity ${change.entityId} culled for player ${player.name}: $e")
-                    // Probably folia thread issue, write it back
-                    setCulled(change.entity, change.entityId, change.culled)
                 }
+            }
+        }
+    }
+
+    fun onEntityRemove(entityId: Int) {
+        hiddenEntities.remove(entityId)
+    }
+
+    fun checkEntitiesValid() {
+        val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+        for (entry in iterator) {
+            val entity = entry.value
+            if (entity.isDead) {
+                plugin.warn("[EntityCulling] Found an removed entity ${entry.intKey} for player ${player.name}")
+                iterator.remove()
             }
         }
     }
