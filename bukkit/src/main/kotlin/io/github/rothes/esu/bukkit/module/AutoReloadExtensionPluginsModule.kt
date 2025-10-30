@@ -6,14 +6,17 @@ import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.ConfigurationOptionsExt.headerIfNotNull
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.bukkit.Bukkit
+import org.incendo.cloud.annotations.Command
 
 object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfiguration>() {
 
@@ -33,6 +36,16 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     override fun onEnable() {
         data = ConfigLoader.load(dataPath)
         loadCriticalClasses()
+        registerCommands(object {
+            @Command("esu AutoReloadExtensionPlugins updateCommands")
+            @ShortPerm
+            fun updateCommands(user: User) {
+                Bukkit.getOnlinePlayers().forEach {
+                    it.updateCommands()
+                }
+                user.message("OK!")
+            }
+        })
         if (!plugin.enabledHot)
             return
 
