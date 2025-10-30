@@ -1,6 +1,7 @@
 package io.github.rothes.esu.common
 
 import io.github.rothes.esu.core.EsuBootstrap
+import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.core.util.extension.*
 import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
 import io.github.rothes.esu.lib.packetevents.PacketEvents
@@ -8,6 +9,8 @@ import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
 import io.github.rothes.esu.lib.packetevents.protocol.player.ClientVersion
 import io.github.rothes.esu.lib.packetevents.protocol.player.TextureProperty
 import io.github.rothes.esu.lib.packetevents.protocol.player.User
+import io.github.rothes.esu.lib.packetevents.protocol.world.dimension.DimensionType
+import io.github.rothes.esu.lib.packetevents.protocol.world.dimension.DimensionTypes
 import kotlinx.io.*
 import org.incendo.cloud.parser.flag.FlagContext
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
@@ -19,11 +22,15 @@ import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
+private const val TMP_DATA_VERSION = 2
+
 open class HotLoadSupport(
     val isHot: Boolean,
     val hasPacketEventsPlugin: Boolean,
 ) {
 
+    private val peUserRegistriesGetter = User::class.java.getDeclaredField("registries").usObjAccessor
+    private val serverRegistriesGetter by lazy { com.github.retrooper.packetevents.protocol.player.User::class.java.getDeclaredField("registries").usObjAccessor }
     private val dataFile = EsuBootstrap.instance.baseConfigPath().resolve("hot-data.tmp")
     private lateinit var peUserData: MutableMap<UUID, PEUserData>
 
@@ -32,8 +39,9 @@ open class HotLoadSupport(
         if (isHot) {
             try {
                 if (!dataFile.exists()) return
-                dataFile.inputStream().asSource().buffered().use {
-                    loadPacketEventsData(it)
+                dataFile.inputStream().asSource().buffered().use { buffer ->
+                    require(buffer.readInt() == TMP_DATA_VERSION) { "Different hot data version." }
+                    loadPacketEventsData(buffer)
                 }
                 dataFile.deleteIfExists()
             } catch (e: Throwable) {
@@ -65,6 +73,12 @@ open class HotLoadSupport(
             user.clientVersion = ClientVersion.valueOf(server.clientVersion.name)
             user.decoderState = ConnectionState.valueOf(server.decoderState.name)
             user.encoderState = ConnectionState.valueOf(server.encoderState.name)
+            val id = com.github.retrooper.packetevents.protocol.world.dimension.DimensionTypes.getRegistry().getId(server.dimensionType, server.clientVersion)
+            user.dimensionType = DimensionTypes.getRegistry().getById(user.clientVersion, id)
+//            @Suppress("UNCHECKED_CAST")
+//            val ur = peUserRegistriesGetter[user] as Map<ResourceLocation, IRegistry<*>>
+//            @Suppress("UNCHECKED_CAST")
+//            val sr = serverRegistriesGetter[server] as Map<com.github.retrooper.packetevents.resources.ResourceLocation, com.github.retrooper.packetevents.util.mappings.IRegistry<*>>
             user.entityId = server.entityId
             user.profile.uuid = uuid
             user.profile.name = name
@@ -85,10 +99,11 @@ open class HotLoadSupport(
             EsuBootstrap.instance.warn("No hot packetevents user data for player '$name', this may cause issues.")
             return
         }
-        val (_, clientVersion, decoderState, encoderState, entityId, texture) = data
+        val (_, clientVersion, decoderState, encoderState, dimensionType, entityId, texture) = data
         user.clientVersion = clientVersion
         user.decoderState = decoderState
         user.encoderState = encoderState
+        user.dimensionType = dimensionType
         user.entityId = entityId
         user.profile.textureProperties = texture
     }
@@ -105,6 +120,7 @@ open class HotLoadSupport(
     }
 
     private fun savePacketEventsData(buffer: Buffer) {
+        buffer.writeInt(TMP_DATA_VERSION)
         buffer.writeBool(hasPacketEventsPlugin)
         if (hasPacketEventsPlugin) return
         val protocolManager = PacketEvents.getAPI().protocolManager
@@ -147,6 +163,7 @@ open class HotLoadSupport(
         val clientVersion: ClientVersion,
         val decoderState: ConnectionState,
         val encoderState: ConnectionState,
+        val dimensionType: DimensionType,
         val entityId: Int,
         val texture: List<TextureProperty>,
     ) {
@@ -156,6 +173,7 @@ open class HotLoadSupport(
             user.clientVersion,
             user.decoderState,
             user.encoderState,
+            user.dimensionType,
             user.entityId,
             user.profile.textureProperties
         )
@@ -167,6 +185,7 @@ open class HotLoadSupport(
         writeShortFromInt(data.clientVersion.ordinal)
         writeByteFromInt(data.decoderState.ordinal)
         writeByteFromInt(data.encoderState.ordinal)
+        writeInt(DimensionTypes.getRegistry().getId(data.dimensionType, data.clientVersion))
         writeInt(data.entityId)
         writeInt(data.texture.size)
         for (property in data.texture) {
@@ -185,6 +204,7 @@ open class HotLoadSupport(
         val clientVersion = ClientVersion.entries[readIntFromShort()]
         val decoderState = ConnectionState.entries[readIntFromByte()]
         val encoderState = ConnectionState.entries[readIntFromByte()]
+        val dimensionType = DimensionTypes.getRegistry().getById(clientVersion, readInt())!!
         val entityId = readInt()
         val texture = ArrayList<TextureProperty>(readInt())
         for (i in 0 until texture.size) {
@@ -193,7 +213,7 @@ open class HotLoadSupport(
             val signature = if (readBool()) readAscii() else null
             texture.add(TextureProperty(name, value, signature))
         }
-        return PEUserData(uuid, clientVersion, decoderState, encoderState, entityId, texture)
+        return PEUserData(uuid, clientVersion, decoderState, encoderState, dimensionType, entityId, texture)
     }
 
 }
