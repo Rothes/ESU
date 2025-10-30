@@ -1,7 +1,30 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v1_18
 
+import com.github.retrooper.packetevents.PacketEvents
+import com.github.retrooper.packetevents.event.PacketListenerAbstract
+import com.github.retrooper.packetevents.event.PacketListenerPriority
+import com.github.retrooper.packetevents.event.PacketReceiveEvent
+import com.github.retrooper.packetevents.event.PacketSendEvent
+import com.github.retrooper.packetevents.protocol.packettype.PacketType
+import com.github.retrooper.packetevents.protocol.player.DiggingAction
+import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
+import com.github.retrooper.packetevents.protocol.world.MaterialType
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
+import com.github.retrooper.packetevents.protocol.world.chunk.storage.BaseStorage
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
+import com.github.retrooper.packetevents.util.Vector3i
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import com.google.common.io.ByteStreams
 import com.google.common.primitives.Ints
+import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle.config
@@ -20,29 +43,6 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
-import io.github.rothes.esu.lib.packetevents.PacketEvents
-import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
-import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
-import io.github.rothes.esu.lib.packetevents.event.PacketReceiveEvent
-import io.github.rothes.esu.lib.packetevents.event.PacketSendEvent
-import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
-import io.github.rothes.esu.lib.packetevents.protocol.player.DiggingAction
-import io.github.rothes.esu.lib.packetevents.protocol.stream.NetStreamInput
-import io.github.rothes.esu.lib.packetevents.protocol.world.MaterialType
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.GlobalPalette
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.ListPalette
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.MapPalette
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.palette.SingletonPalette
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.storage.BaseStorage
-import io.github.rothes.esu.lib.packetevents.protocol.world.states.WrappedBlockState
-import io.github.rothes.esu.lib.packetevents.util.SpigotConversionUtil
-import io.github.rothes.esu.lib.packetevents.util.Vector3i
-import io.github.rothes.esu.lib.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -77,7 +77,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
-import io.github.rothes.esu.lib.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
+import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 
 class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
     PacketListenerAbstract(PacketListenerPriority.HIGHEST), Listener {

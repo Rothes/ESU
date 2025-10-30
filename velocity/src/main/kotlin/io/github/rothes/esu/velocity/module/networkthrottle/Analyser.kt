@@ -1,5 +1,7 @@
 package io.github.rothes.esu.velocity.module.networkthrottle
 
+import com.github.retrooper.packetevents.protocol.PacketSide
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.server.RegisteredServer
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -7,8 +9,6 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.lib.packetevents.protocol.PacketSide
-import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketTypeCommon
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler

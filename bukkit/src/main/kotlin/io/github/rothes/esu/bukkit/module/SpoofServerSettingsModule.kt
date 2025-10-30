@@ -1,20 +1,26 @@
 package io.github.rothes.esu.bukkit.module
 
+import com.github.retrooper.packetevents.PacketEvents
+import com.github.retrooper.packetevents.event.PacketListenerAbstract
+import com.github.retrooper.packetevents.event.PacketListenerPriority
+import com.github.retrooper.packetevents.event.PacketSendEvent
+import com.github.retrooper.packetevents.protocol.packettype.PacketType
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDifficulty
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateSimulationDistance
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateViewDistance
+import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
+import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
-import io.github.rothes.esu.lib.packetevents.PacketEvents
-import io.github.rothes.esu.lib.packetevents.event.PacketListenerAbstract
-import io.github.rothes.esu.lib.packetevents.event.PacketListenerPriority
-import io.github.rothes.esu.lib.packetevents.event.PacketSendEvent
-import io.github.rothes.esu.lib.packetevents.protocol.packettype.PacketType
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerDifficulty
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUpdateSimulationDistance
-import io.github.rothes.esu.lib.packetevents.wrapper.play.server.WrapperPlayServerUpdateViewDistance
 import org.bukkit.Difficulty
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleConfig, EmptyConfiguration>() {
+
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: checkPacketEvents()
+    }
 
     override fun onEnable() {
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)
@@ -42,8 +48,8 @@ object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleC
                 }
                 PacketType.Play.Server.SERVER_DIFFICULTY -> {
                     val wrapper = WrapperPlayServerDifficulty(event)
-                    config.difficulty.getOrNull()?.let {
-                        wrapper.difficulty = io.github.rothes.esu.lib.packetevents.protocol.world.Difficulty.valueOf(it.name)
+                    config.peData.difficulty?.let {
+                        wrapper.difficulty = it
                     }
                 }
             }
@@ -54,5 +60,14 @@ object SpoofServerSettingsModule: BukkitModule<SpoofServerSettingsModule.ModuleC
         val viewDistance: Optional<Int> = Optional.empty(),
         val simulationDistance: Optional<Int> = Optional.empty(),
         val difficulty: Optional<Difficulty> = Optional.empty(),
-    ): BaseModuleConfiguration()
+    ): BaseModuleConfiguration() {
+
+        val peData by lazy { PacketEventsData(difficulty.getOrNull()?.let { com.github.retrooper.packetevents.protocol.world.Difficulty.valueOf(it.name) }) }
+
+        data class PacketEventsData(
+            val difficulty: com.github.retrooper.packetevents.protocol.world.Difficulty?,
+        )
+
+    }
+
 }

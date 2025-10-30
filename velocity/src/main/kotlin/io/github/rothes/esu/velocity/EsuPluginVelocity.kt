@@ -12,7 +12,6 @@ import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -24,21 +23,13 @@ import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGetT
-import io.github.rothes.esu.lib.packetevents.PacketEvents
-import io.github.rothes.esu.lib.packetevents.injector.ServerConnectionInitializer
-import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
-import io.github.rothes.esu.lib.packetevents.velocity.factory.VelocityPacketEventsBuilder
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
-import io.netty.channel.Channel
-import io.netty.channel.ChannelInitializer
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -103,16 +94,7 @@ class EsuPluginVelocity(
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
-        PacketEvents.setAPI(VelocityPacketEventsBuilder.build(server, container, logger, dataDirectory))
-        val hotLoadSupport = ServerHotLoadSupport(enabledHot)
-        PacketEvents.getAPI().load()
-        hotLoadSupport.onEnable()
-        for (player in server.allPlayers) {
-            val channel = PacketEvents.getAPI().playerManager.getChannel(player) as Channel
-            ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
-            hotLoadSupport.loadPEUser(channel, player.uniqueId, player.username)
-        }
-        PacketEvents.getAPI().init()
+        ServerHotLoadSupport(enabledHot).onEnable()
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(NetworkThrottleModule)
@@ -186,7 +168,6 @@ class EsuPluginVelocity(
         }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
-        shutdownPacketEvents()
         server.eventManager.unregisterListeners(container)
     }
 
@@ -223,31 +204,6 @@ class EsuPluginVelocity(
         return found
     }
 
-    private fun shutdownPacketEvents() {
-        PacketEvents.getAPI().terminate()
-        for (player in plugin.server.allPlayers) {
-            try {
-                val channel = (player as ConnectedPlayer).connection.channel
-                channel.pipeline().remove(PacketEvents.ENCODER_NAME)
-                channel.pipeline().remove(PacketEvents.DECODER_NAME)
-            } catch (e: Exception) {
-                err("Failed to uninject packetevents for player ${player.username}", e)
-            }
-        }
-        try {
-            val initializer = Injector.connectionManager.serverChannelInitializer.get()
-            if (initializer is io.github.rothes.esu.lib.packetevents.injector.VelocityChannelInitializer) {
-                Injector.connectionManager.serverChannelInitializer.set(
-                    initializer::class.java.declaredFields
-                        .first { it.type == ChannelInitializer::class.java }
-                        .accessibleGetT(initializer)
-                )
-            }
-        } catch (e: Exception) {
-            err("Failed to uninject packetevents VelocityChannelInitializer", e)
-        }
-    }
-
-    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot, plugin.server.pluginManager.isLoaded("packetevents"))
+    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot)
 
 }

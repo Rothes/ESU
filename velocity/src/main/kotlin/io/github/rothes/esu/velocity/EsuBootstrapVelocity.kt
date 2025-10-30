@@ -90,11 +90,9 @@ class EsuBootstrapVelocity @Inject constructor(
             val relocator = PackageRelocator(
                 "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
                 "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
-                "io/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
-                "com/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
             )
             val loader = { file: File, artifact: Artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori", "com.github.retrooper").contains(artifact.groupId))
+                if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))
                     CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
@@ -109,13 +107,6 @@ class EsuBootstrapVelocity @Inject constructor(
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-nbt:${BuildConfig.DEP_VERSION_ADVENTURE}",
                 ),
-                loader = loader,
-            )
-            MavenResolver.loadDependencies(
-                listOf(
-                    "com.github.retrooper:packetevents-velocity:${BuildConfig.DEP_VERSION_PACKETEVENTS}",
-                ),
-                extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
                 loader = loader,
             )
 

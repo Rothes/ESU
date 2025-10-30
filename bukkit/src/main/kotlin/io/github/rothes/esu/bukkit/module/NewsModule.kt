@@ -10,6 +10,7 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMiniMessage
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.config.EsuConfig
@@ -17,6 +18,7 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -38,6 +40,10 @@ import org.incendo.cloud.annotations.Command
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>() {
 
     private val checkedCache = mutableMapOf<User, Int>()
+
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: checkPacketEvents()
+    }
 
     override fun onEnable() {
         EditorManager.enable()

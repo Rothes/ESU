@@ -30,11 +30,6 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
-import io.github.rothes.esu.lib.packetevents.PacketEvents
-import io.github.rothes.esu.lib.packetevents.factory.spigot.SpigotPacketEventsBuilder
-import io.github.rothes.esu.lib.packetevents.injector.connection.ServerConnectionInitializer
-import io.github.rothes.esu.lib.packetevents.protocol.ConnectionState
-import io.netty.channel.Channel
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
@@ -118,8 +113,6 @@ class EsuPluginBukkit(
     }
 
     fun onLoad() {
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(bootstrap))
-        PacketEvents.getAPI().load()
     }
 
     fun onEnable() {
@@ -130,17 +123,7 @@ class EsuPluginBukkit(
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
 
-        val hotLoadSupport = ServerHotLoadSupport(enabledHot)
-        hotLoadSupport.onEnable()
-        for (player in Bukkit.getOnlinePlayers()) {
-            val channel = PacketEvents.getAPI().playerManager.getChannel(player) as Channel
-            // load() do the late inject on paper, but not on folia
-            if (channel.pipeline().get(PacketEvents.ENCODER_NAME) == null) {
-                ServerConnectionInitializer.initChannel(channel, ConnectionState.HANDSHAKING)
-            }
-            hotLoadSupport.loadPEUser(channel, player.uniqueId, player.name)
-        }
-        PacketEvents.getAPI().init()
+        ServerHotLoadSupport(enabledHot).onEnable()
 
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
@@ -242,7 +225,6 @@ class EsuPluginBukkit(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
-        PacketEvents.getAPI().terminate()
     }
 
     private fun byPlugMan(): Boolean {
@@ -263,6 +245,6 @@ class EsuPluginBukkit(
     val description
         get() = bootstrap.description
 
-    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot, Bukkit.getPluginManager().isPluginEnabled("packetevents"))
+    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot)
 
 }

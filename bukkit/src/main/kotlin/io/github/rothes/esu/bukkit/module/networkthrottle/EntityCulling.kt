@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryValueSerializers
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -44,7 +45,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     private var previousDelayTime = 0L
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
-        return super.checkUnavailable() ?: let {
+        return super.checkUnavailable() ?: checkPacketEvents() ?: let {
             if (config.raytraceThreads < 1) {
                 plugin.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
                 return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }

@@ -40,6 +40,7 @@ allprojects {
     }
 
     dependencies {
+        compileOnly(rootProject.libs.packetevents.spigot)
         compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
@@ -113,5 +114,6 @@ modrinth {
     dependencies {
         optional.project("PlaceholderAPI")
         optional.project("PlugManX")
+        optional.project("PacketEvents")
     }
 }

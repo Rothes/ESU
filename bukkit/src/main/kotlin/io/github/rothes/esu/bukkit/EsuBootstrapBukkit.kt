@@ -74,14 +74,12 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             val relocator = PackageRelocator(
                 "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
                 "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
-                "io/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
-                "com/github/retrooper/packetevents" to "io/github/rothes/esu/lib/packetevents",
 
                 "org/bstats" to "io/github/rothes/esu/lib/bstats",
                 "de/tr7zw/changeme/nbtapi" to "io/github/rothes/esu/lib/nbtapi",
             )
             val loader = { file: File, artifact: Artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori", "com.github.retrooper", "org.bstats", "de.tr7zw").contains(artifact.groupId))
+                if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
                     CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
@@ -100,7 +98,6 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             )
             MavenResolver.loadDependencies(
                 listOf(
-                    "com.github.retrooper:packetevents-spigot:${BuildConfig.DEP_VERSION_PACKETEVENTS}",
                     "org.bstats:bstats-bukkit:3.1.0",
                     "de.tr7zw:item-nbt-api:${BuildConfig.DEP_VERSION_NBTAPI}",
                 ),

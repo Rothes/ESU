@@ -31,6 +31,7 @@ dependencies {
 
     compileOnly("org.apache.maven.resolver:maven-resolver-api:1.9.18")
 
+    compileOnly(libs.packetevents.velocity)
     implementation(libs.bstats.velocity)
 
     compileOnly("com.github.Rothes.ServerUtils:ServerUtils-Velocity:master-SNAPSHOT") // Official repo is down
@@ -59,6 +60,7 @@ buildConfig {
 modrinth {
     loaders = listOf("velocity")
     dependencies {
-        optional.project("serverutils")
+        optional.project("ServerUtils")
+        optional.project("PacketEvents")
     }
 }
