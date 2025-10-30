@@ -212,14 +212,12 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
         @EventHandler
         fun onChangeWorld(event: PlayerChangedWorldEvent) {
-            plugin.info("CHANGE WORLD")
             // Release memory
             CullDataManager[event.player].showAll()
         }
 
         @EventHandler
-        fun onChangeWorld(event: PlayerTeleportEvent) {
-            plugin.info("TELEPORT")
+        fun onTeleport(event: PlayerTeleportEvent) {
             // Release memory
             CullDataManager[event.player].showAll()
         }
