@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 
@@ -14,6 +15,7 @@ class UserCullData(
 
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>()
     private val pendingChanges = mutableListOf<CulledChange>()
+    private val toRemoveCache = IntArrayList()
     private var tickedTime = 0
 
     fun hiddenEntities(): List<Entity> {
@@ -45,6 +47,11 @@ class UserCullData(
         if (++tickedTime >= 60 * 2 * 20) {
             checkEntitiesValid()
         }
+        val iterator = toRemoveCache.listIterator()
+        while (iterator.hasNext()) {
+            hiddenEntities.remove(iterator.nextInt())
+        }
+        toRemoveCache.clear()
         updateChanges()
     }
 
@@ -72,7 +79,8 @@ class UserCullData(
     }
 
     fun onEntityRemove(entityId: Int) {
-        hiddenEntities.remove(entityId)
+        // Delay to tick, thread safe
+        toRemoveCache.add(entityId)
     }
 
     fun checkEntitiesValid() {
