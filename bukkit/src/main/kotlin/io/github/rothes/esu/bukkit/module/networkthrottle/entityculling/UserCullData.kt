@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
 import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.entity.Entity
@@ -11,7 +12,7 @@ class UserCullData(
 ) {
 
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>()
-    private val pendingChanges = mutableListOf<VisibleChange>()
+    private val pendingChanges = mutableListOf<CulledChange>()
 
     fun hiddenEntities(): List<Entity> {
         return hiddenEntities.values.toList()
@@ -20,18 +21,20 @@ class UserCullData(
     fun setCulled(entity: Entity, entityId: Int, culled: Boolean) {
         if (culled) {
             if (hiddenEntities.put(entityId, entity) == null)
-                pendVisibleChange(entity, false)
+                pendCulledChange(entity, entityId, true)
         } else {
             if (hiddenEntities.remove(entityId) != null)
-                pendVisibleChange(entity, true)
+                pendCulledChange(entity, entityId, false)
         }
     }
 
     fun showAll() {
-        val iterator = hiddenEntities.iterator()
-        for ((_, entity) in iterator) {
+        val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+        for (entry in iterator) {
+            val id = entry.intKey
+            val entity = entry.value
             iterator.remove()
-            pendingChanges.add(VisibleChange(entity, true))
+            pendingChanges.add(CulledChange(entity, id, false))
         }
         update()
     }
@@ -42,18 +45,24 @@ class UserCullData(
         pendingChanges.clear()
         Scheduler.schedule(player) {
             for (change in list) {
-                if (change.visible)
-                    player.showEntity(bootstrap, change.entity)
-                else
-                    player.hideEntity(bootstrap, change.entity)
+                try {
+                    if (change.culled)
+                        player.hideEntity(bootstrap, change.entity)
+                    else
+                        player.showEntity(bootstrap, change.entity)
+                } catch (e: IllegalStateException) {
+                    plugin.err("[EntityCulling] Failed to update entity ${change.entityId} culled for player ${player.name}: $e")
+                    // Probably folia thread issue, write it back
+                    setCulled(change.entity, change.entityId, change.culled)
+                }
             }
         }
     }
 
-    private fun pendVisibleChange(entity: Entity, visible: Boolean) {
-        pendingChanges.add(VisibleChange(entity, visible))
+    private fun pendCulledChange(entity: Entity, entityId: Int, culled: Boolean) {
+        pendingChanges.add(CulledChange(entity, entityId, culled))
     }
 
-    data class VisibleChange(val entity: Entity, val visible: Boolean)
+    data class CulledChange(val entity: Entity, val entityId: Int, val culled: Boolean)
 
 }
