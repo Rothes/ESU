@@ -167,7 +167,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 Bukkit.getOnlinePlayers().map { bukkitPlayer ->
                     launch {
                         try {
-                            raytraceHandler.updatePlayer(bukkitPlayer, CullDataManager[bukkitPlayer])
+                            raytraceHandler.tickPlayer(bukkitPlayer, CullDataManager[bukkitPlayer])
                         } catch (e: Throwable) {
                             plugin.err("[EntityCulling] Failed to update player ${bukkitPlayer.name}", e)
                         }

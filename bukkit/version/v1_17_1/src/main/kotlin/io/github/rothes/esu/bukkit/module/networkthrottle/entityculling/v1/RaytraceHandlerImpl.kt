@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v1
 
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.UserCullData
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -37,26 +36,10 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         private const val COLLISION_EPSILON = 1E-7
     }
 
-    override fun onEnable() {}
-
-    init {
-        RaytraceConfig() // Try init to check available
-    }
-
-    private var previousTypes: Set<EntityType<*>> = setOf()
     private var forceVisibleDistanceSquared = 0.0
 
     override fun onReload() {
         super.onReload()
-        val newEntityTypes = config.visibleEntityTypes
-        if (enabled && previousTypes != newEntityTypes) {
-            try {
-                CullDataManager.showAll()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        previousTypes = newEntityTypes
         forceVisibleDistanceSquared = config.forceVisibleDistance * config.forceVisibleDistance
     }
 
@@ -70,21 +53,20 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     val levelGetter by Versioned(LevelHandler::class.java)
     val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
 
-    override fun updatePlayer(bukkitPlayer: Player, userCullData: UserCullData) {
+    override fun tickPlayer(bukkitPlayer: Player, userCullData: UserCullData) {
         val viewDistanceSquared = bukkitPlayer.viewDistance.let { it * it } shl 8
         val player = (bukkitPlayer as CraftPlayer).handle
         val level = levelGetter.level(player)
         for (entity in levelEntitiesHandler.getEntitiesAll(level)) {
 //                            entity.bukkitEntity.getNearbyEntities()
             if (entity == player) continue
-            if (entity.isCurrentlyGlowing) continue
-            if (config.visibleEntityTypes.contains(entity.type)) continue
             val x = player.x - entity.x
             val z = player.z - entity.z
             val dist = x * x + z * z
             if (dist > viewDistanceSquared) continue
+
             val y = player.y - entity.y
-            if (dist + y * y <= forceVisibleDistanceSquared) {
+            if (entity.isCurrentlyGlowing || config.visibleEntityTypes.contains(entity.type) || dist + y * y <= forceVisibleDistanceSquared) {
                 userCullData.setCulled(entity.bukkitEntity, entity.id, false)
                 continue
             }

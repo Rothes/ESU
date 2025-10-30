@@ -40,12 +40,6 @@ object CullDataManager {
         }
     }
 
-    fun showAll() {
-        lock.read {
-            map.values.forEach { it.showAll() }
-        }
-    }
-
     fun shutdown() {
         lock.write {
             map.values.forEach {

@@ -11,7 +11,9 @@ abstract class RaytraceHandler<C: ConfigurationPart, L: ConfigurationPart>: Comm
 
     override val name: String = "RaytraceHandler"
 
-    abstract fun updatePlayer(bukkitPlayer: Player, userCullData: UserCullData)
+    override fun onEnable() { }
+
+    abstract fun tickPlayer(bukkitPlayer: Player, userCullData: UserCullData)
 
     abstract fun raytrace(from: Vector, to: Vector, world: World): Boolean
 
