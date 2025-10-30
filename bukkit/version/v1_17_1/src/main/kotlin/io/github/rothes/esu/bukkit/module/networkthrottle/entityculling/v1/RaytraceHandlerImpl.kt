@@ -91,7 +91,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
             userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, entity, level))
         }
-        userCullData.update()
+        userCullData.tick()
     }
 
     override fun raytrace(from: Vector, to: Vector, world: World): Boolean {

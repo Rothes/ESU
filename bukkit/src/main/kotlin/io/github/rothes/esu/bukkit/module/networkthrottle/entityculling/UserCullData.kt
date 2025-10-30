@@ -14,6 +14,7 @@ class UserCullData(
 
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>()
     private val pendingChanges = mutableListOf<CulledChange>()
+    private var tickedTime = 0
 
     fun hiddenEntities(): List<Entity> {
         return hiddenEntities.values.toList()
@@ -37,10 +38,17 @@ class UserCullData(
             iterator.remove()
             pendingChanges.add(CulledChange(entity, id, false))
         }
-        update()
+        updateChanges()
     }
 
-    fun update() {
+    fun tick() {
+        if (++tickedTime >= 60 * 2 * 20) {
+            checkEntitiesValid()
+        }
+        updateChanges()
+    }
+
+    private fun updateChanges() {
         val list = pendingChanges.toList()
         if (list.isEmpty()) return
         pendingChanges.clear()
@@ -67,13 +75,16 @@ class UserCullData(
     }
 
     fun checkEntitiesValid() {
-        val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-        for (entry in iterator) {
-            val entity = entry.value
-            if (entity.isDead) {
-                plugin.warn("[EntityCulling] Found an removed entity ${entry.intKey} for player ${player.name}")
-                iterator.remove()
+        try {
+            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+            for (entry in iterator) {
+                val entity = entry.value
+                if (entity.isDead) {
+                    iterator.remove()
+                }
             }
+        } catch (e: Throwable) {
+            plugin.err("[EntityCulling] Failed to check entities valid for player ${player.name}", e)
         }
     }
 

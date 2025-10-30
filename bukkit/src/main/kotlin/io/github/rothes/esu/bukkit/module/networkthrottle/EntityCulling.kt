@@ -180,18 +180,6 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 delay(delay)
             }
         }
-        scope.launch {
-            while (isActive) {
-                Bukkit.getOnlinePlayers().map { bukkitPlayer ->
-                    try {
-                        CullDataManager[bukkitPlayer].checkEntitiesValid()
-                    } catch (e: Throwable) {
-                        plugin.err("[EntityCulling] Failed to check entities valid for player ${bukkitPlayer.name}", e)
-                    }
-                }
-                delay(120.seconds)
-            }
-        }
         lastThreads = nThreads
         coroutine = context
     }
