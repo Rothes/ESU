@@ -65,8 +65,8 @@ class UserCullData(
                 for (change in list) {
                     if (change.entity.isDead) continue
                     if (!change.entity.checkTickThread()) {
-                        // Not on tick thread, we can only save it
-                        setCulled(change.entity, change.entityId, change.culled, false)
+                        // Not on tick thread, we can only roll state back
+                        setCulled(change.entity, change.entityId, !change.culled, false)
                         continue
                     }
                     if (change.culled)
