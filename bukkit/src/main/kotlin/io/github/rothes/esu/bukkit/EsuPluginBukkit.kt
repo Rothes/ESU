@@ -1,15 +1,12 @@
 package io.github.rothes.esu.bukkit
 
-import io.github.rothes.esu.bukkit.command.parser.UserParser
-import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
+import io.github.rothes.esu.bukkit.command.EsuBukkitCommandManager
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
-import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
@@ -20,7 +17,6 @@ import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
@@ -31,16 +27,8 @@ import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
-import org.bukkit.command.CommandSender
-import org.bukkit.command.ConsoleCommandSender
-import org.bukkit.entity.Player
-import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
-import org.incendo.cloud.execution.ExecutionCoordinator
-import org.incendo.cloud.paper.LegacyPaperCommandManager
-import org.incendo.cloud.parser.standard.StringParser
-import org.incendo.cloud.setting.ManagerSetting
 
 class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
@@ -91,26 +79,7 @@ class EsuPluginBukkit(
         }
     }
 
-    override val commandManager: BukkitCommandManager<User> by lazy {
-        LegacyPaperCommandManager<User>(bootstrap, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
-            when (it) {
-                is ConsoleCommandSender -> ConsoleUser
-                is Player               -> it.user
-                else                    -> GenericUser(it)
-            }
-        }, { it.commandSender as CommandSender })).apply {
-            settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
-            captionRegistry().registerProvider { caption, recipient ->
-                recipient.localedOrNull(BukkitEsuLang.get()) {
-                    commandCaptions[caption]
-                }
-            }
-            parserRegistry().registerParser(ChunkLocationParser.parser())
-            parserRegistry().registerParser(UserParser.parser())
-            parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
-            EsuExceptionHandlers(exceptionController()).register()
-        }
-    }
+    override val commandManager: BukkitCommandManager<User> by lazy { EsuBukkitCommandManager() }
 
     fun onLoad() {
     }
@@ -204,6 +173,7 @@ class EsuPluginBukkit(
         commandManager.shutdown()
 
         for (player in Bukkit.getOnlinePlayers()) {
+            player.updateCommands() // We have removed all our commands, update it
             try {
                 val inventoryHolder = player.openInventory.topInv.holder
                 if (inventoryHolder is EsuInvHolder<*>) {
