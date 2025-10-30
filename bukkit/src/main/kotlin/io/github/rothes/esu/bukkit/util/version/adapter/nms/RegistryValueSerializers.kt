@@ -7,6 +7,8 @@ import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 
 interface RegistryValueSerializers {
 
+    val block: ScalarSerializer<*>
+    val blockEntityType: ScalarSerializer<*>
     val entityType: ScalarSerializer<*>
 
     companion object {
