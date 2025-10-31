@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v1
 
+import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.UserCullData
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -48,15 +49,50 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
+        @Comment("""
+            Simulate and predicate player positon behind later game ticks.
+            An entity will only be culled if it is not visible at either
+             the player's current positon or the predicted positon.
+            This can reduce the possibility of entity flickering.
+            May double the raytrace time depends on the player velocity.
+            Requires Minecraft 1.21+ for client movement velocity.
+        """)
+        val predicatePlayerPositon: Boolean = true,
     ): ConfigurationPart
 
     val levelGetter by Versioned(LevelHandler::class.java)
     val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
+    val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
 
     override fun tickPlayer(bukkitPlayer: Player, userCullData: UserCullData) {
         val viewDistanceSquared = bukkitPlayer.viewDistance.let { it * it } shl 8
         val player = (bukkitPlayer as CraftPlayer).handle
         val level = levelGetter.level(player)
+
+        val predicatedPlayerPos = if (config.predicatePlayerPositon) {
+            val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
+            if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
+                var x = player.x
+                var y = player.eyeY
+                var z = player.z
+
+                var vx = velocity.x
+                var vy = velocity.y
+                var vz = velocity.z
+
+                for (i in 0 until 2) {
+                    x += vx
+                    y += vy
+                    z += vz
+
+                    vx *= 0.91f
+                    vy *= 0.98f
+                    vz *= 0.91f
+                }
+                Vec3(x, y, z)
+            } else null
+        } else null
+
         for (entity in levelEntitiesHandler.getEntitiesAll(level)) {
 //                            entity.bukkitEntity.getNearbyEntities()
             if (entity == player) continue
@@ -71,7 +107,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 continue
             }
 
-            userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, entity, level))
+            userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
         }
         userCullData.tick()
     }
@@ -88,7 +124,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         return Vec3(x, y, z)
     }
 
-    fun raytrace(player: ServerPlayer, entity: Entity, level: ServerLevel): Boolean {
+    fun raytrace(player: ServerPlayer, predPlayer: Vec3?, entity: Entity, level: ServerLevel): Boolean {
         val from = player.eyePosition
         val aabb = entity.boundingBox
 
@@ -119,6 +155,13 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         for (vec3 in vertices) {
             if (!raytraceStep(from, vec3, level)) {
                 return false
+            }
+        }
+        if (predPlayer != null) {
+            for (vec3 in vertices) {
+                if (!raytraceStep(predPlayer, vec3, level)) {
+                    return false
+                }
             }
         }
         return true
