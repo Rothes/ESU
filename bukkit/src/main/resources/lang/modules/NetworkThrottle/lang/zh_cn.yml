@@ -1,0 +1,2 @@
+high-latency-adjust:
+  adjusted-warning: "<ec><b>警告: </b><pc>您的网络延迟似乎较高!\n为提升游戏体验，我们已自动调整您的视距设置\n您随时可以在游戏选项中手动调整此设置"
