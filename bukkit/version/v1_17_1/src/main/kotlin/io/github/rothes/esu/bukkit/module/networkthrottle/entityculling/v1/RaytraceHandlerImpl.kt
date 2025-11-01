@@ -93,8 +93,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             } else null
         } else null
 
+        // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
+        // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in levelEntitiesHandler.getEntitiesAll(level)) {
-//                            entity.bukkitEntity.getNearbyEntities()
             if (entity == player) continue
             val x = player.x - entity.x
             val z = player.z - entity.z
