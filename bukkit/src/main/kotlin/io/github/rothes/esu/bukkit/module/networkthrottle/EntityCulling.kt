@@ -38,14 +38,10 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
         get() = super.module as NetworkThrottleModule
     private var lastThreads = 0
     private var coroutine: ExecutorCoroutineDispatcher? = null
-    private val raytraceHandler = try {
-        RegistryValueSerializers.instance
-        RaytraceHandler::class.java.versioned().also {
-            registerFeature(it)
-        }
-    } catch (e: Exception) {
-        e
-    }
+    private val raytraceHandler =
+        if (RegistryValueSerializers.isSupported)
+            RaytraceHandler::class.java.versioned().also { registerFeature(it) }
+        else null
 
     private var previousElapsedTime = 0L
     private var previousDelayTime = 0L
@@ -56,8 +52,8 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 plugin.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
                 return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
             }
-            if (raytraceHandler !is RaytraceHandler<*, *>) {
-                plugin.err("[EntityCulling] Server is not supported.", raytraceHandler as Throwable)
+            if (!RegistryValueSerializers.isSupported) {
+                plugin.err("[EntityCulling] This feature requires Minecraft 1.17.1 .")
                 return Feature.AvailableCheck.fail { "Server is not supported".message }
             }
             null
@@ -96,7 +92,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 val from = loc.toVector()
                 var i = 0
                 sender.message("Running benchmark")
-                val raytraceHandler = raytraceHandler as RaytraceHandler<*, *>
+                val raytraceHandler = raytraceHandler!!
                 runBlocking {
                     var count = 0
                     val jobs = buildList(4) {
@@ -159,7 +155,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
                 }
         }
         val context = Executors.unconfigurableExecutorService(executor).asCoroutineDispatcher()
-        val raytraceHandler = raytraceHandler as RaytraceHandler<*, *>
+        val raytraceHandler = raytraceHandler!!
         val scope = CoroutineScope(context)
         scope.launch {
             while (isActive) {
@@ -185,8 +181,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     }
 
     private fun broadcastRemoved(entity: Entity) {
-        val handler = raytraceHandler as RaytraceHandler<*, *>
-        val id = handler.getEntityId(entity)
+        val id = raytraceHandler!!.getEntityId(entity)
         CullDataManager.broadcastEntityRemove(id)
     }
 
