@@ -137,7 +137,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             // Ehh.. Plugin Jar got deleted?
             plugin.err("Failed to purge cache while disabling module $name", e)
         }
-        Bukkit.getOnlinePlayers().forEach { CasDataManager.saveSpamData(it.user) }
+        Bukkit.getOnlinePlayers().forEach { CasDataManager.saveSpamDataNow(it.user) }
     }
 
     override fun onReload() {

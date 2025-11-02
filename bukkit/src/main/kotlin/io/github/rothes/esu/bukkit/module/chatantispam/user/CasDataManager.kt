@@ -130,7 +130,7 @@ object CasDataManager {
         return if (o1.lastAccess > o2.lastAccess) o1 else o2
     }
 
-    fun saveSpamData(where: PlayerUser) {
+    fun saveSpamDataNow(where: PlayerUser) {
         val spamData = latest(cacheById[where.dbId], cacheByIp[where.addr]) ?: return
         val lastAccessValue = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
         with(ChatSpamTable) {
@@ -153,7 +153,7 @@ object CasDataManager {
 
     fun saveSpamDataAsync(where: PlayerUser) {
         StorageManager.coroutineScope.launch {
-            saveSpamData(where)
+            saveSpamDataNow(where)
         }
     }
 
