@@ -29,16 +29,15 @@ import net.minecraft.world.level.chunk.PalettedContainer
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.World
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity
 import org.bukkit.entity.Player
 import org.bukkit.util.NumberConversions
-import org.bukkit.util.Vector
 import org.incendo.cloud.annotations.Command
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.sign
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
@@ -86,18 +85,18 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 val user = sender as PlayerUser
                 val player = user.player
                 sender.message("Preparing data at this spot...")
-                val loc = player.eyeLocation
-                val world = loc.world
+                val from = player.eyeLocation.toVec3()
+                val world = player.world
                 val maxI = 100_000_00
                 val viewDistance = world.viewDistance - 2
+                val level = (world as CraftWorld).handle
                 val data = Array(maxI) {
-                    loc.clone().add(
+                    from.add(
                         (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
-                        (world.minHeight .. loc.blockY + 48).random().toDouble(),
+                        (world.minHeight .. floor(from.y).toInt() + 48).random().toDouble(),
                         (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
-                    ).toVector()
+                    )
                 }
-                val from = loc.toVector()
                 var i = 0
                 sender.message("Running benchmark")
                 runBlocking {
@@ -111,7 +110,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                                         i = 0
                                         get = 0
                                     }
-                                    raytrace(from, data[get], world)
+                                    raytraceStep(from, data[get], level)
                                     count++
                                 }
                             }
@@ -121,7 +120,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     delay(1.seconds)
                     jobs.forEach { it.cancel() }
                     sender.message("Raytrace $count times in 1 seconds")
-                    sender.message("Max of ${count / 7 / 20} entities per tick")
+                    sender.message("Max of ${count / 7 / 20} entities per game tick")
                     sender.message("Test result is for reference only.")
                 }
             }
@@ -262,15 +261,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         userCullData.tick()
     }
 
-    fun raytrace(from: Vector, to: Vector, world: World): Boolean {
-        return raytraceStep(from.toVec3(), to.toVec3(), (world as CraftWorld).handle)
-    }
-
     override fun getEntityId(entity: org.bukkit.entity.Entity): Int {
         return (entity as CraftEntity).handle.id
     }
 
-    private fun Vector.toVec3(): Vec3 {
+    private fun Location.toVec3(): Vec3 {
         return Vec3(x, y, z)
     }
 
