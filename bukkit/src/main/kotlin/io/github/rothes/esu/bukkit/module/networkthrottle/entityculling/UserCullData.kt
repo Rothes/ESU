@@ -15,7 +15,6 @@ class UserCullData(
 
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>()
     private val pendingChanges = mutableListOf<CulledChange>()
-    private val toRemoveCache = IntArrayList()
     private var tickedTime = 0
     private var markedReset = false
     private var isRemoved = false
@@ -49,22 +48,16 @@ class UserCullData(
         if (++tickedTime >= 60 * 2 * 20) {
             checkEntitiesValid()
         }
-        synchronized(toRemoveCache) {
-            val iterator = toRemoveCache.listIterator()
-            while (iterator.hasNext()) {
-                hiddenEntities.remove(iterator.nextInt())
-            }
-            toRemoveCache.clear()
-        }
         if (markedReset)
             reset()
         updateChanges()
     }
 
-    fun onEntityRemove(entityId: Int) {
-        synchronized(toRemoveCache) {
-            // Delay to tick, thread safe
-            toRemoveCache.add(entityId)
+    fun onEntityRemove(entities: IntArrayList) {
+        if (entities.isEmpty) return
+        val iterator = entities.listIterator()
+        while (iterator.hasNext()) {
+            hiddenEntities.remove(iterator.nextInt())
         }
     }
 

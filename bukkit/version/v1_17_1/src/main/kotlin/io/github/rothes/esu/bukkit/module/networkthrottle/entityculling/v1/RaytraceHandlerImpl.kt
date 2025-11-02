@@ -16,6 +16,7 @@ import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -30,7 +31,6 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity
 import org.bukkit.entity.Player
 import org.bukkit.util.NumberConversions
 import org.incendo.cloud.annotations.Command
@@ -57,12 +57,20 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     private var previousElapsedTime = 0L
     private var previousDelayTime = 0L
 
+    private val removedEntities = IntArrayList()
+
     override fun checkConfig(): Feature.AvailableCheck? {
         if (config.raytraceThreads < 1) {
             plugin.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
             return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
         }
         return null
+    }
+
+    override fun onEntityRemove(entity: org.bukkit.entity.Entity) {
+        synchronized(removedEntities) {
+            removedEntities.add(entity.entityId)
+        }
     }
 
     override fun onReload() {
@@ -157,6 +165,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         CoroutineScope(context).launch {
             while (isActive) {
                 val millis = System.currentTimeMillis()
+                val removedEntities = synchronized(removedEntities) {
+                    val copy = IntArrayList(removedEntities)
+                    removedEntities.clear()
+                    copy
+                }
                 Bukkit.getWorlds().flatMapTo(
                     ArrayList(Bukkit.getOnlinePlayers().size + 1)
                 ) { bukkitWorld ->
@@ -166,11 +179,13 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     val entities = levelEntitiesHandler.getEntitiesAll(level)
                     players.map { player ->
                         launch {
-                            val bp = player.bukkitEntity
+                            val bukkit = player.bukkitEntity
                             try {
-                                tickPlayer(player, bp,  CullDataManager[bp], level, entities)
+                                val data = CullDataManager[bukkit]
+                                data.onEntityRemove(removedEntities)
+                                tickPlayer(player, bukkit, data, level, entities)
                             } catch (e: Throwable) {
-                                plugin.err("[EntityCulling] Failed to update player ${bp.name}", e)
+                                plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
                             }
                         }
                     }
@@ -259,10 +274,6 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
         }
         userCullData.tick()
-    }
-
-    override fun getEntityId(entity: org.bukkit.entity.Entity): Int {
-        return (entity as CraftEntity).handle.id
     }
 
     private fun Location.toVec3(): Vec3 {

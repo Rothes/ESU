@@ -54,8 +54,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     }
 
     private fun broadcastRemoved(entity: Entity) {
-        val id = raytraceHandler!!.getEntityId(entity)
-        CullDataManager.broadcastEntityRemove(id)
+        raytraceHandler!!.onEntityRemove(entity)
     }
 
     private object Listeners: Listener {

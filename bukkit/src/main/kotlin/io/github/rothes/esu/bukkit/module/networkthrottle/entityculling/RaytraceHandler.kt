@@ -11,6 +11,6 @@ abstract class RaytraceHandler<C: ConfigurationPart, L: ConfigurationPart>: Comm
 
     abstract fun checkConfig(): Feature.AvailableCheck?
 
-    abstract fun getEntityId(entity: Entity): Int
+    abstract fun onEntityRemove(entity: Entity)
 
 }
