@@ -125,6 +125,12 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     sender.message("Test result is for reference only.")
                 }
             }
+
+            @Command("esu networkThrottle entityCulling stats")
+            @ShortPerm
+            fun stats(sender: User) {
+                sender.message("Previous elapsedTime: ${previousElapsedTime}ms ; delayTime: ${previousDelayTime}ms")
+            }
         })
     }
 
