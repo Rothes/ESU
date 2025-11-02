@@ -26,6 +26,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
@@ -195,6 +196,7 @@ class EsuPluginBukkit(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
+        Dispatchers.shutdown()
     }
 
     private fun byPlugMan(): Boolean {

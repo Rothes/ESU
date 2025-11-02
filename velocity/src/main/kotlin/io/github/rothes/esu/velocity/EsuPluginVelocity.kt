@@ -30,6 +30,7 @@ import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
+import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -169,6 +170,7 @@ class EsuPluginVelocity(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         server.eventManager.unregisterListeners(container)
+        Dispatchers.shutdown()
     }
 
     @Subscribe(order = PostOrder.LAST)
