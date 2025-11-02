@@ -1,14 +1,13 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
-abstract class BukkitModule<C: ConfigurationPart, L: ConfigurationPart> : CommonModule<C, L>() {
+abstract class BukkitModule<C, L> : CommonModule<C, L>() {
 
     protected val registeredListeners = linkedSetOf<Listener>()
 

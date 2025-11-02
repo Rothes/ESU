@@ -54,44 +54,44 @@ object ConfigLoader {
     fun registerSerializer(serializer: ScalarSerializer<*>) = scalarSerializers.add(serializer)
     fun unregisterSerializer(serializer: ScalarSerializer<*>) = scalarSerializers.remove(serializer)
 
-    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, reified D>
             loadMulti(path: Path, vararg forceLoad: String): T {
         return loadMultiSimple(path, T::class.java, D::class.java, forceLoad.toList())
     }
 
-    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, reified D>
             loadMulti(path: Path, forceLoad: List<String>): T {
         return loadMultiSimple(path, T::class.java, D::class.java, forceLoad)
     }
 
-    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, reified D>
             loadMulti(path: Path, settings: LoaderSettingsMulti<D>): T {
         return loadMulti(path, T::class.java, D::class.java, settings)
     }
 
-    inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, D>
             loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
         return loadMulti(path, T::class.java, dataClass, settings)
     }
 
-    inline fun <reified T: MultiConfiguration<D>, reified D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, reified D>
             loadMulti(path: Path, settings: LoaderSettingsMulti.Builder<D>): T {
         return loadMulti(path, T::class.java, D::class.java, settings.build())
     }
 
-    inline fun <reified T: MultiConfiguration<D>, D: ConfigurationPart>
+    inline fun <reified T: MultiConfiguration<D>, D>
             loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti.Builder<D>): T {
         return loadMulti(path, T::class.java, dataClass, settings.build())
     }
 
-    fun <T: MultiConfiguration<D>, D: ConfigurationPart>
+    fun <T: MultiConfiguration<D>, D>
             loadMultiSimple(path: Path, configClass: Class<T>, dataClass: Class<D>, forceLoad: List<String>): T {
         return loadMulti(path, configClass, dataClass, LoaderSettingsMulti(forceLoad))
     }
 
-    fun <T: MultiConfiguration<D>, D: ConfigurationPart>
+    fun <T: MultiConfiguration<D>, D>
             loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
-        if (dataClass.isInstance(EmptyConfiguration)) {
+        if (dataClass.isInstance(EmptyConfiguration) || dataClass.isInstance(Unit)) {
             return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
         }
         if (MultiLangConfiguration::class.java.isAssignableFrom(configClass)) {
@@ -170,6 +170,8 @@ object ConfigLoader {
     fun <T> load(path: Path, clazz: Class<T>, settings: LoaderSettings<T>, configKey: String = ""): T {
         if (clazz.isInstance(EmptyConfiguration)) {
             return clazz.cast(EmptyConfiguration)
+        } else if (clazz.isInstance(Unit)) {
+            return clazz.cast(Unit)
         }
         if (path.isDirectory()) {
             throw IllegalArgumentException("Path '$path' is a directory")

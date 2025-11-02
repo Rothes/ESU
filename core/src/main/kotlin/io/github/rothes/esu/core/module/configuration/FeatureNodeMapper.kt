@@ -1,6 +1,5 @@
 package io.github.rothes.esu.core.module.configuration
 
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.lib.configurate.ConfigurationNode
 
@@ -14,7 +13,7 @@ class FeatureNodeMapper(
         node
     }
 
-    private fun <C, L> load(feature: Feature<C, L>, node: ConfigurationNode, key: String) where C : ConfigurationPart, L : ConfigurationPart {
+    private fun <C, L> load(feature: Feature<C, L>, node: ConfigurationNode, key: String) {
         when (targetClass) {
             TargetClass.CONFIG -> {
                 val instance = node.require(feature.configClass)

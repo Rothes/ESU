@@ -1,10 +1,9 @@
 package io.github.rothes.esu.velocity.module
 
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.velocity.plugin
 
-abstract class VelocityModule<C: ConfigurationPart, L: ConfigurationPart> : CommonModule<C, L>() {
+abstract class VelocityModule<C, L> : CommonModule<C, L>() {
 
     protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
 

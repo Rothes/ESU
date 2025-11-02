@@ -1,14 +1,13 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuBootstrap
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.EnableTogglable
 import io.github.rothes.esu.core.user.User
 
-interface Feature<C: ConfigurationPart, L: ConfigurationPart> {
+interface Feature<C, L> {
 
     val name: String
     val enabled: Boolean

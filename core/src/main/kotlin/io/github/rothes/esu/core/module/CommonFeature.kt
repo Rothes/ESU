@@ -2,7 +2,6 @@ package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.command.annotation.ShortPerm
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.User
 import org.incendo.cloud.CloudCapability
@@ -14,7 +13,7 @@ import org.incendo.cloud.internal.CommandNode
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import java.lang.reflect.ParameterizedType
 
-abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Feature<C, L> {
+abstract class CommonFeature<C, L> : Feature<C, L> {
 
     override val name: String = javaClass.simpleName.removeSuffix("Feature")
     final override var enabled: Boolean = false
@@ -35,8 +34,10 @@ abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Featu
         langClass = actualTypeArguments[1] as Class<L>
     }
 
-    final override lateinit var config: C
-        protected set
+    private var configValue: C? = null
+
+    final override val config: C
+        get() = configValue ?: error("Config is not loaded for feature $name")
     final override val lang: MultiLangConfiguration<L> = MultiLangConfiguration(mutableMapOf())
 
     override val permissionNode: String by lazy { (parent?.permissionNode ?: EsuCore.instance.basePermissionNode) + "." + name.lowercase() }
@@ -46,7 +47,7 @@ abstract class CommonFeature<C: ConfigurationPart, L: ConfigurationPart> : Featu
     }
 
     final override fun setConfigInstance(instance: C) {
-        config = instance
+        configValue = instance
     }
 
     final override fun setEnabled(value: Boolean) {
