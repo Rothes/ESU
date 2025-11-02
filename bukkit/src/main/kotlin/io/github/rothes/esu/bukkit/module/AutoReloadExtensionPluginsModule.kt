@@ -37,7 +37,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         data = ConfigLoader.load(dataPath)
         loadCriticalClasses()
         registerCommands(object {
-            @Command("esu AutoReloadExtensionPlugins updateCommands")
+            @Command("esu autoReloadExtensionPlugins updateCommands")
             @ShortPerm
             fun updateCommands(user: User) {
                 Bukkit.getOnlinePlayers().forEach {
