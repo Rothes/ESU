@@ -32,6 +32,8 @@ data class Version(
             require(parts.size <= 3) { "To many versions passed to version string: $versionString" }
             return Version(parts.getOrElse(0) { 0 }, parts.getOrElse(1) { 0 }, parts.getOrElse(2) { 0 })
         }
+
+        fun String.toVersion(): Version = fromString(this)
     }
 
 }
