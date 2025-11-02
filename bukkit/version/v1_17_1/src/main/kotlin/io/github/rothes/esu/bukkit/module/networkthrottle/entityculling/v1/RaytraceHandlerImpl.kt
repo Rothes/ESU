@@ -1,14 +1,22 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v1
 
+import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.UserCullData
+import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.RenamedFrom
+import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.user.User
+import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
@@ -19,17 +27,21 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
 import net.minecraft.world.level.chunk.PalettedContainer
 import net.minecraft.world.phys.Vec3
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.util.NumberConversions
 import org.bukkit.util.Vector
+import org.incendo.cloud.annotations.Command
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.seconds
 
 class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
 
@@ -38,13 +50,147 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     }
 
     private var forceVisibleDistanceSquared = 0.0
+    private var millisBetweenUpdates = 50
+
+    private var lastThreads = 0
+    private var coroutine: ExecutorCoroutineDispatcher? = null
+
+    private var previousElapsedTime = 0L
+    private var previousDelayTime = 0L
+
+    override fun checkConfig(): Feature.AvailableCheck? {
+        if (config.raytraceThreads < 1) {
+            plugin.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
+            return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
+        }
+        return null
+    }
 
     override fun onReload() {
         super.onReload()
         forceVisibleDistanceSquared = config.forceVisibleDistance * config.forceVisibleDistance
+        millisBetweenUpdates = 1000 / config.updatesPerSecond
+        if (enabled) {
+            if (lastThreads != config.raytraceThreads) {
+                start()
+            }
+        }
+    }
+
+    override fun onEnable() {
+        start()
+        registerCommands(object {
+            @Command("esu networkThrottle entityCulling benchmark")
+            @ShortPerm
+            fun benchmark(sender: User) {
+                val user = sender as PlayerUser
+                val player = user.player
+                sender.message("Preparing data at this spot...")
+                val loc = player.eyeLocation
+                val world = loc.world
+                val maxI = 100_000_00
+                val viewDistance = world.viewDistance - 2
+                val data = Array(maxI) {
+                    loc.clone().add(
+                        (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
+                        (world.minHeight .. loc.blockY + 48).random().toDouble(),
+                        (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
+                    ).toVector()
+                }
+                val from = loc.toVector()
+                var i = 0
+                sender.message("Running benchmark")
+                runBlocking {
+                    var count = 0
+                    val jobs = buildList(4) {
+                        repeat(4) {
+                            val job = launch(coroutine!!) {
+                                while (isActive) {
+                                    var get = ++i
+                                    if (i >= maxI) {
+                                        i = 0
+                                        get = 0
+                                    }
+                                    raytrace(from, data[get], world)
+                                    count++
+                                }
+                            }
+                            add(job)
+                        }
+                    }
+                    delay(1.seconds)
+                    jobs.forEach { it.cancel() }
+                    sender.message("Raytrace $count times in 1 seconds")
+                    sender.message("Max of ${count / 7 / 20} entities per tick")
+                    sender.message("Test result is for reference only.")
+                }
+            }
+        })
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        coroutine?.close()
+        coroutine = null
+        lastThreads = 0
+    }
+
+    private fun start() {
+        coroutine?.close()
+        val nThreads = config.raytraceThreads
+
+        val name = "ESU-EntityCulling"
+        val threadNo = AtomicInteger()
+        val executor = Executors.newScheduledThreadPool(nThreads) { runnable ->
+            Thread(runnable, if (nThreads == 1) name else name + "-" + threadNo.incrementAndGet())
+                .apply {
+                    priority = Thread.NORM_PRIORITY - 1
+                    isDaemon = true
+                }
+        }
+        val context = Executors.unconfigurableExecutorService(executor).asCoroutineDispatcher()
+        CoroutineScope(context).launch {
+            while (isActive) {
+                val millis = System.currentTimeMillis()
+                Bukkit.getWorlds().flatMapTo(
+                    ArrayList(Bukkit.getOnlinePlayers().size + 1)
+                ) { bukkitWorld ->
+                    val level = (bukkitWorld as CraftWorld).handle
+                    val players = level.players()
+                    if (players.isEmpty()) return@flatMapTo emptyList()
+                    val entities = levelEntitiesHandler.getEntitiesAll(level)
+                    players.map { player ->
+                        launch {
+                            val bp = player.bukkitEntity
+                            try {
+                                tickPlayer(player, bp,  CullDataManager[bp], level, entities)
+                            } catch (e: Throwable) {
+                                plugin.err("[EntityCulling] Failed to update player ${bp.name}", e)
+                            }
+                        }
+                    }
+                }.joinAll()
+                val elapsed = System.currentTimeMillis() - millis
+                val delay = millisBetweenUpdates - elapsed
+                previousElapsedTime = elapsed
+                previousDelayTime = delay
+                delay(delay)
+            }
+        }
+        lastThreads = nThreads
+        coroutine = context
     }
 
     data class RaytraceConfig(
+        @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
+        @RenamedFrom("./raytrace-threads")
+        val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
+        @Comment("""
+            Max updates for each player per second.
+            More means greater immediacy, but also higher cpu usage.
+        """)
+        @RenamedFrom("./updates-per-second")
+        val updatesPerSecond: Int = 15,
         @Comment("These entity types are considered always visible.")
         val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON),
         @Comment("Entities within this radius are considered always visible.")
@@ -60,14 +206,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         val predicatePlayerPositon: Boolean = true,
     ): ConfigurationPart
 
-    val levelGetter by Versioned(LevelHandler::class.java)
     val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
     val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
 
-    override fun tickPlayer(bukkitPlayer: Player, userCullData: UserCullData) {
-        val viewDistanceSquared = bukkitPlayer.viewDistance.let { it * it } shl 8
-        val player = (bukkitPlayer as CraftPlayer).handle
-        val level = levelGetter.level(player)
+    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
+        val viewDistanceSquared = bukkit.viewDistance.let { it * it } shl 8
 
         val predicatedPlayerPos = if (config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
@@ -95,7 +238,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
         // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
-        for (entity in levelEntitiesHandler.getEntitiesAll(level)) {
+        for (entity in entities) {
             if (entity == player) continue
             val x = player.x - entity.x
             val z = player.z - entity.z
@@ -113,7 +256,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         userCullData.tick()
     }
 
-    override fun raytrace(from: Vector, to: Vector, world: World): Boolean {
+    fun raytrace(from: Vector, to: Vector, world: World): Boolean {
         return raytraceStep(from.toVec3(), to.toVec3(), (world as CraftWorld).handle)
     }
 
