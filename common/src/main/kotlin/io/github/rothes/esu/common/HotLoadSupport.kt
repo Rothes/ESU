@@ -54,7 +54,11 @@ open class HotLoadSupport(
         UpdateStatement::class.java.toString()
         loadClass("io/github/rothes/esu/common/util/extension/CommandManagersKt")
         // For JobSupport.nameString(), coroutine exception on shutdown
-        loadClasses("kotlinx.coroutines.DebugKt", "kotlinx.coroutines.DebugStringsKt")
+        loadClasses(
+            "kotlinx.coroutines.DebugKt",
+            "kotlinx.coroutines.DebugStringsKt",
+            "kotlinx.coroutines.CancelledContinuation"
+        )
 
         // Velocity ServerUtils support
         // Throws NoClassDefFoundError onDisable if these are not loaded
