@@ -53,14 +53,20 @@ open class HotLoadSupport(
         Charsets::class.java.toString()
         UpdateStatement::class.java.toString()
         loadClass("io/github/rothes/esu/common/util/extension/CommandManagersKt")
-        loadClass("kotlinx.coroutines.DebugKt") // For JobSupport.nameString(), coroutine exception on shutdown
-        loadClass("kotlinx.coroutines.DebugStringsKt") // For JobSupport.nameString(), coroutine exception on shutdown
+        // For JobSupport.nameString(), coroutine exception on shutdown
+        loadClasses("kotlinx.coroutines.DebugKt", "kotlinx.coroutines.DebugStringsKt")
 
         // Velocity ServerUtils support
+        // Throws NoClassDefFoundError onDisable if these are not loaded
         Buffer().apply {
             writeAscii("Load classes")
             copyTo(ByteArrayOutputStream())
         }
+        // For Dispatchers.shutdown()
+        loadClasses(
+            "kotlinx/coroutines/ThreadLocalEventLoop", "kotlinx/coroutines/EventLoop_commonKt",
+            "kotlinx/coroutines/AbstractTimeSourceKt", $$"kotlinx/coroutines/scheduling/CoroutineScheduler$Worker"
+        )
     }
 
     private fun loadClass(clazz: String) {
@@ -69,6 +75,10 @@ open class HotLoadSupport(
         } catch (_: ClassNotFoundException) {
             EsuBootstrap.instance.warn("HotLoadSupport - Class $clazz not found")
         }
+    }
+
+    private fun loadClasses(vararg classes: String) {
+        classes.forEach { loadClass(it) }
     }
 
 }
