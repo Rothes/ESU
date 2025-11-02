@@ -28,6 +28,7 @@ import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
+import org.bukkit.event.HandlerList
 import org.incendo.cloud.bukkit.BukkitCommandManager
 import org.incendo.cloud.description.Description
 
@@ -193,6 +194,7 @@ class EsuPluginBukkit(
                 BukkitUserManager.unload(user)
             }
         }
+        HandlerList.unregisterAll(bootstrap)
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
