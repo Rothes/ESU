@@ -198,7 +198,11 @@ class EsuPluginBukkit(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
-        Dispatchers.shutdown()
+        try {
+            Dispatchers.shutdown()
+        } catch (t: Throwable) {
+            err("An exception occurred while shutting down coroutine: $t")
+        }
     }
 
     private fun byPlugMan(): Boolean {

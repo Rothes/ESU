@@ -170,7 +170,11 @@ class EsuPluginVelocity(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         server.eventManager.unregisterListeners(container)
-        Dispatchers.shutdown()
+        try {
+            Dispatchers.shutdown()
+        } catch (t: Throwable) {
+            err("An exception occurred while shutting down coroutine: $t")
+        }
     }
 
     @Subscribe(order = PostOrder.LAST)
