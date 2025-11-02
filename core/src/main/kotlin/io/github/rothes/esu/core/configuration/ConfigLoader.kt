@@ -266,20 +266,28 @@ object ConfigLoader {
                         val name = data.oldName
                         require(name.isNotEmpty())
                         Processor { _, destination ->
+                            var parsed = 0
                             val parent = if (name.startsWith('/')) {
                                 var root = destination
                                 while (true) {
                                     root = root.parent() ?: break
                                 }
+                                parsed = 1
                                 root
                             } else {
                                 var p = destination.parent()!!
-                                for (i in 0 ..< name.count { it == '.' }) {
-                                    p = p.parent() ?: error("Parent node is null while processing $name")
+                                while (parsed < name.length) {
+                                    if (name[parsed] == '.') {
+                                        p = p.parent() ?: error("Parent node is null while processing $name at $parsed")
+                                        parsed++
+                                        if (name[parsed] == '/') parsed++
+                                    } else {
+                                        break
+                                    }
                                 }
                                 p
                             }
-                            val from = parent.node(*name.removePrefix("/").split('.').toTypedArray())
+                            val from = parent.node(name.substring(parsed).split('/'))
                             if (!from.virtual()) {
                                 destination.from(from)
                                 from.set(null)
