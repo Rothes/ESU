@@ -27,13 +27,15 @@ class RegistryValueSerializer<T: Any>(
     val registry = accessHandler.getRegistryOrThrow(registryAccess, registryKey)
 
     override fun deserialize(type: Type?, obj: Any?): T? {
-        val key = ResourceLocation.tryParse(obj.toString())!!
+        val key = ResourceLocation.tryParse(obj.toString().lowercase()) ?: let {
+            IllegalArgumentException("Failed to parse $obj to ResourceLocation, ignored.").printStackTrace()
+            return null
+        }
         ResourceKey.create(this.registryKey, key)
         return accessHandler.get(registry, key)
     }
 
     override fun serialize(item: T, typeSupported: Predicate<Class<*>?>?): Any? {
-//        val key = registry.getResourceKey(item).orElseThrow()
         val key = accessHandler.getResourceKey(registry, item)
 
         return if ((key.location().namespace == ResourceLocation.DEFAULT_NAMESPACE)) key.location().path
