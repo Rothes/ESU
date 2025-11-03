@@ -20,6 +20,9 @@ import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.json.json
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 object CasDataManager {
 
@@ -29,17 +32,52 @@ object CasDataManager {
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
     }
-    val cacheById = hashMapOf<Int, SpamData>()
-    val cacheByIp = hashMapOf<String, SpamData>()
+    private val cacheById = hashMapOf<Int, SpamDataHolder>()
+    private val cacheByIp = hashMapOf<String, SpamDataHolder>()
+    private val lock = ReentrantReadWriteLock()
 
     operator fun get(user: PlayerUser): SpamData {
-        cacheByIp[user.addr]?.let {
-            return it
+        return getHolder(user).spamData
+    }
+
+    fun getHolder(user: PlayerUser): SpamDataHolder {
+        lock.read {
+            cacheByIp[user.addr]?.let {
+                return it
+            }
         }
-        val created = SpamData()
-        cacheById[user.dbId] = created
-        cacheByIp[user.addr] = created
-        return created
+        lock.write {
+            val created = SpamDataHolder(SpamData())
+            cacheById[user.dbId] = created
+            cacheByIp[user.addr] = created
+            return created
+        }
+    }
+
+    fun getCache(user: PlayerUser): SpamData? {
+        return lock.read { cacheByIp[user.addr]?.spamData }
+    }
+
+    fun purgeCache(deleteDb: Boolean) {
+        val time = System.currentTimeMillis()
+        val toDel = mutableListOf<Any>()
+        val handler = { map: MutableMap<out Any, SpamDataHolder> ->
+            val iterator = map.iterator()
+            for ((key, value) in iterator) {
+                if (time - value.spamData.lastAccess > config.userDataExpiresAfter.toMillis()) {
+                    if (deleteDb)
+                        toDel.add(key)
+                    iterator.remove()
+                }
+            }
+        }
+        lock.write {
+            handler(cacheById)
+            handler(cacheByIp)
+        }
+        if (toDel.isNotEmpty()) {
+            deleteExpiredAsync(keys = toDel)
+        }
     }
 
     init {
@@ -87,51 +125,55 @@ object CasDataManager {
         Bukkit.getOnlinePlayers().forEach { loadSpamData(it.user) }
     }
 
-    fun loadSpamData(where: PlayerUser, async: Boolean = true) {
+    fun loadSpamData(where: PlayerUser) {
         val dbId = where.dbId
         val addr = where.addr
 
-        fun func() {
-            var spamData = latest(cacheById[dbId], cacheByIp[addr]) // Current cached
+        StorageManager.coroutineScope.launch {
             with(ChatSpamTable) {
                 transaction(database) {
                     selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
                         .limit(1).singleOrNull()?.let { row ->
-                            spamData = latest(spamData, row[data])!!.also { sd ->
+                            val cached = lock.read { latest(cacheById[dbId], cacheByIp[addr]) }
+                            latest(cached, row[data]).also { holder ->
                                 val ip = row[ip]
-                                cacheById[row[user]] = sd
-                                cacheByIp[ip] = sd
-                                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == ip }.forEach { cacheById[it.user.dbId] = sd }
+                                lock.write {
+                                    cacheById[row[user]] = holder
+                                    cacheByIp[ip] = holder
+                                }
                             }
                         }
                 }
             }
-            spamData?.let { sd ->
-                cacheById[dbId] = sd
-                cacheByIp[addr] = sd
-                Bukkit.getOnlinePlayers().filter { it.address!!.hostString == addr }.forEach { cacheById[it.user.dbId] = sd }
-            }
-        }
-
-        if (async) {
-            StorageManager.coroutineScope.launch {
-                func()
-            }
-        } else {
-            func()
         }
     }
 
-    private fun latest(o1: SpamData?, o2: SpamData?): SpamData? {
+    private fun latest(o1: SpamDataHolder?, o2: SpamDataHolder?): SpamDataHolder? {
         if (o1 == null)
             return o2
         if (o2 == null)
             return null
-        return if (o1.lastAccess > o2.lastAccess) o1 else o2
+        return if (o1.spamData.lastAccess > o2.spamData.lastAccess) {
+            o2.spamData = o1.spamData
+            o1
+        } else {
+            o1.spamData = o2.spamData
+            o2
+        }
+    }
+
+    private fun latest(holder: SpamDataHolder?, data: SpamData): SpamDataHolder {
+        if (holder == null)
+            return SpamDataHolder(data)
+        if (holder.spamData.lastAccess < data.lastAccess) {
+            holder.spamData = data
+        }
+        return holder
     }
 
     fun saveSpamDataNow(where: PlayerUser) {
-        val spamData = latest(cacheById[where.dbId], cacheByIp[where.addr]) ?: return
+        val holder = lock.read { latest(cacheById[where.dbId], cacheByIp[where.addr]) } ?: return
+        val spamData = holder.spamData
         val lastAccessValue = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
         with(ChatSpamTable) {
             transaction(database) {

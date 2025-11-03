@@ -31,7 +31,6 @@ import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Bukkit
 import org.incendo.cloud.component.DefaultValue
 import java.time.Duration
-import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -45,7 +44,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
     override fun onEnable() {
         CasDataManager
-        purgeTask = Scheduler.asyncTicks(20, 5 * 60 * 20) { purgeCache(true) }
+        purgeTask = Scheduler.asyncTicks(20, 5 * 60 * 20) { CasDataManager.purgeCache(true) }
         CasListeners.enable()
         Bukkit.getOnlinePlayers().map { it.user }.forEach {
             if (it.hasPerm("notify"))
@@ -58,7 +57,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ).handler { context ->
                 val sender = context.sender()
                 val playerUser = context.get<PlayerUser>("player")
-                val spamData = CasDataManager.cacheByIp[playerUser.addr]
+                val spamData = CasDataManager.getCache(playerUser)
                 if (spamData == null) {
                     sender.message(lang, { command.data.noData }, user(playerUser), sender.msgPrefix)
                 } else {
@@ -112,8 +111,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
                 CasDataManager.deleteAsync(playerUser.dbId)
-                CasDataManager.cacheById.remove(playerUser.dbId)
-                CasDataManager.cacheByIp.remove(playerUser.addr)
+                CasDataManager.getHolder(playerUser).spamData = SpamData()
                 context.sender().message(lang, { command.reset.resetPlayer },
                     context.sender().msgPrefix,
                     component("player", playerUser.player.displayName_)
@@ -132,7 +130,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         purgeTask = null
         CasListeners.disable()
         try {
-            purgeCache(false)
+            CasDataManager.purgeCache(false)
         } catch (e: NoClassDefFoundError) {
             // Ehh.. Plugin Jar got deleted?
             plugin.err("Failed to purge cache while disabling module $name", e)
@@ -146,25 +144,6 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             notifyUsers.add(ConsoleUser)
         } else {
             notifyUsers.remove(ConsoleUser)
-        }
-    }
-
-    private fun purgeCache(deleteDb: Boolean) {
-        val time = System.currentTimeMillis()
-        val toDel = mutableListOf<Any?>()
-        val handler = Consumer<MutableMap<*, SpamData>> { map ->
-            map.entries
-                .filter { time - it.value.lastAccess > config.userDataExpiresAfter.toMillis() }
-                .forEach {
-                    map.remove(it.key)
-                    if (deleteDb)
-                        toDel.add(it.key)
-                }
-        }
-        handler.accept(CasDataManager.cacheById)
-        handler.accept(CasDataManager.cacheByIp)
-        if (toDel.isNotEmpty()) {
-            CasDataManager.deleteExpiredAsync(keys = toDel)
         }
     }
 
