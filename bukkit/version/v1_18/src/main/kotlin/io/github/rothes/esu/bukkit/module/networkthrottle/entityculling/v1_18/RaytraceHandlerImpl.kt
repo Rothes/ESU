@@ -1,13 +1,18 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v1
+package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v1_18
 
+import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.UserCullData
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -32,8 +37,12 @@ import net.minecraft.world.level.chunk.PalettedContainer
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntitySpawnEvent
 import org.incendo.cloud.annotations.Command
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,6 +57,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     companion object {
         private const val COLLISION_EPSILON = 1E-7
         private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
+
+        val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
+        val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
     }
 
     private var forceVisibleDistanceSquared = 0.0
@@ -83,6 +95,10 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             if (lastThreads != config.raytraceThreads) {
                 start()
             }
+            if (config.entityCulledByDefault)
+                EntitySpawnListener.register()
+            else
+                EntitySpawnListener.unregister()
         }
     }
 
@@ -141,6 +157,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 sender.message("Previous elapsedTime: ${previousElapsedTime}ms ; delayTime: ${previousDelayTime}ms")
             }
         })
+        if (config.entityCulledByDefault)
+            EntitySpawnListener.register()
     }
 
     override fun onDisable() {
@@ -148,6 +166,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         coroutine?.close()
         coroutine = null
         lastThreads = 0
+        EntitySpawnListener.unregister()
     }
 
     private fun start() {
@@ -203,33 +222,28 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         coroutine = context
     }
 
-    data class RaytraceConfig(
-        @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
-        @RenamedFrom("./raytrace-threads")
-        val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
-        @Comment("""
-            Max updates for each player per second.
-            More means greater immediacy, but also higher cpu usage.
-        """)
-        @RenamedFrom("./updates-per-second")
-        val updatesPerSecond: Int = 15,
-        @Comment("These entity types are considered always visible.")
-        val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON),
-        @Comment("Entities within this radius are considered always visible.")
-        val forceVisibleDistance: Double = 8.0,
-        @Comment("""
-            Simulate and predicate player positon behind later game ticks.
-            An entity will only be culled if it is not visible at either
-             the player's current positon or the predicted positon.
-            This can reduce the possibility of entity flickering.
-            May double the raytrace time depends on the player velocity.
-            Requires Minecraft 1.21+ for client movement velocity.
-        """)
-        val predicatePlayerPositon: Boolean = true,
-    ): ConfigurationPart
+    object EntitySpawnListener : Listener {
 
-    val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
-    val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
+        private val levelHandler by Versioned(LevelHandler::class.java)
+
+        @EventHandler
+        fun onEntitySpawn(event: EntitySpawnEvent) {
+            val entity = (event.entity as CraftEntity).handle
+            val level = levelHandler.level(entity) as? ServerLevel ?: return
+            for (player in level.players()) {
+                val bukkit = player.bukkitEntity
+                val viewDistanceSquared = bukkit.viewDistance.square() shl 8
+                if (entity == player) continue
+                val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
+                if (dist > viewDistanceSquared) continue
+                if (bukkit.checkTickThread()) {
+                    CullDataManager[bukkit].setCulled(event.entity, entity.id, true, pend = false)
+                    bukkit.hideEntity(bootstrap, event.entity)
+                }
+            }
+        }
+
+    }
 
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
         val viewDistanceSquared = bukkit.viewDistance.let { it * it } shl 8
@@ -301,12 +315,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // If the player is very close to the entity, then they may only see 1 face(4 vertices) or 2 face (6 vertices)
         // But we don't consider it because it's too rare and raytrace of that should be easy.
         val vertices = listOf(
-            Vec3(nearestX, nearestY, nearestZ),
-            Vec3(farthestX, nearestY, nearestZ),
-            Vec3(nearestX, farthestY, nearestZ),
-            Vec3(nearestX, nearestY, farthestZ),
-            Vec3(farthestX, farthestY, nearestZ),
-            Vec3(farthestX, nearestY, farthestZ),
+            Vec3(nearestX, nearestY, nearestZ), Vec3(farthestX, nearestY, nearestZ),
+            Vec3(nearestX, farthestY, nearestZ), Vec3(nearestX, nearestY, farthestZ),
+            Vec3(farthestX, farthestY, nearestZ), Vec3(farthestX, nearestY, farthestZ),
             Vec3(nearestX, farthestY, farthestZ)
         )
 
@@ -487,5 +498,35 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             }
         }
     }
+
+    data class RaytraceConfig(
+        @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
+        @RenamedFrom("./raytrace-threads")
+        val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
+        @Comment("""
+            Max updates for each player per second.
+            More means greater immediacy, but also higher cpu usage.
+        """)
+        @RenamedFrom("./updates-per-second")
+        val updatesPerSecond: Int = 15,
+        @Comment("""
+            Mark entities culled at first seen.
+            To prevent flickering on entity spawning, and related packets.
+        """)
+        val entityCulledByDefault: Boolean = true,
+        @Comment("These entity types are considered always visible.")
+        val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON),
+        @Comment("Entities within this radius are considered always visible.")
+        val forceVisibleDistance: Double = 8.0,
+        @Comment("""
+            Simulate and predicate player positon behind later game ticks.
+            An entity will only be culled if it is not visible at either
+             the player's current positon or the predicted positon.
+            This can reduce the possibility of entity flickering.
+            May double the raytrace time depends on the player velocity.
+            Requires Minecraft 1.21+ for client movement velocity.
+        """)
+        val predicatePlayerPositon: Boolean = true,
+    ): ConfigurationPart
 
 }

@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
@@ -15,6 +16,7 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ClassUtils
+import io.github.rothes.esu.core.util.version.Version.Companion.toVersion
 import org.bukkit.entity.Entity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -26,14 +28,14 @@ import org.bukkit.event.player.PlayerTeleportEvent
 object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfiguration>() {
 
     private val raytraceHandler =
-        if (RegistryValueSerializers.isSupported)
+        if (RegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18".toVersion())
             RaytraceHandler::class.java.versioned().also { registerFeature(it) }
         else null
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
-            if (!RegistryValueSerializers.isSupported) {
-                plugin.err("[EntityCulling] This feature requires Minecraft 1.17.1 .")
+            if (ServerCompatibility.serverVersion < "1.18".toVersion()) {
+                plugin.err("[EntityCulling] This feature requires Spigot 1.18 .")
                 return Feature.AvailableCheck.fail { "Server is not supported".message }
             }
             raytraceHandler?.checkConfig()
