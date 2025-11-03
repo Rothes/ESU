@@ -98,7 +98,6 @@ class EsuPluginBukkit(
 
         Bukkit.getOnlinePlayers().forEach { it.user }
 
-        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(BlockedCommandsModule)
@@ -114,6 +113,7 @@ class EsuPluginBukkit(
         ModuleManager.addModule(OptimizationsModule)
         ModuleManager.addModule(SpoofServerSettingsModule)
         ModuleManager.addModule(UtilCommandsModule)
+        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
         with(commandManager) {

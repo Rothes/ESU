@@ -97,9 +97,9 @@ class EsuPluginVelocity(
 
         ServerHotLoadSupport(enabledHot).onEnable()
 
-        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(UserNameVerifyModule)
+        ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
         with(commandManager) {
