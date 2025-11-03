@@ -9,6 +9,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
+import io.github.rothes.esu.core.util.ConversionUtils.epochMilli
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
@@ -135,11 +136,11 @@ object CasDataManager {
                     selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
                         .limit(1).singleOrNull()?.let { row ->
                             val cached = lock.read { latest(cacheById[dbId], cacheByIp[addr]) }
-                            latest(cached, row[data]).also { holder ->
-                                val ip = row[ip]
+                            val data = row[data].also { it.lastAccess = row[lastAccess].epochMilli }
+                            latest(cached, data).also { holder ->
                                 lock.write {
-                                    cacheById[row[user]] = holder
-                                    cacheByIp[ip] = holder
+                                    cacheById[dbId] = holder
+                                    cacheByIp[addr] = holder
                                 }
                             }
                         }
