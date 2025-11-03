@@ -24,7 +24,7 @@ import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
+import io.github.rothes.esu.core.util.extension.ClassUtils.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit

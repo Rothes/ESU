@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit.util.version.remapper
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
-import io.github.rothes.esu.core.util.extension.ClassExt.jarFilePath
+import io.github.rothes.esu.core.util.extension.ClassUtils.jarFilePath
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer

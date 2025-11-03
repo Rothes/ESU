@@ -6,7 +6,7 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.*
 import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
-import io.github.rothes.esu.core.util.extension.ClassExt.jarFile
+import io.github.rothes.esu.core.util.extension.ClassUtils.jarFile
 import io.github.rothes.esu.core.util.tree.TreeNode
 import io.github.rothes.esu.lib.configurate.*
 import io.github.rothes.esu.lib.configurate.loader.HeaderMode
