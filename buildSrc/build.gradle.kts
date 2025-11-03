@@ -7,6 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.1.0")
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.2.2")
     implementation("com.modrinth.minotaur:com.modrinth.minotaur.gradle.plugin:2.+")
 }
