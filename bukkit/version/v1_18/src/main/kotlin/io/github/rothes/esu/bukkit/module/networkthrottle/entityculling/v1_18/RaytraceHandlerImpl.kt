@@ -127,8 +127,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 sender.message("Running benchmark")
                 runBlocking {
                     var count = 0
-                    val jobs = buildList(4) {
-                        repeat(4) {
+                    val jobs = buildList(lastThreads) {
+                        repeat(lastThreads) {
                             val job = launch(coroutine!!) {
                                 while (isActive) {
                                     var get = ++i
