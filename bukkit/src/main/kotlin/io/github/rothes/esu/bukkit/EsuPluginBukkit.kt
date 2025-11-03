@@ -96,6 +96,8 @@ class EsuPluginBukkit(
 
         ServerHotLoadSupport(enabledHot).onEnable()
 
+        Bukkit.getOnlinePlayers().forEach { it.user }
+
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
@@ -158,7 +160,7 @@ class EsuPluginBukkit(
             )
         }
 
-        Bukkit.getOnlinePlayers().forEach { it.updateCommands(); it.user }
+        Bukkit.getOnlinePlayers().forEach { it.updateCommands() }
         InternalListeners // Init
         UserLoginEvent // Init
 
