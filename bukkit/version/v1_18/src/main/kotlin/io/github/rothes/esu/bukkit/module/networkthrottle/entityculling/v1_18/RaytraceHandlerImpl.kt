@@ -246,7 +246,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     }
 
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
-        val viewDistanceSquared = bukkit.viewDistance.let { it * it } shl 8
+        val viewDistanceSquared = bukkit.viewDistance.square() shl 8
 
         val predicatedPlayerPos = if (config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
@@ -276,13 +276,13 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
             if (entity == player) continue
-            val x = player.x - entity.x
-            val z = player.z - entity.z
-            val dist = x * x + z * z
+            val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
             if (dist > viewDistanceSquared) continue
 
-            val y = player.y - entity.y
-            if (entity.isCurrentlyGlowing || config.visibleEntityTypes.contains(entity.type) || dist + y * y <= forceVisibleDistanceSquared) {
+            if (entity.isCurrentlyGlowing
+                || config.visibleEntityTypes.contains(entity.type)
+                || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
+            ) {
                 userCullData.setCulled(entity.bukkitEntity, entity.id, false)
                 continue
             }
@@ -414,9 +414,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         val fromYAdj = from.y + adjY
         val fromZAdj = from.z + adjZ
 
-        var currX = Mth.floor(fromXAdj)
-        var currY = Mth.floor(fromYAdj)
-        var currZ = Mth.floor(fromZAdj)
+        var currX = fromXAdj.floorI()
+        var currY = fromYAdj.floorI()
+        var currZ = fromZAdj.floorI()
 
         val diffX = toXAdj - fromXAdj
         val diffY = toYAdj - fromYAdj
