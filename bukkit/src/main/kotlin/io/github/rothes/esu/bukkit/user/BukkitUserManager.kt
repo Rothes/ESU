@@ -14,7 +14,7 @@ object BukkitUserManager: UserManager<CommandSender, PlayerUser>() {
     override fun get(native: CommandSender): PlayerUser {
         val player = native.asPlayer
         val uuid = player.uniqueId
-        return byUuid[uuid]?.also { it.playerCache = player } ?: PlayerUser(player).also { byUuid[uuid] = it }
+        return getCache(uuid)?.also { it.playerCache = player } ?: PlayerUser(player).also { set(uuid, it) }
     }
 
     override fun create(uuid: UUID): PlayerUser = PlayerUser(uuid)
