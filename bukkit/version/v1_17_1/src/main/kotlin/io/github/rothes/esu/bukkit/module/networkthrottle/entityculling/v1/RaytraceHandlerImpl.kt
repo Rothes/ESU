@@ -16,6 +16,8 @@ import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.extension.math.floorI
+import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
@@ -32,7 +34,6 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
 import org.bukkit.entity.Player
-import org.bukkit.util.NumberConversions
 import org.incendo.cloud.annotations.Command
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -350,9 +351,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             y += stepY
             z += stepZ
 
-            val currX = NumberConversions.floor(x)
-            val currY = NumberConversions.floor(y)
-            val currZ = NumberConversions.floor(z)
+            val currX = x.floorI()
+            val currY = y.floorI()
+            val currZ = z.floorI()
 
             val newChunkX = currX shr 4
             val newChunkY = currY shr 4
@@ -363,7 +364,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
             if (chunkDiff or sectionDiff != 0) {
                 if (chunkDiff != 0) {
-                    chunkSections = level.getChunk(newChunkX, newChunkZ).getSections()
+                    chunkSections = level.getChunk(newChunkX, newChunkZ).sections
                 }
                 val sectionIndex = newChunkY - minSection
                 if (sectionIndex !in (0 until chunkSections.size)) continue
@@ -374,7 +375,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 lastChunkZ = newChunkZ
             }
 
-            if (section != null) { // It can never be null, but we don't want the kotlin npc check!
+            if (section != null) { // It can never be null, but we don't want the kotlin npe check!
                 val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
 //                blockState.`moonrise$getTableIndex`()
                 if (!blockState.isAir && blockState.bukkitMaterial.isOccluding) {
@@ -485,7 +486,5 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             }
         }
     }
-
-    private fun Double.square() = this * this
 
 }
