@@ -100,6 +100,7 @@ object CasListeners: Listener {
         var scoreValue = 0.0
         var scoreBy = "pass"
         var mergeScoreValue = false
+        var muted = false
         for (check in ChecksMan.checks) {
             val (filter, score, mergeScore, notify, addFilter, mute, block, endChecks) = check.check(request)
             if (filter != null) {
@@ -108,6 +109,7 @@ object CasListeners: Listener {
             }
             if (mute) {
                 handleMuted(player, spamData)
+                muted = true
             }
             if (scoreValue < 0 || score < 0) {
                 scoreValue = min(scoreValue, score)
@@ -169,6 +171,7 @@ object CasListeners: Listener {
                         addFilter = false
                     )
                     handleMuted(player, spamData)
+                    muted = true
                     blockValue = true
                 }
             }
@@ -184,6 +187,8 @@ object CasListeners: Listener {
         } else {
             spamData.consecutiveUnfiltered.store(0)
         }
+        if (muted)
+            CasDataManager.saveSpamDataAsync(user)
         return blockValue
     }
 
@@ -217,7 +222,6 @@ object CasListeners: Listener {
                 unparsed("multiplier", String.format("%.1f", spamData.muteMultiplier)),
             )
         }
-        CasDataManager.saveSpamDataAsync(player.user)
     }
 
     fun <T> ArrayDeque<T>.sizedAdd(fullOn: Int, obj: T): ArrayDeque<T> {
