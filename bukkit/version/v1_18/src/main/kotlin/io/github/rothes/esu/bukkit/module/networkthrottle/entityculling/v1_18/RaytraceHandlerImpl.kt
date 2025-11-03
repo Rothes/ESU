@@ -113,7 +113,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 sender.message("Preparing data at this spot...")
                 val from = player.eyeLocation.toVec3()
                 val world = player.world
-                val maxI = 100_000_00
+                val maxI = 100_000
                 val viewDistance = world.viewDistance - 2
                 val level = (world as CraftWorld).handle
                 val data = Array(maxI) {
@@ -123,21 +123,18 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                         (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
                     )
                 }
-                var i = 0
                 sender.message("Running benchmark")
                 runBlocking {
-                    var count = 0
+                    val coroutine = coroutine!!
+                    val count = AtomicInteger()
                     val jobs = buildList(lastThreads) {
                         repeat(lastThreads) {
-                            val job = launch(coroutine!!) {
+                            val job = launch(coroutine) {
+                                var i = 0
                                 while (isActive) {
-                                    var get = ++i
-                                    if (i >= maxI) {
-                                        i = 0
-                                        get = 0
-                                    }
-                                    raytraceStep(from, data[get], level)
-                                    count++
+                                    raytraceStep(from, data[i++], level)
+                                    if (i == maxI) i = 0
+                                    count.incrementAndGet()
                                 }
                             }
                             add(job)
@@ -146,7 +143,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     delay(1.seconds)
                     jobs.forEach { it.cancel() }
                     sender.message("Raytrace $count times in 1 seconds")
-                    sender.message("Max of ${count / 7 / 20} entities per game tick")
+                    sender.message("Max of ${count.get() / 7 / 20} entities per game tick")
                     sender.message("Test result is for reference only.")
                 }
             }
