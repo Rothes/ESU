@@ -158,7 +158,7 @@ class EsuPluginBukkit(
             )
         }
 
-        Bukkit.getOnlinePlayers().forEach { it.user }
+        Bukkit.getOnlinePlayers().forEach { it.updateCommands(); it.user }
         InternalListeners // Init
         UserLoginEvent // Init
 
