@@ -14,6 +14,7 @@ import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
+import io.github.rothes.esu.core.util.extension.ClassUtils
 import org.bukkit.entity.Entity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -81,12 +82,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
     private object EntityRemoveListeners: Listener {
 
-        val isSupported = try {
-            Class.forName("org.bukkit.event.entity.EntityRemoveEvent")
-            true
-        } catch (_: ClassNotFoundException) {
-            false
-        }
+        val isSupported = ClassUtils.existsClass("org.bukkit.event.entity.EntityRemoveEvent")
 
         @EventHandler
         fun onEntityRemove(event: EntityRemoveEvent) {
