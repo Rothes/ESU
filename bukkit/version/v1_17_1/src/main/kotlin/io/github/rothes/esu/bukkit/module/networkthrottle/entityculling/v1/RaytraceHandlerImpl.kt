@@ -47,6 +47,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     companion object {
         private const val COLLISION_EPSILON = 1E-7
+        private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
     }
 
     private var forceVisibleDistanceSquared = 0.0
@@ -339,7 +340,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         stepY /= length
         stepZ /= length
 
-        var chunkSections: Array<LevelChunkSection> = arrayOf()
+        var chunkSections: Array<LevelChunkSection> = INIT_SECTION
         var section: PalettedContainer<BlockState>? = null
         var lastChunkX = Int.MIN_VALUE
         var lastChunkY = Int.MIN_VALUE
