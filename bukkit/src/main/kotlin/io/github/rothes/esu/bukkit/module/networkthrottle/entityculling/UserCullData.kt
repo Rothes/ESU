@@ -78,7 +78,7 @@ class UserCullData(
                 val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
                 for (entry in iterator) {
                     val entity = entry.value
-                    if (entity.isDead) {
+                    if (!entity.isValid) {
                         iterator.remove()
                     }
                 }
@@ -97,7 +97,7 @@ class UserCullData(
         if (plugin.isEnabled) {
             Scheduler.schedule(player) {
                 for (change in list) {
-                    if (change.entity.isDead) continue
+                    if (!change.entity.isValid) continue
                     if (!change.entity.checkTickThread()) {
                         // Not on tick thread, we can only roll state back
                         if (!change.culled)
