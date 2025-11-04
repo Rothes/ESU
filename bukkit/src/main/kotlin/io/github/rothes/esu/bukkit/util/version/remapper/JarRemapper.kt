@@ -8,11 +8,12 @@ import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
+import org.objectweb.asm.tree.MethodNode
 import java.io.File
 
 object JarRemapper {
 
-    private const val REMAPPER_VERSION = "4"
+    private const val REMAPPER_VERSION = "5"
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/remapped").toFile()
     private val cached = FileHashes(cacheFolder)
@@ -31,8 +32,11 @@ object JarRemapper {
 
         fun remap(input: File, mappings: List<IMappingFile?>, libs: List<File?>) {
             val renamer = Renamer.builder().apply {
-                mappings.forEach {
-                    if (it != null) add(Transformer.renamerFactory(it, false))
+                mappings.forEach { mapping ->
+                    if (mapping != null) {
+                        add { ReflectTransformer(mapping) }
+                        add(Transformer.renamerFactory(mapping, false))
+                    }
                 }
                 add(Transformer.signatureStripperFactory(SignatureStripperConfig.ALL))
                 lib(File(EsuBootstrap::class.java.jarFilePath))
@@ -50,6 +54,7 @@ object JarRemapper {
                     EsuBootstrap.instance.info("[Remapper] $it")
                 }
             }.build()
+            MethodNode().instructions
             renamer.run(input, output)
         }
         remap(file, listOf(MappingsLoader.loadedFiles.mappings.mojmap), listOf(MappingsLoader.loadedFiles.servers.serverMojmap))
