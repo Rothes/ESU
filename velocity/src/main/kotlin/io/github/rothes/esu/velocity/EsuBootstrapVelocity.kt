@@ -88,8 +88,10 @@ class EsuBootstrapVelocity @Inject constructor(
             )
 
             val relocator = PackageRelocator(
-                "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
-                "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
+                "net/kyori/adventure/" to "adventure/",
+                "net/kyori/" to "net/kyori/",
+
+                prefix = "io/github/rothes/esu/lib/"
             )
             val loader = { file: File, artifact: Artifact ->
                 if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))

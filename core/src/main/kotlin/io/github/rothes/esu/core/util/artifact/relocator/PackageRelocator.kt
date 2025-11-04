@@ -18,9 +18,14 @@ class PackageRelocator(
 
     constructor(
         vararg relocates: Pair<String, String>,
+        prefix: String = "",
         logger: (String) -> Unit = { EsuBootstrap.instance.info("[Relocator] $it") },
         err: (String) -> Unit = { EsuBootstrap.instance.err("[Relocator] $it") },
-    ): this(relocates.toMap(LinkedHashMap()), logger, err)
+    ): this(
+        relocates.associateTo(LinkedHashMap(relocates.size)) { it.first to prefix + it.second },
+        logger,
+        err
+    )
 
     private val remapper = ClassNameRemapper(relocates)
 

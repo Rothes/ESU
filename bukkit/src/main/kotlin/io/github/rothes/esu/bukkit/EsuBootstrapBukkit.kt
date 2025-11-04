@@ -72,11 +72,13 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     MappingsLoader
             }
             val relocator = PackageRelocator(
-                "net/kyori/adventure/" to "io/github/rothes/esu/lib/adventure/",
-                "net/kyori/" to "io/github/rothes/esu/lib/net/kyori/",
+                "net/kyori/adventure/" to "adventure/",
+                "net/kyori/" to "net/kyori/",
 
-                "org/bstats" to "io/github/rothes/esu/lib/bstats",
-                "de/tr7zw/changeme/nbtapi" to "io/github/rothes/esu/lib/nbtapi",
+                "org/bstats" to "bstats",
+                "de/tr7zw/changeme/nbtapi" to "nbtapi",
+
+                prefix = "io/github/rothes/esu/lib/"
             )
             val loader = { file: File, artifact: Artifact ->
                 if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
