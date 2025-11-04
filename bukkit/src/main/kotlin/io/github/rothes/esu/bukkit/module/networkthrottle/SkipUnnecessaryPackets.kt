@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
+import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRelativeMove
@@ -28,7 +29,7 @@ object SkipUnnecessaryPackets: CommonFeature<SkipUnnecessaryPackets.FeatureConfi
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListeners)
     }
 
-    private object PacketListeners: PacketListenerAbstract() {
+    private object PacketListeners: PacketListenerAbstract(PacketListenerPriority.LOWEST) {
 
         override fun onPacketSend(event: PacketSendEvent) {
             when (event.packetType) {
