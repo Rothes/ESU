@@ -15,4 +15,7 @@ interface RegistryAccessHandler {
 
     fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T>
 
+    fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>>
+    fun <T> values(registry: Registry<T>): Set<T>
+
 }
