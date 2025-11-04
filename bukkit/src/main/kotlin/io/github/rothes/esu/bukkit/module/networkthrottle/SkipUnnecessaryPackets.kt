@@ -60,5 +60,5 @@ object SkipUnnecessaryPackets: CommonFeature<SkipUnnecessaryPackets.FeatureConfi
         This feature is to skip unnecessary packets, that doesn't bring any changes to client.
         Currently, it cancel entity movement packets whose entity actually not moved.
     """)
-    class FeatureConfig: BaseFeatureConfiguration()
+    class FeatureConfig: BaseFeatureConfiguration(true)
 }
