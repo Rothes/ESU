@@ -1,9 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.module.networkthrottle.ChunkDataThrottle
-import io.github.rothes.esu.bukkit.module.networkthrottle.DynamicChunkSendRate
-import io.github.rothes.esu.bukkit.module.networkthrottle.EntityCulling
-import io.github.rothes.esu.bukkit.module.networkthrottle.HighLatencyAdjust
+import io.github.rothes.esu.bukkit.module.networkthrottle.*
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryValueSerializers
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -18,6 +15,7 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         registerFeature(EntityCulling)
         registerFeature(DynamicChunkSendRate)
         registerFeature(HighLatencyAdjust)
+        registerFeature(SkipUnnecessaryPackets)
     }
 
     lateinit var data: ModuleData
