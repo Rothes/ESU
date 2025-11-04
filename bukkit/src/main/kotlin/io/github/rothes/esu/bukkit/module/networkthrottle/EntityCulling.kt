@@ -97,7 +97,6 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     }
 
     @Comment("""
-        [ EXPERIMENTAL ]
         Smart Occlusion Culling to save upload bandwidth.
         Plugin will hide invisible entities to players.
     """)
