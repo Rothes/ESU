@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
 import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager.raytraceHandler
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
@@ -75,10 +76,11 @@ class UserCullData(
     private fun checkEntitiesValid() {
         try {
             synchronized(hiddenEntities) {
+                val raytraceHandler = raytraceHandler
                 val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
                 for (entry in iterator) {
                     val entity = entry.value
-                    if (entity.isDead) {
+                    if (!raytraceHandler.isValid(entity)) {
                         iterator.remove()
                     }
                 }
@@ -96,17 +98,15 @@ class UserCullData(
         pendingChanges.clear()
         if (plugin.isEnabled) {
             Scheduler.schedule(player) {
+                val raytraceHandler = raytraceHandler
                 for (change in list) {
-                    if (change.entity.isDead) continue
+                    if (!raytraceHandler.isValid(change.entity)) continue
                     if (!change.entity.checkTickThread()) {
                         // Not on tick thread, we can only roll state back
                         if (!change.culled)
                             setCulled(change.entity, change.entityId, true, pend = false)
                         continue
                     }
-                    // This has to be checked on tick thread on 1.20.6-1.21.1 (or maybe some other version)
-                    // because they do this.isInWorld() check which uses getHandle()
-                    if (!change.entity.isValid) continue
                     if (change.culled)
                         player.hideEntity(bootstrap, change.entity)
                     else

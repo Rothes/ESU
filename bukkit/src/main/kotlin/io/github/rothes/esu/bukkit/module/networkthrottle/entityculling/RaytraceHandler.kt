@@ -13,4 +13,6 @@ abstract class RaytraceHandler<C: ConfigurationPart, L: ConfigurationPart>: Comm
 
     abstract fun onEntityRemove(entity: Entity)
 
+    abstract fun isValid(bukkitEntity: Entity): Boolean
+
 }

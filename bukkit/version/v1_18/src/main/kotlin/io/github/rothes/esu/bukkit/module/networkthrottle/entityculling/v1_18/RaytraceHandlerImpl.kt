@@ -11,6 +11,7 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -60,6 +61,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
         val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
         val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
+        val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
     }
 
     private var forceVisibleDistanceSquared = 0.0
@@ -85,6 +87,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         synchronized(removedEntities) {
             removedEntities.add(entity.entityId)
         }
+    }
+
+    override fun isValid(bukkitEntity: org.bukkit.entity.Entity): Boolean {
+        val handle = entityHandleGetter.getHandle(bukkitEntity)
+        return handle.isAlive && handle.valid
     }
 
     override fun onReload() {

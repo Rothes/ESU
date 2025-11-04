@@ -29,7 +29,10 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
     private val raytraceHandler =
         if (RegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18".toVersion())
-            RaytraceHandler::class.java.versioned().also { registerFeature(it) }
+            RaytraceHandler::class.java.versioned().also {
+                registerFeature(it)
+                CullDataManager.raytraceHandler = it
+            }
         else null
 
     override fun checkUnavailable(): Feature.AvailableCheck? {

@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
+import io.github.rothes.esu.core.util.InitOnce
 import org.bukkit.entity.Player
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -7,6 +8,7 @@ import kotlin.concurrent.write
 
 object CullDataManager {
 
+    var raytraceHandler: RaytraceHandler<*, *> by InitOnce()
     private val map = mutableMapOf<Player, UserCullData>()
     private val lock = ReentrantReadWriteLock()
 
