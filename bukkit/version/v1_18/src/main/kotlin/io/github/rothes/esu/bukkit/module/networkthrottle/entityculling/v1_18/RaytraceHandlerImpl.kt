@@ -44,6 +44,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntitySpawnEvent
+import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -103,9 +104,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 start()
             }
             if (config.entityCulledByDefault)
-                EntitySpawnListener.register()
+                EntitySummonListener.register()
             else
-                EntitySpawnListener.unregister()
+                EntitySummonListener.unregister()
         }
     }
 
@@ -162,7 +163,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             }
         })
         if (config.entityCulledByDefault)
-            EntitySpawnListener.register()
+            EntitySummonListener.register()
     }
 
     override fun onDisable() {
@@ -170,7 +171,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         coroutine?.close()
         coroutine = null
         lastThreads = 0
-        EntitySpawnListener.unregister()
+        EntitySummonListener.unregister()
     }
 
     private fun start() {
@@ -226,7 +227,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         coroutine = context
     }
 
-    object EntitySpawnListener : Listener {
+    object EntitySummonListener : Listener {
 
         private val levelHandler by Versioned(LevelHandler::class.java)
 
@@ -243,6 +244,28 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 if (bukkit.checkTickThread()) {
                     CullDataManager[bukkit].setCulled(event.entity, entity.id, true, pend = false)
                     bukkit.hideEntity(bootstrap, event.entity)
+                }
+            }
+        }
+
+        @EventHandler
+        fun onChunkLoad(event: ChunkLoadEvent) {
+            for (player in event.world.players) {
+                val viewDistance = player.viewDistance + 2
+                val playerChunk = player.chunk
+
+                if (abs(event.chunk.x - playerChunk.x) > viewDistance
+                    || abs(event.chunk.z - playerChunk.z) > viewDistance
+                    || !player.checkTickThread()
+                ) {
+                    continue
+                }
+
+                val cullData = CullDataManager[player]
+                for (entity in event.chunk.entities) {
+                    cullData.setCulled(entity, entity.entityId, true, pend = false)
+                    @Suppress("DEPRECATION") // Stable API
+                    player.hideEntity(bootstrap, entity)
                 }
             }
         }
