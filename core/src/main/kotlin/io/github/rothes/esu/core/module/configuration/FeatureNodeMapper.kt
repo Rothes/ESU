@@ -16,12 +16,12 @@ class FeatureNodeMapper(
     private fun <C, L> load(feature: Feature<C, L>, node: ConfigurationNode, key: String) {
         when (targetClass) {
             TargetClass.CONFIG -> {
-                val instance = node.require(feature.configClass)
+                val instance = node.getInstance(feature.configClass)
                 node.set(instance)
                 feature.setConfigInstance(instance)
             }
             TargetClass.LANG -> {
-                val instance = node.require(feature.langClass)
+                val instance = node.getInstance(feature.langClass)
                 node.set(instance)
                 val map = feature.lang.configs as MutableMap
                 map[key] = instance
@@ -44,6 +44,15 @@ class FeatureNodeMapper(
             }
             load(child, node.node(path), key)
         }
+    }
+
+    private fun <T> ConfigurationNode.getInstance(clazz: Class<T>): T {
+        return if (clazz.isInstance(EmptyConfiguration))
+            clazz.cast(EmptyConfiguration)
+        else if (clazz.isInstance(Unit))
+            clazz.cast(Unit)
+        else
+            require(clazz)
     }
 
     enum class TargetClass {
