@@ -19,9 +19,13 @@ class ReflectTransformer(
         val reader = ClassReader(entry.data)
         val classNode = ClassNode()
         reader.accept(classNode, 0)
+        var modified = false
         for (method in classNode.methods) {
-            handleMethod(method)
+            modified = modified || handleMethod(method)
         }
+        if (!modified)
+            return entry
+
         val writer = ClassWriter(0)
         classNode.accept(writer)
 
@@ -32,7 +36,8 @@ class ReflectTransformer(
             Transformer.ClassEntry.create(entry.name, entry.time, data)
     }
 
-    private fun handleMethod(method: MethodNode) {
+    private fun handleMethod(method: MethodNode): Boolean {
+        var modified = false
         val instructions = method.instructions.toArray()
         for (i in 0 until instructions.size - 3) {
             if ((instructions[i].opcode and (Opcodes.INVOKEVIRTUAL or Opcodes.LDC) != 0)
@@ -60,8 +65,10 @@ class ReflectTransformer(
                 val iClass = mapping.getClass(clazz) ?: continue
                 val mapped = iClass.getField(field) ?: continue
                 fieldNode.cst = mapped.mapped
+                modified = true
             }
         }
+        return modified
     }
 
 }
