@@ -6,14 +6,15 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.Remapper
 import java.io.File
+import java.util.function.Consumer
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 class PackageRelocator(
     relocates: Map<String, String>,
-    val logger: (String) -> Unit = { EsuBootstrap.instance.info("[Relocator] $it") },
-    val err: (String) -> Unit = { EsuBootstrap.instance.err("[Relocator] $it") },
+    val logger: Consumer<String> = Consumer { EsuBootstrap.instance.info("[Relocator] $it") },
+    val err: Consumer<String> = Consumer { EsuBootstrap.instance.err("[Relocator] $it") },
 ) {
 
     constructor(
@@ -31,7 +32,7 @@ class PackageRelocator(
 
     fun relocate(input: File, output: File) {
         val start = System.currentTimeMillis()
-        logger("Relocating $input to $output")
+        logger.accept("Relocating $input to $output")
         val entries = buildList {
             ZipFile(input).use { file ->
                 for (e in file.entries().iterator()) {
@@ -60,7 +61,7 @@ class PackageRelocator(
                     ClassEntry("$newName.class", entry.time, data)
                 } catch (e: Exception) {
                     // Likely Unsupported class file major version error, not a thing.
-                    err("Failed to relocate ${entry.className}: $e")
+                    err.accept("Failed to relocate ${entry.className}: $e")
                     entry
                 }
             } else {
@@ -98,7 +99,7 @@ class PackageRelocator(
                 }
             }
         }
-        logger("Relocate done in ${System.currentTimeMillis() - start}ms")
+        logger.accept("Relocate done in ${System.currentTimeMillis() - start}ms")
     }
 
     private open class Entry(
