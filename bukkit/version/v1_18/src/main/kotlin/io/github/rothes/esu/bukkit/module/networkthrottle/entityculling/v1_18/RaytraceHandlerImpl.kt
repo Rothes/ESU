@@ -46,6 +46,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
+import org.spigotmc.TrackingRange
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
@@ -276,8 +277,6 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     }
 
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
-        val viewDistanceSquared = bukkit.viewDistance.square() shl 8
-
         val predicatedPlayerPos = if (userCullData.shouldCull && config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
             if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
@@ -308,8 +307,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
             if (entity == player) continue
+
+            // Get tracking range for this entity type, adding extra 1 chunk to it.
+            val range = (TrackingRange.getEntityTrackingRange(entity, entity.type.clientTrackingRange() shl 4) + 16).square()
             val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
-            if (dist > viewDistanceSquared) continue
+            if (dist > range) continue
 
             tickedEntities++
 
