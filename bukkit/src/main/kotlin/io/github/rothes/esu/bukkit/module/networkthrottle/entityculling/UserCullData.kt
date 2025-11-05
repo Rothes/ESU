@@ -21,6 +21,8 @@ class UserCullData(
     private var isRemoved = false
     private var terminated = false
 
+    var shouldCull = true
+
     fun setCulled(entity: Entity, entityId: Int, culled: Boolean, pend: Boolean = true) {
         if (culled) {
             synchronized(hiddenEntities) {

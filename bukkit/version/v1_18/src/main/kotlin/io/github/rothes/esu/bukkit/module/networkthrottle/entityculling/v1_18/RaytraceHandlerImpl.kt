@@ -241,8 +241,10 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 if (entity == player) continue
                 val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
                 if (dist > viewDistanceSquared) continue
+                val cullData = CullDataManager[bukkit]
+                if (!cullData.shouldCull) continue
                 if (bukkit.checkTickThread()) {
-                    CullDataManager[bukkit].setCulled(event.entity, entity.id, true, pend = false)
+                    cullData.setCulled(event.entity, entity.id, true, pend = false)
                     bukkit.hideEntity(bootstrap, event.entity)
                 }
             }
@@ -262,6 +264,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 }
 
                 val cullData = CullDataManager[player]
+                if (!cullData.shouldCull) continue
                 for (entity in event.chunk.entities) {
                     cullData.setCulled(entity, entity.entityId, true, pend = false)
                     @Suppress("DEPRECATION") // Stable API
@@ -275,7 +278,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
         val viewDistanceSquared = bukkit.viewDistance.square() shl 8
 
-        val predicatedPlayerPos = if (config.predicatePlayerPositon) {
+        val predicatedPlayerPos = if (userCullData.shouldCull && config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
             if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
                 var x = player.x
@@ -299,6 +302,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             } else null
         } else null
 
+        var tickedEntities = 0
+
         // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
@@ -306,7 +311,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
             if (dist > viewDistanceSquared) continue
 
-            if (entity.isCurrentlyGlowing
+            tickedEntities++
+
+            if (
+                !userCullData.shouldCull
+                || entity.isCurrentlyGlowing
                 || config.visibleEntityTypes.contains(entity.type)
                 || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
             ) {
@@ -316,6 +325,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
             userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
         }
+        userCullData.shouldCull = tickedEntities >= config.cullThreshold
         userCullData.tick()
     }
 
@@ -554,6 +564,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             Requires Minecraft 1.21+ for client movement velocity.
         """)
         val predicatePlayerPositon: Boolean = true,
+        @Comment("""
+            Player must can see this amount of entities before we start culling for them.
+            Set -1 to always do culling.
+        """)
+        val cullThreshold: Int = -1,
     ): ConfigurationPart
 
 }
