@@ -236,7 +236,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
             for (player in level.players()) {
                 val bukkit = player.bukkitEntity
                 val viewDistanceSquared = bukkit.viewDistance.square() shl 8
-                if (entity == player) continue
+                if (entity === player) continue
                 val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
                 if (dist > viewDistanceSquared) continue
                 val cullData = CullDataManager[bukkit]
@@ -305,7 +305,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
-            if (entity == player) continue
+            if (entity === player) continue
 
             // Get tracking range for this entity type, adding extra 1 chunk to it.
             val typeRange = (TrackingRange.getEntityTrackingRange(entity, entity.type.clientTrackingRange() shl 4) + 16).square()
