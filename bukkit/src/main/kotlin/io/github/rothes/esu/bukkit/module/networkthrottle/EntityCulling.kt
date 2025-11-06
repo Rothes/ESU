@@ -8,7 +8,7 @@ import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryValueSerializers
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
@@ -28,7 +28,7 @@ import org.bukkit.event.player.PlayerTeleportEvent
 object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfiguration>() {
 
     private val raytraceHandler =
-        if (RegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18".toVersion())
+        if (MCRegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18".toVersion())
             RaytraceHandler::class.java.versioned().also {
                 registerFeature(it)
                 CullDataManager.raytraceHandler = it

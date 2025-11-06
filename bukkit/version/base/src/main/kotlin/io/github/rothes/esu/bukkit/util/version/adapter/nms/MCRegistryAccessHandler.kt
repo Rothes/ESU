@@ -5,7 +5,7 @@ import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 
-interface RegistryAccessHandler {
+interface MCRegistryAccessHandler {
 
     fun getServerRegistryAccess(): RegistryAccess
 

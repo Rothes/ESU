@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.configuration
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryAccessHandler
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 import io.leangen.geantyref.TypeToken
 import net.minecraft.core.Registry
@@ -11,14 +11,14 @@ import java.lang.reflect.Type
 import java.util.function.Predicate
 
 class RegistryValueSerializer<T: Any>(
-    val accessHandler: RegistryAccessHandler,
+    val accessHandler: MCRegistryAccessHandler,
     val registryKey: ResourceKey<out Registry<T>>,
     clazz: TypeToken<T>,
     registryAccess: RegistryAccess = accessHandler.getServerRegistryAccess(),
 ): ScalarSerializer<T>(clazz) {
 
     constructor(
-        accessHandler: RegistryAccessHandler,
+        accessHandler: MCRegistryAccessHandler,
         registryKey: ResourceKey<out Registry<T>>,
         clazz: Class<T>,
         registryAccess: RegistryAccess = accessHandler.getServerRegistryAccess(),

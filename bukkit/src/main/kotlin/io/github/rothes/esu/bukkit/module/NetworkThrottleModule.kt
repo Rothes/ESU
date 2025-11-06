@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.*
 import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.RegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryValueSerializers
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
@@ -15,7 +15,7 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         registerFeature(ChunkDataThrottle)
         registerFeature(EntityCulling)
         registerFeature(DynamicChunkSendRate)
-        if (RegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
+        if (MCRegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
         registerFeature(HighLatencyAdjust)
         registerFeature(SkipUnnecessaryPackets)
     }
@@ -33,11 +33,11 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
     }
 
     override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
-        if (RegistryValueSerializers.isSupported) {
+        if (MCRegistryValueSerializers.isSupported) {
             builder.defaultOptions { options ->
                 options.serializers { builder ->
                     builder.register(
-                        RegistryValueSerializers.instance.entityType
+                        MCRegistryValueSerializers.instance.entityType
                     )
                 }
             }
