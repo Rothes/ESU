@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.command
 
 import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.command.parser.MCRegistryValueParsers
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
@@ -46,6 +47,12 @@ class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
         parserRegistry().registerParser(UserParser.parser())
         parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
         EsuExceptionHandlers(exceptionController()).register()
+
+        if (MCRegistryValueParsers.isSupported) {
+            for (parser in MCRegistryValueParsers.all<User>()) {
+                parserRegistry().registerParser(parser)
+            }
+        }
     }
 
     override fun hasCapability(capability: CloudCapability): Boolean {
