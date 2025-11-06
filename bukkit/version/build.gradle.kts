@@ -50,4 +50,21 @@ subprojects {
             )
         }
     }
+
+    if (isBase) {
+        publishing {
+            repositories {
+                mavenLocal()
+            }
+            publications {
+                create<MavenPublication>("mavenJar") {
+                    from(components["java"])
+
+                    artifactId = "bukkit-version-${project.name}"
+                    groupId = project.group as String?
+                    version = project.version as String?
+                }
+            }
+        }
+    }
 }
