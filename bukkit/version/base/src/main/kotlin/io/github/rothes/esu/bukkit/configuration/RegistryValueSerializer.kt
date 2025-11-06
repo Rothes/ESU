@@ -4,7 +4,6 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryAccessHand
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 import io.leangen.geantyref.TypeToken
 import net.minecraft.core.Registry
-import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import java.lang.reflect.Type
@@ -12,26 +11,19 @@ import java.util.function.Predicate
 
 class RegistryValueSerializer<T: Any>(
     val accessHandler: MCRegistryAccessHandler,
-    val registryKey: ResourceKey<out Registry<T>>,
-    clazz: TypeToken<T>,
-    registryAccess: RegistryAccess = accessHandler.getServerRegistryAccess(),
-): ScalarSerializer<T>(clazz) {
+    registryKey: ResourceKey<out Registry<T>>,
+    type: TypeToken<T>,
+): ScalarSerializer<T>(type) {
 
-    constructor(
-        accessHandler: MCRegistryAccessHandler,
-        registryKey: ResourceKey<out Registry<T>>,
-        clazz: Class<T>,
-        registryAccess: RegistryAccess = accessHandler.getServerRegistryAccess(),
-    ): this(accessHandler, registryKey, TypeToken.get(clazz), registryAccess)
+    constructor(accessHandler: MCRegistryAccessHandler, registryKey: ResourceKey<out Registry<T>>, clazz: Class<T>): this(accessHandler, registryKey, TypeToken.get(clazz))
 
-    val registry = accessHandler.getRegistryOrThrow(registryAccess, registryKey)
+    val registry = accessHandler.getRegistryOrThrow(accessHandler.getServerRegistryAccess(), registryKey)
 
     override fun deserialize(type: Type?, obj: Any?): T? {
         val key = ResourceLocation.tryParse(obj.toString().lowercase()) ?: let {
             IllegalArgumentException("Failed to parse $obj to ResourceLocation, ignored.").printStackTrace()
             return null
         }
-        ResourceKey.create(this.registryKey, key)
         return accessHandler.getNullable(registry, key)
     }
 
