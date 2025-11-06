@@ -251,15 +251,12 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         @EventHandler
         fun onChunkLoad(event: ChunkLoadEvent) {
             for (player in event.world.players) {
+                if (!player.checkTickThread()) continue
                 val viewDistance = player.viewDistance + 2
                 val playerChunk = player.chunk
 
-                if (abs(event.chunk.x - playerChunk.x) > viewDistance
-                    || abs(event.chunk.z - playerChunk.z) > viewDistance
-                    || !player.checkTickThread()
-                ) {
+                if (abs(event.chunk.x - playerChunk.x) > viewDistance || abs(event.chunk.z - playerChunk.z) > viewDistance)
                     continue
-                }
 
                 val cullData = CullDataManager[player]
                 if (!cullData.shouldCull) continue
