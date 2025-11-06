@@ -24,7 +24,10 @@ class RegistryValueSerializer<T: Any>(
             IllegalArgumentException("Failed to parse $obj to ResourceLocation, ignored.").printStackTrace()
             return null
         }
-        return accessHandler.getNullable(registry, key)
+        return accessHandler.getNullable(registry, key) ?: let {
+            IllegalArgumentException("Key $obj is not in the registry $registry, ignored.").printStackTrace()
+            null
+        }
     }
 
     override fun serialize(item: T, typeSupported: Predicate<Class<*>?>?): Any? {
