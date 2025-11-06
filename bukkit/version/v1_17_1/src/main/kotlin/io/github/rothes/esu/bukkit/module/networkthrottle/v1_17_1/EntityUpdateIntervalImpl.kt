@@ -1,11 +1,14 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.v1_17_1
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.EntityUpdateInterval
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UnsafeUtils.usIntAccessor
 import net.minecraft.server.level.ServerEntity
 import net.minecraft.world.entity.EntityType
+import org.incendo.cloud.annotations.Command
 
 class EntityUpdateIntervalImpl: EntityUpdateInterval<EntityUpdateIntervalImpl.FeatureConfig, Unit>() {
 
@@ -23,6 +26,15 @@ class EntityUpdateIntervalImpl: EntityUpdateInterval<EntityUpdateIntervalImpl.Fe
 
     override fun onEnable() {
         applyUpdateInterval()
+
+        registerCommands(object {
+            @Command("esu networkThrottle entityUpdateInterval entityType <entityType>")
+            @ShortPerm
+            fun getUpdateInterval(sender: User, entityType: EntityType<*>) {
+                val interval = entityTypeAccessor[entityType]
+                sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
+            }
+        })
     }
 
     private fun applyUpdateInterval() {
