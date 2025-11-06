@@ -17,8 +17,8 @@ class MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
         return registryAccess.registryOrThrow(registryKey)
     }
 
-    override fun <T> get(registry: Registry<T>, resource: ResourceLocation): T? {
-        return registry.get(resource)
+    override fun <T> getNullable(registry: Registry<T>, resource: ResourceLocation): T? {
+        return registry.getOptional(resource).orElse(null)
     }
 
     override fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T> {

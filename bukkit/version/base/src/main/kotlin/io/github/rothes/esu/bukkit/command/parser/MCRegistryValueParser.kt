@@ -21,7 +21,7 @@ class MCRegistryValueParser<C, T>(
         val input = commandInput.readString()
 
         val key = ResourceLocation.tryParse(input.lowercase()) ?: return ArgumentParseResult.failure(unknownKey(input))
-        val value = accessHandler.get(registry, key) ?: return ArgumentParseResult.failure(unknownKey(input))
+        val value = accessHandler.getNullable(registry, key) ?: return ArgumentParseResult.failure(unknownKey(input))
         return ArgumentParseResult.success(value)
     }
 

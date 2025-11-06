@@ -11,7 +11,7 @@ interface MCRegistryAccessHandler {
 
     fun <T> getRegistryOrThrow(registryAccess: RegistryAccess, registryKey: ResourceKey<out Registry<T>>): Registry<T>
 
-    fun <T> get(registry: Registry<T>, resource: ResourceLocation): T?
+    fun <T> getNullable(registry: Registry<T>, resource: ResourceLocation): T?
 
     fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T>
 

@@ -32,7 +32,7 @@ class RegistryValueSerializer<T: Any>(
             return null
         }
         ResourceKey.create(this.registryKey, key)
-        return accessHandler.get(registry, key)
+        return accessHandler.getNullable(registry, key)
     }
 
     override fun serialize(item: T, typeSupported: Predicate<Class<*>?>?): Any? {
