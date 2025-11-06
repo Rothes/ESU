@@ -44,6 +44,12 @@ allprojects {
         compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
+    kotlin {
+        compilerOptions {
+            freeCompilerArgs.add("-java-parameters") // Fix cloud-annotations
+        }
+    }
+
 }
 
 dependencies {
@@ -78,12 +84,6 @@ dependencies {
     compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
 
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-java-parameters") // Fix cloud-annotations
-    }
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
