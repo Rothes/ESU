@@ -48,7 +48,7 @@ abstract class GitCommand : ValueSource<String, GitCommand.GitCommandParameters>
             throw RuntimeException("""
                 Failed to run git command ${parameters.arg.get()}
                 Output:
-                ${output.toString(Charsets.UTF_8)}
+                ${output.toString(Charsets.UTF_8).trimIndent()}
             """.trimIndent(), e)
         }
 
