@@ -215,7 +215,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     }
                 }.joinAll()
                 val elapsed = System.currentTimeMillis() - millis
-                val delay = millisBetweenUpdates - elapsed
+                val delay = (millisBetweenUpdates - elapsed).coerceAtLeast(1)
                 previousElapsedTime = elapsed
                 previousDelayTime = delay
                 delay(delay)
