@@ -46,10 +46,12 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
-import org.spigotmc.TrackingRange
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.sign
+import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
 
 class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
@@ -273,7 +275,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
 
-        val predicatedPlayerPos = if (userCullData.shouldCull && config.predicatePlayerPositon) {
+        val shouldCull = userCullData.shouldCull
+        val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
             if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
                 var x = player.x
@@ -303,17 +306,13 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
             if (entity === player) continue
-
-            // Get tracking range for this entity type, adding extra 1 chunk to it.
-            val typeRange = (TrackingRange.getEntityTrackingRange(entity, entity.type.clientTrackingRange() shl 4) + 16).square()
-            val finalRange = min(typeRange, viewDistanceSquared)
             val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
-            if (dist > finalRange) continue
+            if (dist > viewDistanceSquared) continue
 
             tickedEntities++
 
             if (
-                !userCullData.shouldCull
+                !shouldCull
                 || entity.isCurrentlyGlowing
                 || config.visibleEntityTypes.contains(entity.type)
                 || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
