@@ -284,7 +284,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 var vy = velocity.y
                 var vz = velocity.z
 
-                for (i in 0 until 2) {
+                for (i in 0 until 3) {
                     x += vx
                     y += vy
                     z += vz
