@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
@@ -23,7 +22,7 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
 
     override val isOnline: Boolean = false
 
-    override fun <T : ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a GenericUser")
     }
 

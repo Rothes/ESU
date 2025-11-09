@@ -3,7 +3,6 @@ package io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
@@ -64,7 +63,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T : ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
             ColorSchemes.schemes.get(colorScheme) { tagResolver }!!).server)
     }

@@ -2,7 +2,6 @@ package io.github.rothes.esu.core.user
 
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
@@ -72,7 +71,7 @@ interface User {
         return localedOrNull(langMap) { it }
     }
 
-    fun <T: ConfigurationPart, R> localedOrNull(locales: MultiLangConfiguration<T>, block: T.() -> R?): R? {
+    fun <T, R> localedOrNull(locales: MultiLangConfiguration<T>, block: T.() -> R?): R? {
         return localedOrNull(locales.configs, block)
     }
 
@@ -84,7 +83,7 @@ interface User {
         return localed(langMap) { it }
     }
 
-    fun <T: ConfigurationPart, R> localed(locales: MultiLangConfiguration<T>, block: T.() -> R?): R {
+    fun <T, R> localed(locales: MultiLangConfiguration<T>, block: T.() -> R?): R {
         return localedOrNull(locales, block) ?: throw NullPointerException()
     }
 
@@ -92,19 +91,19 @@ interface User {
     @OverloadResolutionByLambdaReturnType
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("sendMessage")
-    fun <T: ConfigurationPart> message(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver) {
+    fun <T> message(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver) {
         val messageData = localed(locales, block)
         message(messageData, params = params)
     }
 
-    fun <T: ConfigurationPart> message(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    fun <T> message(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         message(buildMiniMessage(locales, block, params = params))
     }
     fun miniMessage(message: String, vararg params: TagResolver) {
         message(buildMiniMessage(message, params = params))
     }
 
-    fun <T: ConfigurationPart> buildMiniMessage(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
+    fun <T> buildMiniMessage(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
         return buildMiniMessage(localed(locales, block), params = params)
     }
     fun buildMiniMessage(message: String, vararg params: TagResolver): Component {
@@ -143,7 +142,7 @@ interface User {
         audience.sendMessage(message)
     }
 
-    fun <T: ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
+    fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
 
     fun actionBar(message: Component) {
         audience.sendActionBar(message)

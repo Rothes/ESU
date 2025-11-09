@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
@@ -33,7 +32,7 @@ object ConsoleUser: BukkitUser(), LogUser {
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T : ConfigurationPart> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
     }
 
