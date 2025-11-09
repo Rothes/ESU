@@ -277,7 +277,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     }
 
-    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity>) {
+    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity?>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
 
         val shouldCull = userCullData.shouldCull
@@ -310,7 +310,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
         // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
         for (entity in entities) {
-            if (entity === player) continue
+            if (entity == null || entity === player) continue // May occur entity null on Paper 1.20.1
             val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
             if (dist > viewDistanceSquared) continue
 
