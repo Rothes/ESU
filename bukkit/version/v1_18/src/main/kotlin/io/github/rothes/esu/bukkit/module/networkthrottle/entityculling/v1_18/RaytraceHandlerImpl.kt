@@ -426,7 +426,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 if (chunkDiff or sectionDiff != 0) {
                     if (chunkDiff != 0) {
                         // If chunk is not loaded, consider blocked (Player should not see the entity either!)
-                        chunkSections = level.getChunkIfLoaded(newChunkX, newChunkZ)?.sections ?: return true
+                        val chunk = level.getChunkIfLoaded(newChunkX, newChunkZ) ?: return true
+                        chunkSections = chunk.sections
                     }
                     val sectionIndex = newChunkY - minSection
                     if (sectionIndex !in (0 until chunkSections.size)) continue
@@ -507,7 +508,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
                 if ((chunkDiff or chunkYDiff) != 0) {
                     if (chunkDiff != 0) {
-                        chunkSections = level.getChunkIfLoaded(newChunkX, newChunkZ)?.sections ?: return true
+                        val chunk = level.getChunkIfLoaded(newChunkX, newChunkZ) ?: return true
+                        chunkSections = chunk.sections
                     }
                     val sectionIndex = newChunkY - minSection
                     section = if (sectionIndex in (0 until chunkSections.size)) chunkSections[sectionIndex].states else null
