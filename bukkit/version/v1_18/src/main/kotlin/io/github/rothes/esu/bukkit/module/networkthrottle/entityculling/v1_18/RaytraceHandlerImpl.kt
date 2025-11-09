@@ -18,7 +18,6 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
@@ -550,13 +549,11 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
-        @RenamedFrom("./raytrace-threads")
         val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
         @Comment("""
             Max updates for each player per second.
             More means greater immediacy, but also higher cpu usage.
         """)
-        @RenamedFrom("./updates-per-second")
         val updatesPerSecond: Int = 15,
         @Comment("""
             Enabling fast-raytrace uses fixed-distance steps, which calculates nearly 100% faster, but
