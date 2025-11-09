@@ -22,6 +22,7 @@ import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -32,6 +33,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
 import net.minecraft.world.level.chunk.PalettedContainer
@@ -63,6 +65,9 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
         val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
         val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
+
+        private val shapedOcclusion = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("useShapeForLightOcclusion").usBooleanAccessor
+        private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
     }
 
     private var forceVisibleDistanceSquared = 0.0
@@ -425,10 +430,8 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
             if (section != null) { // It can never be null, but we don't want the kotlin npe check!
                 val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-//                blockState.`moonrise$getTableIndex`()
-                if (!blockState.isAir && blockState.bukkitMaterial.isOccluding) {
+                if (!shapedOcclusion[blockState] && canOcclude[blockState])
                     return true
-                }
             }
         }
         return false
