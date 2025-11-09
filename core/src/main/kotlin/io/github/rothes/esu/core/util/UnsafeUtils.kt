@@ -50,6 +50,8 @@ object UnsafeUtils {
     val Field.usNullableObjAccessor
         get() = UnsafeNullableObjAccessor(this)
 
+    val Field.usBoolAccessor
+        get() = UnsafeBoolAccessor(this)
     val Field.usIntAccessor
         get() = UnsafeIntAccessor(this)
     val Field.usLongAccessor
@@ -78,6 +80,11 @@ object UnsafeUtils {
     class UnsafeNullableObjAccessor(field: Field): UnsafeFieldAccessor(field) {
         operator fun get(obj: Any?): Any? = unsafe.getObject(obj, offset)
         operator fun set(obj: Any?, value: Any?) = unsafe.putObject(obj, offset, value)
+    }
+
+    class UnsafeBoolAccessor(field: Field): UnsafeFieldAccessor(field) {
+        operator fun get(obj: Any?): Boolean = unsafe.getBoolean(obj, offset)
+        operator fun set(obj: Any?, value: Boolean) = unsafe.putBoolean(obj, offset, value)
     }
 
     class UnsafeIntAccessor(field: Field): UnsafeFieldAccessor(field) {
