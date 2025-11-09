@@ -39,6 +39,7 @@ object AutoBroadcastModule: CommonModule<AutoBroadcastModule.ModuleConfig, AutoB
             scope.launch {
                 var i = 0
                 while (isActive) {
+                    delay(broadcast.interval.toKotlinDuration())
                     val key = broadcast.messages[i++]
                     if (i >= broadcast.messages.size) {
                         i = 0
@@ -46,7 +47,6 @@ object AutoBroadcastModule: CommonModule<AutoBroadcastModule.ModuleConfig, AutoB
                     for (user in UserManager.instance.getUsers()) {
                         user.message(user.localedOrNull(lang) { broadcastMessage[key] } ?: key.message)
                     }
-                    delay(broadcast.interval.toKotlinDuration())
                 }
             }
         }
