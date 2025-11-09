@@ -27,7 +27,14 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
     final override val configClass: Class<C>
     final override val langClass: Class<L>
     init {
-        val actualTypeArguments = (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments
+        var clazz: Class<*> = javaClass
+        while (clazz.genericSuperclass !is ParameterizedType) {
+            clazz = clazz.superclass
+            if (clazz === Object::class.java) {
+                error("Cannot find config/lang classes of feature $name")
+            }
+        }
+        val actualTypeArguments = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments
         @Suppress("UNCHECKED_CAST")
         configClass = actualTypeArguments[0] as Class<C>
         @Suppress("UNCHECKED_CAST")
