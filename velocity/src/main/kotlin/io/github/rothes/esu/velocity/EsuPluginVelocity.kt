@@ -12,6 +12,7 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import io.github.rothes.esu.common.HotLoadSupport
+import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.command.EsuExceptionHandlers
@@ -98,6 +99,7 @@ class EsuPluginVelocity(
 
         ServerHotLoadSupport(enabledHot).onEnable()
 
+        ModuleManager.addModule(AutoBroadcastModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(UserNameVerifyModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)

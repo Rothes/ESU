@@ -14,6 +14,7 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
+import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -98,6 +99,7 @@ class EsuPluginBukkit(
 
         Bukkit.getOnlinePlayers().forEach { it.user }
 
+        ModuleManager.addModule(AutoBroadcastModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(BlockedCommandsModule)
