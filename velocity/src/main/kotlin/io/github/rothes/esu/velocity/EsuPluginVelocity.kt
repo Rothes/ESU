@@ -26,6 +26,7 @@ import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
+import io.github.rothes.esu.velocity.module.AutoRestartModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
@@ -100,6 +101,7 @@ class EsuPluginVelocity(
         ServerHotLoadSupport(enabledHot).onEnable()
 
         ModuleManager.addModule(AutoBroadcastModule)
+        ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(NetworkThrottleModule)
         ModuleManager.addModule(UserNameVerifyModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
