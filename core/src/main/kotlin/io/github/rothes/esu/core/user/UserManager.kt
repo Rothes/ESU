@@ -11,6 +11,8 @@ abstract class UserManager<T, R: User> {
     private val byUuid = hashMapOf<UUID, R>()
     private val lock = ReentrantReadWriteLock()
 
+    fun getUsers(): Iterable<R> = lock.read { byUuid.values }
+
     protected fun set(uuid: UUID, value: R) = lock.write { byUuid.put(uuid, value) }
 
     abstract operator fun get(native: T): R
