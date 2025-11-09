@@ -86,7 +86,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     override fun onEntityRemove(entity: org.bukkit.entity.Entity) {
         synchronized(removedEntities) {
-            removedEntities.add(entity.entityId)
+            removedEntities.add(entityHandleGetter.getHandle(entity).id)
         }
     }
 
