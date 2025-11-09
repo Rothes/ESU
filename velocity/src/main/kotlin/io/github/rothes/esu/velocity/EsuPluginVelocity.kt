@@ -6,7 +6,6 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
-import com.velocitypowered.api.event.connection.PreLoginEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.proxy.ConsoleCommandSource
@@ -90,10 +89,12 @@ class EsuPluginVelocity(
 
     fun onProxyInitialization() {
         EsuConfig           // Load global config
-        VelocityEsuLang   // Load global locale
+        VelocityEsuLang     // Load global locale
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
+
+        server.allPlayers.forEach { it.user }
 
         ServerHotLoadSupport(enabledHot).onEnable()
 
@@ -175,11 +176,6 @@ class EsuPluginVelocity(
         } catch (t: Throwable) {
             err("An exception occurred while shutting down coroutine: $t")
         }
-    }
-
-    @Subscribe(order = PostOrder.LAST)
-    fun onLogin(event: PreLoginEvent) {
-        event.uniqueId?.let { VelocityUserManager[it] }
     }
 
     @Subscribe(order = PostOrder.LAST)
