@@ -24,12 +24,12 @@ import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
+import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
@@ -70,6 +70,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
     }
 
+    private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
     private var millisBetweenUpdates = 50
 
@@ -105,18 +106,12 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         forceVisibleDistanceSquared = config.forceVisibleDistance * config.forceVisibleDistance
         millisBetweenUpdates = 1000 / config.updatesPerSecond
         if (enabled) {
-            if (lastThreads != config.raytraceThreads) {
-                start()
-            }
-            if (config.entityCulledByDefault)
-                EntitySummonListener.register()
-            else
-                EntitySummonListener.unregister()
+            init()
         }
     }
 
     override fun onEnable() {
-        start()
+        init()
         registerCommands(object {
             @Command("esu networkThrottle entityCulling benchmark")
             @ShortPerm
@@ -145,7 +140,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                             val job = launch(coroutine) {
                                 var i = 0
                                 while (isActive) {
-                                    raytraceStep(from, data[i++], level)
+                                    raytracer.raytrace(from, data[i++], level)
                                     if (i == maxI) i = 0
                                     count.incrementAndGet()
                                 }
@@ -167,8 +162,6 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                 sender.message("Previous elapsedTime: ${previousElapsedTime}ms ; delayTime: ${previousDelayTime}ms")
             }
         })
-        if (config.entityCulledByDefault)
-            EntitySummonListener.register()
     }
 
     override fun onDisable() {
@@ -179,18 +172,28 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         EntitySummonListener.unregister()
     }
 
-    private fun start() {
+    private fun init() {
+        val config = config
+        if (lastThreads != config.raytraceThreads)
+            startThread()
+        raytracer = if (config.fastRaytrace) StepRayTracer else DDARayTracer
+        if (config.entityCulledByDefault)
+            EntitySummonListener.register()
+        else
+            EntitySummonListener.unregister()
+    }
+
+    private fun startThread() {
         coroutine?.close()
         val nThreads = config.raytraceThreads
 
         val name = "ESU-EntityCulling"
         val threadNo = AtomicInteger()
         val executor = Executors.newScheduledThreadPool(nThreads) { runnable ->
-            Thread(runnable, if (nThreads == 1) name else name + "-" + threadNo.incrementAndGet())
-                .apply {
-                    priority = Thread.NORM_PRIORITY - 1
-                    isDaemon = true
-                }
+            Thread(runnable, if (nThreads == 1) name else name + "-" + threadNo.incrementAndGet()).apply {
+                priority = Thread.NORM_PRIORITY - 1
+                isDaemon = true
+            }
         }
         val context = Executors.unconfigurableExecutorService(executor).asCoroutineDispatcher()
         CoroutineScope(context).launch {
@@ -362,13 +365,13 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         )
 
         for (vec3 in vertices) {
-            if (!raytraceStep(from, vec3, level)) {
+            if (!raytracer.raytrace(from, vec3, level)) {
                 return false
             }
         }
         if (predPlayer != null) {
             for (vec3 in vertices) {
-                if (!raytraceStep(predPlayer, vec3, level)) {
+                if (!raytracer.raytrace(predPlayer, vec3, level)) {
                     return false
                 }
             }
@@ -376,164 +379,169 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         return true
     }
 
-    fun raytraceStep(from: Vec3, to: Vec3, level: Level): Boolean {
-        var stepX = to.x - from.x
-        var stepY = to.y - from.y
-        var stepZ = to.z - from.z
-
-        var x = from.x
-        var y = from.y
-        var z = from.z
-
-        val length = sqrt(stepX.square() + stepY.square() + stepZ.square())
-
-        stepX /= length
-        stepY /= length
-        stepZ /= length
-
-        var chunkSections: Array<LevelChunkSection> = INIT_SECTION
-        var section: PalettedContainer<BlockState>? = null
-        var lastChunkX = Int.MIN_VALUE
-        var lastChunkY = Int.MIN_VALUE
-        var lastChunkZ = Int.MIN_VALUE
-        val minSection = level.dimensionType().minY() shr 4
-
-        for (i in 0 ..< length.toInt()) {
-            x += stepX
-            y += stepY
-            z += stepZ
-
-            val currX = x.floorI()
-            val currY = y.floorI()
-            val currZ = z.floorI()
-
-            val newChunkX = currX shr 4
-            val newChunkY = currY shr 4
-            val newChunkZ = currZ shr 4
-
-            val chunkDiff = (newChunkX xor lastChunkX) or (newChunkZ xor lastChunkZ)
-            val sectionDiff = newChunkY xor lastChunkY
-
-            if (chunkDiff or sectionDiff != 0) {
-                if (chunkDiff != 0) {
-                    // If chunk is not loaded, consider blocked (Player should not see the entity either!)
-                    chunkSections = level.getChunkIfLoaded(newChunkX, newChunkZ)?.sections ?: return true
-                }
-                val sectionIndex = newChunkY - minSection
-                if (sectionIndex !in (0 until chunkSections.size)) continue
-                section = chunkSections[sectionIndex].states
-
-                lastChunkX = newChunkX
-                lastChunkY = newChunkY
-                lastChunkZ = newChunkZ
-            }
-
-            if (section != null) { // It can never be null, but we don't want the kotlin npe check!
-                val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                if (!shapedOcclusion[blockState] && canOcclude[blockState])
-                    return true
-            }
-        }
-        return false
+    interface RayTracer {
+        fun raytrace(from: Vec3, to: Vec3, level: Level): Boolean
     }
 
-    fun raytraceDDA(from: Location, to: Location, level: Level): Boolean {
-        val adjX = COLLISION_EPSILON * (from.x - to.x)
-        val adjY = COLLISION_EPSILON * (from.y - to.y)
-        val adjZ = COLLISION_EPSILON * (from.z - to.z)
+    object StepRayTracer: RayTracer {
+        @Suppress("DuplicatedCode")
+        override fun raytrace(from: Vec3, to: Vec3, level: Level): Boolean {
+            var stepX = to.x - from.x
+            var stepY = to.y - from.y
+            var stepZ = to.z - from.z
 
-        if (adjX == 0.0 && adjY == 0.0 && adjZ == 0.0) {
+            var x = from.x
+            var y = from.y
+            var z = from.z
+
+            val length = sqrt(stepX.square() + stepY.square() + stepZ.square())
+
+            stepX /= length
+            stepY /= length
+            stepZ /= length
+
+            var chunkSections: Array<LevelChunkSection> = INIT_SECTION
+            var section: PalettedContainer<BlockState>? = null
+            var lastChunkX = Int.MIN_VALUE
+            var lastChunkY = Int.MIN_VALUE
+            var lastChunkZ = Int.MIN_VALUE
+            val minSection = level.dimensionType().minY() shr 4
+
+            for (i in 0 ..< length.toInt()) {
+                x += stepX
+                y += stepY
+                z += stepZ
+
+                val currX = x.floorI()
+                val currY = y.floorI()
+                val currZ = z.floorI()
+
+                val newChunkX = currX shr 4
+                val newChunkY = currY shr 4
+                val newChunkZ = currZ shr 4
+
+                val chunkDiff = (newChunkX xor lastChunkX) or (newChunkZ xor lastChunkZ)
+                val sectionDiff = newChunkY xor lastChunkY
+
+                if (chunkDiff or sectionDiff != 0) {
+                    if (chunkDiff != 0) {
+                        // If chunk is not loaded, consider blocked (Player should not see the entity either!)
+                        chunkSections = level.getChunkIfLoaded(newChunkX, newChunkZ)?.sections ?: return true
+                    }
+                    val sectionIndex = newChunkY - minSection
+                    if (sectionIndex !in (0 until chunkSections.size)) continue
+                    section = chunkSections[sectionIndex].states
+
+                    lastChunkX = newChunkX
+                    lastChunkY = newChunkY
+                    lastChunkZ = newChunkZ
+                }
+
+                if (section != null) { // It can never be null, but we don't want the kotlin npe check!
+                    val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
+                    if (!shapedOcclusion[blockState] && canOcclude[blockState])
+                        return true
+                }
+            }
             return false
         }
+    }
 
-        val toXAdj = to.x - adjX
-        val toYAdj = to.y - adjY
-        val toZAdj = to.z - adjZ
-        val fromXAdj = from.x + adjX
-        val fromYAdj = from.y + adjY
-        val fromZAdj = from.z + adjZ
+    object DDARayTracer: RayTracer {
+        @Suppress("DuplicatedCode")
+        override fun raytrace(from: Vec3, to: Vec3, level: Level): Boolean {
+            val adjX = COLLISION_EPSILON * (from.x - to.x)
+            val adjY = COLLISION_EPSILON * (from.y - to.y)
+            val adjZ = COLLISION_EPSILON * (from.z - to.z)
 
-        var currX = fromXAdj.floorI()
-        var currY = fromYAdj.floorI()
-        var currZ = fromZAdj.floorI()
-
-        val diffX = toXAdj - fromXAdj
-        val diffY = toYAdj - fromYAdj
-        val diffZ = toZAdj - fromZAdj
-
-        val dxDouble = sign(diffX)
-        val dyDouble = sign(diffY)
-        val dzDouble = sign(diffZ)
-
-        val dx = dxDouble.toInt()
-        val dy = dyDouble.toInt()
-        val dz = dzDouble.toInt()
-
-        val normalizedDiffX = if (diffX == 0.0) Double.MAX_VALUE else dxDouble / diffX
-        val normalizedDiffY = if (diffY == 0.0) Double.MAX_VALUE else dyDouble / diffY
-        val normalizedDiffZ = if (diffZ == 0.0) Double.MAX_VALUE else dzDouble / diffZ
-
-        var normalizedCurrX = normalizedDiffX * (if (diffX > 0.0) (1.0 - Mth.frac(fromXAdj)) else Mth.frac(fromXAdj))
-        var normalizedCurrY = normalizedDiffY * (if (diffY > 0.0) (1.0 - Mth.frac(fromYAdj)) else Mth.frac(fromYAdj))
-        var normalizedCurrZ = normalizedDiffZ * (if (diffZ > 0.0) (1.0 - Mth.frac(fromZAdj)) else Mth.frac(fromZAdj))
-
-        var lastChunk: Array<LevelChunkSection>? = null
-        var lastSection: PalettedContainer<BlockState>? = null
-        var lastChunkX = Int.MIN_VALUE
-        var lastChunkY = Int.MIN_VALUE
-        var lastChunkZ = Int.MIN_VALUE
-
-        val minSection = level.dimensionType().minY() shr 4
-
-        while (true) {
-            val newChunkX = currX shr 4
-            val newChunkY = currY shr 4
-            val newChunkZ = currZ shr 4
-
-            val chunkDiff = ((newChunkX xor lastChunkX) or (newChunkZ xor lastChunkZ))
-            val chunkYDiff = newChunkY xor lastChunkY
-
-            if ((chunkDiff or chunkYDiff) != 0) {
-                if (chunkDiff != 0) {
-                    lastChunk = level.getChunk(newChunkX, newChunkZ).getSections()
-                }
-                val sectionY = newChunkY - minSection
-                lastSection = if (sectionY >= 0 && sectionY < lastChunk!!.size) lastChunk[sectionY].states else null
-
-                lastChunkX = newChunkX
-                lastChunkY = newChunkY
-                lastChunkZ = newChunkZ
-            }
-
-            if (lastSection != null) {
-                val blockState = lastSection.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                if (!blockState.isAir && blockState.bukkitMaterial.isOccluding) {
-                    return true
-                }
-            }
-
-            if (normalizedCurrX > 1.0 && normalizedCurrY > 1.0 && normalizedCurrZ > 1.0) {
+            if (adjX == 0.0 && adjY == 0.0 && adjZ == 0.0) {
                 return false
             }
 
-            // inc the smallest normalized coordinate
-            if (normalizedCurrX < normalizedCurrY) {
-                if (normalizedCurrX < normalizedCurrZ) {
-                    currX += dx
-                    normalizedCurrX += normalizedDiffX
+            val toXAdj = to.x - adjX
+            val toYAdj = to.y - adjY
+            val toZAdj = to.z - adjZ
+            val fromXAdj = from.x + adjX
+            val fromYAdj = from.y + adjY
+            val fromZAdj = from.z + adjZ
+
+            var currX = fromXAdj.floorI()
+            var currY = fromYAdj.floorI()
+            var currZ = fromZAdj.floorI()
+
+            val diffX = toXAdj - fromXAdj
+            val diffY = toYAdj - fromYAdj
+            val diffZ = toZAdj - fromZAdj
+
+            val dxDouble = sign(diffX)
+            val dyDouble = sign(diffY)
+            val dzDouble = sign(diffZ)
+
+            val dx = dxDouble.toInt()
+            val dy = dyDouble.toInt()
+            val dz = dzDouble.toInt()
+
+            val normalizedDiffX = if (diffX == 0.0) Double.MAX_VALUE else dxDouble / diffX
+            val normalizedDiffY = if (diffY == 0.0) Double.MAX_VALUE else dyDouble / diffY
+            val normalizedDiffZ = if (diffZ == 0.0) Double.MAX_VALUE else dzDouble / diffZ
+
+            var normalizedCurrX = normalizedDiffX * (if (diffX > 0.0) (1.0 - fromXAdj.frac()) else fromXAdj.frac())
+            var normalizedCurrY = normalizedDiffY * (if (diffY > 0.0) (1.0 - fromYAdj.frac()) else fromYAdj.frac())
+            var normalizedCurrZ = normalizedDiffZ * (if (diffZ > 0.0) (1.0 - fromZAdj.frac()) else fromZAdj.frac())
+
+            var chunkSections: Array<LevelChunkSection> = INIT_SECTION
+            var section: PalettedContainer<BlockState>? = null
+            var lastChunkX = Int.MIN_VALUE
+            var lastChunkY = Int.MIN_VALUE
+            var lastChunkZ = Int.MIN_VALUE
+
+            val minSection = level.dimensionType().minY() shr 4
+
+            while (true) {
+                val newChunkX = currX shr 4
+                val newChunkY = currY shr 4
+                val newChunkZ = currZ shr 4
+
+                val chunkDiff = ((newChunkX xor lastChunkX) or (newChunkZ xor lastChunkZ))
+                val chunkYDiff = newChunkY xor lastChunkY
+
+                if ((chunkDiff or chunkYDiff) != 0) {
+                    if (chunkDiff != 0) {
+                        chunkSections = level.getChunkIfLoaded(newChunkX, newChunkZ)?.sections ?: return true
+                    }
+                    val sectionIndex = newChunkY - minSection
+                    section = if (sectionIndex in (0 until chunkSections.size)) chunkSections[sectionIndex].states else null
+
+                    lastChunkX = newChunkX
+                    lastChunkY = newChunkY
+                    lastChunkZ = newChunkZ
+                }
+
+                if (section != null) {
+                    val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
+                    if (!shapedOcclusion[blockState] && canOcclude[blockState])
+                        return true
+                }
+
+                if (normalizedCurrX > 1.0 && normalizedCurrY > 1.0 && normalizedCurrZ > 1.0) {
+                    return false
+                }
+
+                if (normalizedCurrX < normalizedCurrY) {
+                    if (normalizedCurrX < normalizedCurrZ) {
+                        currX += dx
+                        normalizedCurrX += normalizedDiffX
+                    } else {
+                        currZ += dz
+                        normalizedCurrZ += normalizedDiffZ
+                    }
+                } else if (normalizedCurrY < normalizedCurrZ) {
+                    currY += dy
+                    normalizedCurrY += normalizedDiffY
                 } else {
-                    // x < y && x >= z <--> z < y && z <= x
                     currZ += dz
                     normalizedCurrZ += normalizedDiffZ
                 }
-            } else if (normalizedCurrY < normalizedCurrZ) {
-                // y <= x && y < z
-                currY += dy
-                normalizedCurrY += normalizedDiffY
-            } else {
-                // y <= x && z <= y <--> z <= y && z <= x
-                currZ += dz
-                normalizedCurrZ += normalizedDiffZ
             }
         }
     }
@@ -548,6 +556,12 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         """)
         @RenamedFrom("./updates-per-second")
         val updatesPerSecond: Int = 15,
+        @Comment("""
+            Enabling fast-raytrace uses fixed-distance steps, which calculates nearly 100% faster, but
+             entities cross corners may not hidden, also preventing entities from suddenly appearing.
+            Set to false to use 3D-DDA algorithm, for scenarios requiring more accurate results.
+        """)
+        val fastRaytrace: Boolean = true,
         @Comment("""
             Mark entities culled at first seen.
             To prevent flickering on entity spawning, and related packets.
