@@ -10,6 +10,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
@@ -213,6 +214,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     players.map { player ->
                         launch {
                             val bukkit = player.bukkitEntity
+                            if (!bukkit.connected) return@launch // Player may disconnect at the same time
                             try {
                                 val data = CullDataManager[bukkit]
                                 data.onEntityRemove(removedEntities)

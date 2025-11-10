@@ -114,6 +114,8 @@ class UserCullData(
                     else
                         player.showEntity(bootstrap, change.entity)
                 }
+            } ?: let {
+                plugin.warn("[EntityCulling] Failed to schedule changes ${player.name}, not online?")
             }
         }
     }
