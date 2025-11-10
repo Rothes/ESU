@@ -38,7 +38,7 @@ interface PlayerAdapter {
             set(value) = instance.setDisplayName(this, value)
 
         val OfflinePlayer.connected: Boolean
-            get() = if (paper20) isConnected else true
+            get() = if (paper20) isConnected else isOnline
 
         interface PlayerChunkSentHandler {
 
