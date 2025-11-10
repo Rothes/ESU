@@ -182,13 +182,13 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 ConfigLoader.save(dataPath, data)
 
                 UserManager.instance.getUsers().forEach { user ->
-                    user.kick(lang, { kickMessage })
+                    if (user.isOnline) user.kick(lang, { kickMessage })
                 }
 
                 runCommands()
             } else {
                 UserManager.instance.getUsers().plus(consoleUser).forEach { user ->
-                    user.messageTimeParsed(find) { notify }
+                    if (user.isOnline) user.messageTimeParsed(find) { notify }
                 }
                 scheduleTask()
             }
