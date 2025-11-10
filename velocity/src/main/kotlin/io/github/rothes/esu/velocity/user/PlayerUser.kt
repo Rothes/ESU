@@ -28,11 +28,11 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
                 field = get
                 return get
             }
-            return cache ?: error("Player $uuid is not online and there's no cached instance!")
+            return cache
         }
         internal set
     val player: Player
-        get() = playerCache!!
+        get() = playerCache ?: error("Player $uuid is not online and there's no cached instance!")
     override val commandSender: CommandSource
         get() = player
     override val dbId: Int
