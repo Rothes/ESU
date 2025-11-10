@@ -95,7 +95,7 @@ class EsuPluginVelocity(
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
-
+        VelocityUserManager // Init user manager
         server.allPlayers.forEach { it.user }
 
         ServerHotLoadSupport(enabledHot).onEnable()

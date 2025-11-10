@@ -90,11 +90,11 @@ class EsuPluginBukkit(
     fun onEnable() {
         adventure           // Init adventure
         EsuConfig           // Load global config
-        BukkitEsuLang     // Load global locale
+        BukkitEsuLang       // Load global lang
         StorageManager      // Load database
         ColorSchemes        // Load color schemes
         UpdateCheckerMan    // Init update checker
-
+        BukkitUserManager   // Init user manager
         ServerHotLoadSupport(enabledHot).onEnable()
 
         Bukkit.getOnlinePlayers().forEach { it.user }
