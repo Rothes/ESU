@@ -14,18 +14,22 @@ class FeatureNodeMapper(
     }
 
     private fun <C, L> load(feature: Feature<C, L>, node: ConfigurationNode, key: String) {
-        when (targetClass) {
-            TargetClass.CONFIG -> {
-                val instance = node.getInstance(feature.configClass)
-                node.set(instance)
-                feature.setConfigInstance(instance)
+        try {
+            when (targetClass) {
+                TargetClass.CONFIG -> {
+                    val instance = node.getInstance(feature.configClass)
+                    node.set(instance)
+                    feature.setConfigInstance(instance)
+                }
+                TargetClass.LANG -> {
+                    val instance = node.getInstance(feature.langClass)
+                    node.set(instance)
+                    val map = feature.lang.configs as MutableMap
+                    map[key] = instance
+                }
             }
-            TargetClass.LANG -> {
-                val instance = node.getInstance(feature.langClass)
-                node.set(instance)
-                val map = feature.lang.configs as MutableMap
-                map[key] = instance
-            }
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to load $targetClass of feature ${feature.name}", e)
         }
         for (child in feature.getFeatures()) {
             val name = child.name
