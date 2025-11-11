@@ -569,7 +569,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
         """)
         val entityCulledByDefault: Boolean = true,
         @Comment("These entity types are considered always visible.")
-        val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON),
+        val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON, EntityType.PLAYER),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
         @Comment("""
