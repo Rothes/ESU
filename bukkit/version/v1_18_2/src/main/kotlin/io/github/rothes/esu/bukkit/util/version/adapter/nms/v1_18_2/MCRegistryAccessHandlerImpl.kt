@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
 
-class MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
+object MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
 
     override fun getServerRegistryAccess(): RegistryAccess {
         return MinecraftServer.getServer().registryAccess() // Change: return value is RegistryAccess.Frozen
