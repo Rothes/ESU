@@ -48,6 +48,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
@@ -56,19 +57,17 @@ import kotlin.math.sign
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
 
-class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
+object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
 
-    companion object {
-        private const val COLLISION_EPSILON = 1E-7
-        private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
+    private const val COLLISION_EPSILON = 1E-7
+    private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
 
-        val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
-        val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
-        val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
+    private val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
+    private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
+    private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
 
-        private val shapedOcclusion = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("useShapeForLightOcclusion").usBooleanAccessor
-        private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
-    }
+    private val shapedOcclusion = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("useShapeForLightOcclusion").usBooleanAccessor
+    private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
@@ -112,56 +111,7 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
 
     override fun onEnable() {
         init()
-        registerCommands(object {
-            @Command("esu networkThrottle entityCulling benchmark")
-            @ShortPerm
-            fun benchmark(sender: User) {
-                val user = sender as PlayerUser
-                val player = user.player
-                sender.message("Preparing data at this spot...")
-                val from = player.eyeLocation.toVec3()
-                val world = player.world
-                val maxI = 100_000
-                val viewDistance = world.viewDistance - 2
-                val level = (world as CraftWorld).handle
-                val data = Array(maxI) {
-                    from.add(
-                        (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
-                        (world.minHeight .. floor(from.y).toInt() + 48).random().toDouble(),
-                        (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
-                    )
-                }
-                sender.message("Running benchmark")
-                runBlocking {
-                    val coroutine = coroutine!!
-                    val count = AtomicInteger()
-                    val jobs = buildList(lastThreads) {
-                        repeat(lastThreads) {
-                            val job = launch(coroutine) {
-                                var i = 0
-                                while (isActive) {
-                                    raytracer.raytrace(from, data[i++], level)
-                                    if (i == maxI) i = 0
-                                    count.incrementAndGet()
-                                }
-                            }
-                            add(job)
-                        }
-                    }
-                    delay(1.seconds)
-                    jobs.forEach { it.cancel() }
-                    sender.message("Raytrace $count times in 1 seconds")
-                    sender.message("Max of ${count.get() / 7 / 20} entities per game tick")
-                    sender.message("Test result is for reference only.")
-                }
-            }
-
-            @Command("esu networkThrottle entityCulling stats")
-            @ShortPerm
-            fun stats(sender: User) {
-                sender.message("Previous elapsedTime: ${previousElapsedTime}ms ; delayTime: ${previousDelayTime}ms")
-            }
-        })
+        registerCommands(Commands)
     }
 
     override fun onDisable() {
@@ -546,6 +496,74 @@ class RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, E
                     normalizedCurrZ += normalizedDiffZ
                 }
             }
+        }
+    }
+
+    object Commands {
+
+        private const val BENCHMARK_DATA_SIZE = 100_000
+
+        @Command("esu networkThrottle entityCulling benchmark")
+        @ShortPerm
+        fun benchmark(sender: User, @Flag("singleThread") singleThread: Boolean = false) {
+            val dataset = prepareBenchmark(sender as PlayerUser)
+            sender.message("Running benchmark (${if (singleThread) "singleThread" else "multiThreads"})")
+            runBlocking {
+                val coroutine = coroutine!!
+                val count = AtomicInteger()
+                val threads = if (singleThread) 1 else lastThreads
+                val jobs = buildList(threads) {
+                    repeat(threads) {
+                        val job = launch(coroutine) {
+                            var i = 0
+                            while (isActive) {
+                                raytracer.raytrace(dataset.from, dataset.data[i++], dataset.level)
+                                if (i == BENCHMARK_DATA_SIZE) i = 0
+                                count.incrementAndGet()
+                            }
+                        }
+                        add(job)
+                    }
+                }
+                delay(1.seconds)
+                jobs.forEach { it.cancel() }
+                sender.message("Raytrace $count times in 1 seconds")
+                sender.message("Max of ${count.get() / 7 / 20} entities per game tick")
+                sender.message("Test result is for reference only.")
+            }
+        }
+
+        @Command("esu networkThrottle entityCulling stats")
+        @ShortPerm
+        fun stats(sender: User) {
+            sender.message("Previous elapsedTime: ${previousElapsedTime}ms ; delayTime: ${previousDelayTime}ms")
+        }
+
+        private fun prepareBenchmark(user: PlayerUser): BenchmarkDataset {
+            val player = user.player
+            user.message("Preparing data at this spot...")
+            val from = player.eyeLocation.toVec3()
+            val world = player.world
+            val viewDistance = world.viewDistance - 2
+            val level = (world as CraftWorld).handle
+            val data = Array(BENCHMARK_DATA_SIZE) {
+                from.add(
+                    (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
+                    (world.minHeight .. floor(from.y).toInt() + 48).random().toDouble(),
+                    (-16 * viewDistance .. 16 * viewDistance).random().toDouble(),
+                )
+            }
+            return BenchmarkDataset(level, from, data)
+        }
+
+        private class BenchmarkDataset(
+            val level: ServerLevel,
+            val from: Vec3,
+            val data: Array<Vec3>,
+        )
+
+        private fun Location.toVec3(): Vec3 {
+            return Vec3(x, y, z)
         }
     }
 
