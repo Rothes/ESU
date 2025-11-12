@@ -51,7 +51,7 @@ class Versioned<T, V>(
                 error("Found ${clazz.canonicalName}, but it is not an instance of ${target.canonicalName}")
 
             @Suppress("UNCHECKED_CAST")
-            clazz.getConstructor().newInstance() as V
+            (clazz.kotlin.objectInstance ?: clazz.getConstructor().newInstance()) as V
         } catch (e: Exception) {
             throw IllegalStateException("Cannot get versioned instance of ${target.canonicalName} for version $version, type $type", e)
         }
