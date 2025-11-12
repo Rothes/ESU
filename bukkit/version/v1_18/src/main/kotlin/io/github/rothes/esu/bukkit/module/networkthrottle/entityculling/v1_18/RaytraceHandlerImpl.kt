@@ -15,6 +15,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Compan
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -30,13 +31,15 @@ import it.unimi.dsi.fastutil.ints.IntArrayList
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.util.BitStorage
+import net.minecraft.util.ZeroBitStorage
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.chunk.LevelChunkSection
-import net.minecraft.world.level.chunk.PalettedContainer
+import net.minecraft.world.level.chunk.*
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -61,13 +64,19 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
     private const val COLLISION_EPSILON = 1E-7
     private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
+    private val INIT_STORAGE: BitStorage = ZeroBitStorage(0)
 
     private val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
     private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
     private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
+    private val palettedContainerReader by Versioned(PalettedContainerReader::class.java)
 
     private val shapedOcclusion = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("useShapeForLightOcclusion").usBooleanAccessor
     private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
+    private val occludeCache: BooleanArray = BooleanArray(Block.BLOCK_STATE_REGISTRY.size()) { i ->
+        val blockState = Block.BLOCK_STATE_REGISTRY.byId(i)
+        !shapedOcclusion[blockState] && canOcclude[blockState]
+    }
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
@@ -352,7 +361,8 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             stepZ /= length
 
             var chunkSections: Array<LevelChunkSection> = INIT_SECTION
-            var section: PalettedContainer<BlockState>? = null
+            var occludeArray: BooleanArray = occludeCache
+            var storage: BitStorage = INIT_STORAGE
             var lastChunkX = Int.MIN_VALUE
             var lastChunkY = Int.MIN_VALUE
             var lastChunkZ = Int.MIN_VALUE
@@ -382,18 +392,29 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     }
                     val sectionIndex = newChunkY - minSection
                     if (sectionIndex !in (0 until chunkSections.size)) continue
-                    section = chunkSections[sectionIndex].states
+                    val section = chunkSections[sectionIndex].states
+                    val palette = palettedContainerReader.getPalette(section)
+                    occludeArray = when (palette) {
+                        is SingleValuePalette<BlockState>         -> BooleanArray(1) {
+                            val blockState = palette.valueFor(0)
+                            !shapedOcclusion[blockState] && canOcclude[blockState]
+                        }
+                        is LinearPalette<*>, is HashMapPalette<*> -> BooleanArray(palette.size) { i ->
+                            val blockState = palette.valueFor(i)
+                            !shapedOcclusion[blockState] && canOcclude[blockState]
+                        }
+                        is GlobalPalette<*>                       -> occludeCache
+                        else                                      -> throw AssertionError()
+                    }
+                    storage = palettedContainerReader.getStorage(section)
 
                     lastChunkX = newChunkX
                     lastChunkY = newChunkY
                     lastChunkZ = newChunkZ
                 }
 
-                if (section != null) { // It can never be null, but we don't want the kotlin npe check!
-                    val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (!shapedOcclusion[blockState] && canOcclude[blockState])
-                        return true
-                }
+                if (occludeArray[storage.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))])
+                    return true
             }
             return false
         }
@@ -497,6 +518,53 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                 }
             }
         }
+    }
+
+    interface OccludeHandler {
+        fun getValue(id: Int): Boolean
+    }
+
+    object EmptyOccludeHandler: OccludeHandler {
+        override fun getValue(id: Int): Boolean = false
+    }
+
+    interface PaletteOccludeHandler : OccludeHandler {
+        fun isOcclude(blockState: BlockState) = !shapedOcclusion[blockState] && canOcclude[blockState]
+    }
+
+    class SinglePaletteOccludeHandler(palette: SingleValuePalette<BlockState>): PaletteOccludeHandler {
+        private val value: Boolean
+        init {
+            val blockState = palette.valueFor(0)
+            value = !shapedOcclusion[blockState] && canOcclude[blockState]
+        }
+        override fun getValue(id: Int): Boolean = value
+    }
+
+    class MappedPaletteOccludeHandler(val palette: Palette<BlockState>): PaletteOccludeHandler {
+//        private val cache = ByteArray(palette.size)
+        private val values = BooleanArray(palette.size) { i ->
+            val blockState = palette.valueFor(i)
+            !shapedOcclusion[blockState] && canOcclude[blockState]
+        }
+        override fun getValue(id: Int): Boolean {
+//            val value = cache[id]
+//            return when (value) {
+//                0.toByte() -> {
+//                    val blockState = palette.valueFor(id)
+//                    val v = !shapedOcclusion[blockState] && canOcclude[blockState]
+//                    cache[id] = if (v) 2.toByte() else 1.toByte()
+//                    v
+//                }
+//                2.toByte() -> true
+//                else -> false
+//            }
+            return values[id]
+        }
+    }
+
+    class GlobalPaletteOccludeHandler(palette: Palette<BlockState>): PaletteOccludeHandler {
+        override fun getValue(id: Int): Boolean = occludeCache[id]
     }
 
     object Commands {
