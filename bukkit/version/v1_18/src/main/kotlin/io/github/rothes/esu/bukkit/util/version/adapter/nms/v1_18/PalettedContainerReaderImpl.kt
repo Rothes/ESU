@@ -6,7 +6,7 @@ import net.minecraft.util.BitStorage
 import net.minecraft.world.level.chunk.Palette
 import net.minecraft.world.level.chunk.PalettedContainer
 
-class PalettedContainerReaderImpl: PalettedContainerReader {
+object PalettedContainerReaderImpl: PalettedContainerReader {
 
     private val dataField = PalettedContainer::class.java.declaredFields.last { field ->
         field.type == PalettedContainer::class.java.declaredClasses.first { it.declaredFields.size == 3 }

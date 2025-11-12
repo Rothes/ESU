@@ -5,7 +5,7 @@ import net.minecraft.util.BitStorage
 import net.minecraft.world.level.chunk.Palette
 import net.minecraft.world.level.chunk.PalettedContainer
 
-class PalettedContainerReaderImplPaper: PalettedContainerReader {
+object PalettedContainerReaderImplPaper: PalettedContainerReader {
 
     // 1.21.3, Paper added FastPaletteData
 

@@ -6,7 +6,7 @@ import net.minecraft.util.BitStorage
 import net.minecraft.world.level.chunk.Palette
 import net.minecraft.world.level.chunk.PalettedContainer
 
-class PalettedContainerReaderImpl: PalettedContainerReader {
+object PalettedContainerReaderImpl: PalettedContainerReader {
 
     private val storage = PalettedContainer::class.java.declaredFields.last { it.type == BitStorage::class.java }.usObjAccessor
     private val palette = PalettedContainer::class.java.declaredFields.last { it.type == Palette::class.java }.usObjAccessor

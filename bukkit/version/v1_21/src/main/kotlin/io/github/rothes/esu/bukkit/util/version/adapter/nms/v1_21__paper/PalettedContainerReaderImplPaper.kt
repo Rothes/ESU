@@ -6,7 +6,7 @@ import net.minecraft.util.BitStorage
 import net.minecraft.world.level.chunk.Palette
 import net.minecraft.world.level.chunk.PalettedContainer
 
-class PalettedContainerReaderImplPaper: PalettedContainerReader {
+object PalettedContainerReaderImplPaper: PalettedContainerReader {
 
     // 1.21, Paper made data field public
     private val dataType = PalettedContainer::class.java.getDeclaredField("data").type
