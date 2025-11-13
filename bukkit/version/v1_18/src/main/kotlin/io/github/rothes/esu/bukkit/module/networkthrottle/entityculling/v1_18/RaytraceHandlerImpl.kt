@@ -9,12 +9,11 @@ import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.*
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -26,7 +25,10 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
+import it.unimi.dsi.fastutil.ints.Int2ReferenceMap
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -49,18 +51,27 @@ import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Flag
+import org.spigotmc.TrackingRange
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.sign
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.time.Duration.Companion.seconds
 
 object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
 
     private const val COLLISION_EPSILON = 1E-7
     private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
+    private val ENTITY_TYPES: Int
+
+    init {
+        val registryAccessHandler = MCRegistryAccessHandler::class.java.versioned()
+        val registries = MCRegistries::class.java.versioned()
+        val registry = registryAccessHandler.getRegistryOrThrow(
+            registryAccessHandler.getServerRegistryAccess(),
+            registries.entityType
+        )
+        ENTITY_TYPES = registryAccessHandler.size(registry)
+    }
 
     private val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
     private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
@@ -160,7 +171,31 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     val level = (bukkitWorld as CraftWorld).handle
                     val players = level.players()
                     if (players.isEmpty()) return@flatMapTo emptyList()
-                    val entities = levelEntitiesHandler.getEntitiesAll(level)
+                    // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
+                    // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
+                    val entities: Iterable<Entity?> = levelEntitiesHandler.getEntitiesAll(level) // May collect null entity on Paper 1.20.1
+
+                    /* Sort entities by tracking range */
+                    val entityTypeMap = Reference2ReferenceOpenHashMap<EntityType<*>, MutableList<Entity>>(ENTITY_TYPES)
+                    for (entity in entities) {
+                        entity ?: continue
+                        val get = entityTypeMap.get(entity.type)
+                        if (get != null) get.add(entity)
+                        else entityTypeMap[entity.type] = ArrayList<Entity>(32).also { it.add(entity) }
+                    }
+                    val entityMap = Int2ReferenceOpenHashMap<MutableList<Entity>>(ENTITY_TYPES)
+                    for ((type, list) in entityTypeMap) {
+                        val vanillaRange = type.clientTrackingRange() shl 4
+                        // Add extra 8 blocks
+                        val finalRadius = (TrackingRange.getEntityTrackingRange(list[0], vanillaRange) + 8).square()
+                        val get = entityMap.get(finalRadius)
+                        if (get != null)
+                            get.addAll(list)
+                        else
+                            entityMap.put(finalRadius, list)
+                    }
+                    /* Sort entities by tracking range */
+
                     players.map { player ->
                         launch {
                             val bukkit = player.bukkitEntity
@@ -168,7 +203,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                             try {
                                 val data = CullDataManager[bukkit]
                                 data.onEntityRemove(removedEntities)
-                                tickPlayer(player, bukkit, data, level, entities)
+                                tickPlayer(player, bukkit, data, level, entityMap)
                             } catch (e: Throwable) {
                                 plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
                             }
@@ -231,7 +266,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
     }
 
-    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Iterable<Entity?>) {
+    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Int2ReferenceMap<out List<Entity>>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
 
         val shouldCull = userCullData.shouldCull
@@ -261,26 +296,27 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
         var tickedEntities = 0
 
-        // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
-        // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
-        for (entity in entities) {
-            if (entity == null || entity === player) continue // May occur entity null on Paper 1.20.1
-            val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
-            if (dist > viewDistanceSquared) continue
+        for (entry in entities.int2ReferenceEntrySet()) {
+            val maxRange = min(entry.intKey, viewDistanceSquared)
+            for (entity in entry.value) {
+                if (entity === player) continue
+                val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
+                if (dist > maxRange) continue
 
-            tickedEntities++
+                tickedEntities++
 
-            if (
-                !shouldCull
-                || entity.isCurrentlyGlowing
-                || config.visibleEntityTypes.contains(entity.type)
-                || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
-            ) {
-                userCullData.setCulled(entity.bukkitEntity, entity.id, false)
-                continue
+                if (
+                    !shouldCull
+                    || entity.isCurrentlyGlowing
+                    || config.visibleEntityTypes.contains(entity.type)
+                    || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
+                ) {
+                    userCullData.setCulled(entity.bukkitEntity, entity.id, false)
+                    continue
+                }
+
+                userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
             }
-
-            userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
         }
         userCullData.shouldCull = tickedEntities >= config.cullThreshold
         userCullData.tick()
