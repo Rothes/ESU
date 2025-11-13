@@ -4,6 +4,7 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper
 import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper.Companion.nodeMapper
+import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Path
@@ -51,7 +52,14 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
         super.doReload()
     }
 
-    open fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) { }
+    open fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
+        builder.defaultOptions { options ->
+            options.serializers { builder ->
+                builder.register(FeatureToggle.DefaultTrue.SERIALIZER).register(FeatureToggle.DefaultFalse.SERIALIZER)
+            }
+        }
+    }
+
     open fun buildLangLoader(builder: YamlConfigurationLoader.Builder) { }
 
     fun User.hasPerm(shortPerm: String): Boolean {

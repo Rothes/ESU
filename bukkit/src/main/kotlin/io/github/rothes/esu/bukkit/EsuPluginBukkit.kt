@@ -105,6 +105,7 @@ class EsuPluginBukkit(
         ModuleManager.addModule(BlockedCommandsModule)
         ModuleManager.addModule(ChatAntiSpamModule)
         ModuleManager.addModule(CommandAntiSpamModule)
+        ModuleManager.addModule(EssentialCommandsModule)
         ModuleManager.addModule(EsuChatModule)
         ModuleManager.addModule(ExploitFixesModule)
         ModuleManager.addModule(ItemEditModule)
