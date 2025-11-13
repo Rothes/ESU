@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 
-interface NmsRegistries {
+interface MCRegistries {
 
     val block: ResourceKey<Registry<Block>>
     val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>>
