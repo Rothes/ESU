@@ -18,5 +18,6 @@ interface MCRegistryAccessHandler {
     fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>>
     fun <T> keySet(registry: Registry<T>): Set<ResourceLocation>
     fun <T> values(registry: Registry<T>): Set<T>
+    fun <T> size(registry: Registry<T>): Int
 
 }

@@ -28,5 +28,6 @@ object MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
     override fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>> = registry.entrySet()
     override fun <T> keySet(registry: Registry<T>): Set<ResourceLocation> = registry.keySet()
     override fun <T> values(registry: Registry<T>): Set<T> = registry.toSet()
+    override fun <T> size(registry: Registry<T>): Int = registry.keySet().size
 
 }
