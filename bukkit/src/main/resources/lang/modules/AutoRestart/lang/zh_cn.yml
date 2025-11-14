@@ -1,0 +1,8 @@
+time-formatter: MM/dd HH:mm:ss
+could-not-parse-time: "<ec>提供的时间无法解析: <edc><message>"
+no-task: <pc>该服务器未安排重启任务!
+notify: <sc><st>一一一一一一一一一一一一一一一一一一一一一一一一</st><br><pc>服务器将于 <pdc><interval></pdc> 后重启，预计时间为 <pdc><time></pdc> !<br><sc><st>一一一一一一一一一一一一一一一一一一一一一一一一<sound:minecraft:ui.stonecutter.take_result>
+overrides-to: <pc>已覆盖重启时间，将于 <pdc><interval></pdc> 后重启，预计时间为 <pdc><time></pdc> !
+overrides-reset: <pc>已重置重启时间覆盖设置，当前使用配置文件中设置的值
+toggled-pausing: <pc>已切换暂停状态为 <pdc><state>
+kick-message: <pc>服务器正在重启，请稍候一分钟
