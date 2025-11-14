@@ -25,7 +25,6 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
@@ -173,11 +172,11 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     if (players.isEmpty()) return@flatMapTo emptyList()
                     // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
                     // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
-                    val entities: Iterable<Entity?> = levelEntitiesHandler.getEntitiesAll(level) // May collect null entity on Paper 1.20.1
+                    val entitiesRaw: Iterable<Entity?> = levelEntitiesHandler.getEntitiesAll(level) // May collect null entity on Paper 1.20.1
 
                     /* Sort entities by tracking range */
                     val entityTypeMap = Reference2ReferenceOpenHashMap<EntityType<*>, MutableList<Entity>>(ENTITY_TYPES)
-                    for (entity in entities) {
+                    for (entity in entitiesRaw) {
                         entity ?: continue
                         val get = entityTypeMap.get(entity.type)
                         if (get != null) get.add(entity)
@@ -186,13 +185,16 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     val entityMap = Int2ReferenceOpenHashMap<MutableList<Entity>>(ENTITY_TYPES)
                     for ((type, list) in entityTypeMap) {
                         val vanillaRange = type.clientTrackingRange() shl 4
-                        // Add extra 8 blocks
-                        val finalRadius = (TrackingRange.getEntityTrackingRange(list[0], vanillaRange) + 8).square()
-                        val get = entityMap.get(finalRadius)
+                        val range = TrackingRange.getEntityTrackingRange(list[0], vanillaRange)
+                        val get = entityMap.get(range)
                         if (get != null)
                             get.addAll(list)
                         else
-                            entityMap.put(finalRadius, list)
+                            entityMap.put(range, list)
+                    }
+                    val entities = entityMap.int2ReferenceEntrySet().map {
+                        val squaredRange = (it.intKey + 8).square() // Add extra 8 blocks
+                        SortedEntities(squaredRange, it.value)
                     }
                     /* Sort entities by tracking range */
 
@@ -203,7 +205,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                             try {
                                 val data = CullDataManager[bukkit]
                                 data.onEntityRemove(removedEntities)
-                                tickPlayer(player, bukkit, data, level, entityMap)
+                                tickPlayer(player, bukkit, data, level, entities)
                             } catch (e: Throwable) {
                                 plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
                             }
@@ -266,7 +268,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
     }
 
-    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: Int2ReferenceMap<out List<Entity>>) {
+    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: List<SortedEntities>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
 
         val shouldCull = userCullData.shouldCull
@@ -296,9 +298,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
         var tickedEntities = 0
 
-        for (entry in entities.int2ReferenceEntrySet()) {
-            val maxRange = min(entry.intKey, viewDistanceSquared)
-            for (entity in entry.value) {
+        for ((trackRange, entities) in entities) {
+            val maxRange = min(trackRange, viewDistanceSquared)
+            for (entity in entities) {
                 if (entity === player) continue
                 val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
                 if (dist > maxRange) continue
@@ -602,6 +604,8 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             return Vec3(x, y, z)
         }
     }
+
+    data class SortedEntities(val trackRangeSquared: Int, val entities: List<Entity>)
 
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
