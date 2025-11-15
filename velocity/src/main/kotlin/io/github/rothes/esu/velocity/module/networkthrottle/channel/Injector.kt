@@ -132,7 +132,7 @@ object Injector {
                 data.oppositeSize = msg.readableBytes()
                 data.packetType = PacketType.getById(PacketSide.SERVER, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
             }
-            super.write(ctx, msg, promise)
+            ctx.write(msg, promise)
         }
 
     }
@@ -150,7 +150,7 @@ object Injector {
                     }
                 }
             }
-            super.write(ctx, msg, promise)
+            ctx.write(msg, promise)
         }
 
         override fun flush(ctx: ChannelHandlerContext) {
@@ -163,27 +163,27 @@ object Injector {
                     }
                 }
             }
-            super.flush(ctx)
+            ctx.flush()
         }
 
     }
 
     class EsuPreDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
 
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
             if (msg is ByteBuf) {
                 data.oppositeSize = msg.readableBytes()
             } else {
                 data.oppositeSize = -1
             }
-            super.channelRead(ctx, msg)
+            ctx.fireChannelRead(msg)
         }
 
     }
 
     class EsuFinDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
 
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
             if (msg is ByteBuf) {
                 val peUser = data.peUser
                 val readerIndex = msg.readerIndex()
@@ -195,7 +195,7 @@ object Injector {
                     handler.decode(packetData)
                 }
             }
-            super.channelRead(ctx, msg)
+            ctx.fireChannelRead(msg)
         }
 
     }
