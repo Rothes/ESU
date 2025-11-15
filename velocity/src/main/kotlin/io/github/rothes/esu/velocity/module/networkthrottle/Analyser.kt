@@ -75,27 +75,25 @@ object Analyser {
             @ShortPerm("analyser")
             fun analyserView(sender: User,
                              @Flag("side") side: PacketSide? = null,
-                             @Flag("player") players: Player? = null,
-                             @Flag("server") servers: RegisteredServer? = null,
+                             @Flag("player") player: Player? = null,
+                             @Flag("server") server: RegisteredServer? = null,
                              @Flag("limit") limit: Int = 7, ) {
                 val entries = records.mapValues { LinkedList(it.value) }
-                    .let {
+                    .let { map ->
                         if (side != null)
-                            it.filterKeys { it.side == side }
+                            map.filterKeys { it.side == side }
                         else
-                            it
+                            map
                     }
-                    .also {
-                        if (players != null)
-                            it.values.forEach { it.removeIf { record -> players == record.player } }
-                    }
-                    .also {
-                        if (servers != null)
-                            it.values.forEach { it.removeIf { record -> servers == record.server } }
+                    .also { map ->
+                        if (player != null)
+                            map.values.forEach { it.removeIf { record -> player != record.player } }
+                        if (server != null)
+                            map.values.forEach { it.removeIf { record -> server != record.server } }
                     }
                     .filterValues { it.isNotEmpty() }
-                    .mapValues {
-                        val list = it.value
+                    .mapValues { entry ->
+                        val list = entry.value
                         list.size to (list.sumOf { it.uncompressedSize.toLong() } to list.sumOf { it.compressedSize.toLong() })
                     }
                     .entries.sortedByDescending { it.value.second.second }
