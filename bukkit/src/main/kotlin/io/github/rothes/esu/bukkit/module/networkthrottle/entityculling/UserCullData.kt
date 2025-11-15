@@ -17,7 +17,7 @@ class UserCullData(
     var player: Player,
 ) {
 
-    private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>(64, Hash.FAST_LOAD_FACTOR)
+    private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>(64, Hash.VERY_FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
     private var isRemoved = false
