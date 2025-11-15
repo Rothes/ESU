@@ -25,7 +25,7 @@ interface Feature<C, L> {
     fun setConfigInstance(instance: C) {}
     fun setEnabled(value: Boolean) {
         // Notify children
-        for (feature in getFeatures()) {
+        for (feature in getFeatures().let { if (enabled) it else it.reversed() }) {
             feature.toggleByAvailable()
         }
     }
