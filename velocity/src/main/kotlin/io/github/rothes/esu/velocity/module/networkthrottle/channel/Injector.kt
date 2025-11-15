@@ -16,11 +16,7 @@ import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.networkthrottle.UnknownPacketType
 import io.github.rothes.esu.velocity.plugin
 import io.netty.buffer.ByteBuf
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInboundHandlerAdapter
-import io.netty.channel.ChannelInitializer
-import io.netty.handler.codec.MessageToByteEncoder
+import io.netty.channel.*
 import com.github.retrooper.packetevents.protocol.player.User as PEUser
 
 object Injector {
@@ -125,25 +121,26 @@ object Injector {
         var oppositeSize: Int = -1,
     )
 
-    class EsuPreEncoder(val data: EsuPipelineData): MessageToByteEncoder<ByteBuf>() {
+    class EsuPreEncoder(val data: EsuPipelineData): ChannelOutboundHandlerAdapter() {
 
-        override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
-            val peUser = data.peUser
-            val readerIndex = msg.readerIndex()
-            val packetId = ByteBufHelper.readVarInt(msg)
-            msg.readerIndex(readerIndex)
-            data.oppositeSize = msg.readableBytes()
-            data.packetType = PacketType.getById(PacketSide.SERVER, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
-
-            out.writeBytes(msg)
+        override fun write(ctx: ChannelHandlerContext, msg: Any?, promise: ChannelPromise?) {
+            if (msg is ByteBuf) {
+                val peUser = data.peUser
+                val readerIndex = msg.readerIndex()
+                val packetId = ByteBufHelper.readVarInt(msg)
+                msg.readerIndex(readerIndex)
+                data.oppositeSize = msg.readableBytes()
+                data.packetType = PacketType.getById(PacketSide.SERVER, peUser.encoderState, peUser.clientVersion, packetId) ?: UnknownPacketType
+            }
+            super.write(ctx, msg, promise)
         }
 
     }
 
-    class EsuFinEncoder(val data: EsuPipelineData): MessageToByteEncoder<ByteBuf>() {
+    class EsuFinEncoder(val data: EsuPipelineData): ChannelOutboundHandlerAdapter() {
 
-        override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
-            if (encoderHandlers.isNotEmpty()) {
+        override fun write(ctx: ChannelHandlerContext, msg: Any?, promise: ChannelPromise?) {
+            if (encoderHandlers.isNotEmpty() && msg is ByteBuf) {
                 val packetData = PacketData(data.player, data.packetType, data.oppositeSize, msg.readableBytes())
                 for (handler in encoderHandlers) {
                     try {
@@ -153,7 +150,7 @@ object Injector {
                     }
                 }
             }
-            out.writeBytes(msg)
+            super.write(ctx, msg, promise)
         }
 
         override fun flush(ctx: ChannelHandlerContext) {
