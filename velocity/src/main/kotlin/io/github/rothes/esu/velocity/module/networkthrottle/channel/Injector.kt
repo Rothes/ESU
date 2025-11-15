@@ -12,6 +12,7 @@ import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.proxy.VelocityServer
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import com.velocitypowered.proxy.network.ConnectionManager
+import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.networkthrottle.UnknownPacketType
 import io.github.rothes.esu.velocity.plugin
@@ -202,7 +203,7 @@ object Injector {
 
     class EsuChannelInitializer(val wrapped: ChannelInitializer<Channel>): ChannelInitializer<Channel>() {
 
-        private val initWrapped = ChannelInitializer::class.java.getDeclaredMethod("initChannel", Channel::class.java).also { it.isAccessible = true }
+        private val initWrapped = ChannelInitializer::class.java.getDeclaredMethod("initChannel", Channel::class.java).handle
 
         override fun initChannel(ch: Channel) {
             initWrapped(wrapped, ch)
