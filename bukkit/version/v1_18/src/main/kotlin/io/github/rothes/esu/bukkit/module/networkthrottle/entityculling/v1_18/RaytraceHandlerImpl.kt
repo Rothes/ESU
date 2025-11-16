@@ -274,49 +274,49 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, collected: List<SlicedEntities>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
 
-        val playerX = player.x
-        val playerZ = player.z
-
         val shouldCull = userCullData.shouldCull
-        val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
-            val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
-            if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
-                var x = playerX
-                var y = player.eyeY
-                var z = playerZ
+        fun predicatePlayerPos(): Vec3? {
+            if (shouldCull && config.predicatePlayerPositon) {
+                val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
+                if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
+                    var x = player.x
+                    var y = player.eyeY
+                    var z = player.z
 
-                var vx = velocity.x
-                var vy = velocity.y
-                var vz = velocity.z
+                    var vx = velocity.x
+                    var vy = velocity.y
+                    var vz = velocity.z
 
-                for (i in 0 until 3) {
-                    x += vx
-                    y += vy
-                    z += vz
+                    for (i in 0 until 3) {
+                        x += vx
+                        y += vy
+                        z += vz
 
-                    vx *= 0.91f
-                    vy *= 0.98f
-                    vz *= 0.91f
+                        vx *= 0.91f
+                        vy *= 0.98f
+                        vz *= 0.91f
+                    }
+                    return Vec3(x, y, z)
                 }
-                Vec3(x, y, z)
-            } else null
-        } else null
+            }
+            return null
+        }
+        val predicatedPlayerPos = predicatePlayerPos()
 
         var tickedEntities = 0
+
+        val playerX = player.x
+        val playerY = player.y
+        val playerZ = player.z
 
         for (sorted in collected) {
             val range = min(sorted.trackRangeSquared, viewDistanceSquared)
             val sqrt = sqrt(range.toDouble())
-            val minX = (playerX - sqrt).floorI() shr GRID_SIZE
-            val maxX = (playerX + sqrt).floorI() shr GRID_SIZE
-            val minZ = (playerZ - sqrt).floorI() shr GRID_SIZE
-            val maxZ = (playerZ + sqrt).floorI() shr GRID_SIZE
-            for (x in minX..maxX) {
-                for (z in minZ..maxZ) {
-                    val index = x.toLong() and (z.toLong() shl Int.SIZE_BITS)
+            for (x in (playerX - sqrt).gridIndex().toLong() .. (playerX + sqrt).gridIndex()) {
+                for (z in (playerZ - sqrt).gridIndex().toLong() .. (playerZ + sqrt).gridIndex()) {
+                    val index = x and (z shl Int.SIZE_BITS)
                     val entities = sorted.slices.get(index) ?: continue
                     for (entity in entities) {
-                        if (entity === player) continue
                         val dist = (playerX - entity.x).square() + (playerZ - entity.z).square()
                         if (dist > range) continue
 
@@ -326,7 +326,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                             !shouldCull
                             || entity.isCurrentlyGlowing
                             || config.visibleEntityTypes.contains(entity.type)
-                            || dist + (player.y - entity.y).square() <= forceVisibleDistanceSquared
+                            || dist + (playerY - entity.y).square() <= forceVisibleDistanceSquared
                         ) {
                             userCullData.setCulled(entity.bukkitEntity, entity.id, false)
                             continue
@@ -628,7 +628,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
         init {
             for (entity in entities) {
-                val id = index(entity.x.floorI(), entity.z.floorI())
+                val id = entity.x.gridIndex().toLong() and (entity.z.gridIndex().toLong() shl Int.SIZE_BITS)
                 val get = slices.get(id)
                 if (get != null)
                     get.add(entity)
@@ -636,13 +636,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     slices.put(id, ArrayList<Entity>(16).also { it.add(entity) })
             }
         }
-
-        private fun index(x: Int, z: Int): Long {
-            val x = x shr GRID_SIZE
-            val z = z shr GRID_SIZE
-            return x.toLong() and (z.toLong() shl Int.SIZE_BITS)
-        }
     }
+
+    private fun Double.gridIndex() = floorI() shr GRID_SIZE
 
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
