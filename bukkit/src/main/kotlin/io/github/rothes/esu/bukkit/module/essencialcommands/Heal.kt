@@ -31,14 +31,14 @@ object Heal : CommonFeature<FeatureToggle.DefaultTrue, Heal.Lang>() {
                 player.heal(player.getAttribute(AttributeAdapter.MAX_HEALTH)!!.value)
                 sender.message(lang, { healedPlayer }, player(player))
                 if (!silent) {
-                    player.user.message(lang, { healed })
+                    player.user.message(lang, { healedSelf })
                 }
             }
         })
     }
 
     data class Lang(
-        val healed: MessageData = "<pc>You have been healed.".message,
+        val healedSelf: MessageData = "<pc>You have been healed.".message,
         val healedPlayer: MessageData = "<pc>Healed <pdc><player></pc>.".message,
     )
 }

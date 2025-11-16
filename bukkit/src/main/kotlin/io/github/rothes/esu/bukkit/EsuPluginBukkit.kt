@@ -115,7 +115,6 @@ class EsuPluginBukkit(
         ModuleManager.addModule(NewsModule)
         ModuleManager.addModule(OptimizationsModule)
         ModuleManager.addModule(SpoofServerSettingsModule)
-        ModuleManager.addModule(UtilCommandsModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
