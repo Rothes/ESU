@@ -28,22 +28,20 @@ object CollectionUtils {
 
     inline fun LongIterable.removeWhile(predicate: (Long) -> Boolean) {
         val iterator = iterator()
-        for (element in iterator) {
-            if (predicate(element)) {
+        while (iterator.hasNext()) {
+            if (predicate(iterator.nextLong()))
                 iterator.remove()
-            } else {
+            else
                 break
-            }
         }
     }
     inline fun IntIterable.removeWhile(predicate: (Int) -> Boolean) {
         val iterator = iterator()
-        for (element in iterator) {
-            if (predicate(element)) {
+        while (iterator.hasNext()) {
+            if (predicate(iterator.nextInt()))
                 iterator.remove()
-            } else {
+            else
                 break
-            }
         }
     }
 
