@@ -85,10 +85,11 @@ class UserCullData(
             synchronized(hiddenEntities) {
                 val raytraceHandler = raytraceHandler
                 val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+                val playerLoc = player.location
                 for (entry in iterator) {
                     val entity = entry.value
                     var flag = !raytraceHandler.isValid(entity)
-                    if (entity.world != player.world) {
+                    if (entity.world != player.world || entity.location.distanceSquared(playerLoc) > 1024 * 1024) {
                         playerEntityVisibilityHandler.forceShowEntity(player, entity)
                         flag = true
                     }
