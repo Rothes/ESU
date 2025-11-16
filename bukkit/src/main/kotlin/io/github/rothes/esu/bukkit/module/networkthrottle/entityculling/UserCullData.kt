@@ -4,6 +4,7 @@ import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager.raytraceHandler
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import it.unimi.dsi.fastutil.Hash
@@ -17,6 +18,10 @@ class UserCullData(
     var player: Player,
 ) {
 
+    companion object {
+        val playerEntityVisibilityHandler by Versioned(PlayerEntityVisibilityHandler::class.java)
+    }
+
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>(64, Hash.VERY_FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
@@ -29,12 +34,12 @@ class UserCullData(
         if (culled) {
             synchronized(hiddenEntities) {
                 if (hiddenEntities.put(entityId, entity) == null && pend)
-                    pendCulledChange(entity, entityId, true)
+                    pendCulledChange(entity, true)
             }
         } else {
             synchronized(hiddenEntities) {
                 if (hiddenEntities.remove(entityId) != null && pend)
-                    pendCulledChange(entity, entityId, false)
+                    pendCulledChange(entity, false)
             }
         }
     }
@@ -67,12 +72,10 @@ class UserCullData(
 
     private fun reset() {
         synchronized(hiddenEntities) {
-            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-            for (entry in iterator) {
-                val id = entry.intKey
-                val entity = entry.value
-                iterator.remove()
-                pendCulledChange(entity, id, false)
+            val values = hiddenEntities.values
+            hiddenEntities.clear()
+            for (entity in values) {
+                pendCulledChange(entity, false)
             }
         }
     }
@@ -84,9 +87,12 @@ class UserCullData(
                 val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
                 for (entry in iterator) {
                     val entity = entry.value
-                    if (!raytraceHandler.isValid(entity)) {
-                        iterator.remove()
+                    var flag = !raytraceHandler.isValid(entity)
+                    if (entity.world != player.world) {
+                        playerEntityVisibilityHandler.forceShowEntity(player, entity)
+                        flag = true
                     }
+                    if (flag) iterator.remove()
                 }
             }
         } catch (e: Throwable) {
@@ -108,9 +114,11 @@ class UserCullData(
                 for (change in list) {
                     if (!raytraceHandler.isValid(change.entity)) continue
                     if (!change.entity.checkTickThread()) {
-                        // Not on tick thread, we can only roll state back
-                        if (!change.culled)
-                            setCulled(change.entity, change.entityId, true, pend = false)
+                        // Not on tick thread, we can only reflect to make changes,
+                        // We don't need to update TrackedEntity cuz not same thread.
+                        if (!change.culled) {
+                            playerEntityVisibilityHandler.forceShowEntity(player, change.entity)
+                        }
                         continue
                     }
                     if (change.culled)
@@ -124,10 +132,10 @@ class UserCullData(
         }
     }
 
-    private fun pendCulledChange(entity: Entity, entityId: Int, culled: Boolean) {
-        pendingChanges.add(CulledChange(entity, entityId, culled))
+    private fun pendCulledChange(entity: Entity, culled: Boolean) {
+        pendingChanges.add(CulledChange(entity, culled))
     }
 
-    private data class CulledChange(val entity: Entity, val entityId: Int, val culled: Boolean)
+    private data class CulledChange(val entity: Entity, val culled: Boolean)
 
 }
