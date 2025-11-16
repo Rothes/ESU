@@ -25,10 +25,8 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
-import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
-import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
@@ -61,7 +59,6 @@ import kotlin.time.Duration.Companion.seconds
 object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
 
     private const val COLLISION_EPSILON = 1E-7
-    private const val GRID_SIZE = 5
     private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
     private val ENTITY_TYPES: Int
 
@@ -197,7 +194,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     }
                     val entities = entityMap.int2ReferenceEntrySet().map {
                         val squaredRange = (it.intKey + 8).square() // Add extra 8 blocks
-                        SlicedEntities(squaredRange, it.value)
+                        SortedEntities(squaredRange, it.value)
                     }
                     /* Sort entities by tracking range */
 
@@ -271,78 +268,65 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
     }
 
-    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, collected: List<SlicedEntities>) {
+    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: List<SortedEntities>) {
         val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
-
-        val shouldCull = userCullData.shouldCull
-        fun predicatePlayerPos(): Vec3? {
-            if (shouldCull && config.predicatePlayerPositon) {
-                val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
-                if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
-                    var x = player.x
-                    var y = player.eyeY
-                    var z = player.z
-
-                    var vx = velocity.x
-                    var vy = velocity.y
-                    var vz = velocity.z
-
-                    for (i in 0 until 3) {
-                        x += vx
-                        y += vy
-                        z += vz
-
-                        vx *= 0.91f
-                        vy *= 0.98f
-                        vz *= 0.91f
-                    }
-                    return Vec3(x, y, z)
-                }
-            }
-            return null
-        }
-        val predicatedPlayerPos = predicatePlayerPos()
-
-        var tickedEntities = 0
 
         val playerX = player.x
         val playerY = player.y
         val playerZ = player.z
 
-        for (sorted in collected) {
-            val range = min(sorted.trackRangeSquared, viewDistanceSquared)
-            val sqrt = sqrt(range.toDouble())
-            for (x in (playerX - sqrt).gridIndex().toLong() .. (playerX + sqrt).gridIndex()) {
-                for (z in (playerZ - sqrt).gridIndex().toLong() .. (playerZ + sqrt).gridIndex()) {
-                    val index = x and (z shl Int.SIZE_BITS)
-                    val entities = sorted.slices.get(index) ?: continue
-                    for (entity in entities) {
-                        val dist = (playerX - entity.x).square() + (playerZ - entity.z).square()
-                        if (dist > range) continue
+        val shouldCull = userCullData.shouldCull
+        val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
+            val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
+            if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
+                var x = playerX
+                var y = player.eyeY
+                var z = playerZ
 
-                        tickedEntities++
+                var vx = velocity.x
+                var vy = velocity.y
+                var vz = velocity.z
 
-                        if (
-                            !shouldCull
-                            || entity.isCurrentlyGlowing
-                            || config.visibleEntityTypes.contains(entity.type)
-                            || dist + (playerY - entity.y).square() <= forceVisibleDistanceSquared
-                        ) {
-                            userCullData.setCulled(entity.bukkitEntity, entity.id, false)
-                            continue
-                        }
+                for (i in 0 until 3) {
+                    x += vx
+                    y += vy
+                    z += vz
 
-                        userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
-                    }
+                    vx *= 0.91f
+                    vy *= 0.98f
+                    vz *= 0.91f
                 }
+                Vec3(x, y, z)
+            } else null
+        } else null
+
+        var tickedEntities = 0
+
+        for ((trackRange, entities) in entities) {
+            val maxRange = min(trackRange, viewDistanceSquared)
+            for (entity in entities) {
+                if (entity === player) continue
+                val pos = entity.position()
+                val dist = (playerX - pos.x).square() + (playerZ - pos.z).square()
+                if (dist > maxRange) continue
+
+                tickedEntities++
+
+                if (
+                    !shouldCull
+                    || entity.isCurrentlyGlowing
+                    || config.visibleEntityTypes.contains(entity.type)
+                    || dist + (playerY - pos.y).square() <= forceVisibleDistanceSquared
+                ) {
+                    userCullData.setCulled(entity.bukkitEntity, entity.id, false)
+                    continue
+                }
+
+                userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
             }
         }
         userCullData.shouldCull = tickedEntities >= config.cullThreshold
         userCullData.tick()
-    }
-
-    private fun Location.toVec3(): Vec3 {
-        return Vec3(x, y, z)
     }
 
     fun raytrace(player: ServerPlayer, predPlayer: Vec3?, entity: Entity, level: ServerLevel): Boolean {
@@ -622,23 +606,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         }
     }
 
-    class SlicedEntities(val trackRangeSquared: Int, entities: List<Entity>) {
-
-        val slices = Long2ReferenceOpenHashMap<MutableList<Entity>>(16, Hash.VERY_FAST_LOAD_FACTOR)
-
-        init {
-            for (entity in entities) {
-                val id = entity.x.gridIndex().toLong() and (entity.z.gridIndex().toLong() shl Int.SIZE_BITS)
-                val get = slices.get(id)
-                if (get != null)
-                    get.add(entity)
-                else
-                    slices.put(id, ArrayList<Entity>(16).also { it.add(entity) })
-            }
-        }
-    }
-
-    private fun Double.gridIndex() = floorI() shr GRID_SIZE
+    data class SortedEntities(val trackRangeSquared: Int, val entities: List<Entity>)
 
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
