@@ -22,6 +22,7 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
+import io.github.rothes.esu.core.util.UnsafeUtils.usNullableObjAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
@@ -76,8 +77,8 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
     private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
 
-    private val shapedOcclusion = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("useShapeForLightOcclusion").usBooleanAccessor
     private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
+    private val bsCache = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("cache").usNullableObjAccessor
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
@@ -430,7 +431,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) { // It can never be null, but we don't want the kotlin npe check!
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (!shapedOcclusion[blockState] && canOcclude[blockState])
+                    if (canOcclude[blockState] && bsCache[blockState] != null && blockState.isCollisionShapeFullBlock(null, null))
                         return true
                 }
             }
@@ -511,7 +512,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) {
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (!shapedOcclusion[blockState] && canOcclude[blockState])
+                    if (canOcclude[blockState] && bsCache[blockState] != null && blockState.isCollisionShapeFullBlock(null, null))
                         return true
                 }
 
