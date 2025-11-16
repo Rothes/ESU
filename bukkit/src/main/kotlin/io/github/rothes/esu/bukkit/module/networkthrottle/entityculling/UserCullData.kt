@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
+import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -89,7 +90,8 @@ class UserCullData(
                 for (entry in iterator) {
                     val entity = entry.value
                     var flag = !raytraceHandler.isValid(entity)
-                    if (entity.world != player.world || entity.location.distanceSquared(playerLoc) > 1024 * 1024) {
+                    val loc = entity.location
+                    if (loc.world != playerLoc.world || (playerLoc.x - loc.x).square() + (playerLoc.z - loc.z).square() > 1024 * 1024) {
                         playerEntityVisibilityHandler.forceShowEntity(player, entity)
                         flag = true
                     }
