@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
+import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -105,6 +106,14 @@ object Scheduler {
             )
         else
             BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
+    }
+
+    fun <T> Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
+        val deferred = CompletableDeferred<T>()
+        schedule(this, plugin) {
+            deferred.complete(func())
+        } ?: error("Failed to schedule task")
+        return deferred
     }
 
     fun cancelTasks(plugin: Plugin = esuPlugin) {
