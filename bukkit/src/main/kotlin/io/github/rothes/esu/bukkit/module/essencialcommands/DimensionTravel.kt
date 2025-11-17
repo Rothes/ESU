@@ -30,18 +30,19 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
             @Command("dimensionTravel <player>")
             @ShortPerm("others")
             suspend fun dimensionTravel(sender: User, player: Player) {
-                val world = player.world
-                val loc = when (world.environment) {
+                val location = player.location
+                val world = location.world
+                val target = when (world.environment) {
                     World.Environment.NORMAL -> {
                         val world = Bukkit.getWorld("world_nether")
-                        val x = player.location.x / 8
-                        val z = player.location.z / 8
+                        val x = location.x / 8
+                        val z = location.z / 8
                         Location(world, x, 0.0, z)
                     }
                     World.Environment.NETHER -> {
                         val world = Bukkit.getWorld("world")
-                        val x = player.location.x.floorI() shl 3
-                        val z = player.location.z.floorI() shl 3
+                        val x = location.x.floorI() shl 3
+                        val z = location.z.floorI() shl 3
                         Location(world, x.toDouble(), 0.0, z.toDouble())
                     }
                     World.Environment.THE_END -> {
@@ -50,7 +51,9 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
-                val safeSpot = WorldUtils.findSafeSpot(loc) ?: return sender.message(module.lang, { unsafeTeleportSpot })
+                target.yaw = location.yaw
+                target.pitch = location.pitch
+                val safeSpot = WorldUtils.findSafeSpot(target) ?: return sender.message(module.lang, { unsafeTeleportSpot })
                 player.tp(safeSpot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
             }
