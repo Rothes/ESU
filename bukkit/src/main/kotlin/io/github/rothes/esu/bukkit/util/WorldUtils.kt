@@ -14,8 +14,8 @@ object WorldUtils {
     suspend fun findStandableSpot(column: Location, allowUnsafe: Boolean = false): Location? {
         val deferred = CompletableDeferred<Location?>()
         val location = column.clone()
-        location.x += floor(location.x) + 0.5
-        location.z += floor(location.z) + 0.5
+        location.x = floor(location.x) + 0.5
+        location.z = floor(location.z) + 0.5
         Scheduler.schedule(location) {
             val world = requireNotNull(location.world) { "Location world is null" }
             val y = if (world.environment == World.Environment.NETHER) {
