@@ -51,6 +51,8 @@ permissions:
       'esu.essentialCommands.playerChunkTickets.command.tickDistance': true
       'esu.essentialCommands.playerChunkTickets.command.viewDistance': true
       'esu.essentialCommands.playerChunkTickets.command.sendDistance': true
+      'esu.essentialCommands.speed.command': true
+      'esu.essentialCommands.speed.command.others': true
       'esu.essentialCommands.tpChunk.command': true
       'esu.essentialCommands.tpChunk.command.others': true
 
