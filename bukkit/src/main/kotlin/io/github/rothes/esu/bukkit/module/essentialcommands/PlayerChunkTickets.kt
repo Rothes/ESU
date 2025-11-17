@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.essencialcommands
+package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import ca.spottedleaf.moonrise.common.PlatformHooks
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter

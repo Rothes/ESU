@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.essencialcommands
+package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser

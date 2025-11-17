@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.essencialcommands
+package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
@@ -11,20 +11,20 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 
-object Ip : BaseCommand<FeatureToggle.DefaultTrue, Ip.Lang>() {
+object Ping : BaseCommand<FeatureToggle.DefaultTrue, Ping.Lang>() {
 
     override fun onEnable() {
         registerCommands(object {
-            @Command("ip [player]")
+            @Command("ping [player]")
             @ShortPerm
-            fun ip(sender: User, player: Player = (sender as PlayerUser).player) {
-                sender.message(lang, { message }, player(player), unparsed("address", player.address!!.hostString))
+            fun ping(sender: User, player: Player = (sender as PlayerUser).player) {
+                sender.message(lang, { message }, player(player), unparsed("ping", player.ping))
             }
         })
     }
 
     data class Lang(
-        val message: MessageData = "<pdc><player><pc>'s ip is <sdc><address>".message,
+        val message: MessageData = "<pdc><player><pc>'s ping is <sdc><ping><sc>ms".message,
     )
 
 }

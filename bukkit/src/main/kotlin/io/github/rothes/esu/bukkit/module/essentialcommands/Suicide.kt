@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.essencialcommands
+package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent

@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.essencialcommands
+package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData

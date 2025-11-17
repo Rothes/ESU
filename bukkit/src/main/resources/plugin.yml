@@ -44,7 +44,7 @@ permissions:
     children:
       'esu.news.command.editor': true
 
-  'esu.utilCommands.admin':
+  'esu.essentialCommands.admin':
     default: op
     children:
       'esu.utilCommands.command.ping': true

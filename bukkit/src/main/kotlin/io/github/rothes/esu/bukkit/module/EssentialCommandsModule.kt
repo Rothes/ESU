@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.module.essencialcommands.*
+import io.github.rothes.esu.bukkit.module.essentialcommands.*
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
