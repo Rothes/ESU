@@ -11,7 +11,6 @@ import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.math.floorI
 import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
@@ -31,20 +30,18 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
             @Command("dimensionTravel <player>")
             @ShortPerm("others")
             suspend fun dimensionTravel(sender: User, player: Player, @Flag("unsafe") unsafe: Boolean = false) {
-                val location = player.location
-                val world = location.world
-                val target = when (world.environment) {
+                val target = player.location
+                val world = target.world
+                when (world.environment) {
                     World.Environment.NORMAL -> {
-                        val world = Bukkit.getWorld("world_nether")
-                        val x = location.x / 8
-                        val z = location.z / 8
-                        Location(world, x, 0.0, z)
+                        target.world = Bukkit.getWorld("world_nether")
+                        target.x /= 8
+                        target.z /= 8
                     }
                     World.Environment.NETHER -> {
-                        val world = Bukkit.getWorld("world")
-                        val x = location.x.floorI() shl 3
-                        val z = location.z.floorI() shl 3
-                        Location(world, x.toDouble(), 0.0, z.toDouble())
+                        target.world = Bukkit.getWorld("world")
+                        target.x = (target.x.floorI() shl 3).toDouble()
+                        target.z = (target.z.floorI() shl 3).toDouble()
                     }
                     World.Environment.THE_END -> {
                         sender.message(lang, { unsupportedTheEnd })
@@ -52,9 +49,6 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
-                target.y = location.y
-                target.yaw = location.yaw
-                target.pitch = location.pitch
                 val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
                 player.tp(spot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
