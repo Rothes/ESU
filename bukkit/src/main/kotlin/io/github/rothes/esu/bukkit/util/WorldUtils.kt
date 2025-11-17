@@ -6,6 +6,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import org.bukkit.Location
 import org.bukkit.World
+import kotlin.math.floor
 import kotlin.time.Duration.Companion.seconds
 
 object WorldUtils {
@@ -13,8 +14,8 @@ object WorldUtils {
     suspend fun findSafeSpot(column: Location): Location? {
         val deferred = CompletableDeferred<Location?>()
         val location = column.clone()
-        location.x += 0.5
-        location.z += 0.5
+        location.x += floor(location.x) + 0.5
+        location.z += floor(location.z) + 0.5
         Scheduler.schedule(location) {
             val world = requireNotNull(location.world) { "Location world is null" }
             val y = if (world.environment == World.Environment.NETHER) {
