@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
@@ -24,7 +25,6 @@ import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerAdvancementDoneEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -44,9 +44,12 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
     object Listeners: Listener {
 
         @EventHandler(priority = EventPriority.HIGHEST)
-        fun onDeath(event: PlayerDeathEvent) {
-            val message = event.deathMessage() ?: return
-            event.deathMessage(handle(message.esu, config.message.death)?.server)
+        fun onDeath(e: RichPlayerDeathEvent) {
+            e.setChatMessage { _, old ->
+                old?.let { msg ->
+                    handle(msg, config.message.death)
+                }
+            }
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)

@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.event.RawUserReplyEvent
 import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMANDS
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
+import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
@@ -14,6 +15,7 @@ import io.github.rothes.esu.core.storage.StorageManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryDragEvent
@@ -52,6 +54,12 @@ internal object InternalListeners : Listener {
             StorageManager.updateUserAsync(it)
             BukkitUserManager.unload(it)
         }
+    }
+
+    /* Rich message events */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onPlayerDeath(event: PlayerDeathEvent) {
+        RichPlayerDeathEvent(event).callEvent()
     }
 
     /* EsuInvHolder processing */
