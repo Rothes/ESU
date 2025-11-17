@@ -12,6 +12,7 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 
 object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, Unit>() {
 
@@ -24,10 +25,14 @@ object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, Unit>() {
             }
             @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("others")
-            suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world, player: Player = (sender as PlayerUser).player) {
-                val location = Location(world, (chunk.chunkX shl 4) + 8.0, 0.0, (chunk.chunkZ shl 4) + 8.0)
-                val safeSpot = WorldUtils.findSafeSpot(location) ?: return sender.message(module.lang, { unsafeTeleportSpot })
-                player.tp(safeSpot)
+            suspend fun tpChunk(
+                sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world,
+                player: Player = (sender as PlayerUser).player,
+                @Flag("unsafe") unsafe: Boolean = false
+            ) {
+                val location = Location(world, (chunk.chunkX shl 4) + 8.0, player.y, (chunk.chunkZ shl 4) + 8.0)
+                val spot = WorldUtils.findStandableSpot(location, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
+                player.tp(spot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
             }
         })

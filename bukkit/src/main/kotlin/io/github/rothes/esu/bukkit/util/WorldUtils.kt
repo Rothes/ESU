@@ -11,7 +11,7 @@ import kotlin.time.Duration.Companion.seconds
 
 object WorldUtils {
 
-    suspend fun findSafeSpot(column: Location): Location? {
+    suspend fun findStandableSpot(column: Location, allowUnsafe: Boolean = false): Location? {
         val deferred = CompletableDeferred<Location?>()
         val location = column.clone()
         location.x += floor(location.x) + 0.5
@@ -24,7 +24,7 @@ object WorldUtils {
                 var y = 125
                 while (true) {
                     if (y == 0) {
-                        deferred.complete(null)
+                        deferred.complete(if (allowUnsafe) location else null)
                         return@schedule
                     }
                     y--

@@ -15,6 +15,7 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 
 object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.Lang>() {
 
@@ -29,7 +30,7 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
 
             @Command("dimensionTravel <player>")
             @ShortPerm("others")
-            suspend fun dimensionTravel(sender: User, player: Player) {
+            suspend fun dimensionTravel(sender: User, player: Player, @Flag("unsafe") unsafe: Boolean = false) {
                 val location = player.location
                 val world = location.world
                 val target = when (world.environment) {
@@ -51,10 +52,11 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
+                target.y = location.y
                 target.yaw = location.yaw
                 target.pitch = location.pitch
-                val safeSpot = WorldUtils.findSafeSpot(target) ?: return sender.message(module.lang, { unsafeTeleportSpot })
-                player.tp(safeSpot)
+                val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
+                player.tp(spot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
             }
         })
