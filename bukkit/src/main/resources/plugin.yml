@@ -41,6 +41,8 @@ permissions:
       'esu.essentialCommands.dimensionTravel.command.others': true
       'esu.essentialCommands.heal.command': true
       'esu.essentialCommands.heal.command.others': true
+      'esu.essentialCommands.feed.command': true
+      'esu.essentialCommands.feed.command.others': true
       'esu.essentialCommands.ip.command': true
       'esu.essentialCommands.ipGroup.command': true
       'esu.essentialCommands.ping.command': true

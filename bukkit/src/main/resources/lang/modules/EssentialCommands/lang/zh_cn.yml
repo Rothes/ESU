@@ -7,6 +7,9 @@ dimension-travel:
 heal:
   healed: <pc>你已被治愈.
   healed-player: <pc>已治愈 <pdc><player></pc>.
+feed:
+  fed: <pc>你已被喂饱.
+  fed-player: <pc>已喂饱 <pdc><player></pc>.
 ip:
   message: <pdc><player><pc> 的IP地址为 <sdc><address>
 ip-group:
