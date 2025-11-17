@@ -29,14 +29,13 @@ object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
             suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world, player: Player = (sender as PlayerUser).player) {
                 sender.message(lang, { teleporting }, player(player))
                 val location = Location(world, (chunk.chunkX shl 4) + 8.0, 0.0, (chunk.chunkZ shl 4) + 8.0)
-                val safeSpot = WorldUtils.findSafeSpot(location) ?: return sender.message(lang, { unsafeSpot })
+                val safeSpot = WorldUtils.findSafeSpot(location) ?: return sender.message(module.lang, { unsafeTeleportSpot })
                 player.tp(safeSpot)
             }
         })
     }
 
     data class Lang(
-        val unsafeSpot: MessageData = "<ec>Cannot find a safe spot for teleport.".message,
         val teleporting: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
     )
 
