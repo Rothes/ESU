@@ -4,13 +4,12 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import org.incendo.cloud.annotations.Command
 
-object ClientLocale : CommonFeature<FeatureToggle.DefaultTrue, ClientLocale.Lang>() {
+object ClientLocale : BaseCommand<FeatureToggle.DefaultTrue, ClientLocale.Lang>() {
 
     override fun onEnable() {
         registerCommands(object {

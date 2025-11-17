@@ -9,7 +9,6 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
@@ -22,7 +21,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.incendo.cloud.annotations.Command
 import java.lang.reflect.Field
 
-object PlayerChunkTickets : CommonFeature<FeatureToggle.DefaultTrue, PlayerChunkTickets.Lang>() {
+object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTickets.Lang>() {
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {

@@ -8,7 +8,6 @@ import io.github.rothes.esu.bukkit.util.WorldUtils
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
-import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import org.bukkit.Location
@@ -16,7 +15,7 @@ import org.bukkit.World
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 
-object TpChunk : CommonFeature<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
+object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
 
     override fun onEnable() {
         registerCommands(object {
