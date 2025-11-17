@@ -25,9 +25,9 @@ object TpChunk : CommonFeature<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
             suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world) {
                 tpChunk(sender, chunk, world, (sender as PlayerUser).player)
             }
-            @Command("tpChunk <chunk> <world> <player>")
+            @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("others")
-            suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World, player: Player) {
+            suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world, player: Player = (sender as PlayerUser).player) {
                 sender.message(lang, { teleporting }, player(player))
                 val location = Location(world, (chunk.chunkX shl 4) + 8.0, 0.0, (chunk.chunkZ shl 4) + 8.0)
                 val safeSpot = WorldUtils.findSafeSpot(location) ?: return sender.message(lang, { unsafeSpot })
