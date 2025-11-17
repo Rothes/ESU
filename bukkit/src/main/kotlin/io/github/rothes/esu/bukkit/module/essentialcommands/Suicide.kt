@@ -58,7 +58,7 @@ object Suicide: BaseCommand<Suicide.Config, Suicide.Lang>() {
         @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
         fun onDeath(e: RichPlayerDeathEvent) {
             val player = e.player
-            suicided.getIfPresent(player) ?: return println("not sui")
+            suicided.getIfPresent(player) ?: return
             suicided.invalidate(player)
             e.setChatMessage { user, old ->
                 old?.let { msg ->
