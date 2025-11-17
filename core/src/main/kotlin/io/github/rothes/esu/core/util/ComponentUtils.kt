@@ -1,7 +1,6 @@
 package io.github.rothes.esu.core.util
 
 import io.github.rothes.esu.core.config.EsuLang
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
@@ -185,7 +184,7 @@ object ComponentUtils {
         }
     }
 
-    fun <T: ConfigurationPart> pLang(viewer: User,
+    fun <T> pLang(viewer: User,
                                      locales: MultiLangConfiguration<T>, block: T.() -> Map<String, String>?,
                                      vararg params: TagResolver): TagResolver {
         val langMap = viewer.localed(locales, block)
