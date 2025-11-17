@@ -6,8 +6,6 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.data.MessageData
-import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
@@ -45,9 +43,9 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
 
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onDeath(e: RichPlayerDeathEvent) {
-            e.setChatMessage { _, old ->
+            e.setChatMessage { user, old ->
                 old?.let { msg ->
-                    handle(msg, config.message.death)
+                    processComponent(user, msg, config.message.death)
                 }
             }
         }
@@ -70,14 +68,18 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             event.message(handle(message.esu, config.message.doneAdvancement)?.server)
         }
 
+        private fun processComponent(user: User, message: Component, modifier: ModuleConfig.Message.MessageModifier): Component {
+            return user.buildMiniMessage(
+                modifier.format,
+                component("message",
+                    modifier.messageColor.applyTo(message) { message.color(it) }
+                )
+            )
+        }
+
         private fun handle(message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {
             val handler = { user: User ->
-                user.message(
-                    modifier.format,
-                    component("message",
-                        modifier.messageColor.applyTo(message) { message.color(it) }
-                    )
-                )
+                user.message(processComponent(user, message, modifier))
             }
             Bukkit.getOnlinePlayers().forEach {
                 handler(it.user)
@@ -117,7 +119,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             data class MessageModifier(
                 @RenamedFrom("color")
                 val messageColor: Optional<TextColor> = Optional.empty(),
-                val format: MessageData = "<message>".message,
+                val format: String = "<message>",
                 val showInConsole: Boolean = true,
             ): ConfigurationPart {
                 @RemovedNode
@@ -126,7 +128,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                 val head: String? = null
                 @RemovedNode
                 val foot: String? = null
-                constructor(color: TextColor?, head: String = ""): this(Optional.ofNullable(color), "$head<message>".message)
+                constructor(color: TextColor?, head: String = ""): this(Optional.ofNullable(color), "$head<message>")
             }
 
         }
