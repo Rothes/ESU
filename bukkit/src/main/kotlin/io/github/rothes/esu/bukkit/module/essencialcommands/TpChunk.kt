@@ -6,8 +6,6 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
 import io.github.rothes.esu.bukkit.util.WorldUtils
 import io.github.rothes.esu.core.command.annotation.ShortPerm
-import io.github.rothes.esu.core.configuration.data.MessageData
-import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import org.bukkit.Location
@@ -15,7 +13,7 @@ import org.bukkit.World
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 
-object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
+object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, Unit>() {
 
     override fun onEnable() {
         registerCommands(object {
@@ -27,16 +25,12 @@ object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, TpChunk.Lang>() {
             @Command("tpChunk <chunk> [world] [player]")
             @ShortPerm("others")
             suspend fun tpChunk(sender: User, chunk: ChunkLocation, world: World = (sender as PlayerUser).player.location.world, player: Player = (sender as PlayerUser).player) {
-                sender.message(lang, { teleporting }, player(player))
                 val location = Location(world, (chunk.chunkX shl 4) + 8.0, 0.0, (chunk.chunkZ shl 4) + 8.0)
                 val safeSpot = WorldUtils.findSafeSpot(location) ?: return sender.message(module.lang, { unsafeTeleportSpot })
                 player.tp(safeSpot)
+                sender.message(module.lang, { teleportingPlayer }, player(player))
             }
         })
     }
-
-    data class Lang(
-        val teleporting: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
-    )
 
 }
