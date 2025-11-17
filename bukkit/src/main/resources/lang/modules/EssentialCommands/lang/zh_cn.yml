@@ -5,7 +5,7 @@ client-locale:
 dimension-travel:
   unsupported-the-end: <ec>不能在末地进行维度切换.
 heal:
-  healed-self: <pc>你已被治愈.
+  healed: <pc>你已被治愈.
   healed-player: <pc>已治愈 <pdc><player></pc>.
 ip:
   message: <pdc><player><pc> 的IP地址为 <sdc><address>

@@ -30,14 +30,14 @@ object Heal : BaseCommand<FeatureToggle.DefaultTrue, Heal.Lang>() {
                 player.heal(player.getAttribute(AttributeAdapter.MAX_HEALTH)!!.value)
                 sender.message(lang, { healedPlayer }, player(player))
                 if (!silent) {
-                    player.user.message(lang, { healedSelf })
+                    player.user.message(lang, { healed })
                 }
             }
         })
     }
 
     data class Lang(
-        val healedSelf: MessageData = "<pc>You have been healed.".message,
+        val healed: MessageData = "<pc>You have been healed.".message,
         val healedPlayer: MessageData = "<pc>Healed <pdc><player></pc>.".message,
     )
 }
