@@ -13,6 +13,8 @@ import org.incendo.cloud.internal.CommandNode
 import org.incendo.cloud.kotlin.MutableCommandBuilder
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
 
 abstract class CommonFeature<C, L> : Feature<C, L> {
 
@@ -28,18 +30,29 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
     final override val configClass: Class<C>
     final override val langClass: Class<L>
     init {
+        var typeMap = HashMap<String, Type>(1)
         var clazz: Class<*> = javaClass
-        while (clazz.genericSuperclass !is ParameterizedType) {
+        while (true) {
+            val type = clazz.genericSuperclass
+            if (type is ParameterizedType) {
+                if (type.actualTypeArguments.size == 2)
+                    break
+                typeMap[(type.rawType as Class<*>).typeParameters[0].name] = type.actualTypeArguments[0]
+            }
             clazz = clazz.superclass
             if (clazz === Object::class.java) {
-                error("Cannot find config/lang classes of feature $name")
+                @Suppress("USELESS_ELVIS") // In case of name is overridden, name is not init yet
+                error("Cannot find config/lang classes of feature ${name ?: javaClass.simpleName}")
             }
         }
         val actualTypeArguments = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments
+        fun Type.actualClass(): Class<*> {
+            return (if (this is TypeVariable<*>) typeMap[this.name] else this) as Class<*>
+        }
         @Suppress("UNCHECKED_CAST")
-        configClass = actualTypeArguments[0] as Class<C>
+        configClass = actualTypeArguments[0].actualClass() as Class<C>
         @Suppress("UNCHECKED_CAST")
-        langClass = actualTypeArguments[1] as Class<L>
+        langClass = actualTypeArguments[1].actualClass() as Class<L>
     }
 
     private var configValue: C? = null
