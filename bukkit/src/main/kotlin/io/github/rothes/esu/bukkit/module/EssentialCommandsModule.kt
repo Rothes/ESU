@@ -10,7 +10,7 @@ object EssentialCommandsModule: BukkitModule<BaseModuleConfiguration, EssentialC
 
     init {
         listOf(
-            ClientLocale, DimensionTravel, Heal, Ip, IpGroup, Ping, PlayerChunkTickets, TpChunk
+            ClientLocale, DimensionTravel, Heal, Ip, IpGroup, Ping, PlayerChunkTickets, Suicide, TpChunk
         ).forEach { cmd -> registerFeature(cmd) }
     }
 
