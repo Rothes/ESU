@@ -33,7 +33,7 @@ object Suicide: BaseCommand<Suicide.Config, Suicide.Lang>() {
             fun suicide(sender: User, @Flag("confirm") confirm: Boolean = false) {
                 if (!confirm) {
                     val button = sender.buildMiniMessage(lang, { confirmButton })
-                        .clickEvent(ClickEvent.runCommand("/esu:suicide --confirm"))
+                        .clickEvent(ClickEvent.runCommand("/suicide --confirm"))
                     sender.message(lang, { confirmSuicide }, component("confirm", button))
                     return
                 }
