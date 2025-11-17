@@ -166,14 +166,18 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         with(EsuCore.instance.commandManager) {
             val annotationParser = AnnotationParser(this, User::class.java).installCoroutineSupport()
             annotationParser.registerBuilderModifier(ShortPerm::class.java) { a, b ->
-                val perm = if (a.value.isNotEmpty()) "command.${a.value}" else "command"
-                b.permission(perm(perm))
+                b.permission(cmdShortPerm(a.value))
             }
             modifier?.invoke(annotationParser)
 
             val commands = annotationParser.parse(obj)
             registeredCommands.addAll(commands)
         }
+    }
+
+    protected fun cmdShortPerm(value: String = ""): String {
+        val perm = if (value.isNotEmpty()) "command.${value}" else "command"
+        return perm(perm)
     }
 
 }
