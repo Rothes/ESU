@@ -30,8 +30,9 @@ object TpChunk : BaseCommand<FeatureToggle.DefaultTrue, Unit>() {
                 player: Player = (sender as PlayerUser).player,
                 @Flag("unsafe") unsafe: Boolean = false
             ) {
-                val location = Location(world, (chunk.chunkX shl 4) + 8.0, player.y, (chunk.chunkZ shl 4) + 8.0)
-                val spot = WorldUtils.findStandableSpot(location, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
+                val location = player.location
+                val target = Location(world, (chunk.chunkX shl 4) + 8.0, location.y, (chunk.chunkZ shl 4) + 8.0, location.yaw, location.pitch)
+                val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
                 player.tp(spot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
             }
