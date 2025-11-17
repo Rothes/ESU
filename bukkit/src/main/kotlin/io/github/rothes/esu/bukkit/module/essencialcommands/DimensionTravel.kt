@@ -62,6 +62,5 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
 
     data class Lang(
         val unsupportedTheEnd: MessageData = "<ec>Dimension travel is not possible from the end.".message,
-        val teleporting: MessageData = "<ec>Teleporting <tdc><player></tdc>....".message,
     )
 }
