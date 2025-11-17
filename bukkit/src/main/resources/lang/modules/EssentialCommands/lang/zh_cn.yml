@@ -1,0 +1,32 @@
+unsafe-teleport-spot: <ec>未能找到一个安全的传送地点.
+teleporting-player: <tc>正在传送 <tdc><player></tdc>...
+client-locale:
+  message: <pdc><player><pc> 的客户端语言为 <sdc><locale>
+dimension-travel:
+  unsupported-the-end: <ec>不能在末地进行维度切换.
+heal:
+  healed-self: <pc>你已被治愈.
+  healed-player: <pc>已治愈 <pdc><player></pc>.
+ip:
+  message: <pdc><player><pc> 的IP地址为 <sdc><address>
+ip-group:
+  no-same-ip: <pc>没有具有相同IP地址的玩家.
+  entry: '<tdc><address><tc>: <players>'
+  player-prefix: <sdc>
+  player-separator: <pc>, <sdc>
+ping:
+  message: <pdc><player><pc> 的网络延迟为 <sdc><ping><sc>ms
+player-chunk-tickets:
+  gen-rate-top:
+    no-data: <pc>目前没有区块生成请求.
+    header: '<pdc>[玩家]<pc>: <sc>[区块生成请求/秒]'
+    entry: '<tdc><player><tc>: <sdc><rate>'
+  load-rate-top:
+    no-data: <pc>目前没有区块加载请求.
+    header: '<pdc>[玩家]<pc>: <sc>[区块加载请求/秒]'
+    entry: '<tdc><player><tc>: <sdc><rate>'
+suicide:
+  placeholders:
+    suicided: (自杀了)
+  confirm-button: <edc><hover:show_text:'<ec>再见了...'>[确认]
+  confirm-suicide: <ec>你确定要自杀吗? 背包内所有物品都将掉落! <confirm>

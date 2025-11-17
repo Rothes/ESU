@@ -13,6 +13,15 @@ softdepend:
   - PlugManX
 
 permissions:
+  'esu.essentialCommands.player':
+    default: true
+    children:
+      'esu.essentialCommands.suicide.command': true
+
+  'esu.esuChat.chat.shout':
+    default: true
+
+
   'esu.antiCommandSpam.admin':
     default: op
     children:
@@ -24,8 +33,25 @@ permissions:
       'esu.chatAntiSpam.bypass': true
       'esu.chatAntiSpam.notify': true
 
-  'esu.esuChat.chat.shout':
-    default: true
+  'esu.essentialCommands.admin':
+    default: op
+    children:
+      'esu.essentialCommands.clientLocale.command': true
+      'esu.essentialCommands.dimensionTravel.command': true
+      'esu.essentialCommands.dimensionTravel.command.others': true
+      'esu.essentialCommands.heal.command': true
+      'esu.essentialCommands.heal.command.others': true
+      'esu.essentialCommands.ip.command': true
+      'esu.essentialCommands.ipGroup.command': true
+      'esu.essentialCommands.ping.command': true
+      'esu.essentialCommands.playerChunkTickets.command.genRateTop': true
+      'esu.essentialCommands.playerChunkTickets.command.loadRateTop': true
+      'esu.essentialCommands.playerChunkTickets.command.tickDistance': true
+      'esu.essentialCommands.playerChunkTickets.command.viewDistance': true
+      'esu.essentialCommands.playerChunkTickets.command.sendDistance': true
+      'esu.essentialCommands.tpChunk.command': true
+      'esu.essentialCommands.tpChunk.command.others': true
+
   'esu.esuChat.admin':
     default: op
     children:
@@ -43,17 +69,3 @@ permissions:
     default: op
     children:
       'esu.news.command.editor': true
-
-  'esu.essentialCommands.admin':
-    default: op
-    children:
-      'esu.utilCommands.command.ping': true
-      'esu.utilCommands.command.clientLocale': true
-      'esu.utilCommands.command.ip': true
-      'esu.utilCommands.command.ipGroup': true
-      'esu.utilCommands.command.tpChunk': true
-      'esu.utilCommands.command.genRateTop': true
-      'esu.utilCommands.command.loadRateTop': true
-      'esu.utilCommands.command.tickDistance': true
-      'esu.utilCommands.command.viewDistance': true
-      'esu.utilCommands.command.sendDistance': true
