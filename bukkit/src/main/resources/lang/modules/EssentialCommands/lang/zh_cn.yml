@@ -28,5 +28,5 @@ player-chunk-tickets:
 suicide:
   placeholders:
     suicided: (自杀了)
-  confirm-button: <edc><hover:show_text:'<ec>再见了...'>[确认]
-  confirm-suicide: <ec>你确定要自杀吗? 背包内所有物品都将掉落! <confirm>
+  confirm-button: <edc><hover:show_text:'<ec>我不活了...'>[确认]
+  confirm-suicide: <ec>你确定要自杀吗? 背包内的所有物品都将掉落! <confirm>
