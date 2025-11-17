@@ -41,8 +41,7 @@ object Suicide: BaseCommand<Suicide.Config, Suicide.Lang>() {
                 val player = user.player
                 suicided.put(player, Unit)
                 Scheduler.schedule(player) {
-                    player.noDamageTicks = 0
-                    player.damage(player.health)
+                    player.health = 0.0
                 }
             }
         })
