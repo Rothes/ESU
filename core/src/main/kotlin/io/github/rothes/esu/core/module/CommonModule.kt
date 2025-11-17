@@ -2,6 +2,7 @@ package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
+import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper
 import io.github.rothes.esu.core.module.configuration.FeatureNodeMapper.Companion.nodeMapper
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
@@ -40,7 +41,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
             }
         }
         clearLang(this)
-        ConfigLoader.loadMulti(
+        ConfigLoader.loadMulti<MultiLangConfiguration<L>, L>(
             langPath,
             langClass,
             ConfigLoader.LoaderSettingsMulti(
