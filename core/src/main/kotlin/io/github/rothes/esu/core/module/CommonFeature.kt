@@ -10,6 +10,7 @@ import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.component.CommandComponent
 import org.incendo.cloud.internal.CommandNode
+import org.incendo.cloud.kotlin.MutableCommandBuilder
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import java.lang.reflect.ParameterizedType
 
@@ -130,12 +131,35 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         }
     }
 
-    fun registerCommand(block: CommandManager<User>.() -> Command.Builder<User>) {
+    fun registerCommandJvm(block: CommandManager<User>.() -> Command.Builder<User>) {
         with(EsuCore.instance.commandManager) {
             val command = block.invoke(this).build()
             command(command)
             registeredCommands.add(command)
         }
+    }
+
+    fun registerCommand(block: CommandManager<User>.() -> MutableCommandBuilder<User>) {
+        with(EsuCore.instance.commandManager) {
+            val command = block.invoke(this).build()
+            command(command)
+            registeredCommands.add(command)
+        }
+    }
+
+    fun withCommandManager(scope: CommandManager<User>.() -> Unit) {
+        scope(EsuCore.instance.commandManager)
+    }
+
+    fun Command<User>.regCmd() {
+        EsuCore.instance.commandManager.command(this)
+        registeredCommands.add(this)
+    }
+
+    fun MutableCommandBuilder<User>.regCmd() {
+        val command = build()
+        EsuCore.instance.commandManager.command(command)
+        registeredCommands.add(command)
     }
 
     fun registerCommands(obj: Any, modifier: ((AnnotationParser<User>) -> Unit)? = null) {

@@ -61,7 +61,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
         
         val cmd = EsuCore.instance.commandManager.commandBuilder(rootCommand, rootCommandAlias)
         val admin = cmd.permission(perm("command.admin"))
-        registerCommand {
+        registerCommandJvm {
             cmd.literal("check").handler { context ->
                 val user = context.sender()
                 val restartOn = restartOn
@@ -72,7 +72,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 }
             }
         }
-        registerCommand {
+        registerCommandJvm {
             admin.literal("reset").handler { context ->
                 data.restartOnOverride = null
                 scheduleTask()
@@ -80,7 +80,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 ConfigLoader.save(dataPath, data)
             }
         }
-        registerCommand {
+        registerCommandJvm {
             admin.literal("delayed").required("duration", DurationParser.durationParser()).handler { context ->
                 val duration = context.get<Duration>("duration")
                 data.restartOnOverride =
@@ -91,7 +91,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 ConfigLoader.save(dataPath, data)
             }
         }
-        registerCommand {
+        registerCommandJvm {
             admin.literal("schedule").required(
                 "dateTime",
                 StringParser.greedyStringParser(),
@@ -123,7 +123,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 ConfigLoader.save(dataPath, data)
             }
         }
-        registerCommand {
+        registerCommandJvm {
             admin.literal("pause").handler { context ->
                 pausing = !pausing
                 scheduleTask()

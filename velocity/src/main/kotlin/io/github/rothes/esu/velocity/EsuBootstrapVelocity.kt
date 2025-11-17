@@ -123,6 +123,7 @@ class EsuBootstrapVelocity @Inject constructor(
                     "org.incendo:cloud-core:2.0.0",
                     "org.incendo:cloud-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
+                    "org.incendo:cloud-kotlin-extensions:2.0.0",
 
                     "org.incendo:cloud-velocity:2.0.0-beta.10",
 

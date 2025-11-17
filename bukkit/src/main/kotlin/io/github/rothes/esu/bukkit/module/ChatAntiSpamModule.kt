@@ -51,7 +51,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 notifyUsers.add(it)
         }
         val cmd = plugin.commandManager.commandBuilder("antispam", "as").permission(perm("command.admin"))
-        registerCommand {
+        registerCommandJvm {
             cmd.literal("data").optional(
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
@@ -79,7 +79,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 }
             }
         }
-        registerCommand {
+        registerCommandJvm {
             cmd.literal("notify").handler { context ->
                 val user = context.sender()
                 if (notifyUsers.contains(user)) {
@@ -91,7 +91,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 }
             }
         }
-        registerCommand {
+        registerCommandJvm {
             cmd.literal("mute").optional(
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
@@ -105,7 +105,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 CasDataManager.saveSpamDataAsync(playerUser)
             }
         }
-        registerCommand {
+        registerCommandJvm {
             cmd.literal("reset").optional(
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->

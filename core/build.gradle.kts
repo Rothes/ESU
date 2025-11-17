@@ -24,6 +24,10 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
+    compileOnlyApi("org.incendo:cloud-kotlin-extensions:2.0.0") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+    }
 
     val adventureVersion = rootProject.libs.versions.adventure.get()
     compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
