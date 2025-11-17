@@ -41,7 +41,7 @@ object WorldUtils {
             location.y = y.toDouble() + 1
             deferred.complete(location)
         }
-        return withTimeout(1.seconds) {
+        return withTimeout(5.seconds) { // Some timeout for not generated chunk / low tps
             deferred.await()
         }
     }
