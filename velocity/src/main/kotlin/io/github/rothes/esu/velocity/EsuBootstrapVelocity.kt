@@ -125,7 +125,7 @@ class EsuBootstrapVelocity @Inject constructor(
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-extensions:2.0.0",
 
-                    "org.incendo:cloud-velocity:2.0.0-beta.10",
+                    "org.incendo:cloud-velocity:2.0.0-beta.13",
 
                     "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
                     "com.mysql:mysql-connector-j:8.4.0",

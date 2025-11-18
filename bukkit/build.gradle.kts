@@ -57,7 +57,7 @@ dependencies {
     api(project(":common"))
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
 
-    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.10")
+    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.13")
 
     compileOnly("info.debatty:java-string-similarity:2.0.0")
 

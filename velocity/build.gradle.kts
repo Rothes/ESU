@@ -27,7 +27,7 @@ dependencies {
     api(project(":common"))
     compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))
 
-    compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.10")
+    compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.13")
 
     compileOnly("org.apache.maven.resolver:maven-resolver-api:1.9.18")
 
