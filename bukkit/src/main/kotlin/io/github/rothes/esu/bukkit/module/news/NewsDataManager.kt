@@ -1,21 +1,21 @@
 package io.github.rothes.esu.bukkit.module.news
 
 import io.github.rothes.esu.bukkit.module.NewsModule
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.json.json
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 object NewsDataManager {
 
@@ -36,7 +36,7 @@ object NewsDataManager {
         override val primaryKey: PrimaryKey = PrimaryKey(user, channel)
     }
 
-    private var task: ScheduledTask? = null
+    private var task: Job? = null
     var news: List<NewsItem> = emptyList()
         private set
 
@@ -57,15 +57,12 @@ object NewsDataManager {
 
     fun start() {
         task?.cancel()
-        fetchNews()
-        fun schedule() {
-            // We want a random offset
-            task = Scheduler.asyncTicks(20 * 60L + (-200 .. 200).random()) {
+        task = CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
                 fetchNews()
-                schedule()
+                delay(1.minutes + (1 .. 10).random().seconds) // Random offset to stagger the queries
             }
         }
-        schedule()
     }
 
     fun shutdown() {

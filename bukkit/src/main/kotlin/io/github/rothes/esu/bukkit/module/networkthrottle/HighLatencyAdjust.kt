@@ -13,15 +13,18 @@ import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.coroutine.AsyncScope
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -29,6 +32,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import java.time.Duration
 import kotlin.math.min
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLatencyAdjust.FeatureLang>(), Listener {
@@ -37,7 +41,7 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
 
     val adjusted = hashMapOf<Player, Int>()
     val startTime = Object2LongOpenHashMap<Player>().also { it.defaultReturnValue(NO_TIME) }
-    var task: ScheduledTask? = null
+    var task: Job? = null
 
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
@@ -63,32 +67,35 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
         }
         data.originalViewDistance.clear()
 
-        task = Scheduler.asyncTicks(0, 15 * 20) {
-            val now = System.currentTimeMillis()
-            for (player in Bukkit.getOnlinePlayers()) {
-                if (player.ping >= config.latencyThreshold) {
-                    val last = startTime.getLong(player)
-                    if (last == NO_TIME) {
-                        startTime[player] = now
-                        continue
-                    } else if ((now - last) < config.duration.toMillis()) {
-                        continue
-                    }
-                    startTime.removeLong(player)
-
-                    if (!adjusted.containsKey(player)) {
-                        adjusted[player] = player.clientViewDistance
-                        player.sendViewDistance = min(player.clientViewDistance, player.viewDistance) - 1
-                    } else {
-                        if (player.sendViewDistance <= config.minViewDistance) {
+        task = AsyncScope.launch {
+            while (isActive) {
+                val now = System.currentTimeMillis()
+                for (player in Bukkit.getOnlinePlayers()) {
+                    if (player.ping >= config.latencyThreshold) {
+                        val last = startTime.getLong(player)
+                        if (last == NO_TIME) {
+                            startTime[player] = now
+                            continue
+                        } else if ((now - last) < config.duration.toMillis()) {
                             continue
                         }
-                        player.sendViewDistance--
+                        startTime.removeLong(player)
+
+                        if (!adjusted.containsKey(player)) {
+                            adjusted[player] = player.clientViewDistance
+                            player.sendViewDistance = min(player.clientViewDistance, player.viewDistance) - 1
+                        } else {
+                            if (player.sendViewDistance <= config.minViewDistance) {
+                                continue
+                            }
+                            player.sendViewDistance--
+                        }
+                        player.user.message(lang, { adjustedWarning })
+                    } else {
+                        startTime.removeLong(player)
                     }
-                    player.user.message(lang, { adjustedWarning })
-                } else {
-                    startTime.removeLong(player)
                 }
+                delay(15.seconds)
             }
         }
         PacketEvents.getAPI().eventManager.registerListener(PacketListeners)

@@ -4,40 +4,47 @@ import com.google.common.collect.HashBasedTable
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.coroutine.AsyncScope
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import java.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 object CommandAntiSpamModule: BukkitModule<CommandAntiSpamModule.ModuleConfig, CommandAntiSpamModule.ModuleLocale>() {
     
-    private var cacheTask: ScheduledTask? = null
+    private var cacheTask: Job? = null
 
     override fun onEnable() {
         Listeners.register()
-        cacheTask = Scheduler.asyncTicks(5 * 60 * 20L, 5 * 60 * 20L) {
-            val now = System.currentTimeMillis()
-            Listeners.hits.cellSet().toList().forEach { cell ->
-                val cmd = cell.columnKey
-                val queue = cell.value
-                val conf = config.commands.find { it.commands.any { regex -> regex.containsMatchIn(cmd) } }
-                if (conf == null) {
-                    queue.clear()
-                } else {
-                    queue.removeIf { now - it > conf.expireInterval }
-                }
-                if (queue.isEmpty()) {
-                    Listeners.hits.remove(cell.rowKey, cell.columnKey)
+        cacheTask = AsyncScope.launch {
+            while (isActive) {
+                delay(5.minutes)
+                val now = System.currentTimeMillis()
+                Listeners.hits.cellSet().toList().forEach { cell ->
+                    val cmd = cell.columnKey
+                    val queue = cell.value
+                    val conf = config.commands.find { it.commands.any { regex -> regex.containsMatchIn(cmd) } }
+                    if (conf == null) {
+                        queue.clear()
+                    } else {
+                        queue.removeIf { now - it > conf.expireInterval }
+                    }
+                    if (queue.isEmpty()) {
+                        Listeners.hits.remove(cell.rowKey, cell.columnKey)
+                    }
                 }
             }
         }
