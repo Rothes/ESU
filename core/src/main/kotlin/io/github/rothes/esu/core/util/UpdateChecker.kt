@@ -3,14 +3,21 @@ package io.github.rothes.esu.core.util
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import io.github.rothes.esu.core.EsuCore
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.coroutine.AsyncScope
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.net.URI
 import java.util.*
+import kotlin.time.Duration.Companion.hours
 
 private const val GITHUB_REPO = "Rothes/ESU"
 
@@ -30,12 +37,38 @@ class UpdateChecker(
     private val messages = mutableListOf<RemoteMessage>()
     private var errorCount = 0
 
+    private var task: Job? = null
+
+    init {
+        onReload()
+    }
+
+    fun onReload() {
+        if (EsuConfig.get().updateChecker) {
+            if (task == null) {
+                task = AsyncScope.launch {
+                    while (isActive) {
+                        run()
+                        delay(1.hours)
+                    }
+                }
+            }
+        } else {
+            shutdown()
+        }
+    }
+
     fun onJoin(user: User) {
-        if (user.hasPermission(perm)) {
+        if (EsuConfig.get().updateChecker && user.hasPermission(perm)) {
             for (msg in messages) {
                 user.message(user.localed(msg.langMap) { it.message }, *msg.args)
             }
         }
+    }
+
+    fun shutdown() {
+        task?.cancel()
+        task = null
     }
 
     fun run() {
@@ -78,7 +111,7 @@ class UpdateChecker(
         }
     }
 
-    fun fetch(): CheckedInfo {
+    private fun fetch(): CheckedInfo {
         val fetch = getResponse("ghfast.top/https://raw.githubusercontent.com")
         val errors = mutableListOf<LocaleMessage>()
 
@@ -157,13 +190,13 @@ class UpdateChecker(
         )
     }
 
-    data class CheckedInfo(
+    private data class CheckedInfo(
         val notifications: List<Notification>?,
         val latestVersionName: String,
         val errorMessage: List<LocaleMessage> = listOf(),
     )
 
-    data class Notification(
+    private data class Notification(
         val actions: List<VersionAction>,
         @SerializedName("message_times")
         val messageTimes: Int,
