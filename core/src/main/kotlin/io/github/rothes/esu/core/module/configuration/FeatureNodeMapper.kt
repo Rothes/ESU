@@ -24,8 +24,10 @@ class FeatureNodeMapper(
                 TargetClass.LANG -> {
                     val instance = node.getInstance(feature.langClass)
                     node.set(instance)
-                    val map = feature.lang.configs as MutableMap
-                    map[key] = instance
+                    if (key.isNotEmpty()) {
+                        val map = feature.lang.configs as MutableMap
+                        map[key] = instance
+                    }
                 }
             }
         } catch (e: Exception) {

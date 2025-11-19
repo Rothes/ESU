@@ -462,7 +462,8 @@ object ConfigLoader {
         }
 
         fun readConfig(clazz: Class<*>, settings: LoaderSettings<*>): ConfigurationNode {
-            return readConfig(clazz.classLoader, createBuilder(null).let(settings.yamlLoader))
+            val raw = readConfig(clazz.classLoader, createBuilder(null).let(settings.yamlLoader))
+            return settings.nodeMapper("", raw)
         }
 
         fun readConfig(classLoader: ClassLoader, yamlBuilder: YamlConfigurationLoader.Builder): ConfigurationNode {
