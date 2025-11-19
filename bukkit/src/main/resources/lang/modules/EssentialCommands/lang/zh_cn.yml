@@ -28,6 +28,16 @@ player-chunk-tickets:
     no-data: <pc>目前没有区块加载请求.
     header: '<pdc>[玩家]<pc>: <sc>[区块加载请求/秒]'
     entry: '<tdc><player><tc>: <sdc><rate>'
+spectate:
+  cannot-spectate-self: <ec>无法旁观自己!
+  spectating-target: <pc>正在旁观 <pdc><target></pdc>.
+speed:
+  speed-get: <pdc><player><pc> 的<type>速度为 <pdc><value><pc>.
+  speed-set: <pc>已设置 <pdc><player><pc> 的<type>速度为 <pdc><value><pc>.
+  walk-speed:
+    type-name: 行走
+  fly-speed:
+    type-name: 飞行
 suicide:
   placeholders:
     suicided: (自杀了)

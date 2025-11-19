@@ -102,7 +102,7 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
     data class Config(
         @Comment("""
             Reset speed for players leaving the server or on disable.
-            If not enabled, modified speed may exist forever.
+            If set to false, modified speed may exist forever.
         """)
         val autoResetSpeed: Boolean = true,
     ): BaseFeatureConfiguration(true)
