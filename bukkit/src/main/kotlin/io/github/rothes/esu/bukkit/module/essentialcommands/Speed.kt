@@ -9,7 +9,6 @@ import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -36,32 +35,35 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
     private val speedHandler by Versioned(NmsPlayerSpeedHandler::class.java)
 
     override fun onEnable() {
-        registerSpeedCommands("speed") { player ->
-            if (player.isFlying) FlySpeed else WalkSpeed
-        }
+        registerSpeedCommands()
     }
 
-    private fun CommonFeature<*, *>.registerSpeedCommands(rootName: String, getter: (Player) -> SpeedCommand<out SpeedType>) {
+    private fun BaseCommand<*, *>.registerSpeedCommands() {
+        val handlerGetter: (Player) -> SpeedCommand<*> =
+            if (this is SpeedCommand<*>) {
+                { this }
+            } else
+                { player -> if (player.isFlying) FlySpeed else WalkSpeed }
         withCommandManager {
-            commandBuilder(rootName + "Get") {
+            commandBuilder(name + "Get") {
                 permission(cmdShortPerm())
                 handler { ctx ->
                     val sender = ctx.sender()
                     val player = ctx.getOrSupplyDefault("player") { (sender as PlayerUser).player }
-                    getter(player).getSpeed(sender, player)
+                    handlerGetter(player).getSpeed(sender, player)
                 }.regCmd()
 
                 permission(cmdShortPerm("others"))
                 optional("player", PlayerParser.playerParser())
                 regCmd()
             }
-            commandBuilder(rootName) {
+            commandBuilder(name) {
                 permission(cmdShortPerm())
 
                 handler { ctx ->
                     val sender = ctx.sender()
                     val player = ctx.getOrSupplyDefault("player") { (sender as PlayerUser).player }
-                    val speedCommand = getter(player)
+                    val speedCommand = handlerGetter(player)
                     val value = ctx.getOrNull("value") ?: speedCommand.defaultValue
                     speedCommand.setSpeed(sender, value, player)
                 }
@@ -85,7 +87,10 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
                         suggestionProvider(SuggestionProvider.blockingStrings { ctx, _ ->
                             val sender = ctx.sender()
                             val player = if (sender is PlayerUser) sender.player else null
-                            val current = if (player != null) with(getter(player)) { player.speed } else 0.1f
+                            val current =
+                                if (player != null) with(handlerGetter(player)) { player.speed }
+                                else if (this@registerSpeedCommands is SpeedCommand<*>) this@registerSpeedCommands.defaultValue
+                                else 0.1f
                             listOf(current.toString())
                         })
                     }
@@ -138,7 +143,7 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
         }
 
         override fun onEnable() {
-            registerSpeedCommands(name) { this }
+            registerSpeedCommands()
             listener.register()
         }
 
