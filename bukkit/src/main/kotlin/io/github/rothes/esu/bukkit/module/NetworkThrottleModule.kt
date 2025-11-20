@@ -13,8 +13,8 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
 
     init {
         registerFeature(ChunkDataThrottle)
-        registerFeature(EntityCulling)
         registerFeature(DynamicChunkSendRate)
+        registerFeature(EntityCulling)
         if (MCRegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
         registerFeature(HighLatencyAdjust)
         registerFeature(SkipUnnecessaryPackets)

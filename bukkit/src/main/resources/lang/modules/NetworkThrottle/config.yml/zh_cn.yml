@@ -48,7 +48,43 @@ chunk-data-throttle:
 
 # 启用动态区块发送速率。需要在 ESU 的 velocity 插件端也开启此功能。
 dynamic-chunk-send-rate:
-  enabled: ~
+
+# 智能遮挡剔除，可降低上行带宽占用。
+# 插件会对玩家隐藏他们不可见的实体。
+entity-culling:
+  raytrace-handler:
+    # 用于计算实体可见性的异步线程数量。越多则越快。
+    raytrace-threads: ~
+    # 每秒的更新次数上限。
+    # 数字越大，即时性越高，但也会造成更多的性能占用。
+    updates-per-second: ~
+    # 启用 fast-raytrace 则使用固定步长判断可见性，计算速度快一倍，
+    # 但透过拐角的实体可能不会隐藏，同时亦可防止经过拐角后实体突然出现。
+    # 设为 false 则使用 3D-DDA 算法，适合需要判定更精确的场景。
+    fast-raytrace: ~
+    # 在第一次看见实体时标记实体为被遮挡状态。
+    # 防止实体生成时的可见性闪烁和相关数据包。
+    entity-culled-by-default: ~
+    # 列表中的实体类型总是可见。
+    visible-entity-types: ~
+    # 在该半径范围内的实体总是可见。
+    force-visible-distance: ~
+    # 模拟并预测玩家在后续游戏刻的位置。
+    # 实体在玩家当前位置和预测位置都不可见时，
+    # 才会被判定为被遮挡状态。
+    # 可以降低实体突然出现的可能性，
+    # 根据玩家速度可能造成额外一倍的处理时间。
+    # 需要 Minecraft 1.21+ 以获取客户端移动向量。
+    predicate-player-positon: ~
+    # 玩家的可见实体必须达到这个数量，才为他们剔除遮挡实体。
+    # 设为 -1 则始终遮挡剔除。
+    cull-threshold: -1
+
+entity-update-interval:
+  # 控制实体类型位置更新数据包发送的游戏刻间隔。
+  # 更高的数字意味着更高的实体移动数据包，亦是更高的不同步，
+  # 以换取更少的网络占用。
+  entity-type-update-interval: ~
 
 # 将延迟较高的玩家的视距设置调整为较低的值。
 # 由此防止到影响所有玩家的平均网络质量。
@@ -61,6 +97,10 @@ high-latency-adjust:
   # 若为 true，则玩家必须更改客户端视野距离才能重置视距；
   # 若为 false，则任何新设置都可以重置玩家的视距。
   new-view-distance-to-reset: ~
+
+# 启用该功能可滤过不必要的数据包，这些数据包不会为客户端带来任何改变。
+# 目前仅过滤实际上实体未移动的实体位置数据包。
+skip-unnecessary-packets:
 
 _oc_:
   chunk-data-throttle:

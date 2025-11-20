@@ -636,7 +636,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             Simulate and predicate player positon behind later game ticks.
             An entity will only be culled if it is not visible at either
              the player's current positon or the predicted positon.
-            This can reduce the possibility of entity flickering.
+            This can reduce the possibility of entity suddenly appearing.
             May double the raytrace time depends on the player velocity.
             Requires Minecraft 1.21+ for client movement velocity.
         """)
