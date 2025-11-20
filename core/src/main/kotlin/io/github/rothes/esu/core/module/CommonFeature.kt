@@ -23,9 +23,9 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         private set
     final override var parent: Feature<*, *>? = null
         private set
-    protected var internalModule: Module<*, *>? = null
+    private var _module: Module<*, *>? = null
     override val module: Module<*, *>
-        get() = internalModule ?: error("Feature $name is not attached to a module")
+        get() = _module ?: error("Feature $name is not attached to a module")
 
     final override val configClass: Class<C>
     final override val langClass: Class<L>
@@ -55,11 +55,13 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         langClass = actualTypeArguments[1].actualClass() as Class<L>
     }
 
-    private var configValue: C? = null
+    private var _config: C? = null
+    private var _lang: MultiLangConfiguration<L>? = null
 
     final override val config: C
-        get() = configValue ?: error("Config is not loaded for feature $name")
-    final override val lang: MultiLangConfiguration<L> = MultiLangConfiguration(mutableMapOf())
+        get() = _config ?: error("Config is not loaded for feature $name")
+    final override val lang: MultiLangConfiguration<L>
+        get() = _lang ?: error("Lang is not loaded for feature $name")
 
     override val permissionNode: String by lazy { (parent?.permissionNode ?: EsuCore.instance.basePermissionNode) + "." + name.lowercase() }
 
@@ -68,7 +70,11 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
     }
 
     final override fun setConfigInstance(instance: C) {
-        configValue = instance
+        _config = instance
+    }
+
+    override fun setLangInstance(instance: MultiLangConfiguration<L>) {
+        _lang = instance
     }
 
     final override fun setEnabled(value: Boolean) {
@@ -85,7 +91,7 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         if (temp !is Module<*, *>) {
             temp = null
         }
-        internalModule = temp
+        _module = temp
     }
 
     protected val children = linkedMapOf<String, Feature<*, *>>()

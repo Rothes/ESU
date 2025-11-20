@@ -1,6 +1,7 @@
 package io.github.rothes.esu.core.configuration
 
 import com.google.common.cache.CacheBuilder
+import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.meta.*
@@ -8,7 +9,10 @@ import io.github.rothes.esu.core.configuration.serializer.*
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ClassUtils.jarFile
 import io.github.rothes.esu.core.util.tree.TreeNode
-import io.github.rothes.esu.lib.configurate.*
+import io.github.rothes.esu.lib.configurate.CommentedConfigurationNode
+import io.github.rothes.esu.lib.configurate.CommentedConfigurationNodeIntermediary
+import io.github.rothes.esu.lib.configurate.ConfigurationNode
+import io.github.rothes.esu.lib.configurate.ConfigurationOptions
 import io.github.rothes.esu.lib.configurate.loader.HeaderMode
 import io.github.rothes.esu.lib.configurate.objectmapping.ConfigSerializable
 import io.github.rothes.esu.lib.configurate.objectmapping.ObjectMapper
@@ -65,23 +69,13 @@ object ConfigLoader {
     }
 
     inline fun <reified T: MultiConfiguration<D>, reified D>
-            loadMulti(path: Path, settings: LoaderSettingsMulti<D>): T {
+            loadMulti(path: Path, settings: LoaderSettingsMulti): T {
         return loadMulti(path, T::class.java, D::class.java, settings)
     }
 
     inline fun <reified T: MultiConfiguration<D>, D>
-            loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
+            loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti): T {
         return loadMulti(path, T::class.java, dataClass, settings)
-    }
-
-    inline fun <reified T: MultiConfiguration<D>, reified D>
-            loadMulti(path: Path, settings: LoaderSettingsMulti.Builder<D>): T {
-        return loadMulti(path, T::class.java, D::class.java, settings.build())
-    }
-
-    inline fun <reified T: MultiConfiguration<D>, D>
-            loadMulti(path: Path, dataClass: Class<D>, settings: LoaderSettingsMulti.Builder<D>): T {
-        return loadMulti(path, T::class.java, dataClass, settings.build())
     }
 
     fun <T: MultiConfiguration<D>, D>
@@ -90,10 +84,66 @@ object ConfigLoader {
     }
 
     fun <T: MultiConfiguration<D>, D>
-            loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, settings: LoaderSettingsMulti<D>): T {
-        if (dataClass.isInstance(EmptyConfiguration) || dataClass.isInstance(Unit)) {
-            return configClass.getConstructor(Map::class.java).newInstance(emptyMap<String, D>())
+            loadMulti(path: Path, configClass: Class<T>, dataClass: Class<D>, settings: LoaderSettingsMulti): T {
+        return loadConfigurationMulti(path, configClass, dataClass, settings).map(configClass) { loaded ->
+            loaded.load(dataClass)
         }
+    }
+
+    private fun loadDirectory(dir: Path, files: MutableCollection<Path>, deep: Boolean) {
+        dir.forEachDirectoryEntry {
+            if (it.isRegularFile() && !files.contains(it)) {
+                files.add(it)
+            } else if (it.isDirectory() && deep) {
+                loadDirectory(it, files, true)
+            }
+        }
+    }
+
+    inline fun <reified T> load(path: Path): T {
+        return loadSimple(path, T::class.java)
+    }
+
+    inline fun <reified T> load(path: Path, settings: LoaderSettings): T {
+        return load(path, T::class.java, settings)
+    }
+
+    fun <T> loadSimple(path: Path, clazz: Class<T>): T {
+        return load(path, clazz, LoaderSettings())
+    }
+
+    fun <T: Any?> load(path: Path, clazz: Class<T>, settings: LoaderSettings): T {
+        if (clazz.isInstance(EmptyConfiguration)) {
+            return clazz.cast(EmptyConfiguration)
+        } else if (clazz.isInstance(Unit)) {
+            return clazz.cast(Unit)
+        }
+        if (path.isDirectory()) {
+            throw IllegalArgumentException("Path '$path' is a directory")
+        }
+        return loadConfiguration(path, settings, clazz).load(clazz)
+    }
+
+    fun save(path: Path, obj: Any, yamlLoader: YamlConfigurationLoader = createBuilder(null).path(path).build()) {
+        if (path.isDirectory()) {
+            throw IllegalArgumentException("Path '$path' is a directory")
+        }
+        val node = yamlLoader.load() ?: CommentedConfigurationNode.root(yamlLoader.defaultOptions())
+        node.set(obj.javaClass, obj)
+        yamlLoader.save(node)
+    }
+
+    fun <T: MultiConfiguration<*>> loadConfigurationMulti(
+        path: Path, configClass: Class<T>, dataClass: Class<*>, settings: LoaderSettingsMulti
+    ): MultiConfiguration<LoadedConfiguration> {
+        @Suppress("UNCHECKED_CAST")
+        val dummy = configClass as Class<out MultiConfiguration<LoadedConfiguration>>
+        val constructor = dummy.getConstructor(Map::class.java)
+        if (dataClass.isInstance(EmptyConfiguration) || dataClass.isInstance(Unit)) {
+            return constructor.newInstance(emptyMap<String, Any>())
+        }
+        val mergeResources = MultiLangConfiguration::class.java.isAssignableFrom(configClass) && settings.findResource
+        val resourceNodes = mutableMapOf<String, ConfigurationNode>()
         if (MultiLangConfiguration::class.java.isAssignableFrom(configClass)) {
             if (path.notExists()) {
                 EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
@@ -114,16 +164,12 @@ object ConfigLoader {
                     if (resolve.notExists()) {
                         resource.save(dataClass, resolve)
                     } else {
-                        val loader = createBuilder(null).let(settings.yamlLoader).path(resolve).build()
-                        val config = loader.load()
-                        val read = resource.readConfig(dataClass, settings)
-                        config.mergeFrom(read)
-                        loader.save(config)
+                        resourceNodes[resource.name] = resource.readConfig(dataClass, settings)
                     }
                 }
             }
         }
-        return configClass.getConstructor(Map::class.java).newInstance(
+        return constructor.newInstance(
             buildMap {
                 val files = settings.forceLoadConfigs?.map { path.resolve("$it.yml") }?.toMutableSet() ?: mutableSetOf()
                 if (settings.initializeConfigs?.isNotEmpty() == true && path.notExists()) {
@@ -135,81 +181,66 @@ object ConfigLoader {
                 }
                 files.forEach { file ->
                     val configKey = settings.configKeyMapper(file)
-                    put(configKey, load(file, dataClass, settings, configKey))
+                    val created = createLoadedConfiguration(settings, file, resourceNodes[file.name], mergeResources)
+                    put(configKey, created)
                 }
             }
         )
     }
 
-    private fun loadDirectory(dir: Path, files: MutableCollection<Path>, deep: Boolean) {
-        dir.forEachDirectoryEntry {
-            if (it.isRegularFile() && !files.contains(it)) {
-                files.add(it)
-            } else if (it.isDirectory() && deep) {
-                loadDirectory(it, files, true)
-            }
-        }
-    }
-
-    inline fun <reified T> load(path: Path): T {
-        return loadSimple(path, T::class.java)
-    }
-
-    inline fun <reified T> load(path: Path, settings: LoaderSettings<T>): T {
-        return load(path, T::class.java, settings)
-    }
-
-    inline fun <reified T> load(path: Path, settings: LoaderSettings.Builder<T>): T {
-        return load(path, T::class.java, settings.build())
-    }
-
-    fun <T> loadSimple(path: Path, clazz: Class<T>): T {
-        return load(path, clazz, LoaderSettings())
-    }
-
-    fun <T> load(path: Path, clazz: Class<T>, settings: LoaderSettings<T>, configKey: String = ""): T {
-        if (clazz.isInstance(EmptyConfiguration)) {
-            return clazz.cast(EmptyConfiguration)
-        } else if (clazz.isInstance(Unit)) {
-            return clazz.cast(Unit)
-        }
-        if (path.isDirectory()) {
-            throw IllegalArgumentException("Path '$path' is a directory")
-        }
+    fun loadConfiguration(path: Path, settings: LoaderSettings, loaderClass: Class<*> = EsuBootstrap::class.java): LoadedConfiguration {
         val resourceNode =
             if (settings.findResource) {
                 val p = settings.basePath.relativize(path)
-                val lang = getLangCache(clazz, p.pathString)
+                val lang = getLangCache(loaderClass, p.pathString)
                 val locale = if (EsuConfig.initialized) EsuConfig.get().locale else Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase()
                 val resource = lang.find { it.nameWithoutExtension == locale }
                     ?: lang.firstOrNull { it.nameWithoutExtension.substringBefore('_') == locale.substringBefore('_') }
-                resource?.readConfig(clazz, settings)
+                resource?.readConfig(loaderClass, settings)
             } else null
+        return createLoadedConfiguration(settings, path, resourceNode, false)
+    }
+
+    fun createLoadedConfiguration(settings: LoaderSettings, path: Path, resourceNode: ConfigurationNode?, mergeResources: Boolean): LoadedConfiguration {
         val loader = createBuilder(resourceNode).let(settings.yamlLoader).path(path).build()
-        val node = settings.nodeMapper(configKey, loader.load())
-        val t = settings.modifier.invoke(node.require(clazz), path)
-        node.set(clazz, t)
-        loader.save(node)
-        if (t is SavableConfiguration) {
-            t.path = path
-        }
-        return t
+        return LoadedConfiguration(
+            LoadedConfiguration.LoaderContext(loader, mergeResources),
+            path,
+            loader.load(),
+            resourceNode,
+        )
     }
 
-    private fun debugNodeSerialization(node: ConfigurationNode, clazz: Type) {
-        val serial = node.options().serializers().get(clazz)!!
-        println(serial)
-        println(serial.emptyValue(clazz, node.options()))
-        println((serial as ObjectMapper.Factory).get(clazz).load(BasicConfigurationNode.root(node.options().shouldCopyDefaults(false))))
+    inline fun <reified C: MultiConfiguration<D>, T, D> MultiConfiguration<T>.map(
+        noinline transform: (T) -> D,
+    ): C {
+        return map(C::class.java, transform)
     }
 
-    fun save(path: Path, obj: Any, yamlLoader: YamlConfigurationLoader = createBuilder(null).path(path).build()) {
-        if (path.isDirectory()) {
-            throw IllegalArgumentException("Path '$path' is a directory")
+    fun <C: MultiConfiguration<D>, T, D> MultiConfiguration<T>.map(
+        configClass: Class<C>,
+        transform: (T) -> D,
+    ): C {
+        return configClass.getConstructor(Map::class.java).newInstance(
+            configs.mapValues { (_, loaded) -> transform(loaded) }
+        )
+    }
+
+    fun <T> MultiConfiguration<T>.forEachValue (action: (T) -> Unit) {
+        configs.values.forEach { action(it) }
+    }
+
+    fun <D> LoadedConfiguration.load(transform: (LoadedConfiguration) -> D): D {
+        return transform(this)
+    }
+
+    fun <D> LoadedConfiguration.load(clazz: Class<D>): D {
+        return load {
+            val instance = getAs(clazz)
+            save()
+            if (instance is SavableConfiguration) instance.path = path
+            instance
         }
-        val node = yamlLoader.load() ?: CommentedConfigurationNode.root(yamlLoader.defaultOptions())
-        node.set(obj.javaClass, obj)
-        yamlLoader.save(node)
     }
 
     fun createBuilder(resourceNode: ConfigurationNode?): YamlConfigurationLoader.Builder {
@@ -461,9 +492,9 @@ object ConfigLoader {
             }
         }
 
-        fun readConfig(clazz: Class<*>, settings: LoaderSettings<*>): ConfigurationNode {
+        fun readConfig(clazz: Class<*>, settings: LoaderSettings): ConfigurationNode {
             val raw = readConfig(clazz.classLoader, createBuilder(null).let(settings.yamlLoader))
-            return settings.nodeMapper("", raw)
+            return settings.nodeMapper(raw)
         }
 
         fun readConfig(classLoader: ClassLoader, yamlBuilder: YamlConfigurationLoader.Builder): ConfigurationNode {
@@ -479,64 +510,24 @@ object ConfigLoader {
         }
     }
 
-    open class LoaderSettings<T>(
+    open class LoaderSettings(
         val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        val nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
-        val modifier: (T, Path) -> T = { it, _ -> it },
+        val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
         val findResource: Boolean = true,
         val basePath: Path = EsuCore.instance.baseConfigPath(),
-    ) {
-
-        class Builder<T> {
-
-            var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
-            var nodeMapper: (String, ConfigurationNode) -> ConfigurationNode = { _, node -> node }
-            var modifier: (T, Path) -> T = { it, _ -> it }
-            var findResource: Boolean = true
-            var basePath: Path = EsuCore.instance.baseConfigPath()
-
-            fun yamlLoader(yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder): Builder<T> {
-                this.yamlLoader = yamlLoader
-                return this
-            }
-
-            fun nodeMapper(mapper: (String, ConfigurationNode) -> ConfigurationNode): Builder<T> {
-                this.nodeMapper = mapper
-                return this
-            }
-
-            fun modifier(modifier: (T, Path) -> T): Builder<T> {
-                this.modifier = modifier
-                return this
-            }
-
-            fun findResource(findResource: Boolean): Builder<T> {
-                this.findResource = findResource
-                return this
-            }
-
-            fun basePath(basePath: Path): Builder<T> {
-                this.basePath = basePath
-                return this
-            }
-
-            fun build() = LoaderSettings(yamlLoader, nodeMapper, modifier, findResource, basePath)
-
-        }
-    }
+    )
 
 
-    class LoaderSettingsMulti<T>(
+    class LoaderSettingsMulti(
         val forceLoadConfigs: List<String>? = null,
         val initializeConfigs: List<String>? = null,
         val loadSubDirectories: Boolean = false,
         val configKeyMapper: (Path) -> String = { it.nameWithoutExtension },
         yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
-        modifier: (T, Path) -> T = { it, _ -> it },
+        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
         findResource: Boolean = true,
         basePath: Path = EsuCore.instance.baseConfigPath(),
-    ): LoaderSettings<T>(yamlLoader, nodeMapper, modifier, findResource, basePath) {
+    ): LoaderSettings(yamlLoader, nodeMapper, findResource, basePath) {
 
         constructor(
             vararg forceLoadConfigs: String,
@@ -544,79 +535,11 @@ object ConfigLoader {
             loadSubDirectories: Boolean = false,
             yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
             keyMapper: (Path) -> String = { it.nameWithoutExtension },
-            nodeMapper: (configKey: String, ConfigurationNode) -> ConfigurationNode = { _, node -> node },
-            modifier: (T, Path) -> T = { it, _ -> it },
+            nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
             findResource: Boolean = true,
             basePath: Path = EsuCore.instance.baseConfigPath(),
-        ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
+        ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, findResource, basePath)
 
-
-        class Builder<T> {
-
-            var forceLoadConfigs: List<String>? = null
-            var initializeConfigs: List<String>? = null
-            var loadSubDirectories: Boolean = false
-            var keyMapper: (Path) -> String = { it.nameWithoutExtension }
-            var yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it }
-            var nodeMapper: (String, ConfigurationNode) -> ConfigurationNode = { _, node -> node }
-            var modifier: (T, Path) -> T = { it, _ -> it }
-            var findResource: Boolean = true
-            var basePath: Path = EsuCore.instance.baseConfigPath()
-
-            fun forceLoadConfigs(vararg forceLoadConfigs: String): Builder<T> {
-                this.forceLoadConfigs = forceLoadConfigs.toList()
-                return this
-            }
-
-            fun forceLoadConfigs(forceLoadConfigs: List<String>?): Builder<T> {
-                this.forceLoadConfigs = forceLoadConfigs
-                return this
-            }
-
-            fun initializeConfigs(initializeConfigs: List<String>?): Builder<T> {
-                this.initializeConfigs = initializeConfigs
-                return this
-            }
-
-            fun loadSubDirectories(loadSubDirectories: Boolean): Builder<T> {
-                this.loadSubDirectories = loadSubDirectories
-                return this
-            }
-
-            fun keyMapper(mapper: (Path) -> String): Builder<T> {
-                this.keyMapper = mapper
-                return this
-            }
-
-            fun yamlLoader(yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder): Builder<T> {
-                this.yamlLoader = yamlLoader
-                return this
-            }
-
-            fun nodeMapper(mapper: (String, ConfigurationNode) -> ConfigurationNode): Builder<T> {
-                this.nodeMapper = mapper
-                return this
-            }
-
-            fun modifier(modifier: (T, Path) -> T): Builder<T> {
-                this.modifier = modifier
-                return this
-            }
-
-            fun findResource(findResource: Boolean): Builder<T> {
-                this.findResource = findResource
-                return this
-            }
-
-            fun basePath(basePath: Path): Builder<T> {
-                this.basePath = basePath
-                return this
-            }
-
-
-            fun build() = LoaderSettingsMulti(forceLoadConfigs, initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, modifier, findResource, basePath)
-
-        }
     }
 
     private class CommentProcesser(val resourceNode: ConfigurationNode?) {

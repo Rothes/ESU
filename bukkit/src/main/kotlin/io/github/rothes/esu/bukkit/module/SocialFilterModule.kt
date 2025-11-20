@@ -44,7 +44,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         super.onReload()
         filters = ConfigLoader.loadMulti(
             moduleFolder.resolve("filters"),
-            ConfigLoader.LoaderSettingsMulti<Filter>(
+            ConfigLoader.LoaderSettingsMulti(
                 initializeConfigs = listOf("example")
             )
         )
