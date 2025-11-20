@@ -142,7 +142,7 @@ interface User {
         audience.sendMessage(message)
     }
 
-    fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
+    fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
 
     fun actionBar(message: Component) {
         audience.sendActionBar(message)

@@ -56,8 +56,8 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.disconnect(buildMiniMessage(locales, block, *params).server)
+    override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+        player.disconnect(buildMiniMessage(lang, block, *params).server)
     }
 
     override fun equals(other: Any?): Boolean {

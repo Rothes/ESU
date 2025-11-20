@@ -32,7 +32,7 @@ object ConsoleUser: BukkitUser(), LogUser {
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
     }
 

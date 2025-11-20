@@ -22,7 +22,7 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
 
     override val isOnline: Boolean = false
 
-    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+    override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a GenericUser")
     }
 

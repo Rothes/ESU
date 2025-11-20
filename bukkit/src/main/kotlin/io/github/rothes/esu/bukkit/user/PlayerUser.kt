@@ -1,13 +1,13 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
-import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
+import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.lib.adventure.audience.Audience
-import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -63,9 +63,13 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         colorSchemeUnsafe = userData.colorScheme
     }
 
-    override fun <T> kick(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
-        player.kick(MiniMessage.miniMessage().deserialize(localed(locales, block), *params,
-            ColorSchemes.schemes.get(colorScheme) { tagResolver }!!).server)
+    override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
+        val msg = buildMiniMessage(lang, block, params = params)
+        if (ServerCompatibility.isPaper)
+            player.kick(msg.server)
+        else
+            @Suppress("DEPRECATION") // Spigot
+            player.kickPlayer(msg.legacy)
     }
 
     override fun equals(other: Any?): Boolean {
