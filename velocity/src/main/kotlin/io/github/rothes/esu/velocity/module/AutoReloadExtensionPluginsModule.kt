@@ -28,17 +28,19 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
     override fun onEnable() {
         data = ConfigLoader.load(dataPath)
+
+        val toLoad = data.pluginsToLoad.toList()
+        data.pluginsToLoad.clear()
+
         if (!plugin.enabledHot)
             return
 
-        for (plugin in data.pluginsToLoad) {
+        for (plugin in toLoad) {
             val serverUtils = VelocityPluginManager.get()
             serverUtils.getPluginFile(plugin).getOrNull()?.let {
                 serverUtils.loadPlugin(it)
             }
         }
-
-        data.pluginsToLoad.clear()
     }
 
     override fun onDisable() {

@@ -46,10 +46,14 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
                 user.message("OK!")
             }
         })
+
+        val toLoad = data.pluginsToLoad.toList()
+        data.pluginsToLoad.clear()
+
         if (!plugin.enabledHot)
             return
 
-        for (pl in data.pluginsToLoad) {
+        for (pl in toLoad) {
             try {
                 try {
                     // PlugMan v2
@@ -62,8 +66,6 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
                 plugin.err("Failed to load plugin $pl :", e)
             }
         }
-
-        data.pluginsToLoad.clear()
     }
 
     @Suppress("DEPRECATION")
