@@ -22,23 +22,21 @@ data class LoadedConfiguration(
     }
 
     fun <T> getAs(clazz: Class<T>): T {
-        if (context.mergeResources && resourceNode != null) {
-            node.mergeFrom(resourceNode)
-        }
         if (clazz.isInstance(EmptyConfiguration)) return clazz.cast(EmptyConfiguration)
         else if (clazz.isInstance(Unit)) return clazz.cast(Unit)
 
+        if (context.mergeResources && resourceNode != null) {
+            node.mergeFrom(resourceNode)
+        }
         val instance = node.require(clazz)
         node.set(instance)
         return instance
     }
 
     fun node(vararg path: Any): LoadedConfiguration {
-        return LoadedConfiguration(
-            this.context,
-            this.path,
-            this.node.node(*path),
-            this.resourceNode?.node(*path),
+        return copy(
+            node = this.node.node(*path),
+            resourceNode = this.resourceNode?.node(*path),
         )
     }
 
