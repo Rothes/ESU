@@ -8,6 +8,9 @@ import org.incendo.cloud.kotlin.extension.commandBuilder
 
 abstract class PlayerOptionalCommand<C, L>: BaseCommand<C, L>() {
 
+    protected open val receivesSilentFlag: Boolean
+        get() = true
+
     override fun onEnable() {
         withCommandManager {
             commandBuilder(name) {
@@ -22,7 +25,7 @@ abstract class PlayerOptionalCommand<C, L>: BaseCommand<C, L>() {
                 }
                 permission(cmdShortPerm("other"))
                 required("player", PlayerParser.playerParser())
-                flag("silent")
+                if (receivesSilentFlag) flag("silent")
                 handler { ctx ->
                     val sender = ctx.sender()
                     val player = ctx.get<Player>("player")
