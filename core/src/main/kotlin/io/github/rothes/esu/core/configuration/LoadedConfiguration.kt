@@ -26,7 +26,9 @@ data class LoadedConfiguration(
         else if (clazz.isInstance(Unit)) return clazz.cast(Unit)
 
         if (context.mergeResources && resourceNode != null) {
-            node.mergeFrom(resourceNode)
+            val defaultNode = context.loader.createNode()
+            defaultNode.set(clazz.getConstructor().newInstance())
+            mergeLang(defaultNode, resourceNode, node)
         }
         val instance = node.require(clazz)
         node.set(instance)
@@ -38,6 +40,18 @@ data class LoadedConfiguration(
             node = this.node.node(*path),
             resourceNode = this.resourceNode?.node(*path),
         )
+    }
+
+    private fun mergeLang(def: ConfigurationNode, from: ConfigurationNode, to: ConfigurationNode) {
+        if (def.isMap) {
+            for (path in def.childrenMap().keys) {
+                mergeLang(def.node(path), from.node(path), to.node(path))
+            }
+        } else {
+            if (!from.virtual() && (to.virtual() || to.raw() == def.raw())) {
+                to.raw(from.raw())
+            }
+        }
     }
 
     data class LoaderContext(
