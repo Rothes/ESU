@@ -10,10 +10,12 @@ abstract class PlayerOptionalCommand<C, L>: BaseCommand<C, L>() {
 
     protected open val receivesSilentFlag: Boolean
         get() = true
+    protected open val aliases: Array<String>
+        get() = arrayOf()
 
     override fun onEnable() {
         withCommandManager {
-            commandBuilder(name) {
+            commandBuilder(name, aliases = aliases) {
                 copy {
                     permission(cmdShortPerm())
                     senderType(PlayerUser::class.java)

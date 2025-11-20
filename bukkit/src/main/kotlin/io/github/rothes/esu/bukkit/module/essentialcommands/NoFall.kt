@@ -58,8 +58,8 @@ object NoFall : PlayerOptionalCommand<FeatureToggle.DefaultTrue, NoFall.Lang>() 
     }
 
     data class Lang(
-        val enabledForPlayer: MessageData = "<vpc>Enabled <pc>no fall for <pdc><player><pc>.".message,
-        val disabledForPlayer: MessageData = "<vnc>Disabled <pc>no fall for <pdc><player><pc>.".message,
+        val enabledForPlayer: MessageData = "<pc>Enabled no fall for <pdc><player><pc>.".message,
+        val disabledForPlayer: MessageData = "<pc>Disabled no fall for <pdc><player><pc>.".message,
         val enabled: MessageData = "<pc>You no longer receives fall damage.".message,
         val disabled: MessageData = "<pc>You are now receiving fall damage.".message,
     )
