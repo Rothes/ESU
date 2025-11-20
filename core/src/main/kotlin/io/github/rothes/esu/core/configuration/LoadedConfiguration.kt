@@ -14,8 +14,9 @@ data class LoadedConfiguration(
 
     fun save() {
         var root = node
-        while (node.parent() != null) {
-            root = root.parent()!!
+        while (true) {
+            val parent = node.parent() ?: break
+            root = parent
         }
         context.loader.save(root)
     }
