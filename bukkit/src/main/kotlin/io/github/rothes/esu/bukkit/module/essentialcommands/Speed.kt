@@ -46,19 +46,19 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
                 { player -> if (player.isFlying) FlySpeed else WalkSpeed }
         withCommandManager {
             commandBuilder(name + "Get") {
-                permission(cmdShortPerm())
+                permission(this@Speed.cmdShortPerm())
                 handler { ctx ->
                     val sender = ctx.sender()
                     val player = ctx.getOrSupplyDefault("player") { (sender as PlayerUser).player }
                     handlerGetter(player).getSpeed(sender, player)
                 }.regCmd()
 
-                permission(cmdShortPerm("others"))
+                permission(this@Speed.cmdShortPerm("others"))
                 optional("player", PlayerParser.playerParser())
                 regCmd()
             }
             commandBuilder(name) {
-                permission(cmdShortPerm())
+                permission(this@Speed.cmdShortPerm())
 
                 handler { ctx ->
                     val sender = ctx.sender()
@@ -73,7 +73,7 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
                         scope()
                         regCmd()
 
-                        permission(cmdShortPerm("others"))
+                        permission(this@Speed.cmdShortPerm("others"))
                         optional("player", PlayerParser.playerParser())
                         regCmd()
                     }
