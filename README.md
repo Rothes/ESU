@@ -68,6 +68,6 @@ We support comment translations for config files.
 We have a unique mechanism for this, so please make sure you understand the following rules:
 
 - Only comments modified entries are kept.
-- The value of entry should be set to `~`.
+- The value of entry should not be set, making the node a map.
 
 Refer to [Plugin config lang](https://github.com/Rothes/ESU/blob/master/core/src/main/resources/lang/config.yml/zh_cn.yml) for a practical demonstration.

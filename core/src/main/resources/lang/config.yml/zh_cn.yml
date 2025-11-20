@@ -1,24 +1,24 @@
 # 启用此选项将强制在控制台中打印真彩色消息。这可以提供更美观的外观。
 # 如果您在控制台中看到奇怪的字符，请禁用此选项或更换您的终端软件。
-force-true-color-console: ~
+force-true-color-console:
 
 # 将此选项设为 true，可启用传统颜色字符支持。
 # 您将能够使用 `&` 字符来设置颜色/格式。
-legacy-color-char: ~
+legacy-color-char:
 
 # 自动为语言目录创建软链接。
 # 您可以指定其他服务器的 ESU 插件目录路径。
 # 示例：/home/user/server/plugins/ESU
-locale-soft-link-path: ~
+locale-soft-link-path:
 database:
   # 您欲使用的数据库软件。
   # 支持 'H2'(内置文件数据库), 'MySQL', 'MariaDB'
-  database-type: ~
+  database-type:
 
   # 仅当您使用数据库服务器时，才需要修改以下设置。
-  host: ~
+  host:
 
 # 将此设置为 true 将禁用 jar 文件读取缓存。此操作在 JVM 中是全局的。
 # 如果您经常热更新插件，则将此选项设为 true 可降低发生错误的概率，
 # 但在某些特定场景下可能会降低性能。
-disable-jar-file-cache: ~
+disable-jar-file-cache:

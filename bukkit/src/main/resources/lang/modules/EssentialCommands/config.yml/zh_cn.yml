@@ -1,4 +1,8 @@
+invulnerable:
+  # 在玩家离开服务器或插件禁用时重置玩家的无敌状态。
+  # 若设为 false, 则修改后的玩家无敌状态可能永久保留。
+  auto-reset-invulnerable:
 speed:
-  # 在玩家离开服务器或插件禁用时重置玩家速度.
-  # 若设为 false, 则修改后的玩家速度可能永久保留.
-  auto-reset-speed: ~
+  # 在玩家离开服务器或插件禁用时重置玩家速度。
+  # 若设为 false, 则修改后的玩家速度可能永久保留。
+  auto-reset-speed:

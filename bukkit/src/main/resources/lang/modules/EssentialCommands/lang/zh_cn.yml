@@ -7,6 +7,11 @@ dimension-travel:
 heal:
   healed: <pc>你已被治愈.
   healed-player: <pc>已治愈 <pdc><player></pc>.
+invulnerable:
+  enabled-for-player: <pc>已为 <pdc><player><pc> 开启无敌模式.
+  disabled-for-player: <pc>已为 <pdc><player><pc> 关闭无敌模式.
+  enabled: <pc>你将不再受到任何伤害.
+  disabled: <pc>现在开始你将会受到伤害.
 feed:
   fed: <pc>你已被喂饱.
   fed-player: <pc>已喂饱 <pdc><player></pc>.
@@ -14,20 +19,20 @@ ip:
   message: <pdc><player><pc> 的IP地址为 <sdc><address>
 ip-group:
   no-same-ip: <pc>没有具有相同IP地址的玩家.
-  entry: '<tdc><address><tc>: <players>'
-  player-prefix: <sdc>
-  player-separator: <pc>, <sdc>
+no-fall:
+  enabled-for-player: <pc>已为 <pdc><player><pc> 开启无摔落伤害.
+  disabled-for-player: <pc>已为 <pdc><player><pc> 关闭无摔落伤害.
+  enabled: <pc>你将不再受到摔落伤害.
+  disabled: <pc>现在开始你将会受到摔落伤害.
 ping:
   message: <pdc><player><pc> 的网络延迟为 <sdc><ping><sc>ms
 player-chunk-tickets:
   gen-rate-top:
     no-data: <pc>目前没有区块生成请求.
     header: '<pdc>[玩家]<pc>: <sc>[区块生成请求/秒]'
-    entry: '<tdc><player><tc>: <sdc><rate>'
   load-rate-top:
     no-data: <pc>目前没有区块加载请求.
     header: '<pdc>[玩家]<pc>: <sc>[区块加载请求/秒]'
-    entry: '<tdc><player><tc>: <sdc><rate>'
 spectate:
   cannot-spectate-self: <ec>无法旁观自己!
   spectating-target: <pc>正在旁观 <pdc><target></pdc>.
