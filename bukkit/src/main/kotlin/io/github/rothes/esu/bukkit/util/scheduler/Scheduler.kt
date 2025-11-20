@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
+import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -118,6 +119,13 @@ object Scheduler {
 
     fun Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
         return schedule(this, plugin, func)
+    }
+
+    fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit) {
+        if (checkTickThread())
+            func()
+        else
+            schedule(this, plugin, func)
     }
 
     fun cancelTasks(plugin: Plugin = esuPlugin) {

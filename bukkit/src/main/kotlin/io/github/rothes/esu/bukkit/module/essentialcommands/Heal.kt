@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -27,10 +28,12 @@ object Heal : BaseCommand<FeatureToggle.DefaultTrue, Heal.Lang>() {
             @Command("heal <player>")
             @ShortPerm("others")
             fun heal(sender: User, player: Player, @Flag("silent") silent: Boolean = sender.uuid != player.uniqueId) {
-                player.heal(player.getAttribute(AttributeAdapter.MAX_HEALTH)!!.value)
-                sender.message(lang, { healedPlayer }, player(player))
-                if (!silent) {
-                    player.user.message(lang, { healed })
+                player.syncTick {
+                    player.heal(player.getAttribute(AttributeAdapter.MAX_HEALTH)!!.value)
+                    sender.message(lang, { healedPlayer }, player(player))
+                    if (!silent) {
+                        player.user.message(lang, { healed })
+                    }
                 }
             }
         })

@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -26,12 +27,14 @@ object Feed : BaseCommand<FeatureToggle.DefaultTrue, Feed.Lang>() {
             @Command("feed <player>")
             @ShortPerm("others")
             fun feed(sender: User, player: Player, @Flag("silent") silent: Boolean = sender.uuid != player.uniqueId) {
-                player.foodLevel = 20
-                player.saturation = 20.0f // 5.0f on respawn
-                player.exhaustion = 0.0f
-                sender.message(lang, { fedPlayer }, player(player))
-                if (!silent) {
-                    player.user.message(lang, { fed })
+                player.syncTick {
+                    player.foodLevel = 20
+                    player.saturation = 20.0f // 5.0f on respawn
+                    player.exhaustion = 0.0f
+                    sender.message(lang, { fedPlayer }, player(player))
+                    if (!silent) {
+                        player.user.message(lang, { fed })
+                    }
                 }
             }
         })
