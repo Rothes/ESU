@@ -1,0 +1,43 @@
+book-news:
+  no-news-set: <ec>此服务器未设置新闻。
+  layout: |-
+    <pdc><shadow:black>服务器新闻    <check>
+    <new-placeholder><reset><content>
+  check-button: <vpdc>[标为已读]
+  new-placeholder: <dark_green><bold>新动态!<br>
+  checked-nothing: <ec>你没有待确认的新闻。
+  checked: <pc>已标记所有新闻为已读。我们将在下次有新动态时再通知您。
+  editor:
+    book-layout:
+      empty-layout: |-
+        <pc>目前尚未设置任何新闻。
+
+        <new>
+      page-layout: |-
+        <pdc><id>  <new> <edit> <delete>
+        <reset><content>
+      preview-layout: |-
+        <pdc><b>新闻预览</b> <id> <pc><lang>
+         <confirm>   <edit>   <cancel>
+        <reset><content>
+      button:
+        new: <pdc>[新建]
+        edit: <pdc>[编辑]
+        delete: <vndc>[删除]
+        confirm: <vpdc>[保存]
+        cancel: <vndc>[取消]
+    change-lang:
+      format: '<pc>目前编辑的语言: <pdc><current-lang><chat><pc>选择语言: <languages>'
+      exists-lang: '<vpc><click:run_command:''/news editor changelang <lang>''><hover:show_text:''<pc>点击编辑 <lang>''><lang><reset> '
+      not-exists-lang: '<vnc><click:run_command:''/news editor changelang <lang>''><hover:show_text:''<pc>点击编辑 <lang>''><lang><reset> '
+      changed-lang: <pc>已更改当前编辑的语言为 <pdc><lang>
+    edit-item:
+      display-name: <!i><pdc><b>编辑器 </b><tc>- <pc>右键打开
+    edit-start: <pc>手持书右键以开始编辑。<chat><pc>编辑完毕后，点击 <lang:gui.done>。<chat><sc><click:run_command:'/news
+      editor changelang'>若需要更改编辑的语言，点击此处。
+    edit-cancelled: <sc>已取消新闻编辑。
+    not-editing: <ec>你目前未在编辑新闻。
+    nothing-to-confirm: <ec>没有需要确认的东西。
+    unknown-news-id: <ec>未知的新闻 ID <edc><id></edc>，尝试在编辑器中重新打开？
+    delete-news-confirm: <ec>确定要删除新闻 <id> 吗？ <click:run_command:'/news editor delete <id> confirm'><edc>[确认]
+    deleted-news: <pc>已删除新闻 <pdc><id></pdc>。

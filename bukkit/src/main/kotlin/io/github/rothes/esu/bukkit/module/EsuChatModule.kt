@@ -554,8 +554,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val placeholders: Map<String, String> = mapOf(
                     "prefix" to "<sc>[<sdc>SPY<sc>] ",
                 ),
-                val enabled: MessageData = "<pl:prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user></pdc>.".message,
-                val disabled: MessageData = "<pl:prefix><pdc><capitalize:'<enable-state>'> <pc>spy for <pdc><user></pdc>.".message,
+                val enabled: MessageData = "<pl:prefix><pdc>Enabled <pc>spy for <pdc><user></pdc>.".message,
+                val disabled: MessageData = "<pl:prefix><pdc>Disabled <pc>spy for <pdc><user></pdc>.".message,
                 val alreadyEnabled: MessageData = "<pl:prefix><edc><user> <ec>has already enabled spy.".message,
                 val alreadyDisabled: MessageData = "<pl:prefix><edc><user> <ec>has already disabled spy.".message,
             )
