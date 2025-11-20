@@ -342,35 +342,31 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     }
 
     fun parseMessage(sender: User, raw: String, modifiers: List<PrefixedMessageModifier>): Component {
-        val modifier = matchModifier(sender, raw, modifiers)
+        val modifier = matchModifier(sender, raw, modifiers) ?: return Component.text(raw)
 
-        return MiniMessage.miniMessage().deserialize("<head><message><foot>",
+        return MiniMessage.miniMessage().deserialize(modifier.format,
             component("message", Component.text(
-                if (modifier != null && modifier.removePrefix) {
+                if (modifier.removePrefix) {
                     raw.drop(modifier.messagePrefix.length)
                 } else {
                     raw
                 }
             )),
-            parsed("head", modifier?.head ?: ""),
-            parsed("foot", modifier?.foot ?: ""),
         )
     }
 
     fun parseMessage(sender: User, raw: Component, modifiers: List<PrefixedMessageModifier>): Component {
-        val modifier = matchModifier(sender, raw.plainText, modifiers)
+        val modifier = matchModifier(sender, raw.plainText, modifiers) ?: return raw
 
-        return MiniMessage.miniMessage().deserialize("<head><message><foot>",
+        return MiniMessage.miniMessage().deserialize(modifier.format,
             component("message",
-                if (modifier != null && modifier.removePrefix) {
+                if (modifier.removePrefix) {
                     val times = modifier.messagePrefix.length
                     raw.drop(times)
                 } else {
                     raw
                 }
             ),
-            parsed("head", modifier?.head ?: ""),
-            parsed("foot", modifier?.foot ?: ""),
         )
     }
 
@@ -442,8 +438,11 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val rangedChat: RangedChat = RangedChat(),
             @Comment("""
                 If the message player sent starts with 'messagePrefix' and player has the permission,
+                the chat message will become 'format' .
+            """, overrideOld = ["""
+                If the message player sent starts with 'messagePrefix' and player has the permission,
                 the 'head' and 'foot' will be appended to the chat message.
-            """)
+            """])
             val prefixedMessageModifiers: List<PrefixedMessageModifier> = listOf(
                 PrefixedMessageModifier(">", false, "", "<green>", "</green>"),
                 PrefixedMessageModifier("*", true, "", "<gradient:#c8b3fd:#4bacc8>", "</gradient>"),
@@ -508,9 +507,16 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val messagePrefix: String = "",
             val removePrefix: Boolean = false,
             val permission: String? = "",
-            val head: String = "",
-            val foot: String = "",
-        )
+            val format: String = "<message>"
+        ) {
+            constructor(
+                messagePrefix: String = "",
+                removePrefix: Boolean = false,
+                permission: String? = "",
+                head: String = "",
+                foot: String = "",
+            ) : this(messagePrefix, removePrefix, permission, "$head<message>$foot")
+        }
     }
 
     data class ModuleLang(
