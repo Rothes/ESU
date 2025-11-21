@@ -33,7 +33,9 @@ object Invulnerable : PlayerOptionalCommand<Invulnerable.Config, Invulnerable.La
         Listeners.unregister()
         if (config.autoResetInvulnerable) {
             for (player in changed) {
-                player.isInvulnerable = false
+                player.syncTick {
+                    player.isInvulnerable = false
+                }
             }
         }
         changed.clear()
