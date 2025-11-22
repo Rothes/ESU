@@ -16,6 +16,8 @@ permissions:
   'esu.essentialCommands.player':
     default: true
     children:
+      'esu.essentialCommands.ping.command': true
+      'esu.essentialCommands.ping.command.others': true
       'esu.essentialCommands.suicide.command': true
 
   'esu.esuChat.chat.shout':
@@ -45,7 +47,6 @@ permissions:
       'esu.essentialCommands.feed.command.others': true
       'esu.essentialCommands.ip.command': true
       'esu.essentialCommands.ipGroup.command': true
-      'esu.essentialCommands.ping.command': true
       'esu.essentialCommands.playerChunkTickets.command.genRateTop': true
       'esu.essentialCommands.playerChunkTickets.command.loadRateTop': true
       'esu.essentialCommands.playerChunkTickets.command.tickDistance': true
