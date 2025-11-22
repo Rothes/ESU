@@ -25,6 +25,7 @@ import io.github.rothes.esu.lib.configurate.yaml.NodeStyle
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
+import it.unimi.dsi.fastutil.objects.ReferenceSet
 import net.kyori.adventure.text.Component
 import java.io.File
 import java.lang.reflect.Type
@@ -354,6 +355,7 @@ object ConfigLoader {
                                     GenericTypeReflector.annotate(type).isAnnotationPresent(ConfigSerializable::class.java)
                                 }, objectSerializer
                             )
+                            .register(TypeToken.get(ReferenceSet::class.java), ReferenceSetSerializer)
                             .register(TypeToken.get(List::class.java), ListSerializer)
                             .register(TypeToken.get(Map::class.java), MapSerializer)
                             .register(TypeToken.get(Optional::class.java), OptionalSerializer)
