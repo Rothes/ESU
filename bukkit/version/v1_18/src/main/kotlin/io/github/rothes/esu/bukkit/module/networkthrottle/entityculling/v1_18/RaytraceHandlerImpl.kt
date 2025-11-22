@@ -29,6 +29,7 @@ import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -277,9 +278,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         val playerY = player.y
         val playerZ = player.z
 
-        val playerGridX = playerX.floorI() shr 8
-        val playerGridZ = playerZ.floorI() shr 8
-
         val shouldCull = userCullData.shouldCull
         val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
@@ -316,7 +314,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                 if (dist > maxRange) continue
 
                 tickedEntities++
-
                 if (
                     !shouldCull
                     || dist + (playerY - pos.y).square() <= forceVisibleDistanceSquared
@@ -632,7 +629,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         """)
         val entityCulledByDefault: Boolean = true,
         @Comment("These entity types are considered always visible.")
-        val visibleEntityTypes: Set<EntityType<*>> = setOf(EntityType.WITHER, EntityType.ENDER_DRAGON, EntityType.PLAYER),
+        val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER, EntityType.PLAYER),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
         @Comment("""
