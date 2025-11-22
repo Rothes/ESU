@@ -43,6 +43,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
+import io.github.rothes.esu.core.util.extension.forEachInt
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -450,9 +451,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             if (z != 0 ) pending.add(id - 0x010)
                             if (z != 15) pending.add(id + 0x010)
                         }
-                        val iterator = pending.intIterator()
-                        while (iterator.hasNext()) {
-                            val i = iterator.nextInt()
+                        pending.forEachInt { i ->
                             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                                 invisible[i] = BV_INVISIBLE
                             }
@@ -484,9 +483,7 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
                             checkBlock(id + 0x100, Y_MINUS)
                             pending.add(id)
                         }
-                        val iterator = pending.intIterator()
-                        while (iterator.hasNext()) {
-                            val i = iterator.nextInt()
+                        pending.forEachInt { i ->
                             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                                 invisible[i] = BV_INVISIBLE
                             }

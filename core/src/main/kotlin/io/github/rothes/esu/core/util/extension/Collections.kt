@@ -1,5 +1,7 @@
 package io.github.rothes.esu.core.util.extension
 
+import it.unimi.dsi.fastutil.ints.IntList
+
 fun <T> listOfJvm(element: T): List<T> {
     return ArrayList<T>(1).apply {
         add(element)
@@ -19,4 +21,9 @@ inline fun <T, R> Collection<T>.mapJvm(transform: (T) -> R): List<R> {
     for (item in this)
         destination.add(transform(item))
     return destination
+}
+
+inline fun IntList.forEachInt(action: (Int) -> Unit) {
+    for (i in 0 until this.size)
+        action(getInt(i))
 }
