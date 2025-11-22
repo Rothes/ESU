@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
 import net.minecraft.world.level.chunk.PalettedContainer
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -276,6 +277,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         val playerY = player.y
         val playerZ = player.z
 
+        val playerGridX = playerX.floorI() shr 8
+        val playerGridZ = playerZ.floorI() shr 8
+
         val shouldCull = userCullData.shouldCull
         val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
             val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
@@ -315,24 +319,23 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (
                     !shouldCull
+                    || dist + (playerY - pos.y).square() <= forceVisibleDistanceSquared
                     || entity.isCurrentlyGlowing
                     || config.visibleEntityTypes.contains(entity.type)
-                    || dist + (playerY - pos.y).square() <= forceVisibleDistanceSquared
                 ) {
                     userCullData.setCulled(entity.bukkitEntity, entity.id, false)
                     continue
                 }
 
-                userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity, level))
+                userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity.boundingBox, level))
             }
         }
         userCullData.shouldCull = tickedEntities >= config.cullThreshold
         userCullData.tick()
     }
 
-    fun raytrace(player: ServerPlayer, predPlayer: Vec3?, entity: Entity, level: ServerLevel): Boolean {
+    fun raytrace(player: ServerPlayer, predPlayer: Vec3?, aabb: AABB, level: ServerLevel): Boolean {
         val from = player.eyePosition
-        val aabb = entity.boundingBox
 
         val isXMin = abs(from.x - aabb.minX) < abs(from.x - aabb.maxX)
         val isYMin = abs(from.y - aabb.minY) < abs(from.y - aabb.maxY)
