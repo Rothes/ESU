@@ -334,26 +334,35 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     fun raytrace(player: ServerPlayer, predPlayer: Vec3?, aabb: AABB, level: ServerLevel): Boolean {
         val from = player.eyePosition
 
-        val isXMin = abs(from.x - aabb.minX) < abs(from.x - aabb.maxX)
-        val isYMin = abs(from.y - aabb.minY) < abs(from.y - aabb.maxY)
-        val isZMin = abs(from.z - aabb.minZ) < abs(from.z - aabb.maxZ)
+        val vertices = if (aabb.xsize <= 0.25 && aabb.ysize <= 0.25 && aabb.zsize <= 0.25) {
+            // If it's small boundingBox, only consider center pos.
+            // Mostly item, projectile entities.
+            listOf(aabb.center)
+        } else {
+            val isXMin = abs(from.x - aabb.minX) < abs(from.x - aabb.maxX)
+            val isYMin = abs(from.y - aabb.minY) < abs(from.y - aabb.maxY)
+            val isZMin = abs(from.z - aabb.minZ) < abs(from.z - aabb.maxZ)
 
-        val nearestX = if (isXMin) aabb.minX else aabb.maxX
-        val nearestY = if (isYMin) aabb.minY else aabb.maxY
-        val nearestZ = if (isZMin) aabb.minZ else aabb.maxZ
-        val farthestX = if (isXMin) aabb.maxX else aabb.minX
-        val farthestY = if (isYMin) aabb.maxY else aabb.minY
-        val farthestZ = if (isZMin) aabb.maxZ else aabb.minZ
+            val nearestX = if (isXMin) aabb.minX else aabb.maxX
+            val nearestY = if (isYMin) aabb.minY else aabb.maxY
+            val nearestZ = if (isZMin) aabb.minZ else aabb.maxZ
+            val farthestX = if (isXMin) aabb.maxX else aabb.minX
+            val farthestY = if (isYMin) aabb.maxY else aabb.minY
+            val farthestZ = if (isZMin) aabb.maxZ else aabb.minZ
 
-        // Find visible vertices
-        // If the player is very close to the entity, then they may only see 1 face(4 vertices) or 2 face (6 vertices)
-        // But we don't consider it because it's too rare and raytrace of that should be easy.
-        val vertices = listOf(
-            Vec3(nearestX, nearestY, nearestZ), Vec3(farthestX, nearestY, nearestZ),
-            Vec3(nearestX, farthestY, nearestZ), Vec3(nearestX, nearestY, farthestZ),
-            Vec3(farthestX, farthestY, nearestZ), Vec3(farthestX, nearestY, farthestZ),
-            Vec3(nearestX, farthestY, farthestZ)
-        )
+            // Find visible vertices
+            // If the player is very close to the entity, then they may only see 1 face(4 vertices) or 2 face (6 vertices)
+            // But we don't consider it because it's too rare and raytrace of that should be easy.
+            listOf(
+                Vec3(nearestX, nearestY, nearestZ),
+                Vec3(farthestX, nearestY, nearestZ),
+                Vec3(nearestX, farthestY, nearestZ),
+                Vec3(nearestX, nearestY, farthestZ),
+                Vec3(farthestX, farthestY, nearestZ),
+                Vec3(farthestX, nearestY, farthestZ),
+                Vec3(nearestX, farthestY, farthestZ)
+            )
+        }
 
         for (vec3 in vertices) {
             if (!raytracer.raytrace(from, vec3, level)) {
