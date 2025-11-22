@@ -82,7 +82,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 )
                 receiver.message(config.whisper.formats.incoming, msg, papi,
                     playerDisplay(receiver, pd),
-                    pLang(sender, lang, { whisper.placeholders })
+                    pLang(receiver, lang, { whisper.placeholders })
                 )
                 val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
                     it == null || it.user != sender || !it.initiative
@@ -93,8 +93,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                         user.message(
                             with(config.whisper.formats.spy) { if (initiative) send else reply },
                             msg, papi,
-                            playerDisplay(receiver, pd),
-                            pLang(sender, lang, { whisper.spy.placeholders })
+                            playerDisplay(user, pd),
+                            pLang(user, lang, { whisper.spy.placeholders })
                         )
                 }
             }
