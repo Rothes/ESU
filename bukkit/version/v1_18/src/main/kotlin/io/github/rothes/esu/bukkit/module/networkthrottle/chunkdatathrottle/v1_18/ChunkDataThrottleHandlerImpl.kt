@@ -122,32 +122,36 @@ class ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler,
 
     override val counter = ChunkDataThrottleHandler.Counter()
 
+    private var previousNonInvisible: Set<Material>? = null
+
     override fun onReload() {
-        val nonInvisible = config.nonInvisibleBlocksOverrides
-        BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
-            ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
-                val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
-                if (wrapped.type.materialType == MaterialType.LAVA) {
-                    LAVA_MIN = min(id, LAVA_MIN)
-                    LAVA_MAX = max(id, LAVA_MAX)
-                }
-                val material = try {
-                    SpigotConversionUtil.toBukkitBlockData(wrapped).material
-                } catch (_: Exception) {
-                    SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
-                }
-                if (nonInvisible.contains(material))
-                    false.toByte()
-                else when (material) {
-                    Material.GLOWSTONE -> true.toByte()
-                    Material.BARRIER   -> false.toByte()
-                    else               -> material.isOccluding.toByte()
-                }
-            }.apply {
-                for (i in LAVA_MIN..LAVA_MAX) {
-                    this[i] = BV_LAVA_COVERED
+        if (previousNonInvisible != config.nonInvisibleBlocksOverrides) {
+            val nonInvisible = config.nonInvisibleBlocksOverrides
+            BLOCKS_VIEW = PacketEvents.getAPI().serverManager.version.toClientVersion().let { version ->
+                ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+                    val wrapped = WrappedBlockState.getByGlobalId(version, id, false)
+                    if (wrapped.type.materialType == MaterialType.LAVA) {
+                        LAVA_MIN = min(id, LAVA_MIN)
+                        LAVA_MAX = max(id, LAVA_MAX)
+                    }
+                    val material = try {
+                        SpigotConversionUtil.toBukkitBlockData(wrapped).material
+                    } catch (_: Exception) {
+                        SpigotConversionUtil.toBukkitMaterialData(wrapped).itemType
+                    }
+                    if (nonInvisible.contains(material)) false.toByte()
+                    else when (material) {
+                        Material.GLOWSTONE -> true.toByte()
+                        Material.BARRIER   -> false.toByte()
+                        else               -> material.isOccluding.toByte()
+                    }
+                }.apply {
+                    for (i in LAVA_MIN..LAVA_MAX) {
+                        this[i] = BV_LAVA_COVERED
+                    }
                 }
             }
+            previousNonInvisible = nonInvisible
         }
     }
 
