@@ -106,16 +106,19 @@ class UserCullData(
 
     private fun updateChanges() {
         if (terminated) return
-        if (pendingChanges.isEmpty()) return
 
-        val list = pendingChanges.toList()
-        pendingChanges.clear()
+        val changes = synchronized(hiddenEntities) {
+            if (pendingChanges.isEmpty()) return
+            val temp = pendingChanges.toTypedArray()
+            pendingChanges.clear()
+            temp
+        }
         if (plugin.isEnabled) {
             if (!player.connected)
                 Bukkit.getPlayer(player.uniqueId)?.let { player = it }
             Scheduler.schedule(player) {
                 val raytraceHandler = raytraceHandler
-                for (change in list) {
+                for (change in changes) {
                     if (!raytraceHandler.isValid(change.entity)) continue
                     if (!change.entity.checkTickThread()) {
                         // Not on tick thread, we can only reflect to make changes,
