@@ -32,17 +32,14 @@ class UserCullData(
 
     var shouldCull = true
 
+    @Synchronized
     fun setCulled(entity: Entity, entityId: Int, culled: Boolean, pend: Boolean = true) {
         if (culled) {
-            synchronized(hiddenEntities) {
-                if (hiddenEntities.put(entityId, entity) == null && pend)
-                    pendCulledChange(entity, true)
-            }
+            if (hiddenEntities.put(entityId, entity) == null && pend)
+                pendCulledChange(entity, true)
         } else {
-            synchronized(hiddenEntities) {
-                if (hiddenEntities.remove(entityId) != null && pend)
-                    pendCulledChange(entity, false)
-            }
+            if (hiddenEntities.remove(entityId) != null && pend)
+                pendCulledChange(entity, false)
         }
     }
 
@@ -61,7 +58,7 @@ class UserCullData(
 
     fun onEntityRemove(entities: IntArrayList) {
         if (entities.isEmpty) return
-        synchronized(hiddenEntities) {
+        synchronized(this) {
             entities.forEachInt { i ->
                 hiddenEntities.remove(i)
             }
@@ -72,32 +69,30 @@ class UserCullData(
         isRemoved = true
     }
 
+    @Synchronized
     private fun reset() {
-        synchronized(hiddenEntities) {
-            val values = hiddenEntities.values
-            hiddenEntities.clear()
-            for (entity in values) {
-                pendCulledChange(entity, false)
-            }
+        val values = hiddenEntities.values
+        hiddenEntities.clear()
+        for (entity in values) {
+            pendCulledChange(entity, false)
         }
     }
 
+    @Synchronized
     private fun checkEntitiesValid() {
         try {
-            synchronized(hiddenEntities) {
-                val raytraceHandler = raytraceHandler
-                val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-                val playerLoc = player.location
-                for (entry in iterator) {
-                    val entity = entry.value
-                    var flag = !raytraceHandler.isValid(entity)
-                    val loc = entity.location
-                    if (loc.world != playerLoc.world || (playerLoc.x - loc.x).square() + (playerLoc.z - loc.z).square() > 1024 * 1024) {
-                        playerEntityVisibilityHandler.forceShowEntity(player, entity)
-                        flag = true
-                    }
-                    if (flag) iterator.remove()
+            val raytraceHandler = raytraceHandler
+            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
+            val playerLoc = player.location
+            for (entry in iterator) {
+                val entity = entry.value
+                var flag = !raytraceHandler.isValid(entity)
+                val loc = entity.location
+                if (loc.world != playerLoc.world || (playerLoc.x - loc.x).square() + (playerLoc.z - loc.z).square() > 1024 * 1024) {
+                    playerEntityVisibilityHandler.forceShowEntity(player, entity)
+                    flag = true
                 }
+                if (flag) iterator.remove()
             }
         } catch (e: Throwable) {
             plugin.err("[EntityCulling] Failed to check entities valid for player ${player.name}", e)
@@ -107,7 +102,7 @@ class UserCullData(
     private fun updateChanges() {
         if (terminated) return
 
-        val changes = synchronized(hiddenEntities) {
+        val changes = synchronized(this) {
             if (pendingChanges.isEmpty()) return
             val temp = pendingChanges.toTypedArray()
             pendingChanges.clear()
