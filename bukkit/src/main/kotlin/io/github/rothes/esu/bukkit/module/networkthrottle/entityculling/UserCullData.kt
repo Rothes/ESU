@@ -54,6 +54,7 @@ class UserCullData(
     fun tick() {
         if (++tickedTime >= 60 * 2 * 20) {
             checkEntitiesValid()
+            tickedTime = 0
         }
         updateChanges()
     }
