@@ -180,7 +180,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     /* Sort entities by tracking range */
                     val entityTypeMap = Reference2ReferenceOpenHashMap<EntityType<*>, MutableList<Entity>>(ENTITY_TYPES)
                     for (entity in entitiesRaw) {
-                        entity ?: continue
+                        if (entity == null || entity is ServerPlayer) continue // Skip players, bukkit api hides tab list too.
                         val get = entityTypeMap.get(entity.type)
                         if (get != null) get.add(entity)
                         else entityTypeMap[entity.type] = ArrayList<Entity>(32).also { it.add(entity) }
@@ -308,7 +308,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         for ((trackRange, entities) in entities) {
             val maxRange = min(trackRange, viewDistanceSquared)
             for (entity in entities) {
-                if (entity === player) continue
                 val pos = entity.position()
                 val dist = (playerX - pos.x).square() + (playerZ - pos.z).square()
                 if (dist > maxRange) continue
@@ -638,7 +637,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         """)
         val entityCulledByDefault: Boolean = true,
         @Comment("These entity types are considered always visible.")
-        val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER, EntityType.PLAYER),
+        val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
         @Comment("""
