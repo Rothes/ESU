@@ -147,6 +147,7 @@ object ConfigLoader {
         val resourceNodes = mutableMapOf<String, ConfigurationNode>()
         if (MultiLangConfiguration::class.java.isAssignableFrom(configClass)) {
             if (path.notExists()) {
+                path.parent.createDirectories()
                 EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
                     val relativize = EsuCore.instance.baseConfigPath().relativize(path)
                     val source = linkTo.resolve(relativize)
