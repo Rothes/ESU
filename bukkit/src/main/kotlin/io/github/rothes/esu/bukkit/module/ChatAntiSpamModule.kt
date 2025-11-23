@@ -237,7 +237,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             data class SpamScore(
                 val calculateSize: Int = 6,
                 val muteOnAverageScore: Double = 0.5625,
-                @Comment("Make sure the player get muted can be scored in this range after unmute")
+                @Comment("Ensure the player get muted can be scored in this range after unmute")
                 val safeScoreOnMute: Double = 0.3,
             ): ConfigurationPart
 
@@ -245,6 +245,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 @Comment("Last Mute must within this interval to trigger a multiplier")
                 val maxMuteInterval: Duration = 15.minutes.toJavaDuration(),
                 val multiplier: Double = 2.0,
+                val multiplierMax: Double = 32.0,
             ): ConfigurationPart
         }
 

@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.math.min
 
 data class SpamData(
     @SerializedName("t", alternate = ["muteUntil"])
@@ -50,7 +51,8 @@ data class SpamData(
         }
 
         val currMute = if (muteUntil > now) muteUntil - now else 0
-        muteUntil = (now + config.muteHandler.baseMuteDuration.toMillis() * muteMultiplier).toLong()
+        val finalMp = min(muteMultiplier, config.muteHandler.muteDurationMultiplier.multiplierMax)
+        muteUntil = (now + config.muteHandler.baseMuteDuration.toMillis() * finalMp).toLong()
         lastAccess = muteUntil
         val muteDuration = muteUntil - now
         if (config.muteHandler.keepMessageRecords) {
