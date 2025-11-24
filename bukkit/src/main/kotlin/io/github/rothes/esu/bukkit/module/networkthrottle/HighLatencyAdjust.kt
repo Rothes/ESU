@@ -20,6 +20,7 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.coroutine.AsyncScope
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -121,7 +122,6 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
             So they won't affect average quality of all players.
             """)
     data class FeatureConfig(
-        val enabled: Boolean = false,
         @Comment("Trigger a adjust when player's ping is greater than or equal this.")
         val latencyThreshold: Int = 150,
         @Comment("The high ping must keep for the duration to trigger a adjust finally.")
@@ -131,7 +131,7 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
                 "If false, any new settings could reset the view distance for the player.")
         val newViewDistanceToReset: Boolean = false,
         val minViewDistance: Int = 5,
-    ): ConfigurationPart
+    ): BaseFeatureConfiguration()
     
     data class FeatureLang(
         val adjustedWarning: MessageData = ("<ec><b>Warning: </b><pc>Your network latency seems to be high. \n" +
