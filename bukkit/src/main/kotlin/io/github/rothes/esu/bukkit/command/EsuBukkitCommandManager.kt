@@ -37,6 +37,12 @@ class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
     )
 ) {
     init {
+//        if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+//            registerBrigadier()
+//        } else
+        if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            registerAsynchronousCompletions()
+        }
         settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
         captionRegistry().registerProvider { caption, recipient ->
             recipient.localedOrNull(BukkitEsuLang.get()) {
