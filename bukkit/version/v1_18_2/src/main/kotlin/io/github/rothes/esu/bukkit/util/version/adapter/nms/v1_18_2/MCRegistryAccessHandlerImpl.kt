@@ -10,7 +10,7 @@ import net.minecraft.server.MinecraftServer
 object MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
 
     override fun getServerRegistryAccess(): RegistryAccess {
-        return MinecraftServer.getServer().registryAccess() // Change: return value is RegistryAccess.Frozen
+        return MinecraftServer.getServer().registryAccess() // Change: return type is RegistryAccess.Frozen
     }
 
     override fun <T> getRegistryOrThrow(registryAccess: RegistryAccess, registryKey: ResourceKey<out Registry<T>>): Registry<T> {
@@ -23,6 +23,11 @@ object MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
 
     override fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T> {
         return registry.getResourceKey(item).orElseThrow()
+    }
+
+    override fun <T> getId(registry: Registry<T>, item: T): Int {
+        // Change: No need to cast, IdMap interface
+        return registry.getId(item)
     }
 
     override fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>> = registry.entrySet()

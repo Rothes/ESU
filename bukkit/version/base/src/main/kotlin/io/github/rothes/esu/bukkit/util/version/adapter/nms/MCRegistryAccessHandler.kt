@@ -14,6 +14,7 @@ interface MCRegistryAccessHandler {
     fun <T> getNullable(registry: Registry<T>, resource: ResourceLocation): T?
 
     fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T>
+    fun <T> getId(registry: Registry<T>, item: T): Int
 
     fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>>
     fun <T> keySet(registry: Registry<T>): Set<ResourceLocation>

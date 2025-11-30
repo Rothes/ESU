@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.v1_17_1
 
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryAccessHandler
+import net.minecraft.core.MappedRegistry
 import net.minecraft.core.Registry
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey
@@ -23,6 +24,11 @@ object MCRegistryAccessHandlerImpl: MCRegistryAccessHandler {
 
     override fun <T: Any> getResourceKey(registry: Registry<T>, item: T): ResourceKey<T> {
         return registry.getResourceKey(item).orElseThrow()
+    }
+
+    override fun <T> getId(registry: Registry<T>, item: T): Int {
+        registry as MappedRegistry<T>
+        return registry.getId(item)
     }
 
     override fun <T> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>> = registry.entrySet()
