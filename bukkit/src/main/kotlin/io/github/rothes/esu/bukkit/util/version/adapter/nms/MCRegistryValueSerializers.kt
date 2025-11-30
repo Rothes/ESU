@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
+import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 

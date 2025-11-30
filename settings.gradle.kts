@@ -6,6 +6,8 @@ include("common")
 
 include("bukkit")
 include("bukkit:dep-bukkit")
+include("bukkit:module")
+include("bukkit:module:bukkit-versions")
 include("bukkit:version")
 include("bukkit:version:base")
 include("bukkit:version:v1_17_1")

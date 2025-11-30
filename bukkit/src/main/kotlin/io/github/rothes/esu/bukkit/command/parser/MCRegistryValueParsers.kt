@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.command.parser
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
+import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.util.version.Version
 import net.minecraft.world.entity.EntityType
 import org.incendo.cloud.parser.ParserDescriptor

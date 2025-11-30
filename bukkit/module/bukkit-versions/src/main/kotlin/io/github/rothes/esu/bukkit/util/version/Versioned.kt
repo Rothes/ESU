@@ -38,7 +38,7 @@ class Versioned<T, V>(
                             return@mapNotNull null
                         }
                     }
-                    it to Version.fromString(split[0].replace('_', '.'))
+                    it to Version.Companion.fromString(split[0].replace('_', '.'))
                 }
                 .sortedWith(Comparator { a, b -> compareValuesBy(b, a, { it.second }, { it.first.length }) })
                 .firstOrNull { version >= it.second }
@@ -82,4 +82,8 @@ class Versioned<T, V>(
 
     }
 
+}
+
+fun <T> Class<T>.versioned(): T {
+    return Versioned<Any, T>(this).handle
 }

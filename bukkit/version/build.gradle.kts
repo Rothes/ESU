@@ -26,11 +26,11 @@ subprojects {
 
     dependencies {
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
-        if (isBase) {
-            compileOnly(project(":common"))
-        } else {
-            compileOnly(project(":bukkit:version:base"))
+        compileOnly(project(":common"))
+        compileOnly(project(":bukkit:module:bukkit-versions"))
+        if (!isBase) {
             compileOnly(project(":bukkit"))
+            compileOnly(project(":bukkit:version:base"))
         }
     }
 

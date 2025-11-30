@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.Chun
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
-import io.github.rothes.esu.bukkit.util.version.VersionUtils.versioned
+import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
