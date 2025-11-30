@@ -16,7 +16,6 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.bukkit.Material
 import org.incendo.cloud.annotations.Command
@@ -30,7 +29,7 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
-            if (ServerCompatibility.serverVersion < Version.fromString("1.18")) {
+            if (ServerCompatibility.serverVersion < "1.18") {
                 plugin.err("[ChunkDataThrottle] This feature requires Minecraft 1.18+")
                 return Feature.AvailableCheck.fail { "This feature requires Minecraft 1.18+".message }
             }
@@ -135,7 +134,7 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
             mutableListOf(Material.BEDROCK)
         ).apply {
             put("world", buildList {
-                val cavesUpdate = ServerCompatibility.serverVersion >= Version.fromString("1.17")
+                val cavesUpdate = ServerCompatibility.serverVersion >= "1.17"
                 add(Material.COAL_ORE)
                 if (cavesUpdate) add(Material.COPPER_ORE)
                 addAll(listOf(Material.IRON_ORE, Material.GOLD_ORE,
@@ -147,7 +146,7 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
             }.toMutableList())
             put("world_nether", buildList {
                 add(Material.NETHER_QUARTZ_ORE)
-                if (ServerCompatibility.serverVersion >= Version.fromString("1.16")) {
+                if (ServerCompatibility.serverVersion >= "1.16") {
                     add(Material.NETHER_GOLD_ORE)
                     add(Material.ANCIENT_DEBRIS)
                 }

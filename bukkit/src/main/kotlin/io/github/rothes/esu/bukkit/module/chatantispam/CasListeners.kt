@@ -24,7 +24,6 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -75,7 +74,7 @@ object CasListeners: Listener {
         val deathMessage = server.esu
         if (deathMessage is TranslatableComponent) {
             if (checkBlocked(event.player, deathMessage.legacy, Death)) {
-                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= Version.fromString("1.21.5")) {
+                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "1.21.5") {
                     event.deathScreenMessageOverride(server)
                 }
                 event.deathMessage(null)

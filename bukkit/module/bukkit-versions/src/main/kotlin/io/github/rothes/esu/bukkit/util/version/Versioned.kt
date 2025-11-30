@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.util.version
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
+import io.github.rothes.esu.core.util.version.toVersion
 import java.io.File
 import java.lang.reflect.Modifier
 import java.net.URL
@@ -38,7 +39,7 @@ class Versioned<T, V>(
                             return@mapNotNull null
                         }
                     }
-                    it to Version.Companion.fromString(split[0].replace('_', '.'))
+                    it to split[0].replace('_', '.').toVersion()
                 }
                 .sortedWith(Comparator { a, b -> compareValuesBy(b, a, { it.second }, { it.first.length }) })
                 .firstOrNull { version >= it.second }

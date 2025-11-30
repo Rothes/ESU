@@ -6,7 +6,6 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
-import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.lib.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -23,7 +22,7 @@ interface PlayerAdapter {
         private val playerChunkSentHandler by Versioned(PlayerChunkSentHandler::class.java)
 
         private val paper20 =
-            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= Version.fromString("1.20")
+            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "1.20"
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
             return playerChunkSentHandler.isChunkSentNms(this, chunkKey)

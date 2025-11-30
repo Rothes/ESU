@@ -5,7 +5,6 @@ import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.local.FileHashes.Companion.sha1
-import io.github.rothes.esu.core.util.version.Version
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
@@ -22,7 +21,7 @@ import java.util.jar.JarFile
 object MappingsLoader {
 
     private val version = ServerCompatibility.serverVersion
-    val hasSpigotMembers = version < Version.fromString("1.18")
+    val hasSpigotMembers = version < "1.18"
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$version").toFile()
     private val fileHashes = FileHashes(cacheFolder)

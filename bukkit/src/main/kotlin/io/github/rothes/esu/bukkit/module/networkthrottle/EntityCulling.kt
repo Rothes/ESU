@@ -16,7 +16,6 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.util.extension.ClassUtils
-import io.github.rothes.esu.core.util.version.Version.Companion.toVersion
 import org.bukkit.entity.Entity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -28,7 +27,7 @@ import org.bukkit.event.player.PlayerTeleportEvent
 object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfiguration>() {
 
     private val raytraceHandler =
-        if (MCRegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18".toVersion())
+        if (MCRegistryValueSerializers.isSupported && ServerCompatibility.serverVersion >= "1.18")
             RaytraceHandler::class.java.versioned().also {
                 registerFeature(it)
                 CullDataManager.raytraceHandler = it
@@ -37,7 +36,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
-            if (ServerCompatibility.serverVersion < "1.18".toVersion()) {
+            if (ServerCompatibility.serverVersion < "1.18") {
                 plugin.err("[EntityCulling] This feature requires Spigot 1.18 .")
                 return Feature.AvailableCheck.fail { "Server is not supported".message }
             }
