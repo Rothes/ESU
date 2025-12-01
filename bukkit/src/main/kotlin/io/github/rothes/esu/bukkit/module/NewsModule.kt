@@ -6,7 +6,6 @@ import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.user.ConsoleUser.buildMiniMessage
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
@@ -132,7 +131,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                 return
             }
 
-            val check = component("check", buildMiniMessage(lang, { bookNews.checkButton })
+            val check = component("check", user.buildMiniMessage(lang, { bookNews.checkButton })
                 .clickEvent(ClickEvent.runCommand("/news checked")))
             val checked = checkedCache[user] ?: -1
             val context = user.context({ bookNews.layout }) {
