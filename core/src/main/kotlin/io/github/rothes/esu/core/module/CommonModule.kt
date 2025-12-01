@@ -41,6 +41,8 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
     open fun buildLangLoader(builder: YamlConfigurationLoader.Builder) { }
 
+    open fun preprocessConfig(loadedConfiguration: LoadedConfiguration) {}
+
     fun User.hasPerm(shortPerm: String): Boolean {
         return hasPermission(perm(shortPerm))
     }
@@ -65,6 +67,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                         yamlLoader = { buildLangLoader(it); it },
                     )
                 )
+                preprocessConfig(configNode)
                 loadConfig(root, configNode)
                 loadLang(root, langNodes)
                 configNode.save()
