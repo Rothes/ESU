@@ -54,10 +54,10 @@ interface User {
     fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? {
         val lang = language
         return langMap[lang]?.let(block)
-        // If this locale is not found, try the same language.
-            ?: lang?.split('_')?.get(0)?.let { language ->
+            // If this locale is not found, try the same language.
+            ?: lang?.substringBefore('_')?.let { language ->
                 val lang = language + '_'
-                langMap.entries.filter { it.key.startsWith(lang) }.firstNotNullOfOrNull { block(it.value) }
+                langMap.entries.find { it.key.startsWith(lang) }?.let { block(it.value) }
             }
             // Still? Use the server default locale instead.
             ?: langMap[EsuConfig.get().locale]?.let(block)
