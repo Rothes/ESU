@@ -21,8 +21,6 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.UnsafeUtils.usBooleanAccessor
-import io.github.rothes.esu.core.util.UnsafeUtils.usNullableObjAccessor
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
@@ -36,7 +34,6 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
 import net.minecraft.world.level.chunk.PalettedContainer
@@ -78,9 +75,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
     private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
     private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
-
-    private val canOcclude = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("canOcclude").usBooleanAccessor
-    private val bsCache = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("cache").usNullableObjAccessor
+    private val occludeTester by Versioned(BlockOccludeTester::class.java)
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
@@ -439,7 +434,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) { // It can never be null, but we don't want the kotlin npe check!
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (canOcclude[blockState] && bsCache[blockState] != null && blockState.isCollisionShapeFullBlock(null, null))
+                    if (occludeTester.isFullOcclude(blockState))
                         return true
                 }
             }
@@ -520,7 +515,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) {
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (canOcclude[blockState] && bsCache[blockState] != null && blockState.isCollisionShapeFullBlock(null, null))
+                    if (occludeTester.isFullOcclude(blockState))
                         return true
                 }
 

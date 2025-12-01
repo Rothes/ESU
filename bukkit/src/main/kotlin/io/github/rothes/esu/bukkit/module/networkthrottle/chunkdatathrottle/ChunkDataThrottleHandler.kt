@@ -1,12 +1,12 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle
 
-interface ChunkDataThrottleHandler {
+import io.github.rothes.esu.core.module.CommonFeature
 
-    val counter: Counter
+abstract class ChunkDataThrottleHandler<C, L>: CommonFeature<C, L>() {
 
-    fun onEnable()
-    fun onReload()
-    fun onTerminate()
+    override val name: String = "ChunkHandler"
+
+    val counter: Counter = Counter()
 
     data class Counter(
         var minimalChunks: Long = 0,
