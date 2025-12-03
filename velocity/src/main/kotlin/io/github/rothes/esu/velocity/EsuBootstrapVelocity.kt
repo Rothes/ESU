@@ -130,6 +130,8 @@ class EsuBootstrapVelocity @Inject constructor(
                     "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
                     "com.mysql:mysql-connector-j:8.4.0",
                     "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
+
+                    "it.unimi.dsi:fastutil:8.5.15",
                 )
             )
         }
