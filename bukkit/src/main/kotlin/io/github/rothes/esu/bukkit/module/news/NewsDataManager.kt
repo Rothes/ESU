@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module.news
 
 import io.github.rothes.esu.bukkit.module.NewsModule
+import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
@@ -76,7 +77,7 @@ object NewsDataManager {
     }
 
     fun fetchNews(post: (() -> Unit)? = null) {
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 news = NewsTable.select(NewsTable.id, NewsTable.time, NewsTable.data)
                     .where { NewsTable.channel eq currentChannel }
@@ -90,7 +91,7 @@ object NewsDataManager {
     }
 
     fun addNews(news: NewsItem, post: (() -> Unit)? = null) {
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 NewsTable.insert {
                     it[channel] = currentChannel
@@ -104,7 +105,7 @@ object NewsDataManager {
 
     fun updateNews(news: NewsItem, post: (() -> Unit)? = null) {
         require(news.id >= 0) { "News id must be non-negative." }
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 NewsTable.update( { NewsTable.id eq news.id } ) {
                     it[time] = news.time
@@ -116,7 +117,7 @@ object NewsDataManager {
     }
 
     fun deleteNews(news: NewsItem, post: (() -> Unit)? = null) {
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 NewsTable.deleteWhere { NewsTable.id eq news.id }
             }
@@ -133,7 +134,7 @@ object NewsDataManager {
     }
 
     fun setChecked(user: User, checked: Int) {
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 with(NewsCheckedTable) {
                     val lines = update({ NewsCheckedTable.user eq user.dbId and (channel eq currentChannel) }) {

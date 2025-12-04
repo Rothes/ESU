@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatS
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatSpamTable.tableName
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
@@ -130,7 +131,7 @@ object CasDataManager {
         val dbId = where.dbId
         val addr = where.addr
 
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             with(ChatSpamTable) {
                 transaction(database) {
                     selectAll().where { (ip eq addr) or (user eq dbId) }.orderBy(lastAccess, SortOrder.DESC)
@@ -195,7 +196,7 @@ object CasDataManager {
     }
 
     fun saveSpamDataAsync(where: PlayerUser) {
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             saveSpamDataNow(where)
         }
     }
@@ -210,7 +211,7 @@ object CasDataManager {
                 else      -> error("Unknown key type ${any?.javaClass?.name} ($any)")
             }
         }
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 ChatSpamTable.deleteWhere {
                     buildList {
@@ -228,7 +229,7 @@ object CasDataManager {
             is String -> ChatSpamTable.ip   eq key
             else      -> error("Unknown key type ${key?.javaClass?.name} ($key)")
         }
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 ChatSpamTable.deleteWhere { where and expiredOp }
             }
@@ -241,7 +242,7 @@ object CasDataManager {
             is String -> ChatSpamTable.ip   eq key
             else      -> error("Unknown key type ${key?.javaClass?.name} ($key)")
         }
-        StorageManager.coroutineScope.launch {
+        IOScope.launch {
             transaction(database) {
                 ChatSpamTable.deleteWhere { where }
             }

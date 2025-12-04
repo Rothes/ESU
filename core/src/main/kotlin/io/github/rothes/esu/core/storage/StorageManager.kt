@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
+import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.colorScheme
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.dbId
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.language
@@ -12,8 +13,6 @@ import io.github.rothes.esu.core.storage.StorageManager.UsersTable.tableName
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.uuid
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
@@ -38,7 +37,8 @@ object StorageManager {
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)
     }
-    val coroutineScope = CoroutineScope(Dispatchers.IO)
+    @Deprecated("0.12.4")
+    val coroutineScope = IOScope
 
     object MetaTable : Table("metadata") {
         val key = varchar("key", 32)
@@ -163,7 +163,7 @@ object StorageManager {
     }
 
     fun updateUserAsync(user: User) {
-        coroutineScope.launch {
+        IOScope.launch {
             updateUserNow(user)
         }
     }
