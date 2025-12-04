@@ -145,7 +145,7 @@ object TrafficMonitor {
     object Listeners {
         @Subscribe
         fun onDisconnect(e: DisconnectEvent) {
-            viewers.remove(e.player.user)
+            removeViewer(e.player.user)
         }
     }
 
