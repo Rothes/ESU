@@ -25,6 +25,10 @@ import java.util.concurrent.atomic.AtomicLong
 
 object TrafficMonitor {
 
+    private const val MTU = 1500
+    private const val MTU_HEADER = 20
+    private const val FRAME_OVERHEAD = 30 + MTU_HEADER
+
     private var viewers = linkedMapOf<User, Unit>()
     private var task: ScheduledTask? = null
     private var forceRun = AtomicInteger(0)
@@ -44,11 +48,11 @@ object TrafficMonitor {
         private set
 
     fun enable() {
-        task = plugin.server.scheduler.buildTask(plugin.bootstrap) { task ->
+        task = plugin.server.scheduler.buildTask(plugin.bootstrap) { _ ->
             val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toLong()
-            val bytesO = outgoingBytes.getAndSet(0) + ppsO * 46 // TCP overhead.
+            val bytesO = outgoingBytes.getAndSet(0)
             val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toLong()
-            val bytesI = incomingBytes.getAndSet(0) + ppsI * 46
+            val bytesI = incomingBytes.getAndSet(0)
             lastOutgoingPps = ppsO
             lastOutgoingBytes = bytesO
             lastIncomingPps = ppsI
@@ -148,7 +152,10 @@ object TrafficMonitor {
     object EncoderHandler: EncoderChannelHandler {
 
         override fun encode(packetData: PacketData) {
-            outgoingBytes.addAndGet(packetData.compressedSize.toLong())
+            val size = packetData.compressedSize
+            val frames = (size + (MTU - MTU_HEADER - 1)) / (MTU - MTU_HEADER)
+            val overhead = frames * FRAME_OVERHEAD
+            outgoingBytes.getAndAdd((size + overhead).toLong())
         }
 
         override fun flush() {
@@ -160,7 +167,10 @@ object TrafficMonitor {
     object DecoderHandler: DecoderChannelHandler {
 
         override fun decode(packetData: PacketData) {
-            incomingBytes.addAndGet(packetData.compressedSize.toLong())
+            val size = packetData.compressedSize
+            val frames = (size + (MTU - MTU_HEADER - 1)) / (MTU - MTU_HEADER)
+            val overhead = frames * FRAME_OVERHEAD
+            incomingBytes.getAndAdd((size + overhead).toLong())
             incomingPps.incrementAndGet()
         }
 
