@@ -5,12 +5,15 @@ import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.event.connection.PluginMessageEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
+import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.core.EsuCore
@@ -196,6 +199,20 @@ class EsuPluginVelocity(
     fun onQuit(event: DisconnectEvent) {
         VelocityUserManager.getCache(event.player.uniqueId)?.let {
             VelocityUserManager.unload(it)
+        }
+    }
+
+    @Subscribe
+    fun blockPlayerFakeEsuPluginMessage(e: PluginMessageEvent) {
+        if (e.source !is Player) return
+        when (val identifier = e.identifier) {
+            is MinecraftChannelIdentifier -> {
+                if (identifier.id == "esu") e.result = PluginMessageEvent.ForwardResult.handled()
+            }
+            is LegacyChannelIdentifier -> {
+                if (identifier.name == "esu") e.result = PluginMessageEvent.ForwardResult.handled()
+            }
+            else -> throw IllegalStateException("Unsupported plugin identifier type: $identifier")
         }
     }
 
