@@ -22,7 +22,7 @@ interface PlayerAdapter {
         private val playerChunkSentHandler by Versioned(PlayerChunkSentHandler::class.java)
 
         private val paper20 =
-            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "1.20"
+            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= 20
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
             return playerChunkSentHandler.isChunkSentNms(this, chunkKey)

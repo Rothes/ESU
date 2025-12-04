@@ -11,7 +11,7 @@ interface MCRegistryValueParsers {
 
     companion object {
 
-        val isSupported = ServerCompatibility.serverVersion >= "1.17.1"
+        val isSupported = ServerCompatibility.serverVersion >= "17.1"
         val instance: MCRegistryValueParsers by lazy { MCRegistryValueParsers::class.java.versioned() }
 
         fun <C> all(): List<ParserDescriptor<C, *>> {

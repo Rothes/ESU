@@ -11,7 +11,7 @@ interface MCRegistryValueSerializers {
     val entityType: ScalarSerializer<*>
 
     companion object {
-        val isSupported = ServerCompatibility.serverVersion >= "1.17.1"
+        val isSupported = ServerCompatibility.serverVersion >= "17.1"
         val instance: MCRegistryValueSerializers by lazy { MCRegistryValueSerializers::class.java.versioned() }
     }
 

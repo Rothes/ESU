@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.util
 
 import io.github.rothes.esu.core.util.version.Version
+import io.github.rothes.esu.core.util.version.drop
 import io.github.rothes.esu.core.util.version.toVersion
 import io.papermc.paper.configuration.GlobalConfiguration
 import io.papermc.paper.util.MappingEnvironment
@@ -11,7 +12,7 @@ import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
 
-    val serverVersion: Version = Bukkit.getServer().bukkitVersion.split('-')[0].toVersion()
+    val serverVersion: Version = Bukkit.getServer().bukkitVersion.split('-')[0].toVersion().drop(1)
 
     val isPaper = try {
         Class.forName($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
@@ -41,7 +42,7 @@ object ServerCompatibility {
         false
     }
 
-    val hasMojmap = serverVersion >= "1.14.4"
+    val hasMojmap = serverVersion >= "14.4"
 
     val asyncTp = try {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)

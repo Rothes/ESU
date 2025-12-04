@@ -20,12 +20,12 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
     val handler by lazy { ChunkDataThrottleHandler::class.java.versioned() }
 
     init {
-        if (ServerCompatibility.serverVersion >= "1.18") registerFeature(handler)
+        if (ServerCompatibility.serverVersion >= 18) registerFeature(handler)
     }
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
-            if (ServerCompatibility.serverVersion < "1.18") {
+            if (ServerCompatibility.serverVersion < 18) {
                 plugin.err("[ChunkDataThrottle] This feature requires Minecraft 1.18+")
                 return Feature.AvailableCheck.fail { "This feature requires Minecraft 1.18+".message }
             }

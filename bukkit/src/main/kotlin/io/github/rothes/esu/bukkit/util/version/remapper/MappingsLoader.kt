@@ -21,7 +21,7 @@ import java.util.jar.JarFile
 object MappingsLoader {
 
     private val version = ServerCompatibility.serverVersion
-    val hasSpigotMembers = version < "1.18"
+    val hasSpigotMembers = version < 18
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$version").toFile()
     private val fileHashes = FileHashes(cacheFolder)

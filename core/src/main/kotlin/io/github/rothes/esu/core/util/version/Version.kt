@@ -16,6 +16,8 @@ data class Version(
 
     operator fun compareTo(other: String): Int = this.compareTo(fromString(other))
 
+    operator fun compareTo(major: Int): Int = this.major - major
+
     operator fun plus(version: Version): Version {
         return Version(
             major + version.major,

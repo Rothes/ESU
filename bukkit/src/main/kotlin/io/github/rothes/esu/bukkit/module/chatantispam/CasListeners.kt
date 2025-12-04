@@ -74,7 +74,7 @@ object CasListeners: Listener {
         val deathMessage = server.esu
         if (deathMessage is TranslatableComponent) {
             if (checkBlocked(event.player, deathMessage.legacy, Death)) {
-                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "1.21.5") {
+                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "21.5") {
                     event.deathScreenMessageOverride(server)
                 }
                 event.deathMessage(null)
