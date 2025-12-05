@@ -99,6 +99,7 @@ class EsuPluginBukkit(
 
         Bukkit.getOnlinePlayers().forEach { it.user }
 
+        ModuleManager.addModule(CoreModule)
         ModuleManager.addModule(AutoBroadcastModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
