@@ -13,7 +13,7 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.core.util.extension.ConfigurationOptionsExt.headerIfNotNull
+import io.github.rothes.esu.core.util.extension.headerIfNotNull
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import org.bukkit.Bukkit
 import org.incendo.cloud.annotations.Command
