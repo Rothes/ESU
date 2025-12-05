@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager.raytraceHandler
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
@@ -112,7 +112,7 @@ class UserCullData(
         pendingChanges.clear()
 
         if (!player.connected) Bukkit.getPlayer(player.uniqueId)?.let { player = it }
-        player.syncTick {
+        player.nextTick {
             val raytraceHandler = raytraceHandler
             for (change in changes) {
                 if (!raytraceHandler.isValid(change.entity)) continue
