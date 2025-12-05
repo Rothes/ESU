@@ -7,6 +7,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.InaccessibleObjectException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.util.function.Predicate
 
 object ReflectionUtils {
 
@@ -48,6 +49,28 @@ object ReflectionUtils {
     @JvmName("handleKt")
     fun Method.handle(rType: Class<*> = returnType, pType: Class<*> = declaringClass, argTypes: Array<Class<*>> = parameterTypes): MethodHandle {
         return method(this, rType, pType, argTypes)
+    }
+
+    fun Class<*>.findSuperClass(predicate: (Class<*>) -> Boolean): Class<*>? {
+        val clazz = this.superclass ?: return null
+        if (predicate(clazz)) return clazz
+        return clazz.findSuperClass(predicate)
+    }
+
+    fun Class<*>.findSuperClassOrSelf(predicate: (Class<*>) -> Boolean): Class<*>? {
+        if (predicate(this)) return this
+        return findSuperClass(predicate)
+    }
+
+    fun Class<*>.findSuperClass(predicate: Predicate<Class<*>>): Class<*>? {
+        val clazz = this.superclass ?: return null
+        if (predicate.test(clazz)) return clazz
+        return clazz.findSuperClass(predicate)
+    }
+
+    fun Class<*>.findSuperClassOrSelf(predicate: Predicate<Class<*>>): Class<*>? {
+        if (predicate.test(this)) return this
+        return findSuperClass(predicate)
     }
 
     // Easy functions
