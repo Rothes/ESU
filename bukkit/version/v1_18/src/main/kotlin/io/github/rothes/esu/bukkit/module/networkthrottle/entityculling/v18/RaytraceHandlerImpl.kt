@@ -196,8 +196,11 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                             if (!bukkit.connected) return@launch // Player may disconnect at the same time
                             try {
                                 val data = CullDataManager[bukkit]
-                                data.onEntityRemove(entitiesRemove)
-                                tickPlayer(player, bukkit, data, level, entities)
+                                data.withLock {
+                                    data.onEntityRemove(entitiesRemove)
+                                    tickPlayer(player, bukkit, data, level, entities)
+                                    data.tick()
+                                }
                             } catch (e: Throwable) {
                                 plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
                             }
@@ -316,7 +319,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             }
         }
         userCullData.shouldCull = tickedEntities >= config.cullThreshold
-        userCullData.tick()
     }
 
     fun raytrace(player: ServerPlayer, predPlayer: Vec3?, aabb: AABB, level: ServerLevel): Boolean {

@@ -3,7 +3,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager.raytraceHandler
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
@@ -13,6 +13,8 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
+import org.jetbrains.annotations.ApiStatus
+import java.util.concurrent.locks.ReentrantLock
 
 class UserCullData(
     var player: Player,
@@ -22,6 +24,7 @@ class UserCullData(
         val playerEntityVisibilityHandler by Versioned(PlayerEntityVisibilityHandler::class.java)
     }
 
+    @ApiStatus.Internal val lock = ReentrantLock()
     private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>(64, Hash.VERY_FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
@@ -30,7 +33,6 @@ class UserCullData(
 
     var shouldCull = true
 
-    @Synchronized
     fun setCulled(entity: Entity, entityId: Int, culled: Boolean, pend: Boolean = true) {
         if (culled) {
             if (hiddenEntities.put(entityId, entity) == null && pend)
@@ -42,8 +44,10 @@ class UserCullData(
     }
 
     fun showAll() {
-        reset()
-        updateChanges()
+        withLock {
+            reset()
+            updateChanges()
+        }
     }
 
     fun tick() {
@@ -56,10 +60,8 @@ class UserCullData(
 
     fun onEntityRemove(entities: IntArray) {
         if (entities.isEmpty()) return
-        synchronized(this) {
-            for (i in entities) {
-                hiddenEntities.remove(i)
-            }
+        for (i in entities) {
+            hiddenEntities.remove(i)
         }
     }
 
@@ -67,16 +69,22 @@ class UserCullData(
         isRemoved = true
     }
 
-    @Synchronized
-    private fun reset() {
-        val values = hiddenEntities.values
-        hiddenEntities.clear()
-        for (entity in values) {
-            pendCulledChange(entity, false)
+    inline fun <T> withLock(action: () -> T): T {
+        lock.lock()
+        try {
+            return action()
+        } finally {
+            lock.unlock()
         }
     }
 
-    @Synchronized
+    private fun reset() {
+        for (entity in hiddenEntities.values) {
+            pendCulledChange(entity, false)
+        }
+        hiddenEntities.clear()
+    }
+
     private fun checkEntitiesValid() {
         try {
             val raytraceHandler = raytraceHandler
@@ -98,36 +106,28 @@ class UserCullData(
     }
 
     private fun updateChanges() {
-        if (terminated) return
+        if (terminated || pendingChanges.isEmpty()) return
 
-        val changes = synchronized(this) {
-            if (pendingChanges.isEmpty()) return
-            val temp = pendingChanges.toTypedArray()
-            pendingChanges.clear()
-            temp
-        }
-        if (plugin.isEnabled) {
-            if (!player.connected)
-                Bukkit.getPlayer(player.uniqueId)?.let { player = it }
-            Scheduler.schedule(player) {
-                val raytraceHandler = raytraceHandler
-                for (change in changes) {
-                    if (!raytraceHandler.isValid(change.entity)) continue
-                    if (!change.entity.checkTickThread()) {
-                        // Not on tick thread, we can only reflect to make changes,
-                        // We don't need to update TrackedEntity cuz not same thread.
-                        if (!change.culled) {
-                            playerEntityVisibilityHandler.forceShowEntity(player, change.entity)
-                        }
-                        continue
+        val changes = pendingChanges.toTypedArray()
+        pendingChanges.clear()
+
+        if (!player.connected) Bukkit.getPlayer(player.uniqueId)?.let { player = it }
+        player.syncTick {
+            val raytraceHandler = raytraceHandler
+            for (change in changes) {
+                if (!raytraceHandler.isValid(change.entity)) continue
+                if (!change.entity.checkTickThread()) {
+                    // Not on tick thread, we can only reflect to make changes,
+                    // We don't need to update TrackedEntity cuz not same thread.
+                    if (!change.culled) {
+                        playerEntityVisibilityHandler.forceShowEntity(player, change.entity)
                     }
-                    if (change.culled)
-                        player.hideEntity(bootstrap, change.entity)
-                    else
-                        player.showEntity(bootstrap, change.entity)
+                    continue
                 }
-            } ?: let {
-                plugin.warn("[EntityCulling] Failed to schedule changes ${player.name}, not online?")
+                if (change.culled)
+                    player.hideEntity(bootstrap, change.entity)
+                else
+                    player.showEntity(bootstrap, change.entity)
             }
         }
     }
