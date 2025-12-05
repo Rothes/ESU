@@ -137,6 +137,13 @@ object Scheduler {
             schedule(this, plugin.alwaysEnabled(), func) ?: error("Failed to schedule task for entity $this")
     }
 
+    fun Location.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit) {
+        if (checkTickThread())
+            func()
+        else
+            schedule(this, plugin.alwaysEnabled(), func)
+    }
+
     fun cancelTasks(plugin: Plugin = esuPlugin) {
         if (isFolia) {
             Bukkit.getGlobalRegionScheduler().cancelTasks(plugin)

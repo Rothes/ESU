@@ -1,10 +1,9 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.bootstrap
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.adapter.AttributeAdapter
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
@@ -35,32 +34,19 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
 
     override fun onDisable() {
         super.onDisable()
-        if (plugin.isEnabled) {
-            // This can only run when enabled
-            for (world in Bukkit.getWorlds()) {
-                for (chunk in world.loadedChunks) {
-                    Scheduler.schedule(chunk.getBlock(0, 0, 0).location) {
-                        for (entity in chunk.entities) {
-                            resetEntity(entity)
-                        }
-                    }
-                }
-            }
-        }
+        update()
         Listeners.unregister()
     }
 
     override fun onReload() {
         super.onReload()
-        if (enabled) {
-            update()
-        }
+        if (enabled) update()
     }
 
     fun update() {
         for (world in Bukkit.getWorlds()) {
             for (chunk in world.loadedChunks) {
-                Scheduler.schedule(chunk.getBlock(0, 0, 0).location) {
+                chunk.getBlock(0, 0, 0).location.syncTick {
                     for (entity in chunk.entities) {
                         handleEntity(entity)
                     }
