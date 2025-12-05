@@ -235,7 +235,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                 val cullData = CullDataManager[bukkit]
                 if (!cullData.shouldCull) continue
                 if (bukkit.checkTickThread()) {
-                    cullData.setCulled(event.entity, entity.id, true, pend = false)
+                    cullData.withLock {
+                        cullData.setCulled(event.entity, entity.id, true, pend = false)
+                    }
                     bukkit.hideEntity(bootstrap, event.entity)
                 }
             }
@@ -253,10 +255,12 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 val cullData = CullDataManager[player]
                 if (!cullData.shouldCull) continue
-                for (entity in event.chunk.entities) {
-                    cullData.setCulled(entity, entity.entityId, true, pend = false)
-                    @Suppress("DEPRECATION") // Stable API
-                    player.hideEntity(bootstrap, entity)
+                cullData.withLock {
+                    for (entity in event.chunk.entities) {
+                        cullData.setCulled(entity, entity.entityId, true, pend = false)
+                        @Suppress("DEPRECATION") // Stable API
+                        player.hideEntity(bootstrap, entity)
+                    }
                 }
             }
         }
