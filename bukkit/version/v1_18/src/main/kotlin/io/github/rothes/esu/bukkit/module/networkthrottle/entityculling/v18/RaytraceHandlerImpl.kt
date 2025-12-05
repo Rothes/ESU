@@ -25,7 +25,6 @@ import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
-import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kotlinx.coroutines.*
@@ -51,6 +50,7 @@ import org.bukkit.event.world.ChunkLoadEvent
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Flag
 import org.spigotmc.TrackingRange
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.*
@@ -87,7 +87,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private var previousElapsedTime = 0L
     private var previousDelayTime = 0L
 
-    private val removedEntities = IntArrayList()
+    private val removedEntities = ConcurrentLinkedQueue<Int>()
 
     override fun checkConfig(): Feature.AvailableCheck? {
         if (config.raytraceThreads < 1) {
@@ -98,9 +98,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     }
 
     override fun onEntityRemove(entity: org.bukkit.entity.Entity) {
-        synchronized(removedEntities) {
-            removedEntities.add(entityHandleGetter.getHandle(entity).id)
-        }
+        removedEntities.add(entityHandleGetter.getHandle(entity).id)
     }
 
     override fun isValid(bukkitEntity: org.bukkit.entity.Entity): Boolean {
@@ -157,11 +155,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         CoroutineScope(context).launch {
             while (isActive) {
                 val millis = System.currentTimeMillis()
-                val removedEntities = synchronized(removedEntities) {
-                    val copy = IntArrayList(removedEntities)
-                    removedEntities.clear()
-                    copy
-                }
+                val entitiesRemove = IntArray(removedEntities.size) { removedEntities.poll() }
                 Bukkit.getWorlds().flatMapTo(
                     ArrayList(Bukkit.getOnlinePlayers().size + 1)
                 ) { bukkitWorld ->
@@ -202,7 +196,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                             if (!bukkit.connected) return@launch // Player may disconnect at the same time
                             try {
                                 val data = CullDataManager[bukkit]
-                                data.onEntityRemove(removedEntities)
+                                data.onEntityRemove(entitiesRemove)
                                 tickPlayer(player, bukkit, data, level, entities)
                             } catch (e: Throwable) {
                                 plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)

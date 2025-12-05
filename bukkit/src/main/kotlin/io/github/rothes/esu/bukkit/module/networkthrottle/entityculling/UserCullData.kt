@@ -7,11 +7,9 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
-import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.core.util.extension.math.square
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
-import it.unimi.dsi.fastutil.ints.IntArrayList
 import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -56,10 +54,10 @@ class UserCullData(
         updateChanges()
     }
 
-    fun onEntityRemove(entities: IntArrayList) {
-        if (entities.isEmpty) return
+    fun onEntityRemove(entities: IntArray) {
+        if (entities.isEmpty()) return
         synchronized(this) {
-            entities.forEachInt { i ->
+            for (i in entities) {
                 hiddenEntities.remove(i)
             }
         }
