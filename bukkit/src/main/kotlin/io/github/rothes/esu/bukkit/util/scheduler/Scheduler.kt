@@ -7,6 +7,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
+import java.lang.reflect.Proxy
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
@@ -111,21 +112,29 @@ object Scheduler {
 
     fun <T> Entity.nextTickDeferred(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
         val deferred = CompletableDeferred<T>()
-        schedule(this, plugin) {
+        nextTick(plugin) {
             deferred.complete(func())
-        } ?: error("Failed to schedule task")
+        } ?: error("Failed to schedule task for entity $this")
+        return deferred
+    }
+
+    fun <T> Entity.syncTickDeferred(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
+        val deferred = CompletableDeferred<T>()
+        syncTick(plugin) {
+            deferred.complete(func())
+        }
         return deferred
     }
 
     fun Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
-        return schedule(this, plugin, func)
+        return schedule(this, plugin.alwaysEnabled(), func)
     }
 
     fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit) {
         if (checkTickThread())
             func()
         else
-            schedule(this, plugin, func)
+            schedule(this, plugin.alwaysEnabled(), func) ?: error("Failed to schedule task for entity $this")
     }
 
     fun cancelTasks(plugin: Plugin = esuPlugin) {
@@ -137,5 +146,13 @@ object Scheduler {
         }
     }
 
+    /**
+     * Create a wrapped plugin instance that bypasses "Plugin attempted to register task while disabled" check
+     */
+    private fun Plugin.alwaysEnabled(): Plugin {
+        return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { _, method, _ ->
+            if (method.name == "isEnabled") true else null
+        } as Plugin
+    }
 
 }
