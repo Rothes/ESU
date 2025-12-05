@@ -157,8 +157,16 @@ object Scheduler {
      * Create a wrapped plugin instance that bypasses "Plugin attempted to register task while disabled" check
      */
     private fun Plugin.alwaysEnabled(): Plugin {
-        return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { _, method, _ ->
-            if (method.name == "isEnabled") true else null
+        return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { _, method, args ->
+            when (method.name) {
+                "isEnabled" -> true
+                else -> {
+                    if (args == null)
+                        method.invoke(this)
+                    else
+                        method.invoke(this, args)
+                }
+            }
         } as Plugin
     }
 
