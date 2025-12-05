@@ -258,9 +258,11 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                 cullData.withLock {
                     for (entity in event.chunk.entities) {
                         cullData.setCulled(entity, entity.entityId, true, pend = false)
-                        @Suppress("DEPRECATION") // Stable API
-                        player.hideEntity(bootstrap, entity)
                     }
+                }
+                for (entity in event.chunk.entities) {
+                    @Suppress("DEPRECATION") // Stable API
+                    player.hideEntity(bootstrap, entity)
                 }
             }
         }
