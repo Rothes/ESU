@@ -50,7 +50,7 @@ class EsuPluginBukkit(
         BukkitDataSerializer // Register bukkit serializers
 
         loadVersions()
-        Class.forName("io.github.rothes.esu.bukkit.AnsiFlattener")
+        AnsiFlattener.init()
         enabledHot = byPlugMan()
     }
 

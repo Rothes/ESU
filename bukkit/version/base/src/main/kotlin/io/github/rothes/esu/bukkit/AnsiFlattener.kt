@@ -6,13 +6,13 @@ import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
 import io.github.rothes.esu.lib.adventure.translation.GlobalTranslator
 import net.minecraft.locale.Language
-import java.util.Locale
+import java.util.*
 
 object AnsiFlattener {
 
     private val PATTERN = "%(?:(\\d+)\\$)?s".toPattern()
 
-    init {
+    fun init() {
         val flattener = ComponentFlattener.basic().toBuilder()
             .complexMapper(TranslatableComponent::class.java) { translatable, consumer ->
                 val language = Language.getInstance()
