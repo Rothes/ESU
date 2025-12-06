@@ -4,6 +4,7 @@ import info.debatty.java.stringsimilarity.RatcliffObershelp
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.util.extension.charSize
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList
 import kotlin.math.max
 import kotlin.math.pow
@@ -16,7 +17,7 @@ object Similarity: Check("similarity") {
 
     override fun check(request: MessageRequest): CheckResult {
         with(request.spamCheck.similarityCheck) {
-            val allowCount = blockOnDisallowCount.entries.firstOrNull { it.key >= request.rawMessage.length }?.value
+            val allowCount = blockOnDisallowCount.entries.firstOrNull { it.key >= request.rawMessage.charSize() }?.value
                 ?: blockOnDisallowCount.lastEntry().value
             if (allowCount > 0) {
                 val spamData = request.spamData

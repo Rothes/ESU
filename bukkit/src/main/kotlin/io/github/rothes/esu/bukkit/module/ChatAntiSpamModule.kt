@@ -308,9 +308,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
             data class SimilarityCheck(
                 val blockOnDisallowCount: LinkedHashMap<Int, Int> = LinkedHashMap<Int, Int>().apply {
-                    put(6, 6)
-                    put(14, 4)
-                    put(36, 2)
+                    put(8, 6)
+                    put(20, 4)
+                    put(48, 2)
                     put(32767, 1)
                 },
                 val allowRateReducePerRecord: Double = 0.015,

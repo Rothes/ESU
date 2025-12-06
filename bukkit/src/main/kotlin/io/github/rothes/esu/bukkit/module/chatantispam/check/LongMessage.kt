@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import io.github.rothes.esu.core.util.extension.charSize
 import kotlin.math.max
 import kotlin.math.min
 
@@ -11,7 +12,7 @@ object LongMessage: Check("long-message") {
 
     override fun check(request: MessageRequest): CheckResult {
         val maxMessageSize = request.spamCheck.longMessage.maxMessageSize
-        val length = request.message.sumOf { min(it.toString().toByteArray(Charsets.UTF_8).size, 2) }
+        val length = request.message.charSize()
         if (maxMessageSize in 0..< length) {
             notifyBlocked(request.user)
             return CheckResult("long", max(0.2, min((length - maxMessageSize) * 0.015, 0.6)))
