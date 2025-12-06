@@ -54,6 +54,10 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
             return
 
         for (pl in toLoad) {
+            if (Bukkit.getPluginManager().isPluginEnabled(pl)) {
+                plugin.warn("[AutoReloadExtensionPlugins] Plugin $pl is already enabled")
+                continue
+            }
             try {
                 try {
                     // PlugMan v2
@@ -71,7 +75,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     @Suppress("DEPRECATION")
     override fun onDisable() {
         super.onDisable()
-        if (plugin.isEnabled)
+        if (plugin.isEnabled || !plugin.disabledHot)
             return
         val esuName = plugin.description.name
         val plugins = Bukkit.getPluginManager().plugins.filter {
