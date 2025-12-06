@@ -11,6 +11,7 @@ data class MessageRequest(
     val spamCheck: ChatAntiSpamModule.ModuleConfig.SpamCheck,
     val spamData: SpamData,
     val sendTime: Long,
+    val afkTime: Long,
     val rawMessage: String,
     var message: String = rawMessage
 ) {

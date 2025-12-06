@@ -206,21 +206,29 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val quadraticDividerOffset: Double = 60.0 * 1000,
                 val quadraticDivider: Double = 90.0 * 1000,
                 val quadraticHeight: Double = 100.0,
+                val afkDurationMultiplier: LinkedHashMap<kotlin.time.Duration, Double> = linkedMapOf(
+                    10.minutes to 2.0,
+                    5.minutes to 1.5,
+                ),
             ): ConfigurationPart {
-                fun rate(elapsed: Long): Double {
-                    if (hardExpireTime.toMillis() > elapsed) {
+                fun rate(elapsed: Long, afkTime: Long): Double {
+                    val mp = afkDurationMultiplier.entries.firstOrNull { afkTime > it.key.inWholeMilliseconds }?.value ?: 1.0
+                    val hardExpire = hardExpireTime.toMillis() * mp
+                    if (hardExpire > elapsed) {
                         return 1.0
                     }
-                    val x = elapsed - hardExpireTime.toMillis()
-                    if (quadraticDividerOffset >= x) {
+                    val x = elapsed - hardExpire
+                    val offset = quadraticDividerOffset * mp
+                    if (offset >= x) {
                         return 1.0
                     }
-                    val y = -((x + quadraticDividerOffset) / quadraticDivider).pow(2) + quadraticHeight
+                    val divider = quadraticDivider * mp
+                    val y = -((x + offset) / divider).pow(2) + quadraticHeight
                     return y / quadraticHeight
                 }
 
-                fun expired(elapsed: Long): Boolean {
-                    return rate(elapsed) < 0
+                fun expired(elapsed: Long, afkTime: Long): Boolean {
+                    return rate(elapsed, afkTime) < 0
                 }
             }
         }
@@ -308,6 +316,10 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val allowRateReducePerRecord: Double = 0.015,
                 val baseAllowRate: Double = 0.80,
                 val lowestAllowRate: Double = 0.55,
+                val afkRateMultiplier: LinkedHashMap<kotlin.time.Duration, Double> = linkedMapOf(
+                    10.minutes to 1.5,
+                    5.minutes to 1.25,
+                ),
             ): ConfigurationPart
 
             data class Spaces(

@@ -65,9 +65,9 @@ data class SpamData(
         return muteDuration
     }
 
-    fun purge(): SpamData {
+    fun purge(afkTime: Long): SpamData {
         val now = System.currentTimeMillis()
-        records.removeWhile { config.expireTime.messageRecord.expired(now - it.time) }
+        records.removeWhile { config.expireTime.messageRecord.expired(now - it.time, afkTime) }
         if (config.expireTime.whisperTarget.valuePositive)
             whisperTargets.removeIf { now - it.lastTime > config.expireTime.whisperTarget.toMillis() }
         if (config.expireTime.chatRequest.valuePositive)

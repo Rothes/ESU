@@ -4,6 +4,7 @@ import info.debatty.java.stringsimilarity.RatcliffObershelp
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -21,11 +22,15 @@ object Similarity: Check("similarity") {
                 val spamData = request.spamData
                 val message = request.message
                 val time = request.sendTime
-                val hit = ArrayList<Double>(allowCount)
+                val hit = DoubleArrayList(allowCount)
+                val afkMp = afkRateMultiplier.entries.firstOrNull { it.key.inWholeMilliseconds > request.afkTime }?.value ?: 1.0
                 val allowedSim = max(lowestAllowRate, baseAllowRate - allowRateReducePerRecord * spamData.records.size)
                 spamData.records.forEach { record ->
-                    val similarity = ro.similarity(record.message, message) *
-                            config.expireTime.messageRecord.rate(time - record.time)
+                    val similarity = (
+                        ro.similarity(record.message, message) *
+                        config.expireTime.messageRecord.rate(time - record.time, request.afkTime) *
+                        afkMp
+                    ).coerceAtMost(1.0)
                     if (similarity >= allowedSim) {
                         hit.add(similarity)
                         if (hit.size == allowCount) {

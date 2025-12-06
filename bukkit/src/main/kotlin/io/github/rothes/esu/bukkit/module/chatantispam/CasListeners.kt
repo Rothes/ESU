@@ -9,6 +9,7 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.lang
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
+import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
@@ -88,12 +89,13 @@ object CasListeners: Listener {
         if (user.hasPerm("bypass")) {
             return false
         }
-        val spamData = user.spamData.purge()
         val now = System.currentTimeMillis()
+        val afkTime = now - CoreModule.provider.lastGenericActiveTime(player)
+        val spamData = user.spamData.purge(afkTime)
         spamData.requests.sizedAdd(config.expireSize.chatRequest, now)
 
         val spamCheck = config.spamCheck.getOrDefault(messageMeta.type) ?: return false
-        val request = MessageRequest(player, messageMeta, spamCheck, spamData, now, message)
+        val request = MessageRequest(player, messageMeta, spamCheck, spamData, now, afkTime, message)
 
         var blockValue = false
         var scoreValue = 0.0
@@ -104,7 +106,7 @@ object CasListeners: Listener {
             val (filter, score, mergeScore, notify, addFilter, mute, block, endChecks) = check.check(request)
             if (filter != null) {
                 val shouldNotify = notify ?: spamCheck.notifyFiltered
-                handleFiltered(player, message, messageMeta, filter, spamData, shouldNotify, addFilter)
+                handleFiltered(player, message, request, messageMeta, filter, spamData, shouldNotify, addFilter)
             }
             if (mute) {
                 handleMuted(player, spamData)
@@ -164,8 +166,8 @@ object CasListeners: Listener {
                         }
                         i++
                     }
-                    handleFiltered(player, if (blockValue) "§8<same above>" else message, messageMeta, "score",
-                        spamData,
+                    handleFiltered(player, if (blockValue) "§8<same above>" else message, request, messageMeta,
+                        "score", spamData,
                         notify = true,
                         addFilter = false
                     )
@@ -191,7 +193,8 @@ object CasListeners: Listener {
         return blockValue
     }
 
-    private fun handleFiltered(player: Player, message: String, messageMeta: MessageMeta, checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
+    private fun handleFiltered(player: Player, message: String, request: MessageRequest, messageMeta: MessageMeta,
+                               checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
         if (notify) {
             notifyUsers.forEach {
                 it.message(lang, { this.notify.filtered },
@@ -203,7 +206,7 @@ object CasListeners: Listener {
         if (!addFilter) {
             return true
         }
-        spamData.purge()
+        spamData.purge(request.afkTime)
         val now = System.currentTimeMillis()
         spamData.filtered.sizedAdd(config.expireSize.filtered, now)
         if (spamData.filtered.size >= config.muteHandler.muteOnFilteredSize) {
