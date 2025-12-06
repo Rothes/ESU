@@ -124,10 +124,12 @@ class UserCullData(
                     }
                     continue
                 }
-                if (change.culled)
-                    player.hideEntity(bootstrap, change.entity)
-                else
+                if (change.culled) {
+                    // hideEntity requires plugin enabled
+                    if (bootstrap.isEnabled) player.hideEntity(bootstrap, change.entity)
+                } else {
                     player.showEntity(bootstrap, change.entity)
+                }
             }
         }
     }
