@@ -14,7 +14,16 @@ object UnsafeUtils {
     val unsafe: Unsafe = Unsafe::class.java.getDeclaredField("theUnsafe").accessibleGetT(null)
 
     private val internalUnsafe = unsafe.javaClass.getDeclaredField("theInternalUnsafe").accessibleGet(null)
-    private val internalOffset = internalUnsafe.javaClass.getDeclaredMethod("objectFieldOffset", Field::class.java).handleOverride(pType = Any::class.java)
+    private var _internalOffset_cache: MethodHandle? = null // Delay caching, CloudNet support
+    private val internalOffset: MethodHandle
+        get() {
+            var value = _internalOffset_cache
+            if (value == null) {
+                value = internalUnsafe.javaClass.getDeclaredMethod("objectFieldOffset", Field::class.java).handleOverride(pType = Any::class.java)
+                _internalOffset_cache = value
+            }
+            return value
+        }
 
     fun Method.handleOverride(rType: Class<*> = returnType, pType: Class<*> = declaringClass, argTypes: Array<Class<*>> = parameterTypes): MethodHandle {
         class TestOffset(private val firstField: Boolean = false)
