@@ -5,6 +5,7 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.core.util.CollectionUtils.removeWhile
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
+import io.github.rothes.esu.core.util.extension.math.square
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
@@ -44,15 +45,12 @@ data class SpamData(
 
     fun mute(): Long {
         val now = System.currentTimeMillis()
-        if (now - muteUntil <= config.muteHandler.muteDurationMultiplier.maxMuteInterval) {
-            muteMultiplier *= config.muteHandler.muteDurationMultiplier.multiplier
-        } else {
-            muteMultiplier = 1.0
+        with(config.muteHandler.muteDurationMultiplier) {
+            muteMultiplier = if (now - muteUntil <= maxMuteInterval) min(multiplier.square(), multiplierMax) else 1.0
         }
 
         val currMute = if (muteUntil > now) muteUntil - now else 0
-        val finalMp = min(muteMultiplier, config.muteHandler.muteDurationMultiplier.multiplierMax)
-        muteUntil = (now + config.muteHandler.baseMuteDuration.toMillis() * finalMp).toLong()
+        muteUntil = (now + config.muteHandler.baseMuteDuration.toMillis() * muteMultiplier).toLong()
         lastAccess = muteUntil
         val muteDuration = muteUntil - now
         if (config.muteHandler.keepMessageRecords) {
