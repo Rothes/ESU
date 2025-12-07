@@ -39,8 +39,19 @@ object Similarity: Check("similarity") {
                             val notify = request.messageMeta.type != MessageType.DEATH
                             if (notify)
                                 notifyBlocked(request.user)
-                            return CheckResult("sim " + String.format("%.2f", avg), avg.pow(2), false,
-                                addFilter = notify)
+                            return CheckResult(
+                                buildString {
+                                    append("sim ")
+                                    append("%.2f".format(avg))
+                                    if (afkMp != 1.0) {
+                                        append(" x")
+                                        append(afkMp)
+                                    }
+                                },
+                                avg.pow(2),
+                                false,
+                                addFilter = notify
+                            )
                         }
                     }
                 }
