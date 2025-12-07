@@ -24,7 +24,7 @@ object Similarity: Check("similarity") {
                 val message = request.message
                 val time = request.sendTime
                 val hit = DoubleArrayList(allowCount)
-                val afkMp = afkRateMultiplier.entries.firstOrNull { it.key.inWholeMilliseconds > request.afkTime }?.value ?: 1.0
+                val afkMp = afkRateMultiplier.entries.firstOrNull { request.afkTime >= it.key.inWholeMilliseconds }?.value ?: 1.0
                 val allowedSim = max(lowestAllowRate, baseAllowRate - allowRateReducePerRecord * spamData.records.size)
                 spamData.records.forEach { record ->
                     val similarity = (

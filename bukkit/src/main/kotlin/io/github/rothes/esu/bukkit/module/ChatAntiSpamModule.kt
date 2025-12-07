@@ -212,7 +212,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 ),
             ): ConfigurationPart {
                 fun rate(elapsed: Long, afkTime: Long): Double {
-                    val mp = afkDurationMultiplier.entries.firstOrNull { afkTime > it.key.inWholeMilliseconds }?.value ?: 1.0
+                    val mp = afkDurationMultiplier.entries.firstOrNull { afkTime >= it.key.inWholeMilliseconds }?.value ?: 1.0
                     val hardExpire = hardExpireTime.toMillis() * mp
                     if (hardExpire > elapsed) {
                         return 1.0
