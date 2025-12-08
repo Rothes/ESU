@@ -21,38 +21,37 @@ import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 
 object TrafficMonitor {
 
-    private const val MTU = 1500
-    private const val MTU_HEADER = 20
-    private const val FRAME_OVERHEAD = 30 + MTU_HEADER
+    private const val MIN_PAYLOAD = 46
+    private const val MAX_PAYLOAD = 1500
+    private const val ETHERNET_FRAME_OVERHEAD = 6 + 6 + 2 + 4 // MAC destination + MAC source + EtherType/length + CRC
 
     private var viewers = linkedMapOf<User, Unit>()
     private var task: ScheduledTask? = null
     private var forceRun = AtomicInteger(0)
 
-    private var outgoingBytes = AtomicLong(0)
-    private var outgoingPps   = AtomicLong(0)
-    private var incomingBytes = AtomicLong(0)
-    private var incomingPps   = AtomicLong(0)
+    private var outgoingBytes = AtomicInteger(0)
+    private var outgoingPps   = AtomicInteger(0)
+    private var incomingBytes = AtomicInteger(0)
+    private var incomingPps   = AtomicInteger(0)
 
     var lastOutgoingBytes = 0L
         private set
-    var lastOutgoingPps   = 0L
+    var lastOutgoingPps   = 0
         private set
     var lastIncomingBytes = 0L
         private set
-    var lastIncomingPps   = 0L
+    var lastIncomingPps   = 0
         private set
 
     fun enable() {
         task = plugin.server.scheduler.buildTask(plugin.bootstrap) { _ ->
-            val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toLong()
-            val bytesO = outgoingBytes.getAndSet(0)
-            val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toLong()
-            val bytesI = incomingBytes.getAndSet(0)
+            val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toInt()
+            val bytesO = outgoingBytes.getAndSet(0).toLong()
+            val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toInt()
+            val bytesI = incomingBytes.getAndSet(0).toLong()
             lastOutgoingPps = ppsO
             lastOutgoingBytes = bytesO
             lastIncomingPps = ppsI
@@ -65,10 +64,10 @@ object TrafficMonitor {
 
             for ((user, unit) in viewers) {
                 user.message(lang, { trafficMonitor.message },
-                    traffic(bytesO, "outgoing-traffic", unit),
-                    amount(   ppsO, "outgoing-pps"),
-                    traffic(bytesI, "incoming-traffic", unit),
-                    amount(   ppsI, "incoming-pps"),
+                    traffic(bytes = bytesO       , "outgoing-traffic", unit),
+                    amount(amount = ppsO.toLong(), "outgoing-pps"),
+                    traffic(bytes = bytesI       , "incoming-traffic", unit),
+                    amount(amount = ppsI.toLong(), "incoming-pps"),
                 )
             }
         }.repeat(Duration.ofSeconds(1)).schedule()
@@ -153,13 +152,11 @@ object TrafficMonitor {
 
         override fun encode(packetData: PacketData) {
             val size = packetData.compressedSize
-            val frames = (size + (MTU - MTU_HEADER - 1)) / (MTU - MTU_HEADER)
-            val overhead = frames * FRAME_OVERHEAD
-            outgoingBytes.getAndAdd((size + overhead).toLong())
+            outgoingBytes.getAndAdd(calculateEthernetFrameBytes(size))
         }
 
         override fun flush() {
-            outgoingPps.incrementAndGet()
+            outgoingPps.getAndIncrement()
         }
 
     }
@@ -168,12 +165,20 @@ object TrafficMonitor {
 
         override fun decode(packetData: PacketData) {
             val size = packetData.compressedSize
-            val frames = (size + (MTU - MTU_HEADER - 1)) / (MTU - MTU_HEADER)
-            val overhead = frames * FRAME_OVERHEAD
-            incomingBytes.getAndAdd((size + overhead).toLong())
-            incomingPps.incrementAndGet()
+            incomingBytes.getAndAdd(calculateEthernetFrameBytes(size))
+            incomingPps.getAndIncrement()
         }
 
+    }
+
+    private fun calculateEthernetFrameBytes(size: Int): Int {
+        val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
+        val overhead = frames * ETHERNET_FRAME_OVERHEAD
+        val fills = MIN_PAYLOAD - (size - (frames - 1) * MAX_PAYLOAD)
+
+        var ethernetFrameBytes = size + overhead
+        if (fills > 0) ethernetFrameBytes += fills
+        return ethernetFrameBytes
     }
 
     enum class Unit {
