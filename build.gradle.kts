@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     id("java-library")
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     `maven-publish`
     id("com.gradleup.shadow")
     id("com.github.gmazzo.buildconfig") version "6.0.6"
