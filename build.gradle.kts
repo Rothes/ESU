@@ -6,25 +6,17 @@ plugins {
     kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
     id("com.gradleup.shadow")
-    id("com.github.gmazzo.buildconfig") version "5.5.1"
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-    useJUnitPlatform()
+    id("com.github.gmazzo.buildconfig") version "6.0.6"
 }
 
 allprojects {
     group = "io.github.rothes.esu"
     project.version = rootProject.property("versionName").toString()
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
 subprojects {
