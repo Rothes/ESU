@@ -1,6 +1,5 @@
 package io.github.rothes.esu.core.configuration
 
-import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.config.EsuConfig
@@ -33,17 +32,13 @@ import java.net.URLConnection
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.zip.ZipException
 import kotlin.io.path.*
 import kotlin.jvm.optionals.getOrNull
 
 object ConfigLoader {
 
-    private val langCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(8, TimeUnit.HOURS)
-        .weakKeys()
-        .build<ClassLoader, TreeNode<List<String>>>()
+    private val langCache = WeakHashMap<ClassLoader, TreeNode<List<String>>>()
 
     private val PATCH_FILE_REGEX = "([^.]+)\\.patch\\.([^.]+).*".toRegex()
 
@@ -453,7 +448,7 @@ object ConfigLoader {
 
     private fun getLangCache(clazz: Class<*>, path: String): List<LangResource> {
         val classLoader = clazz.classLoader
-        val tree = langCache.getIfPresent(classLoader) ?: let {
+        val tree = langCache.getOrPut(classLoader) {
             val root = TreeNode<List<String>>()
             clazz.jarFile.use { jarFile ->
                 val entries = jarFile.entries()
@@ -469,7 +464,6 @@ object ConfigLoader {
                     }
                 }
             }
-            langCache.put(classLoader, root)
             root
         }
         val node = tree.getNode(path.split(File.separatorChar))
