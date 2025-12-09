@@ -655,12 +655,12 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     private fun addNearby(blocking: MemSeg, id: Long) {
-        val x = id and 0xf
-        val z = id shr 4 and 0xf
-        if (x != 0L ) blocking.or(id - 0x001, X_PLUS)
-        if (x != 15L) blocking.or(id + 0x001, X_MINUS)
-        if (z != 0L ) blocking.or(id - 0x010, Z_PLUS)
-        if (z != 15L) blocking.or(id + 0x010, Z_MINUS)
+        val x = id.toInt() and 0xf
+        val z = id.toInt() shr 4 and 0xf
+        if (x != 0 ) blocking.or(id - 0x001, X_PLUS)
+        if (x != 15) blocking.or(id + 0x001, X_MINUS)
+        if (z != 0 ) blocking.or(id - 0x010, Z_PLUS)
+        if (z != 15) blocking.or(id + 0x010, Z_MINUS)
         blocking.or(id + 0x100, Y_MINUS)
     }
 
