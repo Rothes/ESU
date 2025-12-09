@@ -5,7 +5,6 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.core.util.CollectionUtils.removeWhile
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
-import io.github.rothes.esu.core.util.extension.math.square
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
@@ -46,7 +45,7 @@ data class SpamData(
     fun mute(): Long {
         val now = System.currentTimeMillis()
         with(config.muteHandler.muteDurationMultiplier) {
-            muteMultiplier = if (now - muteUntil <= maxMuteInterval) min(multiplier.square(), multiplierMax) else 1.0
+            muteMultiplier = if (now - muteUntil <= maxMuteInterval) min(muteMultiplier * multiplier, multiplierMax) else 1.0
         }
 
         val currMute = if (muteUntil > now) muteUntil - now else 0
