@@ -44,6 +44,8 @@ import io.github.rothes.esu.core.configuration.serializer.MapSerializer.Defaulte
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
+import io.github.rothes.esu.util.offheap.MemSeg
+import io.github.rothes.esu.util.offheap.MemoryAllocate
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -292,291 +294,302 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val randomBlockIds = config.antiXrayRandomBlockIds.getOrDefault(world.name)!!
 
         val sections = column.chunks
-        val height = event.user.totalWorldHeight
-        val bvArr = ByteArray((height shl 8) + 16 * 16) // BlocksViewArray
-        val invisible = ByteArray(height shl 8) // Stores BV_ bytes
-        if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
-        // Handle neighbour chunks starts
-        handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS,  X_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS, X_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS,  Z_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS, Z_LAVA)
-        // Handle neighbour chunks ends
+        val height = event.user.totalWorldHeight.toLong()
+        MemoryAllocate.allocateBytes((height shl 8) + 16 * 16).use { bvArr ->  // BlocksViewArray
+            MemoryAllocate.allocateBytes(height shl 8).use { invisible ->  // Stores BV_ bytes
+                bvArr.initialize()
+                invisible.initialize()
 
-        class SectionData(
-            val bits: Int,
-            val data: IntArray,
-            val states: IntArray,
-        )
+                if (!minimalHeightInvisibleCheck) for (i in 0L until 16 * 16) bvArr[i] = Y_MINUS
+                // Handle neighbour chunks starts
+                handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS,  X_LAVA)
+                handleNeighbourChunk(bvArr, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS, X_LAVA)
+                handleNeighbourChunk(bvArr, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS,  Z_LAVA)
+                handleNeighbourChunk(bvArr, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS, Z_LAVA)
+                // Handle neighbour chunks ends
 
-        val sectionDataArr = Array<SectionData?>(sections.size) { null }
-        var id = 0
-        out@ for ((index, section) in sections.withIndex()) {
-            section as Chunk_v1_18
-            val palette = section.chunkData.palette
-            if (palette is SingletonPalette) {
-                // This section contains only one block type, and it's already the smallest way.
-                if (palette.idToState(0).blocksView != BV_VISIBLE) {
-                    if (index > 0) {
-                        // Check if the surface on previous section is invisible
-                        checkSurfaceInvisible(bvArr, invisible, id, palette.idToState(0).blocksView)
-                    }
-                    id += SECTION_BLOCKS
-                    for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
-                } else {
-                    id += SECTION_BLOCKS
-                }
-            } else {
-                val data = readBitsData(section.chunkData.storage)
-                val bits = palette.bits
-                val states: IntArray
-                val blockingArr: ByteArray
-                when (palette) {
-                    is ListPalette, is MapPalette -> {
-                        states = IntArray(section.chunkData.palette.size()) { i ->
-                            section.chunkData.palette.idToState(i)
-                        }
-                        blockingArr = ByteArray(states.size) { i -> states[i].blocksView }
-                    }
-                    is GlobalPalette              -> {
-                        states = ITSELF
-                        blockingArr = BLOCKS_VIEW
-                    }
-                    else         -> {
-                        error("Unsupported packetevents palette type: ${palette::class.simpleName}")
-                    }
-                }
+                class SectionData(
+                    val bits: Int,
+                    val data: IntArray,
+                    val states: IntArray,
+                )
 
-                for (i in 0 until SECTION_BLOCKS) {
-                    when (blockingArr[data[i]]) {
-                        BV_INVISIBLE    -> {
-                            addNearby(bvArr, id)
-                            // Make sure it's not out of bounds, while we are processing bedrock layer
-                            if (id >= 0x100) {
-                                // Check if previous block is complete invisible
-                                val previous = id - 0x100
-                                invisible[previous] = if (bvArr[previous] and INVISIBLE == INVISIBLE) BV_INVISIBLE else BV_UPPER_OCCLUDING
+                val sectionDataArr = Array<SectionData?>(sections.size) { null }
+                var id = 0L
+                out@ for ((index, section) in sections.withIndex()) {
+                    section as Chunk_v1_18
+                    val palette = section.chunkData.palette
+                    if (palette is SingletonPalette) {
+                        // This section contains only one block type, and it's already the smallest way.
+                        if (palette.idToState(0).blocksView != BV_VISIBLE) {
+                            if (index > 0) {
+                                // Check if the surface on previous section is invisible
+                                checkSurfaceInvisible(bvArr, invisible, id, palette.idToState(0).blocksView)
                             }
-                        }
-                        BV_LAVA_COVERED -> {
-                            if (id >= 0x100) {
-                                invisible[id - 0x100] = BV_LAVA_COVERED
-                            }
-                        }
-                    }
-                    id++
-                }
-                sectionDataArr[index] = SectionData(bits, data, states)
-            }
-        }
-        if (config.detectInvisibleSingleBlock) {
-            val pending = IntArrayList()
-            id = invisible.size - 16 * 16 + 1
-            while (--id >= 16 * 16) {
-                if (invisible[id] != BV_INVISIBLE) continue // Center block is invisible
-                val x = id and 0xf
-                val z = id shr 4 and 0xf
-                // Surrounded blocks are visible and upper block occluding
-                if (invisible[id - 0x100] == BV_INVISIBLE) continue // Could be BV_LAVA_COVERED and BV_VISIBLE, due to center block
-                if (invisible[id + 0x100] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
-                if (x != 0  && invisible[id - 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
-                if (x != 15 && invisible[id + 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
-                if (z != 0  && invisible[id - 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
-                if (z != 15 && invisible[id + 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
-                // It's the case.
-                addNearby(bvArr, id)
-                invisible[id - 0x100] = BV_UPPER_OCCLUDING
-                // Use pending, there might be piled single-block
-                pending.add(id - 0x100)
-                pending.add(id + 0x100)
-                if (x != 0 ) pending.add(id - 0x001)
-                if (x != 15) pending.add(id + 0x001)
-                if (z != 0 ) pending.add(id - 0x010)
-                if (z != 15) pending.add(id + 0x010)
-            }
-            pending.forEachInt { i ->
-                if (bvArr[i] and INVISIBLE == INVISIBLE) {
-                    invisible[i] = BV_INVISIBLE
-                }
-            }
-        }
-        if (config.detectLavaPool) {
-            val pending = IntArrayList()
-            id = -1
-            while (++id < invisible.size) {
-                if (invisible[id] != BV_LAVA_COVERED) continue
-
-                val x = id and 0xf
-                val z = id shr 4 and 0xf
-                fun checkBlock(id: Int, b: Byte) {
-                    if (invisible[id] == BV_LAVA_COVERED) {
-                        bvArr[id] = bvArr[id] or b
-                    }
-                }
-                fun checkEdge(id: Int, check: Byte, set: Byte) {
-                    // it and upper block should both be lava-covered
-                    if (bvArr[id] and check == check && bvArr[id + 0x100] and check == check) {
-                        bvArr[id] = bvArr[id] or set
-                    }
-                }
-                if (x != 0 ) checkBlock(id - 0x001, X_PLUS ) else checkEdge(id, X_LAVA, X_MINUS)
-                if (x != 15) checkBlock(id + 0x001, X_MINUS) else checkEdge(id, X_LAVA, X_PLUS )
-                if (z != 0 ) checkBlock(id - 0x010, Z_PLUS ) else checkEdge(id, Z_LAVA, Z_MINUS)
-                if (z != 15) checkBlock(id + 0x010, Z_MINUS) else checkEdge(id, Z_LAVA, Z_PLUS )
-                checkBlock(id + 0x100, Y_MINUS)
-                pending.add(id)
-            }
-            pending.forEachInt { i ->
-                if (bvArr[i] and INVISIBLE == INVISIBLE) {
-                    invisible[i] = BV_INVISIBLE
-                }
-            }
-        }
-        if (!config.netherRoofInvisibleCheck && world.environment == Environment.NETHER) {
-            // We could do the same thing to the top section,
-            // but it never happens in vanilla generated chunks,
-            // so, no.
-            checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1), BV_INVISIBLE)
-        }
-
-        id = 0
-        section@ for ((index, section) in sections.withIndex()) {
-            section as Chunk_v1_18
-            val sectionData = sectionDataArr[index]
-            if (sectionData == null) {
-                // This section is SingletonPalette
-                for (i in id until id + 16 * 16) {
-                    if (invisible[i] != BV_INVISIBLE) {
-                        id += SECTION_BLOCKS
-                        continue@section
-                    }
-                }
-                for (i in id + 16 * 16 * 15 until id + 16 * 16 * 16) {
-                    if (invisible[i] != BV_INVISIBLE) {
-                        id += SECTION_BLOCKS
-                        continue@section
-                    }
-                }
-                val newState = randomBlockIds.random()
-                // detectSameStateUpdate
-                if (section.chunkData.palette.idToState(0) == newState)
-                    invisible.fill(BV_VISIBLE, id, id + SECTION_BLOCKS)
-                section.chunkData.palette = SingletonPalette(newState)
-                id += SECTION_BLOCKS
-                continue
-            }
-            var allInvisible = true
-            for (i in id until id + SECTION_BLOCKS) {
-                if (invisible[i] != BV_INVISIBLE) {
-                    allInvisible = false
-                    break
-                }
-            }
-            if (allInvisible) {
-                val newState = randomBlockIds.random()
-                // detectSameStateUpdate
-                for (i in 0 until SECTION_BLOCKS) {
-                    if (sectionData.states[sectionData.data[i]] == newState) {
-                        invisible[id] = BV_VISIBLE
-                    }
-                    id++
-                }
-                section.chunkData.palette = SingletonPalette(newState)
-                continue
-            }
-            // It's not a fully invisible section. Do what we can do to help with compression.
-            val bits: Int
-            val remappedState: IntArray
-            if (sectionData.bits < GlobalPalette.BITS_PER_ENTRY) {
-                // Rebuild palette mapping
-                val frequency = ShortArray(sectionData.states.size)
-                for (i in 0 until SECTION_BLOCKS) {
-                    if (invisible[id++] != BV_INVISIBLE)
-                        frequency[sectionData.data[i]]++
-                }
-
-                val empty = frequency.count { it == 0.toShort() } // The amount we don't need to put into the new mapping
-                if (frequency.size - empty == 1) {
-                    // Only contains 1 block type, we can convert it into SingletonPalette
-                    section.chunkData.palette =
-                        SingletonPalette(sectionData.states[frequency.indexOfFirst { it != 0.toShort() }])
-                    continue
-                }
-
-                id -= SECTION_BLOCKS // Rollback for the loop below
-
-                val freqId = IntArray(frequency.size) { it }.sortedByDescending { frequency[it] }.toIntArray()
-                remappedState = IntArray(frequency.size) // value is the new index of original
-                for (i in 0 until remappedState.size) {
-                    val oldStateIndex = freqId[i]
-                    remappedState[oldStateIndex] = i
-                }
-
-                bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits())
-                    .coerceAtLeast(4) // Vanilla forces at least 4
-                val remapped =
-                    if (config.enhancedAntiXray && (
-                                // Check if we can add a block type without adding bits used.
-                                frequency.size - empty - 1 and (1 shl bits - 1) ==
-                                        frequency.size - empty     and (1 shl bits - 1) ||
-                                        frequency.size - empty + 1 <= (1 shl 4))
-                    ) {
-                        for ((i, v) in remappedState.withIndex()) {
-                            remappedState[i] = v + 1
-                        }
-                        IntArray(frequency.size - empty + 1) { i ->
-                            if (i == 0) randomBlockIds.random()
-                            else sectionData.states[remappedState.indexOf(i)]
+                            id += SECTION_BLOCKS
+                            for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
+                        } else {
+                            id += SECTION_BLOCKS
                         }
                     } else {
-                        IntArray(frequency.size - empty) { i -> sectionData.states[remappedState.indexOf(i)] }
+                        val data = readBitsData(section.chunkData.storage)
+                        val bits = palette.bits
+                        val states: IntArray
+                        val blockingArr: ByteArray
+                        when (palette) {
+                            is ListPalette, is MapPalette -> {
+                                states = IntArray(section.chunkData.palette.size()) { i ->
+                                    section.chunkData.palette.idToState(i)
+                                }
+                                blockingArr = ByteArray(states.size) { i -> states[i].blocksView }
+                            }
+                            is GlobalPalette              -> {
+                                states = ITSELF
+                                blockingArr = BLOCKS_VIEW
+                            }
+                            else         -> {
+                                error("Unsupported packetevents palette type: ${palette::class.simpleName}")
+                            }
+                        }
+
+                        for (i in 0 until SECTION_BLOCKS) {
+                            when (blockingArr[data[i]]) {
+                                BV_INVISIBLE    -> {
+                                    addNearby(bvArr, id)
+                                    // Make sure it's not out of bounds, while we are processing bedrock layer
+                                    if (id >= 0x100) {
+                                        // Check if previous block is complete invisible
+                                        val previous = id - 0x100
+                                        invisible[previous] = if (bvArr[previous] and INVISIBLE == INVISIBLE) BV_INVISIBLE else BV_UPPER_OCCLUDING
+                                    }
+                                }
+                                BV_LAVA_COVERED -> {
+                                    if (id >= 0x100) {
+                                        invisible[id - 0x100] = BV_LAVA_COVERED
+                                    }
+                                }
+                            }
+                            id++
+                        }
+                        sectionDataArr[index] = SectionData(bits, data, states)
                     }
-
-                section.chunkData.palette = CustomListPalette(bits, remapped)
-            } else {
-                bits = sectionData.bits
-                remappedState = sectionData.states
-            }
-            val valuesPerLong = 64 / bits
-            val longs = (SECTION_BLOCKS + valuesPerLong - 1) / valuesPerLong
-            val new = LongArray(longs)
-
-            val maxShift = bits * valuesPerLong
-            var cellIndex = 0
-            var shift = 0
-            var l = 0L
-            for (i in 0 until SECTION_BLOCKS) {
-                when (invisible[id]) {
-                    BV_INVISIBLE -> {
-                        // detectSameStateUpdate
-                        if (remappedState[0] == sectionData.states[sectionData.data[i]]) {
-                            invisible[id] == BV_VISIBLE
+                }
+                var pending: IntArrayList? = null
+                if (config.detectInvisibleSingleBlock) {
+                    pending = IntArrayList()
+                    id = invisible.size - 16 * 16 + 1
+                    while (--id >= 16 * 16) {
+                        if (invisible[id] != BV_INVISIBLE) continue // Center block is invisible
+                        // Surrounded blocks are visible and upper block occluding
+                        if (invisible[id - 0x100] == BV_INVISIBLE) continue // Could be BV_LAVA_COVERED and BV_VISIBLE, due to center block
+                        if (invisible[id + 0x100] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                        val int = id.toInt()
+                        val x = int and 0xf
+                        val z = int shr 4 and 0xf
+                        if (x != 0  && invisible[id - 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                        if (x != 15 && invisible[id + 0x001] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                        if (z != 0  && invisible[id - 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                        if (z != 15 && invisible[id + 0x010] and BV_UPPER_OCCLUDING != BV_UPPER_OCCLUDING) continue
+                        // It's the case.
+                        addNearby(bvArr, id)
+                        invisible[id - 0x100] = BV_UPPER_OCCLUDING
+                        // Use pending, there might be piled single-block
+                        pending.add(int - 0x100)
+                        pending.add(int + 0x100)
+                        if (x != 0 ) pending.add(int - 0x001)
+                        if (x != 15) pending.add(int + 0x001)
+                        if (z != 0 ) pending.add(int - 0x010)
+                        if (z != 15) pending.add(int + 0x010)
+                    }
+                    pending.forEachInt { i ->
+                        if (bvArr[i] and INVISIBLE == INVISIBLE) {
+                            invisible[i] = BV_INVISIBLE
                         }
                     }
-                    else -> l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
                 }
-                id++
-
-                shift += bits
-                if (shift == maxShift) {
-                    shift = 0
-                    new[cellIndex++] = l
-                    l = 0
+                if (config.detectLavaPool) {
+                    if (pending == null) {
+                        pending = IntArrayList()
+                    } else {
+                        pending.clear()
+                    }
+                    id = -1
+                    while (++id < invisible.size) {
+                        if (invisible[id] != BV_LAVA_COVERED) continue
+                        val int = id.toInt()
+                        val x = int and 0xf
+                        val z = int shr 4 and 0xf
+                        fun checkBlock(id: Long, b: Byte) {
+                            if (invisible[id] == BV_LAVA_COVERED) {
+                                bvArr[id] = bvArr[id] or b
+                            }
+                        }
+                        fun checkEdge(id: Long, check: Byte, set: Byte) {
+                            // it and upper block should both be lava-covered
+                            if (bvArr[id] and check == check && bvArr[id + 0x100] and check == check) {
+                                bvArr[id] = bvArr[id] or set
+                            }
+                        }
+                        if (x != 0 ) checkBlock(id - 0x001, X_PLUS ) else checkEdge(id, X_LAVA, X_MINUS)
+                        if (x != 15) checkBlock(id + 0x001, X_MINUS) else checkEdge(id, X_LAVA, X_PLUS )
+                        if (z != 0 ) checkBlock(id - 0x010, Z_PLUS ) else checkEdge(id, Z_LAVA, Z_MINUS)
+                        if (z != 15) checkBlock(id + 0x010, Z_MINUS) else checkEdge(id, Z_LAVA, Z_PLUS )
+                        checkBlock(id + 0x100, Y_MINUS)
+                        pending.add(int)
+                    }
+                    pending.forEachInt { i ->
+                        if (bvArr[i] and INVISIBLE == INVISIBLE) {
+                            invisible[i] = BV_INVISIBLE
+                        }
+                    }
                 }
-            }
-            if (l != 0L) {
-                new[cellIndex] = l
-            }
+                if (!config.netherRoofInvisibleCheck && world.environment == Environment.NETHER) {
+                    // We could do the same thing to the top section,
+                    // but it never happens in vanilla generated chunks,
+                    // so, no.
+                    checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1), BV_INVISIBLE)
+                }
 
-            section.chunkData.storage = PEBitStorage(bits, SECTION_BLOCKS, new)
+                id = 0
+                section@ for ((index, section) in sections.withIndex()) {
+                    section as Chunk_v1_18
+                    val sectionData = sectionDataArr[index]
+                    if (sectionData == null) {
+                        // This section is SingletonPalette
+                        for (i in id until id + 16 * 16) {
+                            if (invisible[i] != BV_INVISIBLE) {
+                                id += SECTION_BLOCKS
+                                continue@section
+                            }
+                        }
+                        for (i in id + 16 * 16 * 15 until id + 16 * 16 * 16) {
+                            if (invisible[i] != BV_INVISIBLE) {
+                                id += SECTION_BLOCKS
+                                continue@section
+                            }
+                        }
+                        val newState = randomBlockIds.random()
+                        // detectSameStateUpdate
+                        if (section.chunkData.palette.idToState(0) == newState)
+                            invisible.fill(id, id + SECTION_BLOCKS, BV_VISIBLE)
+                        section.chunkData.palette = SingletonPalette(newState)
+                        id += SECTION_BLOCKS
+                        continue
+                    }
+                    var allInvisible = true
+                    for (i in id until id + SECTION_BLOCKS) {
+                        if (invisible[i] != BV_INVISIBLE) {
+                            allInvisible = false
+                            break
+                        }
+                    }
+                    if (allInvisible) {
+                        val newState = randomBlockIds.random()
+                        // detectSameStateUpdate
+                        for (i in 0 until SECTION_BLOCKS) {
+                            if (sectionData.states[sectionData.data[i]] == newState) {
+                                invisible[id] = BV_VISIBLE
+                            }
+                            id++
+                        }
+                        section.chunkData.palette = SingletonPalette(newState)
+                        continue
+                    }
+                    // It's not a fully invisible section. Do what we can do to help with compression.
+                    val bits: Int
+                    val remappedState: IntArray
+                    if (sectionData.bits < GlobalPalette.BITS_PER_ENTRY) {
+                        // Rebuild palette mapping
+                        val frequency = ShortArray(sectionData.states.size)
+                        for (i in 0 until SECTION_BLOCKS) {
+                            if (invisible[id++] != BV_INVISIBLE)
+                                frequency[sectionData.data[i]]++
+                        }
+
+                        val empty = frequency.count { it == 0.toShort() } // The amount we don't need to put into the new mapping
+                        if (frequency.size - empty == 1) {
+                            // Only contains 1 block type, we can convert it into SingletonPalette
+                            section.chunkData.palette =
+                                SingletonPalette(sectionData.states[frequency.indexOfFirst { it != 0.toShort() }])
+                            continue
+                        }
+
+                        id -= SECTION_BLOCKS // Rollback for the loop below
+
+                        val freqId = IntArray(frequency.size) { it }.sortedByDescending { frequency[it] }.toIntArray()
+                        remappedState = IntArray(frequency.size) // value is the new index of original
+                        for (i in 0 until remappedState.size) {
+                            val oldStateIndex = freqId[i]
+                            remappedState[oldStateIndex] = i
+                        }
+
+                        bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits())
+                            .coerceAtLeast(4) // Vanilla forces at least 4
+                        val remapped =
+                            if (config.enhancedAntiXray && (
+                                        // Check if we can add a block type without adding bits used.
+                                        frequency.size - empty - 1 and (1 shl bits - 1) ==
+                                                frequency.size - empty     and (1 shl bits - 1) ||
+                                                frequency.size - empty + 1 <= (1 shl 4))
+                            ) {
+                                for ((i, v) in remappedState.withIndex()) {
+                                    remappedState[i] = v + 1
+                                }
+                                IntArray(frequency.size - empty + 1) { i ->
+                                    if (i == 0) randomBlockIds.random()
+                                    else sectionData.states[remappedState.indexOf(i)]
+                                }
+                            } else {
+                                IntArray(frequency.size - empty) { i -> sectionData.states[remappedState.indexOf(i)] }
+                            }
+
+                        section.chunkData.palette = CustomListPalette(bits, remapped)
+                    } else {
+                        bits = sectionData.bits
+                        remappedState = sectionData.states
+                    }
+                    val valuesPerLong = 64 / bits
+                    val longs = (SECTION_BLOCKS + valuesPerLong - 1) / valuesPerLong
+                    val new = LongArray(longs)
+
+                    val maxShift = bits * valuesPerLong
+                    var cellIndex = 0
+                    var shift = 0
+                    var l = 0L
+                    for (i in 0 until SECTION_BLOCKS) {
+                        when (invisible[id]) {
+                            BV_INVISIBLE -> {
+                                // detectSameStateUpdate
+                                if (remappedState[0] == sectionData.states[sectionData.data[i]]) {
+                                    invisible[id] == BV_VISIBLE
+                                }
+                            }
+                            else -> l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
+                        }
+                        id++
+
+                        shift += bits
+                        if (shift == maxShift) {
+                            shift = 0
+                            new[cellIndex++] = l
+                            l = 0
+                        }
+                    }
+                    if (l != 0L) {
+                        new[cellIndex] = l
+                    }
+
+                    section.chunkData.storage = PEBitStorage(bits, SECTION_BLOCKS, new)
+                }
+
+                counter.minimalChunks++
+                miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(invisible.toLongArray()))
+            }
         }
-
-        counter.minimalChunks++
-        miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(invisible.toLongArray()))
     }
 
-    private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
-                                            bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte, lavaValue: Byte) {
+    private fun handleNeighbourChunk(blocking: MemSeg, level: ServerLevel, chunkX: Int, chunkZ: Int,
+                                     bid: Long, bidStep: Int, arrOffset: Int, arrValue: Byte, lavaValue: Byte) {
         val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
 
         val indexLoop = 0x100 - bidStep * 16
@@ -619,7 +632,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
                 for (y in 0 until 16) {
                     for (j in 0 until 16) {
-                        when (blockingArr[storage.get(blockId and 0xfff)]) {
+                        when (blockingArr[storage.get(blockId.toInt() and 0xfff)]) {
                             BV_INVISIBLE    -> (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
                             BV_LAVA_COVERED -> (blockId + arrOffset).let { blocking[it] = blocking[it] or lavaValue }
                         }
@@ -631,7 +644,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         }
     }
 
-    private fun checkSurfaceInvisible(bvArr: ByteArray, invisible: ByteArray, id: Int, setTo: Byte) {
+    private fun checkSurfaceInvisible(bvArr: MemSeg, invisible: MemSeg, id: Long, setTo: Byte) {
         for (i in id - 1 downTo id - 0x101) {
             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                 invisible[i] = setTo
@@ -640,21 +653,21 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         }
     }
 
-    private fun addNearby(blocking: ByteArray, id: Int) {
+    private fun addNearby(blocking: MemSeg, id: Long) {
         val x = id and 0xf
         val z = id shr 4 and 0xf
-        if (x != 0 ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
-        if (x != 15) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
-        if (z != 0 ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
-        if (z != 15) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
+        if (x != 0L ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
+        if (x != 15L) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
+        if (z != 0L ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
+        if (z != 15L) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
         (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
     }
 
-    private fun ByteArray.toLongArray(): LongArray {
-        val count = size shr 6
+    private fun MemSeg.toLongArray(): LongArray {
+        val count = size.toInt() shr 6
         val arr = LongArray(count)
 
-        var i = 0
+        var i = 0L
         for (j in 0 until count) {
             var l = 0L
             for (k in 0 until Long.SIZE_BITS) {
@@ -851,19 +864,19 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                         if (!enabled) {
                             return
                         }
-                        val tm = System.nanoTime()
+//                        val tm = System.nanoTime()
                         handleChunkPacket(event)
-                        val tim = System.nanoTime() - tm
-                        if (tim < 600_000) nanoTimes.add(tim)
-                        if (nanoTimes.size > 1000) println("AVG: ${nanoTimes.takeLast(1000).average()}")
-                        event.isCancelled = true
+//                        val tim = System.nanoTime() - tm
+//                        if (tim < 600_000) nanoTimes.add(tim)
+//                        if (nanoTimes.size > 100) println("AVG: ${nanoTimes.takeLast(100).average()}")
+//                        event.isCancelled = true
                     }
                 }
             } catch (t: Throwable) {
                 plugin.err("[ChunkDataThrottle] An exception occurred while processing packet", t)
             }
         }
-        private val nanoTimes = it.unimi.dsi.fastutil.longs.LongArrayList(10000000)
+//        private val nanoTimes = it.unimi.dsi.fastutil.longs.LongArrayList(1_000_000)
     }
 
     private class CustomListPalette(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
