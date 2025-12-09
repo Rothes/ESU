@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
-import com.google.common.io.ByteStreams
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
@@ -43,6 +42,8 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.core.util.extension.forEachInt
+import io.github.rothes.esu.core.util.extension.readUuid
+import io.github.rothes.esu.core.util.extension.writeUuid
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import io.github.rothes.esu.util.offheap.MemSeg
 import io.github.rothes.esu.util.offheap.MemoryAllocate
@@ -50,6 +51,10 @@ import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Reference2ByteOpenHashMap
+import kotlinx.io.Buffer
+import kotlinx.io.asSource
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
 import net.jpountz.lz4.LZ4Factory
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
@@ -71,6 +76,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import java.io.ByteArrayInputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.experimental.and
@@ -82,6 +88,8 @@ import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 
 object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleHandlerImpl.HandlerConfig, Unit>(), Listener {
+
+    private const val HOT_DATA_VERSION: Byte = 1
 
     // The block B is in center. if Y_MINUS, block in B's bottom is occluding(i.e. blocking) .
     const val X_PLUS: Byte    = 0b00_00001
@@ -131,39 +139,44 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             val toFile = hotDataFile.toFile()
             if (toFile.exists()) {
                 val nanoTime = System.nanoTime()
-                val readBytes = toFile.readBytes()
-                val uncompressedSize = Ints.fromByteArray(readBytes.copyOf(4))
-                val input = ByteStreams.newDataInput(
-                    LZ4Factory.fastestInstance().fastDecompressor().decompress(readBytes, 4, uncompressedSize)
-                )
-                val players = input.readInt()
-                for (i in 0 until players) {
-                    val uuidString = String(ByteArray(36) { input.readByte() }, Charsets.US_ASCII)
-                    val uuid = UUID.fromString(uuidString)
-                    val mapSize = input.readInt()
-                    val player = Bukkit.getPlayer(uuid)
-                    if (player == null) {
-                        for (j in 0 until mapSize) {
-                            input.readLong()
-                            for (k in 0 until input.readInt())
-                                input.readLong()
-                        }
-                        continue
-                    }
+                val bytes = toFile.readBytes()
+                toFile.delete()
+                require(bytes[0] == HOT_DATA_VERSION) { "Different hot data version" }
+                val uncompressedSize = Ints.fromByteArray(bytes.copyOfRange(1, 5))
 
-                    val miniChunks = player.miniChunks
-                    for (j in 0 until mapSize) {
-                        val chunkKey = input.readLong()
-                        val longArraySize = input.readInt()
-                        if (!player.chunkSent(chunkKey)) {
-                            input.skipBytes(longArraySize * 8)
-                            continue
+                val src = ByteArrayInputStream(
+                    LZ4Factory.fastestInstance().fastDecompressor().decompress(bytes, 5, uncompressedSize)
+                ).asSource().buffered()
+
+                with(src) {
+                    val players = readInt()
+                    repeat(players) {
+                        val mapSize = readInt()
+                        if (mapSize == 0) skip(16)
+                        val player = Bukkit.getPlayer(readUuid())
+                        if (player == null) {
+                            for (j in 0 until mapSize) {
+                                readLong()
+                                repeat(readInt()) {
+                                    readLong()
+                                }
+                            }
+                            return@repeat
                         }
-                        val longArray = LongArray(longArraySize) { input.readLong() }
-                        miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(longArray))
+
+                        val miniChunks = player.miniChunks
+                        for (j in 0 until mapSize) {
+                            val chunkKey = readLong()
+                            val longArraySize = readInt()
+                            if (!player.chunkSent(chunkKey)) {
+                                skip(longArraySize * 8L)
+                                continue
+                            }
+                            val longArray = LongArray(longArraySize) { readLong() }
+                            miniChunks[chunkKey] = PlayerChunk(BitSet.valueOf(longArray))
+                        }
                     }
                 }
-                toFile.delete()
                 plugin.info("Loaded ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}")
             }
         } catch (e: Exception) {
@@ -181,34 +194,30 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
         if (plugin.disabledHot) {
             val nanoTime = System.nanoTime()
-            var bufferSize = 4 // Map size
-            val filter = minimalChunks.entries.filter { it.value.isNotEmpty() }
-            for ((_, map) in filter) {
-                bufferSize += 36 // UUID
-                bufferSize += 4 // PlayerChunk Map size
-                bufferSize += map.size * ((1 + 1472) * 8) // ChunkKey and Long Arrays
-            }
-            val output = ByteStreams.newDataOutput(bufferSize)
 
-            output.writeInt(filter.size)
-            for ((user, map) in filter) {
-                output.write(user.uniqueId.toString().toByteArray(Charsets.US_ASCII))
-                val map = map.long2ObjectEntrySet().filter { it.value !== FULL_CHUNK }
-                output.writeInt(map.size)
-                if (map.isEmpty()) {
-                    continue
-                }
-                for ((chunkKey, playerChunk) in map) {
-                    output.writeLong(chunkKey)
-                    val longs = playerChunk.invisible.toLongArray()
-                    output.writeInt(longs.size)
-                    for (long in longs) {
-                        output.writeLong(long)
+            val filter = minimalChunks.entries.filter { it.value.isNotEmpty() }
+            val buf = Buffer().apply {
+                writeInt(filter.size)
+                for ((user, map) in filter) {
+                    val map = map.long2ObjectEntrySet().filter { it.value !== FULL_CHUNK }
+                    writeInt(map.size)
+                    writeUuid(user.uniqueId)
+                    if (map.isEmpty()) {
+                        continue
+                    }
+                    for ((chunkKey, playerChunk) in map) {
+                        writeLong(chunkKey)
+                        val longs = playerChunk.invisible.toLongArray()
+                        writeInt(longs.size)
+                        for (long in longs) {
+                            writeLong(long)
+                        }
                     }
                 }
             }
-            hotDataFile.outputStream(StandardOpenOption.CREATE).use {
-                val data = output.toByteArray()
+            hotDataFile.outputStream(StandardOpenOption.CREATE).buffered().use {
+                val data = buf.readByteArray()
+                it.write(HOT_DATA_VERSION.toInt())
                 it.write(Ints.toByteArray(data.size))
                 it.write(LZ4Factory.fastestInstance().fastCompressor().compress(data))
                 it.flush()
