@@ -650,7 +650,6 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         for (i in id - 1 downTo id - 0x101) {
             if (bvArr[i] and INVISIBLE == INVISIBLE) {
                 invisible[i] = setTo
-                return
             }
         }
     }
