@@ -83,7 +83,7 @@ subprojects {
         apply(plugin = "com.github.gmazzo.buildconfig")
         buildConfig {
             when (project.name) {
-                "common" -> {}
+                "common", "module" -> {}
                 "core" -> {
                     buildConfigField("DEP_VERSION_KOTLIN", rootProject.libs.versions.kotlin)
                     buildConfigField("DEP_VERSION_KOTLINX_IO_CORE", rootProject.libs.versions.kotlinx.io.core)

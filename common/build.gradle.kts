@@ -8,5 +8,6 @@ repositories {
 
 dependencies {
     api(project(":core"))
+    api(project(":module:off-heap-memory"))
     compileOnly(libs.packetevents.api)
 }

@@ -1,4 +1,8 @@
 rootProject.name = "ESU"
+
+include("module")
+include("module:off-heap-memory")
+
 include("core")
 include("core:dep-core")
 include("core:dep-impl-core")
