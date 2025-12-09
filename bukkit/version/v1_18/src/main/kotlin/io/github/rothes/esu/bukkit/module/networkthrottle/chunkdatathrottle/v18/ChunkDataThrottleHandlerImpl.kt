@@ -49,6 +49,7 @@ import io.github.rothes.esu.util.offheap.MemoryAllocate
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Reference2ByteOpenHashMap
 import net.jpountz.lz4.LZ4Factory
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
@@ -76,8 +77,6 @@ import kotlin.experimental.and
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
@@ -103,8 +102,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     const val BV_UPPER_OCCLUDING: Byte = 0b10 // Visible, but the block on its top is occluding
 
-    private var LAVA_MIN = Int.MAX_VALUE
-    private var LAVA_MAX = Int.MIN_VALUE
+    private var BLOCKS_VIEW_BS = Reference2ByteOpenHashMap<BlockState>(1)
     private var BLOCKS_VIEW = ByteArray(Block.BLOCK_STATE_REGISTRY.size())
     private val ITSELF = IntArray(BLOCKS_VIEW.size) { it }
     private val FULL_CHUNK = PlayerChunk(BitSet(0))
@@ -227,20 +225,19 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         if (previousNonInvisible != config.nonInvisibleBlocksOverrides) {
             val occludeTester = BlockOccludeTester::class.java.versioned()
             val nonInvisible = config.nonInvisibleBlocksOverrides
-            BLOCKS_VIEW = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+            val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
+            val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
                 val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!
                 val block = blockState.block
-                if (block == Blocks.LAVA) {
-                    LAVA_MIN = min(id, LAVA_MIN)
-                    LAVA_MAX = max(id, LAVA_MAX)
-                }
-                if (nonInvisible.contains(block)) false.toByte()
-                else occludeTester.isFullOcclude(blockState).toByte()
-            }.apply {
-                for (i in LAVA_MIN..LAVA_MAX) {
-                    this[i] = BV_LAVA_COVERED
-                }
+                val value =
+                    if (block == Blocks.LAVA) BV_LAVA_COVERED
+                    else if (nonInvisible.contains(block)) false.toByte()
+                    else occludeTester.isFullOcclude(blockState).toByte()
+                bs.put(blockState, value)
+                value
             }
+            BLOCKS_VIEW_BS = bs
+            BLOCKS_VIEW = id
             previousNonInvisible = nonInvisible
         }
     }
@@ -769,14 +766,14 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private val Player.nms: ServerPlayer
         get() = (this as CraftPlayer).handle
 
-    private val BlockState.id
+    private inline val BlockState.id
         get() = Block.BLOCK_STATE_REGISTRY.getId(this)
 
-    private val Int.blocksView
+    private inline val Int.blocksView: Byte
         get() = BLOCKS_VIEW[this]
 
-    private val BlockState.blocksView
-        get() = Block.BLOCK_STATE_REGISTRY.getId(this).blocksView
+    private inline val BlockState.blocksView: Byte
+        get() = BLOCKS_VIEW_BS.getByte(this)
 
     data class PlayerChunk(
         val invisible: BitSet,
