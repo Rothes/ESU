@@ -6,6 +6,7 @@ import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
 import kotlin.Byte
 import kotlin.Long
+import kotlin.experimental.or
 
 class ArenaMemSeg(
     size: Long,
@@ -22,6 +23,10 @@ class ArenaMemSeg(
 
     override fun get(offset: Long): Byte = memorySegment.get(ValueLayout.JAVA_BYTE, offset)
     override fun set(offset: Long, value: Byte) = memorySegment.set(ValueLayout.JAVA_BYTE, offset, value)
+
+    override fun or(offset: Long, value: Byte) {
+        set(offset, get(offset) or value)
+    }
 
     override fun fill(offset: Long, length: Long, value: Byte) {
         memorySegment.asSlice(offset, length).fill(value)

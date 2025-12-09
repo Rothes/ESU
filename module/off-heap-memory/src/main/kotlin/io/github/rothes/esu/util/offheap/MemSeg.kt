@@ -9,6 +9,8 @@ interface MemSeg: AutoCloseable {
     operator fun get(offset: Long): Byte
     operator fun set(offset: Long, value: Byte)
 
+    fun or(offset: Long, value: Byte)
+
     fun fill(offset: Long, length: Long, value: Byte)
     fun initialize()
 

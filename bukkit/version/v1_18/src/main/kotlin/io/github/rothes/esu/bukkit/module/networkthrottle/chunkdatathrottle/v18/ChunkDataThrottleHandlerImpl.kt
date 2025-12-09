@@ -73,7 +73,6 @@ import org.bukkit.event.player.PlayerQuitEvent
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.experimental.and
-import kotlin.experimental.or
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
@@ -309,8 +308,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 // Handle neighbour chunks ends
 
                 class SectionData(
+                    @JvmField
                     val bits: Int,
+                    @JvmField
                     val data: IntArray,
+                    @JvmField
                     val states: IntArray,
                 )
 
@@ -327,7 +329,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                                 checkSurfaceInvisible(bvArr, invisible, id, palette.idToState(0).blocksView)
                             }
                             id += SECTION_BLOCKS
-                            for (i in id until id + 16 * 16) bvArr[i] = bvArr[i] or Y_MINUS
+                            for (i in id until id + 16 * 16) bvArr.or(i, Y_MINUS)
                         } else {
                             id += SECTION_BLOCKS
                         }
@@ -377,7 +379,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 var pending: IntArrayList? = null
                 if (config.detectInvisibleSingleBlock) {
                     pending = IntArrayList()
-                    id = invisible.size - 16 * 16 + 1
+                    id = invisible.size - (16 * 16 - 1)
                     while (--id >= 16 * 16) {
                         if (invisible[id] != BV_INVISIBLE) continue // Center block is invisible
                         // Surrounded blocks are visible and upper block occluding
@@ -421,13 +423,13 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                         val z = int shr 4 and 0xf
                         fun checkBlock(id: Long, b: Byte) {
                             if (invisible[id] == BV_LAVA_COVERED) {
-                                bvArr[id] = bvArr[id] or b
+                                bvArr.or(id, b)
                             }
                         }
                         fun checkEdge(id: Long, check: Byte, set: Byte) {
                             // it and upper block should both be lava-covered
                             if (bvArr[id] and check == check && bvArr[id + 0x100] and check == check) {
-                                bvArr[id] = bvArr[id] or set
+                                bvArr.or(id, set)
                             }
                         }
                         if (x != 0 ) checkBlock(id - 0x001, X_PLUS ) else checkEdge(id, X_LAVA, X_MINUS)
@@ -589,7 +591,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     private fun handleNeighbourChunk(blocking: MemSeg, level: ServerLevel, chunkX: Int, chunkZ: Int,
-                                     bid: Long, bidStep: Int, arrOffset: Int, arrValue: Byte, lavaValue: Byte) {
+                                     bid: Long, bidStep: Long, arrOffset: Long, arrValue: Byte, lavaValue: Byte) {
         val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
 
         val indexLoop = 0x100 - bidStep * 16
@@ -606,7 +608,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                     }
                     for (y in 0 until 16) {
                         for (j in 0 until 16) {
-                            (blockId + arrOffset).let { blocking[it] = blocking[it] or or }
+                            blocking.or(blockId + arrOffset, or)
                             blockId += bidStep
                         }
                         blockId += indexLoop
@@ -633,8 +635,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 for (y in 0 until 16) {
                     for (j in 0 until 16) {
                         when (blockingArr[storage.get(blockId.toInt() and 0xfff)]) {
-                            BV_INVISIBLE    -> (blockId + arrOffset).let { blocking[it] = blocking[it] or arrValue }
-                            BV_LAVA_COVERED -> (blockId + arrOffset).let { blocking[it] = blocking[it] or lavaValue }
+                            BV_INVISIBLE    -> blocking.or(blockId + arrOffset, arrValue)
+                            BV_LAVA_COVERED -> blocking.or(blockId + arrOffset, arrValue)
                         }
                         blockId += bidStep
                     }
@@ -656,11 +658,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private fun addNearby(blocking: MemSeg, id: Long) {
         val x = id and 0xf
         val z = id shr 4 and 0xf
-        if (x != 0L ) (id - 0x001).let { blocking[it] = blocking[it] or X_PLUS  }
-        if (x != 15L) (id + 0x001).let { blocking[it] = blocking[it] or X_MINUS }
-        if (z != 0L ) (id - 0x010).let { blocking[it] = blocking[it] or Z_PLUS  }
-        if (z != 15L) (id + 0x010).let { blocking[it] = blocking[it] or Z_MINUS }
-        (id + 0x100).let { blocking[it] = blocking[it] or Y_MINUS }
+        if (x != 0L ) blocking.or(id - 0x001, X_PLUS)
+        if (x != 15L) blocking.or(id + 0x001, X_MINUS)
+        if (z != 0L ) blocking.or(id - 0x010, Z_PLUS)
+        if (z != 15L) blocking.or(id + 0x010, Z_MINUS)
+        blocking.or(id + 0x100, Y_MINUS)
     }
 
     private fun MemSeg.toLongArray(): LongArray {
