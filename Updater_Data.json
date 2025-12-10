@@ -36,7 +36,7 @@
         "message_times": 1,
         "notify_in_game": true,
         "message": {
-          "en_us": "<pc>Welcome to ESU! Discuss and support at <pdc><click:open_url:'https://discord.gg/zwzzkmYCBb'>",
+          "en_us": "<pc>Welcome to ESU! Discuss and support at <pdc><u><click:open_url:'https://discord.gg/zwzzkmYCBb'>https://discord.gg/zwzzkmYCBb",
           "zh_cn": "<pc>欢迎使用 ESU. 讨论与求助可加入我们的QQ群 422532220"
         }
       }
