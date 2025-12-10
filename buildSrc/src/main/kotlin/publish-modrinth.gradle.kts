@@ -42,38 +42,33 @@ project.modrinth {
 }
 
 tasks.register("editChangelog") {
-    val versionNumber = System.getenv("GIT_TAG") ?: finalVersionName
-    val client = OkHttpClient.Builder().build()
-    val response = client.newCall(
-        Request.Builder()
-            .addHeader("Content-Type", "application/json")
-            .url("https://api.modrinth.com/v2/project/esu/version")
-            .get()
-            .build()
-    ).execute().use { it.body!!.string() }
+    doLast {
+        val versionNumber = System.getenv("GIT_TAG") ?: finalVersionName
+        val client = OkHttpClient.Builder().build()
+        val response = client.newCall(
+            Request.Builder().addHeader("Content-Type", "application/json")
+                .url("https://api.modrinth.com/v2/project/esu/version").get().build()
+        ).execute().use { it.body!!.string() }
 
-    val token = System.getenv("MODRINTH_TOKEN") ?: error("No token set")
-    val changelog = System.getenv("CHANGELOG_CONTENT") ?: error("No changelog set")
-    val json = JsonObject().apply {
-        addProperty("changelog", changelog)
-    }.toString()
-    val body = json.toRequestBody("application/json".toMediaType())
-    val versions = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
-        .fromJson<List<Version>>(response, object : TypeToken<List<Version>>() {}.type)
-        .filter { it.versionNumber == versionNumber && it.name == "ESU-${project.name} $versionNumber" }
-    for (version in versions) {
-        client.newCall(
-            Request.Builder()
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", token)
-                .url("https://api.modrinth.com/v2/version/${version.id}")
-                .patch(body)
-                .build()
-        ).execute().use { response ->
-            if (!response.isSuccessful) {
-                error("Failed to modify version ${version.id}: ${response.body?.string()}")
-            } else {
-                println("Successfully updated version ${version.id}")
+        val token = System.getenv("MODRINTH_TOKEN") ?: error("No token set")
+        val changelog = System.getenv("CHANGELOG_CONTENT") ?: error("No changelog set")
+        val json = JsonObject().apply {
+            addProperty("changelog", changelog)
+        }.toString()
+        val body = json.toRequestBody("application/json".toMediaType())
+        val versions = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
+            .fromJson<List<Version>>(response, object : TypeToken<List<Version>>() {}.type)
+            .filter { it.versionNumber == versionNumber && it.name == "ESU-${project.name} $versionNumber" }
+        for (version in versions) {
+            client.newCall(
+                Request.Builder().addHeader("Content-Type", "application/json").addHeader("Authorization", token)
+                    .url("https://api.modrinth.com/v2/version/${version.id}").patch(body).build()
+            ).execute().use { response ->
+                if (!response.isSuccessful) {
+                    error("Failed to modify version ${version.id}: ${response.body?.string()}")
+                } else {
+                    println("Successfully updated version ${version.id}")
+                }
             }
         }
     }
