@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPale
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
-import com.github.retrooper.packetevents.protocol.world.chunk.storage.BaseStorage
 import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
@@ -301,8 +300,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val randomBlockIds = config.antiXrayRandomBlockIds.getOrDefault(world.name)!!
 
         val sections = column.chunks
-        val height = event.user.totalWorldHeight
-        pd.prepareArray(height shl 8)
+        pd.prepareArray(event.user.totalWorldHeight)
         val bvArr = pd.bvArr
         val invisible = pd.invisibleArr
 
@@ -322,7 +320,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             @JvmField
             val states: IntArray,
         )
-
+        // Don't cache SectionData to player DedicateMemory, there might be SinglePalettes,
+        // which doesn't need to allocate anything. Cached arrays actually kills CPU cache.
         val sectionDataArr = Array<SectionData?>(sections.size) { null }
         var id = 0
         out@ for ((index, section) in sections.withIndex()) {
@@ -341,7 +340,9 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                     id += SECTION_BLOCKS
                 }
             } else {
-                val data = readBitsData(section.chunkData.storage)
+                // Read section data
+                val storage = section.chunkData.storage
+                val data = readBitsData(storage.data, storage.bitsPerEntry)
                 val bits = palette.bits
                 val states: IntArray
                 val blockingArr: ByteArray
@@ -360,7 +361,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                         error("Unsupported packetevents palette type: ${palette::class.simpleName}")
                     }
                 }
-
+                // Handle section blocks
                 for (i in 0 until SECTION_BLOCKS) {
                     when (blockingArr[data[i]]) {
                         BV_INVISIBLE    -> {
@@ -462,14 +463,15 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         section@ for ((index, section) in sections.withIndex()) {
             section as Chunk_v1_18
             val sectionData = sectionDataArr[index]
-            if (sectionData == null) {
-                // This section is SingletonPalette
+            if (sectionData == null) { // This section is SingletonPalette
+                // Check bottom
                 for (i in id until id + 16 * 16) {
                     if (invisible[i] != BV_INVISIBLE) {
                         id += SECTION_BLOCKS
                         continue@section
                     }
                 }
+                // Check roof
                 for (i in id + 16 * 16 * 15 until id + 16 * 16 * 16) {
                     if (invisible[i] != BV_INVISIBLE) {
                         id += SECTION_BLOCKS
@@ -784,8 +786,6 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private inline val BlockState.blocksView: Byte
         get() = BLOCKS_VIEW_BS.getByte(this)
 
-    fun readBitsData(bitStorage: BaseStorage) = readBitsData(bitStorage.data, bitStorage.bitsPerEntry)
-
     fun readBitsData(data: LongArray, bits: Int): IntArray {
         val mask = (1L shl bits) - 1L
         val valuesPerLong = 64 / bits
@@ -933,7 +933,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         var invisibleArr: ByteArray = ByteArray(0),
     ) {
 
-        fun prepareArray(size: Int) {
+        fun prepareArray(height: Int) {
+            val size = height shl 8
             if (invisibleArr.size < size) {
                 bvArr = ByteArray(size + 16 * 16)
                 invisibleArr = ByteArray(size)
@@ -944,7 +945,9 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         }
 
         data class PlayerChunk(
+            @JvmField
             val invisible: BitSet,
+            @JvmField
             var updatedBlocks: Int = 0,
         )
     }
