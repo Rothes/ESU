@@ -175,7 +175,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                                 continue
                             }
                             val longArray = LongArray(longArraySize) { readLong() }
-                            miniChunks[chunkKey] = PlayerData.PlayerChunk(BitSet.valueOf(longArray))
+                            miniChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(longArray)))
                         }
                     }
                 }
@@ -699,7 +699,6 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val fullUpdateThreshold = config.thresholdToResentWholeChunk
         val updateDistance = config.updateDistance
 
-        val miniChunks = player.throttledChunks
         val groups = buildList {
             for (i in -updateDistance..updateDistance)
                 for (j in -updateDistance + abs(i) .. updateDistance - abs(i))
@@ -713,14 +712,14 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val level = levelHandler.level(nms)
 
         for ((chunkKey, blocks) in groups) {
-            checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, miniChunks, chunkKey, blocks, minHeight)
+            checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, chunkKey, blocks, minHeight)
         }
     }
 
     private fun checkChunkBlockUpdate(player: Player, nms: ServerPlayer, level: ServerLevel, fullUpdateThreshold: Int,
-                                      miniChunks: Long2ObjectMap<PlayerData.PlayerChunk>,
                                       chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
-        val playerChunk = miniChunks[chunkKey] ?: return
+        val throttledChunks = player.throttledChunks
+        val playerChunk = throttledChunks.get(chunkKey) ?: return
         if (playerChunk === FULL_CHUNK) return
 
         val invisible = playerChunk.invisible
@@ -734,11 +733,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
         if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
             try {
-                miniChunks[chunkKey] = FULL_CHUNK
+                throttledChunks.put(chunkKey, FULL_CHUNK)
                 chunkSender.sendChunk(nms, level, chunk)
                 counter.resentChunks++
             } catch (e: Exception) {
-                miniChunks[chunkKey] = playerChunk
+                throttledChunks.put(chunkKey, playerChunk)
                 throw e
             }
             return
