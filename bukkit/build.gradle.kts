@@ -41,7 +41,6 @@ allprojects {
 
     dependencies {
         compileOnly(rootProject.libs.packetevents.spigot)
-        compileOnly("org.lz4:lz4-java:1.8.0")
     }
 
     kotlin {
