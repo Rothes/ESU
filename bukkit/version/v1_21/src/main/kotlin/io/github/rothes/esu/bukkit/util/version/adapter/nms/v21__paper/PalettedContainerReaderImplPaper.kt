@@ -18,7 +18,7 @@ object PalettedContainerReaderImplPaper: PalettedContainerReader {
         return storage[container.data] as BitStorage
     }
 
-    override fun <T> getPalette(container: PalettedContainer<T>): Palette<T> {
+    override fun <T: Any> getPalette(container: PalettedContainer<T>): Palette<T> {
         @Suppress("UNCHECKED_CAST")
         return palette[container.data] as Palette<T>
     }

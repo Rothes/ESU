@@ -1,15 +1,19 @@
 package io.github.rothes.esu.bukkit.module.optimizations.v21_6__paper
 
 import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
+import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.level.TicketType
 
-class TicketTypeHandlerImpl: TicketTypeHandler {
+object TicketTypeHandlerImpl: TicketTypeHandler {
+
+    private val KEY_HANDLER by Versioned(ResourceKeyHandler::class.java)
 
     val map = BuiltInRegistries.TICKET_TYPE
         .entrySet()
         .associate {
-            val name = it.key.location().path
+            val name = KEY_HANDLER.getResourceKeyString(it.key)
             name to TicketTypeMoonriseImpl(it.value, name)
         }
 

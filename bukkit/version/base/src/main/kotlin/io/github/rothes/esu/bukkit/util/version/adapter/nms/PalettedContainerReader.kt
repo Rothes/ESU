@@ -7,6 +7,6 @@ import net.minecraft.world.level.chunk.PalettedContainer
 interface PalettedContainerReader {
 
     fun getStorage(container: PalettedContainer<*>): BitStorage
-    fun <T> getPalette(container: PalettedContainer<T>): Palette<T>
+    fun <T: Any> getPalette(container: PalettedContainer<T>): Palette<T>
 
 }
