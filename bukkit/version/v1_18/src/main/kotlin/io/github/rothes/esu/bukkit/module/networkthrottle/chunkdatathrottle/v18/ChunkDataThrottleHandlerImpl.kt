@@ -569,7 +569,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                     BV_INVISIBLE -> {
                         // detectSameStateUpdate
                         if (remappedState[0] == sectionData.states[sectionData.data[i]]) {
-                            invisible[id] == BV_VISIBLE
+                            invisible[id] = BV_VISIBLE
                         }
                     }
                     else -> l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
