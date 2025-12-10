@@ -44,6 +44,7 @@ import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.core.util.extension.readUuid
 import io.github.rothes.esu.core.util.extension.writeUuid
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
+import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -926,7 +927,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private class PlayerData(
         @JvmField
-        val throttledChunks: Long2ObjectMap<PlayerChunk> = Long2ObjectOpenHashMap(),
+        val throttledChunks: Long2ObjectMap<PlayerChunk> = Long2ObjectOpenHashMap(32, Hash.VERY_FAST_LOAD_FACTOR),
         @JvmField
         var bvArr: ByteArray = ByteArray(0),
         @JvmField
