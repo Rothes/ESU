@@ -464,7 +464,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         section@ for ((index, section) in sections.withIndex()) {
             section as Chunk_v1_18
             val sectionData = sectionDataArr[index]
-            if (sectionData == null) { // This section is SingletonPalette
+            // Check if this section is SingleValuePalette
+            if (sectionData == null) {
                 // Check bottom
                 for (i in id until id + 16 * 16) {
                     if (invisible[i] != BV_INVISIBLE) {
@@ -487,6 +488,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 id += SECTION_BLOCKS
                 continue
             }
+            // Check if all blocks are invisible, if so, convert section to SingleValuePalette
             var allInvisible = true
             for (i in id until id + SECTION_BLOCKS) {
                 if (invisible[i] != BV_INVISIBLE) {
@@ -508,7 +510,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             }
             // It's not a fully invisible section. Do what we can do to help with compression.
             val bits: Int
-            val remappedState: IntArray
+            val firstIdStateRemapped: Int
+            val remappedStateIndex: IntArray
             if (sectionData.bits < GlobalPalette.BITS_PER_ENTRY) {
                 // Rebuild palette mapping
                 val frequency = ShortArray(sectionData.states.size)
@@ -528,10 +531,10 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 id -= SECTION_BLOCKS // Rollback for the loop below
 
                 val freqId = IntArray(frequency.size) { it }.sortedByDescending { frequency[it] }.toIntArray()
-                remappedState = IntArray(frequency.size) // value is the new index of original
-                for (i in 0 until remappedState.size) {
+                remappedStateIndex = IntArray(frequency.size) // value is the new index of original
+                for (i in 0 until remappedStateIndex.size) {
                     val oldStateIndex = freqId[i]
-                    remappedState[oldStateIndex] = i
+                    remappedStateIndex[oldStateIndex] = i
                 }
 
                 bits = (32 - (frequency.size - empty - 1).countLeadingZeroBits())
@@ -543,21 +546,25 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                                         frequency.size - empty     and (1 shl bits - 1) ||
                                         frequency.size - empty + 1 <= (1 shl 4))
                     ) {
-                        for ((i, v) in remappedState.withIndex()) {
-                            remappedState[i] = v + 1
+                        // Move all to next index. 0 index is our random block.
+                        for ((i, v) in remappedStateIndex.withIndex()) {
+                            remappedStateIndex[i] = v + 1
                         }
                         IntArray(frequency.size - empty + 1) { i ->
                             if (i == 0) randomBlockIds.random()
-                            else sectionData.states[remappedState.indexOf(i)]
+                            else sectionData.states[remappedStateIndex.indexOf(i)]
                         }
                     } else {
-                        IntArray(frequency.size - empty) { i -> sectionData.states[remappedState.indexOf(i)] }
+                        IntArray(frequency.size - empty) { i -> sectionData.states[remappedStateIndex.indexOf(i)] }
                     }
 
+                firstIdStateRemapped = remapped[0]
                 section.chunkData.palette = CustomListPalette(bits, remapped)
             } else {
-                bits = sectionData.bits
-                remappedState = sectionData.states
+                // It's a GlobalPalette.
+                bits = GlobalPalette.BITS_PER_ENTRY
+                remappedStateIndex = ITSELF
+                firstIdStateRemapped = 0
             }
             val valuesPerLong = 64 / bits
             val longs = (SECTION_BLOCKS + valuesPerLong - 1) / valuesPerLong
@@ -568,14 +575,15 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             var shift = 0
             var l = 0L
             for (i in 0 until SECTION_BLOCKS) {
+                val mapId = sectionData.data[i]
                 when (invisible[id]) {
                     BV_INVISIBLE -> {
-                        // detectSameStateUpdate
-                        if (remappedState[0] == sectionData.states[sectionData.data[i]]) {
+                        // detectSameStateUpdate (BlockState id is not changed)
+                        if (firstIdStateRemapped == sectionData.states[mapId]) {
                             invisible[id] = BV_VISIBLE
                         }
                     }
-                    else -> l = l or (remappedState[sectionData.data[i]].toLong() shl shift)
+                    else -> l = l or (remappedStateIndex[mapId].toLong() shl shift)
                 }
                 id++
 
