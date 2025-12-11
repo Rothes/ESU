@@ -90,7 +90,7 @@ object CasListeners: Listener {
             return false
         }
         val now = System.currentTimeMillis()
-        val afkTime = now - CoreModule.provider.lastGenericActiveTime(player)
+        val afkTime = now - CoreModule.providers.genericActiveTime[player]
         val spamData = user.spamData.purge(afkTime)
         spamData.requests.sizedAdd(config.expireSize.chatRequest, now)
 

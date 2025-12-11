@@ -1,27 +1,27 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.core.CoreController
-import io.github.rothes.esu.bukkit.module.core.DisabledProvider
-import io.github.rothes.esu.bukkit.module.core.Provider
+import io.github.rothes.esu.bukkit.module.core.DisabledProviders
+import io.github.rothes.esu.bukkit.module.core.Providers
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.extension.headerIfNotNull
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 
 object CoreModule: BukkitModule<CoreModule.ModuleConfig, Unit>() {
 
-    private var _provider: Provider = DisabledProvider
+    private var _providers: Providers = DisabledProviders
 
-    val provider: Provider get() = _provider
+    val providers: Providers get() = _providers
 
     override fun onEnable() {
         CoreController.onEnable()
-        _provider = CoreController.RunningProvider
+        _providers = CoreController.RunningProviders
     }
 
     override fun onDisable() {
         super.onDisable()
         CoreController.onDisable()
-        _provider = DisabledProvider
+        _providers = DisabledProviders
     }
 
     override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
