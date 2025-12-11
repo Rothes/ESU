@@ -731,8 +731,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private fun checkChunkBlockUpdate(player: Player, nms: ServerPlayer, level: ServerLevel, fullUpdateThreshold: Int,
                                       chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
         val throttledChunks = player.throttledChunks
-        val playerChunk = throttledChunks.get(chunkKey) ?: return
-        if (playerChunk === FULL_CHUNK) return
+        val playerChunk = throttledChunks.get(chunkKey)
+        if (playerChunk == null || playerChunk === FULL_CHUNK) return
 
         val invisible = playerChunk.invisible
         val updates = blocks.filter { blockPos ->
@@ -742,25 +742,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         if (updates.isEmpty()) return
 
         val (chunkX, chunkZ) = chunkKey.chunkPos
-        val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
-        if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
-            try {
-                throttledChunks.put(chunkKey, FULL_CHUNK)
-                chunkSender.sendChunk(nms, level, chunk)
-                counter.resentChunks++
-            } catch (e: Exception) {
-                throttledChunks.put(chunkKey, playerChunk)
-                throw e
-            }
-            return
-        }
-        playerChunk.updatedBlocks += updates.size
-        counter.resentBlocks += updates.size
+        val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return // I don't think it ever returns null
 
         val groupBy = updates.groupBy {
             SectionPos.of(it)
         }
-
         for ((section, blocks) in groupBy) {
             val wrapper = if (blocks.size > 1) WrapperPlayServerMultiBlockChange(
                 Vector3i(section.x, section.y, section.z), true, blocks.map {
@@ -776,6 +762,23 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                     )
                 }
             PacketEvents.getAPI().playerManager.sendPacketSilently(player, wrapper)
+        }
+
+        playerChunk.updatedBlocks += updates.size
+        counter.resentBlocks += updates.size
+
+        // Check if it's necessary to send a full chunk after updating nearby blocks.
+        // Sending a full chunk may make player falling down stuck for a short moment.
+        if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
+            try {
+                throttledChunks.put(chunkKey, FULL_CHUNK)
+                chunkSender.sendChunk(nms, level, chunk)
+                counter.resentChunks++
+            } catch (e: Exception) {
+                throttledChunks.put(chunkKey, playerChunk)
+                throw e
+            }
+            return
         }
     }
 

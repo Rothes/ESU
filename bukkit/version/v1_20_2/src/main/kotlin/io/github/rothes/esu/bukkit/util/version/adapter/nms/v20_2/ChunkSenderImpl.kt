@@ -10,16 +10,25 @@ import net.minecraft.world.level.chunk.LevelChunk
 class ChunkSenderImpl: ChunkSender {
 
     override fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
-        player.bukkitEntity.syncTick {
-            @Suppress("DEPRECATION") // Spigot support
+        fun trySend() {
             player.connection.send(
+                @Suppress("DEPRECATION") // Spigot support
                 ClientboundLevelChunkWithLightPacket(
                     chunk,
                     level.lightEngine,
                     null,
-                    null
+                    null,
                 )
             )
+        }
+
+        try {
+            trySend()
+        } catch (_: Exception) {
+            // Block entities in chunk being modified, throws error.
+            player.bukkitEntity.syncTick {
+                trySend()
+            }
         }
     }
 
