@@ -30,6 +30,7 @@ object ConsoleUser: VelocityUser(), LogUser {
         dbId = userData.dbId
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
+        LogUser.console = this
     }
 
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {

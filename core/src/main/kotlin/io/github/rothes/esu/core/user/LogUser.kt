@@ -4,6 +4,7 @@ import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
@@ -55,6 +56,9 @@ interface LogUser: User {
     fun print(string: String)
 
     companion object {
+
+        var console: LogUser by InitOnce()
+
         private var flattener = ComponentFlattener.basic().toBuilder().complexMapper(TranslatableComponent::class.java) { translatable, consumer ->
             for (source in GlobalTranslator.translator().sources()) {
                 if (source is TranslationRegistry && source.contains(translatable.key())) {
