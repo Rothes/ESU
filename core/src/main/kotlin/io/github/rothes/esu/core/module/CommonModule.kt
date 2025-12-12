@@ -76,7 +76,11 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
         }
 
         fun <C, L> loadConfig(feature: Feature<C, L>, node: LoadedConfiguration) {
-            feature.setConfigInstance(node.getAs(feature.configClass))
+            try {
+                feature.setConfigInstance(node.getAs(feature.configClass))
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
+            }
 
             feature.forEachChild { child, configPath ->
                 loadConfig(child, node.node(configPath))
@@ -84,7 +88,11 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
         }
 
         fun <C, L> loadLang(feature: Feature<C, L>, nodes: MultiConfiguration<LoadedConfiguration>) {
-            feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
+            try {
+                feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to read lang of feature ${feature.name}", e)
+            }
 
             feature.forEachChild { child, configPath ->
                 loadLang(child, nodes.map { node -> node.node(configPath) })
