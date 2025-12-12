@@ -87,6 +87,7 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
 
             val data = playerData[player] ?: return
             data.hiddenHolder.map.put(entity.entityId, entity)
+            player.hideEntity(pl, entity) // Call hideEntity otherwise showEntity doesn't re-track the entity.
             e.isCancelled = true
         }
     }
