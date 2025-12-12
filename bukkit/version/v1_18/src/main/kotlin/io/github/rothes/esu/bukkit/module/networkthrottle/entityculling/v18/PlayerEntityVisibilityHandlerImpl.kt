@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v18
 
-import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
@@ -19,12 +18,12 @@ object PlayerEntityVisibilityHandlerImpl : PlayerEntityVisibilityHandler {
     private val pluginWeakReferences = CraftPlayer::class.java.getDeclaredMethod("getPluginWeakReference", Plugin::class.java).handle
     private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
 
-    override fun forceShowEntity(player: Player, bukkitEntity: Entity) {
+    override fun forceShowEntity(player: Player, bukkitEntity: Entity, plugin: Plugin) {
         @Suppress("UNCHECKED_CAST")
         val map = hiddenEntities[player] as MutableMap<UUID, MutableSet<WeakReference<Plugin>>>
         val uuid = entityHandleGetter.getHandle(bukkitEntity).uuid
         val set = map[uuid] ?: return
-        val pluginReference = pluginWeakReferences.invokeExact(bootstrap as Plugin) as WeakReference<*>
+        val pluginReference = pluginWeakReferences.invokeExact(plugin) as WeakReference<*>
         if (!set.remove(pluginReference)) return
         if (set.isEmpty()) map.remove(uuid)
     }

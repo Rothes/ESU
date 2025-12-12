@@ -10,6 +10,7 @@ import kotlinx.io.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -130,12 +131,12 @@ object CoreController {
             val p = event.player
             val now = System.currentTimeMillis()
             RunningProviders.moveTime[p] = now
-            if (event.from.world != event.to.world || event.from.distanceSquared(event.to) >= 0.0625) {
+            if (event.from.world != event.to.world || event.from.distanceSquared(event.to) >= 1f / 128) {
                 RunningProviders.posMoveTime[p] = now
             }
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.LOWEST)
         fun onPlayerJoin(event: PlayerJoinEvent) {
             val p = event.player
             val now = System.currentTimeMillis()
@@ -144,7 +145,7 @@ object CoreController {
             RunningProviders.attackTime[p] = now
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.MONITOR)
         fun onPlayerQuit(event: PlayerQuitEvent) {
             val p = event.player
             RunningProviders.attackTime.unload(p)

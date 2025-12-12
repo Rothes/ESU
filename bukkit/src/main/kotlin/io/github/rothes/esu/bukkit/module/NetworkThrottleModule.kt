@@ -13,6 +13,7 @@ import java.util.*
 object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrottleModule.ModuleLang>() {
 
     init {
+        registerFeature(AfkEfficiency)
         registerFeature(ChunkDataThrottle)
         registerFeature(DynamicChunkSendRate)
         registerFeature(EntityCulling)

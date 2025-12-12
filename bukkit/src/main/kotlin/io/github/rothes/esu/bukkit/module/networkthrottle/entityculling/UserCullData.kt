@@ -1,15 +1,13 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
 import io.github.rothes.esu.bukkit.bootstrap
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager.raytraceHandler
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.util.PlayerEntityVisibilityHolder
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
-import io.github.rothes.esu.core.util.extension.math.square
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
 import it.unimi.dsi.fastutil.Hash
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -21,11 +19,12 @@ class UserCullData(
 ) {
 
     companion object {
-        val playerEntityVisibilityHandler by Versioned(PlayerEntityVisibilityHandler::class.java)
+        private val VISIBILITY_HANDLER by Versioned(PlayerEntityVisibilityHandler::class.java)
+        private val VALID_TESTER by Versioned(EntityValidTester::class.java)
     }
 
     @ApiStatus.Internal val lock = ReentrantLock()
-    private val hiddenEntities = Int2ReferenceOpenHashMap<Entity>(64, Hash.VERY_FAST_LOAD_FACTOR)
+    private val hiddenHolder = PlayerEntityVisibilityHolder(player, bootstrap, 64, Hash.FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
     private var isRemoved = false
@@ -35,10 +34,10 @@ class UserCullData(
 
     fun setCulled(entity: Entity, entityId: Int, culled: Boolean, pend: Boolean = true) {
         if (culled) {
-            if (hiddenEntities.put(entityId, entity) == null && pend)
+            if (hiddenHolder.map.put(entityId, entity) == null && pend)
                 pendCulledChange(entity, true)
         } else {
-            if (hiddenEntities.remove(entityId) != null && pend)
+            if (hiddenHolder.map.remove(entityId) != null && pend)
                 pendCulledChange(entity, false)
         }
     }
@@ -61,7 +60,7 @@ class UserCullData(
     fun onEntityRemove(entities: IntArray) {
         if (entities.isEmpty()) return
         for (i in entities) {
-            hiddenEntities.remove(i)
+            hiddenHolder.map.remove(i)
         }
     }
 
@@ -79,30 +78,14 @@ class UserCullData(
     }
 
     private fun reset() {
-        for (entity in hiddenEntities.values) {
+        for (entity in hiddenHolder.map.values) {
             pendCulledChange(entity, false)
         }
-        hiddenEntities.clear()
+        hiddenHolder.map.clear()
     }
 
     private fun checkEntitiesValid() {
-        try {
-            val raytraceHandler = raytraceHandler
-            val iterator = hiddenEntities.int2ReferenceEntrySet().iterator()
-            val playerLoc = player.location
-            for (entry in iterator) {
-                val entity = entry.value
-                var flag = !raytraceHandler.isValid(entity)
-                val loc = entity.location
-                if (loc.world != playerLoc.world || (playerLoc.x - loc.x).square() + (playerLoc.z - loc.z).square() > 1024 * 1024) {
-                    playerEntityVisibilityHandler.forceShowEntity(player, entity)
-                    flag = true
-                }
-                if (flag) iterator.remove()
-            }
-        } catch (e: Throwable) {
-            plugin.err("[EntityCulling] Failed to check entities valid for player ${player.name}", e)
-        }
+        hiddenHolder.checkEntitiesValid()
     }
 
     private fun updateChanges() {
@@ -113,14 +96,13 @@ class UserCullData(
 
         if (!player.connected) Bukkit.getPlayer(player.uniqueId)?.let { player = it }
         player.nextTick {
-            val raytraceHandler = raytraceHandler
             for (change in changes) {
-                if (!raytraceHandler.isValid(change.entity)) continue
+                if (!VALID_TESTER.isValid(change.entity)) continue
                 if (!change.entity.checkTickThread()) {
                     // Not on tick thread, we can only reflect to make changes,
                     // We don't need to update TrackedEntity cuz not same thread.
                     if (!change.culled) {
-                        playerEntityVisibilityHandler.forceShowEntity(player, change.entity)
+                        VISIBILITY_HANDLER.forceShowEntity(player, change.entity)
                     }
                     continue
                 }

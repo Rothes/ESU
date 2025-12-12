@@ -101,11 +101,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         removedEntities.add(entityHandleGetter.getHandle(entity).id)
     }
 
-    override fun isValid(bukkitEntity: org.bukkit.entity.Entity): Boolean {
-        val handle = entityHandleGetter.getHandle(bukkitEntity)
-        return handle.isAlive && handle.valid
-    }
-
     override fun onReload() {
         super.onReload()
         forceVisibleDistanceSquared = config.forceVisibleDistance * config.forceVisibleDistance
