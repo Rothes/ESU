@@ -122,7 +122,7 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
             val interval = config.updateIntervalTicks
             ticked += interval
 
-            task = player.delayedTick(interval, pl) {
+            task = player.delayedTick(interval) {
                 tick()
             } ?: error("Failed to schedule update task for player ${player.name}")
             return task
