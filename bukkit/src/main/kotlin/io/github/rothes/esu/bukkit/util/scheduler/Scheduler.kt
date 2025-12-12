@@ -1,13 +1,13 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
+import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
-import java.lang.reflect.Proxy
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
@@ -156,18 +156,6 @@ object Scheduler {
     /**
      * Create a wrapped plugin instance that bypasses "Plugin attempted to register task while disabled" check
      */
-    private fun Plugin.alwaysEnabled(): Plugin {
-        return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { _, method, args ->
-            when (method.name) {
-                "isEnabled" -> true
-                else -> {
-                    if (args == null)
-                        method.invoke(this)
-                    else
-                        method.invoke(this, args)
-                }
-            }
-        } as Plugin
-    }
+    private fun Plugin.alwaysEnabled(): Plugin = createChild(name = "$name (force-enabled)", forceEnabled = true)
 
 }
