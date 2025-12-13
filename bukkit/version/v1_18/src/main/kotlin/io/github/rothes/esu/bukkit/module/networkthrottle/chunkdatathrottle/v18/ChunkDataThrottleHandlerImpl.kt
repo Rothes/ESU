@@ -77,6 +77,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import java.io.ByteArrayInputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.io.path.fileSize
@@ -121,7 +122,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private val chunkSender by Versioned(ChunkSender::class.java)
 
     private val hotDataFile = NetworkThrottleModule.moduleFolder.resolve("minimalChunksData.tmp")
-    private val playerData = hashMapOf<Player, PlayerData>()
+    private val playerData = ConcurrentHashMap<Player, PlayerData>()
 
     private var previousNonInvisible: Set<Block>? = null
     private var wasEnabled = false
@@ -166,7 +167,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                             return@repeat
                         }
 
-                        val miniChunks = player.throttledChunks
+                        val miniChunks = player.throttledChunks!!
                         for (j in 0 until mapSize) {
                             val chunkKey = readLong()
                             val longArraySize = readInt()
@@ -264,7 +265,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     private val Player.throttledChunks
-        get() = playerData[this]!!.throttledChunks
+        get() = playerData[this]?.throttledChunks
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onMove(e: PlayerMoveEvent) {
@@ -730,7 +731,10 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private fun checkChunkBlockUpdate(player: Player, nms: ServerPlayer, level: ServerLevel, fullUpdateThreshold: Int,
                                       chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
-        val throttledChunks = player.throttledChunks
+        val throttledChunks = player.throttledChunks ?: let {
+            plugin.warn("[ChunkDataThrottle] Failed to get player data ${player.name}")
+            return
+        }
         val playerChunk = throttledChunks.get(chunkKey)
         if (playerChunk == null || playerChunk === FULL_CHUNK) return
 
@@ -849,7 +853,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 when (event.packetType) {
                     PacketType.Play.Server.UNLOAD_CHUNK       -> {
                         val wrapper = WrapperPlayServerUnloadChunk(event)
-                        event.getPlayer<Player>().throttledChunks.remove(getChunkKey(wrapper.chunkX, wrapper.chunkZ))
+                        event.getPlayer<Player>().throttledChunks?.remove(getChunkKey(wrapper.chunkX, wrapper.chunkZ))
                     }
 
                     PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
