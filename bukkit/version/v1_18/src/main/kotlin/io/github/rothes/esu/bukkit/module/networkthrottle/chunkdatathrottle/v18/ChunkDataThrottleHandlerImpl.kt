@@ -44,7 +44,6 @@ import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.core.util.extension.readUuid
 import io.github.rothes.esu.core.util.extension.writeUuid
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
-import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
@@ -167,7 +166,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                             return@repeat
                         }
 
-                        val miniChunks = player.throttledChunks!!
+                        val throttledChunks = player.throttledChunks!!
                         for (j in 0 until mapSize) {
                             val chunkKey = readLong()
                             val longArraySize = readInt()
@@ -176,7 +175,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                                 continue
                             }
                             val longArray = LongArray(longArraySize) { readLong() }
-                            miniChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(longArray)))
+                            throttledChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(longArray)))
                         }
                     }
                 }
@@ -709,6 +708,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
+        val throttledChunks = player.throttledChunks ?: let {
+            plugin.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
+            return
+        }
+
         val fullUpdateThreshold = config.thresholdToResentWholeChunk
         val updateDistance = config.updateDistance
 
@@ -725,16 +729,12 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val level = levelHandler.level(nms)
 
         for ((chunkKey, blocks) in groups) {
-            checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, chunkKey, blocks, minHeight)
+            checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, throttledChunks, chunkKey, blocks, minHeight)
         }
     }
 
     private fun checkChunkBlockUpdate(player: Player, nms: ServerPlayer, level: ServerLevel, fullUpdateThreshold: Int,
-                                      chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
-        val throttledChunks = player.throttledChunks ?: let {
-            plugin.warn("[ChunkDataThrottle] Failed to get player data ${player.name}")
-            return
-        }
+                                      throttledChunks: Long2ObjectMap<PlayerData.PlayerChunk>, chunkKey: Long, blocks: List<BlockPos>, minHeight: Int) {
         val playerChunk = throttledChunks.get(chunkKey)
         if (playerChunk == null || playerChunk === FULL_CHUNK) return
 
@@ -772,7 +772,9 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         counter.resentBlocks += updates.size
 
         // Check if it's necessary to send a full chunk after updating nearby blocks.
-        // Sending a full chunk may make player falling down stuck for a short moment.
+        // Sending a full chunk may make player falling down stuck for a short moment,
+        // cuz it's slow to build a packet.
+        // But if it's following by a block update packet it's unnoticeable.
         if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
             try {
                 throttledChunks.put(chunkKey, FULL_CHUNK)
@@ -943,7 +945,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private class PlayerData(
         @JvmField
-        val throttledChunks: Long2ObjectMap<PlayerChunk> = Long2ObjectOpenHashMap(32, Hash.VERY_FAST_LOAD_FACTOR),
+        val throttledChunks: Long2ObjectMap<PlayerChunk> = Long2ObjectOpenHashMap(32, 0.4f),
         @JvmField
         var bvArr: ByteArray = ByteArray(0),
         @JvmField
