@@ -17,9 +17,7 @@ abstract class BukkitUser: User {
     override val audience: Audience by lazy {
         commandSender.audience
     }
-    private val tagResolvers by lazy {
-        User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this))
-    }
+    private val tagResolvers = User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this))
 
     override fun getTagResolvers(): Iterable<TagResolver> {
         return tagResolvers
