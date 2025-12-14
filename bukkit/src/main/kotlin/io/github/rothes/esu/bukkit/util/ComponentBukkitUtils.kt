@@ -34,6 +34,10 @@ object ComponentBukkitUtils {
 
     fun papi(user: User): TagResolver {
         val player = if (user is PlayerUser) user.player else null
+        return papi(player)
+    }
+
+    fun papi(player: Player?): TagResolver {
         return TagResolver.resolver(PAPI_TAG_NAMES) { arg, context ->
             val papi = arg.popOr("One argument expected for papi tag").value()
             if (HAS_PLACEHOLDER_API) {
