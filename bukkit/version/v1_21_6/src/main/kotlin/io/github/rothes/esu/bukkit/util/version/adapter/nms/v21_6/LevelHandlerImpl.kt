@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 
-class LevelHandlerImpl: LevelHandler {
+object LevelHandlerImpl: LevelHandler {
 
     override fun level(player: ServerPlayer): ServerLevel {
         return player.level()

@@ -2,7 +2,6 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.command.EsuBukkitCommandManager
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
-import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.*
@@ -165,7 +164,6 @@ class EsuPluginBukkit(
 
         Bukkit.getOnlinePlayers().forEach { it.updateCommands() }
         InternalListeners // Init
-        UserLoginEvent // Init
 
         Metrics(bootstrap, 24645) // bStats
         Scheduler.global {

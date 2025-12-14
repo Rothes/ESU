@@ -1,13 +1,10 @@
 package io.github.rothes.esu.bukkit.event.internal
 
 import io.github.rothes.esu.bukkit.UpdateCheckerMan
-import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
+import io.github.rothes.esu.bukkit.event.*
 import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent.Companion.EMOTE_COMMANDS
-import io.github.rothes.esu.bukkit.event.RawUserReplyEvent
 import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMANDS
-import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
-import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
@@ -32,6 +29,10 @@ internal object InternalListeners : Listener {
 
     init {
         register()
+
+        // Init event listeners
+        UserLoginEvent
+        UserTrackEntityEvent
     }
 
     /* User data loading */
