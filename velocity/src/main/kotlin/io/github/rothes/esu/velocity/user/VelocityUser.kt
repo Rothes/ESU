@@ -7,10 +7,12 @@ import io.github.rothes.esu.lib.adventure.audience.Audience
 
 abstract class VelocityUser: User {
 
+    private var _audience: Audience? = null
+
     abstract override val commandSender: CommandSource
-    override val audience: Audience by lazy {
-        MappedAudience(commandSender)
-    }
+
+    override val audience: Audience
+        get() = _audience ?: MappedAudience(commandSender).also { _audience = it }
 
     override var language: String?
         get() = languageUnsafe ?: clientLocale

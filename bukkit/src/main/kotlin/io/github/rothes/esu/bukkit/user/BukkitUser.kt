@@ -13,11 +13,12 @@ import org.bukkit.inventory.ItemStack
 
 abstract class BukkitUser: User {
 
-    abstract override val commandSender: CommandSender
-    override val audience: Audience by lazy {
-        commandSender.audience
-    }
+    private var _audience: Audience? = null
     private var _tagResolvers: List<TagResolver>? = null
+
+    abstract override val commandSender: CommandSender
+    override val audience: Audience
+        get() = _audience ?: commandSender.audience.also { _audience = it }
 
     override fun getTagResolvers(): Iterable<TagResolver> {
         return _tagResolvers ?: User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(null)).also { _tagResolvers = it }
