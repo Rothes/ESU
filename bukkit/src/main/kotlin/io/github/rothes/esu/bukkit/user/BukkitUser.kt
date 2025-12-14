@@ -17,10 +17,10 @@ abstract class BukkitUser: User {
     override val audience: Audience by lazy {
         commandSender.audience
     }
-    private val tagResolvers = User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this))
+    private var _tagResolvers: List<TagResolver>? = null
 
     override fun getTagResolvers(): Iterable<TagResolver> {
-        return tagResolvers
+        return _tagResolvers ?: User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(null)).also { _tagResolvers = it }
     }
 
     override var language: String?
