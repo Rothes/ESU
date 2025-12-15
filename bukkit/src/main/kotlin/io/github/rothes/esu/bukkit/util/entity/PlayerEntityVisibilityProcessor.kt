@@ -57,14 +57,15 @@ abstract class PlayerEntityVisibilityProcessor(
 
     open fun update() {
         val loc = player.location
-        val maxDist = ((player.sendViewDistance + 1) shl 4).square()
+        val viewDist = player.sendViewDistance + 1 // Add 1 to debounce
+        val maxSqrDist = (viewDist shl 4).square() shl 1 // Diagonal
         val hidden = hiddenEntities.iterator()
         val tracking = trackingEntities.iterator()
-        updateQueue(hidden, true, loc, maxDist)
-        updateQueue(tracking, false, loc, maxDist)
+        updateQueue(hidden, true, loc, maxSqrDist)
+        updateQueue(tracking, false, loc, maxSqrDist)
     }
 
-    private fun updateQueue(iterator: MutableIterator<Entity>, isHiddenQueue: Boolean, playerLoc: Location, maxDist: Int) {
+    private fun updateQueue(iterator: MutableIterator<Entity>, isHiddenQueue: Boolean, playerLoc: Location, maxSqrDist: Int) {
         for (entity in iterator) {
             if (!VALID_TESTER.isValid(entity)) {
                 // The entity has been removed from the world
@@ -79,7 +80,7 @@ abstract class PlayerEntityVisibilityProcessor(
                 continue
             }
             val xzDist = (playerLoc.x - other.x).square() + (playerLoc.z - other.z).square()
-            if (xzDist > maxDist) {
+            if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
                 VISIBILITY_HANDLER.showEntity(player, entity, plugin)
                 iterator.remove()
