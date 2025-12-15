@@ -96,6 +96,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     checkCancel(e, config.globalPackets.timeUpdate)
                 }
                 PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
+                    if (!e.getPlayer<Player>().isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
                     val actions = EnumSet.copyOf(wrapper.actions)
                     if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
@@ -105,6 +106,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     }
                 }
                 PacketType.Play.Server.PLAYER_INFO -> {
+                    if (!e.getPlayer<Player>().isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfo(e)
                     when (wrapper.action) {
                         WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateLatency)
