@@ -9,8 +9,13 @@ afk-efficiency:
     visible-entity-distance:
     # 更新玩家附近实体的游戏刻间隔。
     update-interval-ticks:
-    # 清理玩家已隐藏实体缓存的游戏刻间隔。
-    invalidate-valid-ticks:
+  limited-packet:
+    # 限制距离玩家较远的世界更新数据包。
+    # 设置为 -1 以禁用特定数据包类型的修改，0 以取消所有特定类型的数据包，
+    #  或者根据玩家与数据包的产生点距离判定玩家是否可接收此数据包。
+    ranged-packets:
+    # 设为 false 以取消特定数据包类型。
+    global-packets:
 # 有助于降低区块上传带宽。插件会压缩区块数据包中的不可见的方块数据。
 # 在必要时，再次发送完整的区块数据。
 # 平均可以节省约 50% 的主世界带宽使用量和 30% 的下界带宽使用量。
