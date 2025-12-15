@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.util
+package io.github.rothes.esu.bukkit.util.entity
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
@@ -12,7 +12,11 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.util.logging.Level
 
-class PlayerEntityVisibilityHolder(
+/**
+ * Map based EntityVisibilityHolder. Deprecated in favor of PlayerEntityVisibilityProcessor.
+ *
+ */
+class MapPlayerEntityVisibilityHolder(
     val player: Player,
     val plugin: Plugin,
     expected: Int = 16,

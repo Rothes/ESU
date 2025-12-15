@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
 import io.github.rothes.esu.bukkit.bootstrap
-import io.github.rothes.esu.bukkit.util.PlayerEntityVisibilityHolder
+import io.github.rothes.esu.bukkit.util.entity.MapPlayerEntityVisibilityHolder
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
@@ -24,7 +24,7 @@ class UserCullData(
     }
 
     @ApiStatus.Internal val lock = ReentrantLock()
-    private val hiddenHolder = PlayerEntityVisibilityHolder(player, bootstrap, 64, Hash.FAST_LOAD_FACTOR)
+    private val hiddenHolder = MapPlayerEntityVisibilityHolder(player, bootstrap, 64, Hash.FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
     private var isRemoved = false
