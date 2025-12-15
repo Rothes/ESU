@@ -17,6 +17,7 @@ import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.util.extension.math.square
 import org.bukkit.Location
 import org.bukkit.entity.Player
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -94,6 +95,23 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                 PacketType.Play.Server.TIME_UPDATE -> {
                     checkCancel(e, config.globalPackets.timeUpdate)
                 }
+                PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
+                    val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
+                    val actions = EnumSet.copyOf(wrapper.actions)
+                    if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
+                    if (!config.globalPackets.playerInfoUpdate.updateGameMode) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE)
+                    if (actions.isEmpty()) {
+                        e.isCancelled = true
+                    }
+                }
+                PacketType.Play.Server.PLAYER_INFO -> {
+                    val wrapper = WrapperPlayServerPlayerInfo(e)
+                    when (wrapper.action) {
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateLatency)
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateGameMode)
+                        else -> {}
+                    }
+                }
             }
         }
 
@@ -167,7 +185,13 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
 
         data class GlobalPackets(
             val timeUpdate: Boolean = true,
-        )
+            val playerInfoUpdate: PlayerInfoUpdate = PlayerInfoUpdate(),
+        ) {
+            data class PlayerInfoUpdate(
+                val updateGameMode: Boolean = true,
+                val updateLatency: Boolean = false,
+            )
+        }
 
     }
 
