@@ -18,8 +18,8 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration

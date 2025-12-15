@@ -7,7 +7,7 @@ import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMA
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.core.storage.StorageManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

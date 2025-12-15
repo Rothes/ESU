@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit.module.core
 
 import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.util.extension.readUuid
 import io.github.rothes.esu.core.util.extension.writeUuid
 import kotlinx.io.*

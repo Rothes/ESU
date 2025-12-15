@@ -7,9 +7,9 @@ import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.config.EsuConfig

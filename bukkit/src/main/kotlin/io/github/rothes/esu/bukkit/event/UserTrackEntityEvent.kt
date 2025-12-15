@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.event
 
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler

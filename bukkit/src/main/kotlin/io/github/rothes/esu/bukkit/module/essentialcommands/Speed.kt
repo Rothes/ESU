@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData

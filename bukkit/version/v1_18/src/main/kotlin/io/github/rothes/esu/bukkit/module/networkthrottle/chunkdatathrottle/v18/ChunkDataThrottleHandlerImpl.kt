@@ -28,8 +28,8 @@ import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester

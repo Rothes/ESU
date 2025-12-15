@@ -5,8 +5,8 @@ import io.github.rothes.esu.bukkit.event.RawUserChatEvent
 import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.core.configuration.ConfigLoader

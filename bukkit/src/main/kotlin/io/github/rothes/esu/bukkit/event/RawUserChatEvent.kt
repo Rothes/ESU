@@ -1,13 +1,15 @@
 package io.github.rothes.esu.bukkit.event
 
 import io.github.rothes.esu.bukkit.legacy
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
+import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.lib.adventure.text.Component
+import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.entity.Player
 import org.bukkit.event.*
+import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerEvent
 
 class RawUserChatEvent(
@@ -49,60 +51,60 @@ class RawUserChatEvent(
             }
 
             try {
-                io.papermc.paper.event.player.AsyncChatEvent::class.java.toString()
+                AsyncChatEvent::class.java.toString()
                 object : Listener {
-                    fun callPaper(event: io.papermc.paper.event.player.AsyncChatEvent, priority: EventPriority) {
+                    fun callPaper(event: AsyncChatEvent, priority: EventPriority) {
                         val esu = callChatEvent(event, event.message().esu, priority)
                         if (esu.changed) event.message(esu.message.server)
                     }
 
                     @EventHandler(priority = EventPriority.LOWEST)
-                    fun onChat0(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                    fun onChat0(event: AsyncChatEvent) {
                         callPaper(event, EventPriority.LOWEST)
                     }
                     @EventHandler(priority = EventPriority.LOW)
-                    fun onChat1(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                    fun onChat1(event: AsyncChatEvent) {
                         callPaper(event, EventPriority.LOW)
                     }
                     @EventHandler(priority = EventPriority.NORMAL)
-                    fun onChat2(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                    fun onChat2(event: AsyncChatEvent) {
                         callPaper(event, EventPriority.NORMAL)
                     }
                     @EventHandler(priority = EventPriority.HIGH)
-                    fun onChat3(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                    fun onChat3(event: AsyncChatEvent) {
                         callPaper(event, EventPriority.HIGH)
                     }
                     @EventHandler(priority = EventPriority.HIGHEST)
-                    fun onChat4(event: io.papermc.paper.event.player.AsyncChatEvent) {
+                    fun onChat4(event: AsyncChatEvent) {
                         callPaper(event, EventPriority.HIGHEST)
                     }
                 }
             } catch (_: NoClassDefFoundError) {
                 @Suppress("DEPRECATION")
                 object : Listener {
-                    fun callCb(event: org.bukkit.event.player.AsyncPlayerChatEvent, priority: EventPriority) {
+                    fun callCb(event: AsyncPlayerChatEvent, priority: EventPriority) {
                         val esu = callChatEvent(event, event.message.legacy, priority)
                         if (esu.changed) event.message = esu.message.legacy
                     }
 
                     @EventHandler(priority = EventPriority.LOWEST)
-                    fun onChat0(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                    fun onChat0(event: AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.LOWEST)
                     }
                     @EventHandler(priority = EventPriority.LOW)
-                    fun onChat1(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                    fun onChat1(event: AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.LOW)
                     }
                     @EventHandler(priority = EventPriority.NORMAL)
-                    fun onChat2(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                    fun onChat2(event: AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.NORMAL)
                     }
                     @EventHandler(priority = EventPriority.HIGH)
-                    fun onChat3(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                    fun onChat3(event: AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.HIGH)
                     }
                     @EventHandler(priority = EventPriority.HIGHEST)
-                    fun onChat4(event: org.bukkit.event.player.AsyncPlayerChatEvent) {
+                    fun onChat4(event: AsyncPlayerChatEvent) {
                         callCb(event, EventPriority.HIGHEST)
                     }
                 }

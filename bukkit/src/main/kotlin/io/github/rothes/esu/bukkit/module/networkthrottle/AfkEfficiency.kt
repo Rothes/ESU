@@ -6,8 +6,8 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.AfkEffic
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.EntityTrackingEfficiency
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment

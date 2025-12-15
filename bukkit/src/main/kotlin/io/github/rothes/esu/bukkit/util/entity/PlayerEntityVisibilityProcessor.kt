@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.util.entity
 import io.github.rothes.esu.bukkit.event.UserTrackEntityEvent
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.bukkit.util.collect.FastIteLinkedQueue
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.register
-import io.github.rothes.esu.bukkit.util.extension.ListenerExt.unregister
+import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
