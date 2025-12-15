@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.FeatureConfig, Unit>() {
 
     private val playerData = ConcurrentHashMap<Player, VisibilityProcessor>()
-    private val pl = bootstrap.createChild(name = "$name-EntityTrackingEfficiency")
+    private val pl = bootstrap.createChild(name = "${bootstrap.name}-$name")
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
