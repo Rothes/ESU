@@ -130,11 +130,12 @@ object Scheduler {
         return schedule(this, plugin.alwaysEnabled(), func)
     }
 
-    fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit) {
-        if (checkTickThread())
+    fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+        if (checkTickThread()) {
             func()
-        else
-            schedule(this, plugin.alwaysEnabled(), func) ?: error("Failed to schedule task for entity $this")
+            return null
+        }
+        return schedule(this, plugin.alwaysEnabled(), func) ?: error("Failed to schedule task for entity $this")
     }
 
     fun Entity.delayedTick(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
