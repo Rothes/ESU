@@ -88,9 +88,9 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         }
 
         @Synchronized
-        fun reschedule(delta: Long = CoreModule.providers.posMoveTime[player]) {
+        fun reschedule(lastAction: Long = CoreModule.providers.posMoveTime[player]) {
             cancel()
-            afkTask = createAfkTask(delta)
+            afkTask = createAfkTask(lastAction)
         }
 
         @Synchronized
@@ -136,9 +136,9 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
             reschedule(delta)
         }
 
-        private fun createAfkTask(delta: Long): Job {
+        private fun createAfkTask(lastAction: Long): Job {
             return coroutineScope.launch {
-                val afkTime = System.currentTimeMillis() - delta
+                val afkTime = System.currentTimeMillis() - lastAction
                 delay(config.afkDuration.toMillis() - afkTime)
                 if (!isActive) return@launch
                 enableEfficiency()
