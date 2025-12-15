@@ -68,7 +68,7 @@ object CoreController {
 
         fun saveData() {
             try {
-                if (!plugin.disabledHot) return
+                if (!plugin.isEnabled && !plugin.disabledHot) return
                 hotData.outputStream(StandardOpenOption.CREATE).use { stream ->
                     Buffer().apply {
                         writeByte(DATA_VERSION)
