@@ -26,12 +26,9 @@ class UserTrackEntityEvent(
     val entity: Entity
 ): PlayerEvent(player, false), CancellableKt {
 
-    val user by lazy { player.user }
+    val user by lazy(LazyThreadSafetyMode.NONE) { player.user }
 
-    override var cancelledKt: Boolean
-        get() = isCancelled
-        set(value) { isCancelled = value }
-
+    override var cancelledKt: Boolean = false
 
     override fun getHandlers(): HandlerList = Companion.handlers
 
