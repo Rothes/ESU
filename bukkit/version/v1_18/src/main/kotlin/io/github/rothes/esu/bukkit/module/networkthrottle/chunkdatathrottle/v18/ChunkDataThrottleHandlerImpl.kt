@@ -132,6 +132,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     override fun onEnable() {
+        val firstEnable = !wasEnabled
         wasEnabled = true
         buildCache()
         for (player in Bukkit.getOnlinePlayers()) {
@@ -184,8 +185,10 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         } catch (e: Exception) {
             plugin.err("Failed to load hotData", e)
         }
-        PacketEvents.getAPI().eventManager.registerListener(PacketListener)
-        register()
+        if (firstEnable) {
+            PacketEvents.getAPI().eventManager.registerListener(PacketListener)
+            register()
+        }
     }
 
     override fun onTerminate() {
