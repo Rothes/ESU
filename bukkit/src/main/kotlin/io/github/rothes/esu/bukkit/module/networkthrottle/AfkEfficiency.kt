@@ -4,6 +4,7 @@ import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.module.core.PlayerTimeProvider
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.AfkEfficiencyFeature
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.EntityTrackingEfficiency
+import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.LimitedPacketEfficiency
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.register
@@ -38,6 +39,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
 
     init {
         registerFeature(EntityTrackingEfficiency)
+        registerFeature(LimitedPacketEfficiency)
     }
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
