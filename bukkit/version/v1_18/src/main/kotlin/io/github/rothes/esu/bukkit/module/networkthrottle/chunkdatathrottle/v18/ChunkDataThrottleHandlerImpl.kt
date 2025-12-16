@@ -191,6 +191,11 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         }
     }
 
+    override fun onDisable() {
+        super.onDisable()
+        previousNonInvisible = null
+    }
+
     override fun onTerminate() {
         super.onTerminate()
         if (!wasEnabled) return
@@ -236,24 +241,24 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     }
 
     private fun buildCache() {
-        if (previousNonInvisible != config.nonInvisibleBlocksOverrides) {
+        val nonInvisibleNew = config.nonInvisibleBlocksOverrides
+        if (previousNonInvisible != nonInvisibleNew) {
             val occludeTester = BlockOccludeTester::class.java.versioned()
-            val nonInvisible = config.nonInvisibleBlocksOverrides
             val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
             val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
                 val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!
                 val block = blockState.block
                 val value =
                     if (block == Blocks.LAVA) BV_LAVA_COVERED
-                    else if (nonInvisible.contains(block)) false.toByte()
+                    else if (nonInvisibleNew.contains(block)) false.toByte()
                     else occludeTester.isFullOcclude(blockState).toByte()
                 bs.put(blockState, value)
                 value
             }
             BLOCKS_VIEW_BS = bs
             BLOCKS_VIEW = id
-            previousNonInvisible = nonInvisible
         }
+        previousNonInvisible = nonInvisibleNew
     }
 
     @EventHandler
