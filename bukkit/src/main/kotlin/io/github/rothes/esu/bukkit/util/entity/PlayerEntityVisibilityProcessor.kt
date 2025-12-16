@@ -133,6 +133,7 @@ abstract class PlayerEntityVisibilityProcessor(
         @EventHandler
         fun onTrackEntity(e: UserTrackEntityEvent) {
             if (e.player !== player) return
+            if (e.entity is Player) return // Do not hide players, while remove them from tab list
             if (shouldHide(e.entity)) {
                 hiddenEntities.add(e.entity)
                 player.hideEntity(plugin, e.entity)
