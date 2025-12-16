@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerTeleportEvent
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
@@ -157,6 +158,13 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         @EventHandler
         fun onQuit(event: PlayerQuitEvent) {
             playerMap.remove(event.player)?.shutdown()
+        }
+
+        @EventHandler
+        fun onSpectate(event: PlayerTeleportEvent) {
+            if (event.cause != PlayerTeleportEvent.TeleportCause.SPECTATE) return
+            // We don't want a player goes into efficiency mode while spectating others
+            playerMap[event.player]?.cancel()
         }
     }
 
