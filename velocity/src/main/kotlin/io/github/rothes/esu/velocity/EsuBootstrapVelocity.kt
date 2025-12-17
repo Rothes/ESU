@@ -36,8 +36,8 @@ import java.nio.file.Path
 class EsuBootstrapVelocity @Inject constructor(
     val server: ProxyServer,
     val logger: Logger,
-    @DataDirectory val dataDirectory: Path,
-    @Named("esu") val container: PluginContainer,
+    @param:DataDirectory val dataDirectory: Path,
+    @param:Named("esu") val container: PluginContainer,
     val metricsFactory: Metrics.Factory
 ): EsuBootstrap {
 

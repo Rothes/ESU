@@ -9,7 +9,6 @@ import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.component.CommandComponent
-import org.incendo.cloud.internal.CommandNode
 import org.incendo.cloud.kotlin.MutableCommandBuilder
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import java.lang.reflect.ParameterizedType
@@ -40,7 +39,7 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
                 typeMap[(type.rawType as Class<*>).typeParameters[0].name] = type.actualTypeArguments[0]
             }
             clazz = clazz.superclass
-            if (clazz === Object::class.java) {
+            if (clazz === Any::class.java) {
                 @Suppress("USELESS_ELVIS") // In case of name is overridden, name is not init yet
                 error("Cannot find config/lang classes of feature ${name ?: javaClass.simpleName}")
             }
@@ -133,7 +132,7 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
                         deleteRootCommand(it.rootComponent().name())
                 } else {
                     @Suppress("UNCHECKED_CAST")
-                    var node = commandTree().rootNode() as CommandNode<User>
+                    var node = commandTree().rootNode()
                     for (component in components) {
                         node = node.getChild(component as CommandComponent<User>) ?: return@forEach
                     }

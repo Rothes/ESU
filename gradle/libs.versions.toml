@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 adventure = "4.25.0"
 bstats = "3.1.0"
 exposed = "1.0.0-rc-1"
