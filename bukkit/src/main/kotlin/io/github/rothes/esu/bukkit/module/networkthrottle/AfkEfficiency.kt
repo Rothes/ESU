@@ -1,5 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
+import com.destroystokyo.paper.event.player.PlayerStartSpectatingEntityEvent
+import com.destroystokyo.paper.event.player.PlayerStopSpectatingEntityEvent
 import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.module.core.PlayerTimeProvider
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.AfkEfficiencyFeature
@@ -7,6 +9,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.EntityTr
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.LimitedPacketEfficiency
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -20,6 +23,7 @@ import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -64,12 +68,14 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
             playerMap[player] = PlayerHolder(player)
         }
         PlayerListeners.register()
+        SpectateListeners.listener.register()
         CoreModule.providers.posMoveTime.registerListener(PlayerMoveListener)
     }
 
     override fun onDisable() {
         super.onDisable()
         PlayerListeners.unregister()
+        SpectateListeners.listener.unregister()
         CoreModule.providers.posMoveTime.unregisterListener(PlayerMoveListener)
         for (holder in playerMap.values) {
             holder.shutdown()
@@ -159,13 +165,32 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         fun onQuit(event: PlayerQuitEvent) {
             playerMap.remove(event.player)?.shutdown()
         }
+    }
 
-        @EventHandler
-        fun onSpectate(event: PlayerTeleportEvent) {
-            if (event.cause != PlayerTeleportEvent.TeleportCause.SPECTATE) return
-            // We don't want a player goes into efficiency mode while spectating others
-            playerMap[event.player]?.cancel()
+    // We don't want a player goes into efficiency mode while spectating others, this listener is to solve the issue.
+    private object SpectateListeners {
+
+        val listener = if (ServerCompatibility.isPaper) Paper else CB
+
+        private object CB: Listener {
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            fun onSpectate(event: PlayerTeleportEvent) {
+                if (event.cause != PlayerTeleportEvent.TeleportCause.SPECTATE) return
+                playerMap[event.player]?.cancel()
+            }
         }
+
+        private object Paper: Listener {
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            fun onSpectate(event: PlayerStartSpectatingEntityEvent) {
+                playerMap[event.player]?.cancel()
+            }
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            fun onSpectate(event: PlayerStopSpectatingEntityEvent) {
+                playerMap[event.player]?.reschedule()
+            }
+        }
+
     }
 
     private object PlayerMoveListener: PlayerTimeProvider.ChangeListener {
