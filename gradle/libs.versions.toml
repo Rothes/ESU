@@ -2,13 +2,13 @@
 kotlin = "2.3.0"
 adventure = "4.25.0"
 bstats = "3.1.0"
-exposed = "1.0.0-rc-1"
+exposed = "1.0.0-rc-4"
 h2database = "2.2.224"
-hikariCP = "7.0.1"
-kotlinx-io-core = "0.8.0"
+hikariCP = "7.0.2"
+kotlinx-io-core = "0.8.2"
 mariadb-client = "3.5.6"
-nbt-api = "2.15.3"
-packetevents = "2.10.0"
+nbt-api = "2.15.5"
+packetevents = "2.11.0"
 
 [libraries]
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
