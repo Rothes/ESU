@@ -1,8 +1,8 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v20
+package io.github.rothes.esu.bukkit.util.version.adapter.v20
 
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import io.github.rothes.esu.core.util.UnsafeUtils.usNullableObjAccessor
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer
