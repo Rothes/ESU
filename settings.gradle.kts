@@ -5,7 +5,7 @@ include("module:off-heap-memory")
 
 include("core")
 include("core:dep-core")
-include("core:dep-impl-core")
+include("core:dep-core-impl")
 include("common")
 
 include("bukkit")

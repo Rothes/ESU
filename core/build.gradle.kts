@@ -10,7 +10,7 @@ dependencies {
     compileOnlyApi(libs.kotlinx.io.core)
 
     compileOnlyApi(project(":core:dep-core", configuration = "shadow"))
-    api(project(":core:dep-impl-core", configuration = "shadow"))
+    api(project(":core:dep-core-impl", configuration = "shadow"))
 
     compileOnlyApi(libs.exposed.core)
     compileOnlyApi(libs.exposed.jdbc)
