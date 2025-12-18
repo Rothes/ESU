@@ -17,9 +17,9 @@ dependencies {
 subprojects {
     apply(plugin = "io.papermc.paperweight.userdev")
 
-    val isBase = name == "base"
+    val isRemapped = name == "remapped"
 
-    val serverVer = if (isBase)
+    val serverVer = if (isRemapped)
         rootProject.property("targetMinecraftVersion").toString()
     else
         project.name.substring(1).replace('_', '.')
@@ -28,9 +28,9 @@ subprojects {
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:module:bukkit-modules-bom"))
-        if (!isBase) {
+        if (!isRemapped) {
             compileOnly(project(":bukkit"))
-            compileOnly(project(":bukkit:version:base"))
+            compileOnly(project(":bukkit:version:remapped"))
         }
     }
 
@@ -51,7 +51,7 @@ subprojects {
         }
     }
 
-    if (isBase) {
+    if (isRemapped) {
         publishing {
             repositories {
                 mavenLocal()
