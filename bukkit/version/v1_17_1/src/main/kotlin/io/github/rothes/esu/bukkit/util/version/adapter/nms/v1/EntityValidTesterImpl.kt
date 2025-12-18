@@ -14,4 +14,8 @@ object EntityValidTesterImpl: EntityValidTester {
         return handle.isAlive && handle.valid
     }
 
+    override fun isValid(entity: net.minecraft.world.entity.Entity): Boolean {
+        return entity.isAlive && entity.valid
+    }
+
 }

@@ -1,11 +1,13 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
-import org.bukkit.entity.Entity
+import net.minecraft.world.entity.Entity
+import org.bukkit.entity.Entity as BukkitEntity
 
 interface EntityValidTester {
 
-    operator fun get(bukkitEntity: Entity): Boolean = isValid(bukkitEntity)
+    operator fun get(bukkitEntity: BukkitEntity): Boolean = isValid(bukkitEntity)
 
-    fun isValid(bukkitEntity: Entity): Boolean
+    fun isValid(bukkitEntity: BukkitEntity): Boolean
+    fun isValid(entity: Entity): Boolean
 
 }
