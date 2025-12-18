@@ -30,7 +30,7 @@ abstract class PlayerEntityVisibilityProcessor(
     private val listener = TrackListener()
 
     val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
-    val trackAllowedBuffer = IntOpenHashSet() // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
+    val trackAllowedBuffer = IntOpenHashSet(4) // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
 
     abstract val updateIntervalTicks: Long
 
@@ -47,11 +47,8 @@ abstract class PlayerEntityVisibilityProcessor(
                     // UserTrackEntityEvent triggers when it starts to track.
                     if (UserTrackEntityEvent.FULL_SUPPORT && !entity.trackedBy.contains(player)) continue
 
-                    val hidden = shouldHideDefault(entity)
-                    if (hidden) {
-                        player.hideEntity(plugin, entity)
-                    }
-                    trackedEntities.add(TrackedEntity(entity, hidden))
+                    // We don't process visibility here; Let #update() do it.
+                    trackedEntities.add(TrackedEntity(entity))
                 }
             }
             listener.register(plugin)
