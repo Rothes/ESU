@@ -4,7 +4,6 @@ import io.github.rothes.esu.bukkit.UpdateCheckerMan
 import io.github.rothes.esu.bukkit.event.*
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
@@ -161,7 +160,7 @@ internal object InternalListeners : Listener {
     }
 
     private object Dynamic {
-        val userTrackEntityListeners = if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= 19) {
+        val userTrackEntityListeners = if (UserTrackEntityEvent.FULL_SUPPORT) {
             object : Listener {
                 // The only one uses EventPriority.HIGHEST while we are modifying the result
                 @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

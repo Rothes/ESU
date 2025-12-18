@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.event
 
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
@@ -20,6 +21,7 @@ class UserTrackEntityEvent(
     companion object {
 
         private val handlers = HandlerList()
+        val FULL_SUPPORT = ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= 19
 
         @JvmStatic
         fun getHandlerList(): HandlerList = handlers

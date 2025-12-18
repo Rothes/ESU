@@ -8,10 +8,11 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
-import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -27,27 +28,28 @@ abstract class PlayerEntityVisibilityProcessor(
     @Volatile private var task: ScheduledTask? = null
     private val listener = TrackListener()
 
-    val trackingEntities = FastIteLinkedQueue<Entity>()
-    val hiddenEntities = FastIteLinkedQueue<Entity>()
+    val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
 
     abstract val updateIntervalTicks: Long
 
-    open fun shouldHide(entity: Entity): Boolean = shouldHide(entity, entity.location.distanceSquared(player.location))
+    open fun shouldHideDefault(entity: Entity): Boolean = true
     abstract fun shouldHide(entity: Entity, distSqr: Double): Boolean
 
     fun start() {
         task = player.syncTick {
-            val loc = player.location
             for (chunk in player.sentChunks) {
                 val entities = chunk.entities
                 for (entity in entities) {
                     if (entity is Player) continue
-                    if (shouldHide(entity, entity.location.distanceSquared(loc))) {
-                        hiddenEntities.add(entity)
+                    // If FULL_SUPPORT, we don't need to add this entity to queue.
+                    // UserTrackEntityEvent triggers when it starts to track.
+                    if (UserTrackEntityEvent.FULL_SUPPORT && !entity.trackedBy.contains(player)) continue
+
+                    val hidden = shouldHideDefault(entity)
+                    if (hidden) {
                         player.hideEntity(plugin, entity)
-                    } else {
-                        trackingEntities.add(entity)
                     }
+                    trackedEntities.add(TrackedEntity(entity, hidden))
                 }
             }
             listener.register(plugin)
@@ -56,48 +58,46 @@ abstract class PlayerEntityVisibilityProcessor(
     }
 
     open fun update() {
-        val loc = player.location
         val viewDist = player.sendViewDistance + 1 // Add 1 to debounce
         val maxSqrDist = (viewDist shl 4).square() shl 1 // Diagonal
-        val hidden = hiddenEntities.iterator()
-        val tracking = trackingEntities.iterator()
-        updateQueue(hidden, true, loc, maxSqrDist)
-        updateQueue(tracking, false, loc, maxSqrDist)
-    }
 
-    private fun updateQueue(iterator: MutableIterator<Entity>, isHiddenQueue: Boolean, playerLoc: Location, maxSqrDist: Int) {
-        for (entity in iterator) {
-            if (!VALID_TESTER.isValid(entity)) {
+        val playerHandle = HANDLE_GETTER.getHandle(player)
+        val level = LEVEL_GETTER.level(playerHandle)
+        val pos = playerHandle.position()
+
+        val iterator = trackedEntities.iterator()
+        for (te in iterator) {
+            val bukkit = te.bukkitEntity
+            if (!VALID_TESTER.isValid(bukkit)) {
                 // The entity has been removed from the world
                 iterator.remove()
                 continue
             }
-            val other = entity.location
-            if (other.world !== playerLoc.world) {
+            val handle = HANDLE_GETTER.getHandle(bukkit)
+            if (LEVEL_GETTER.level(handle) !== level) {
                 // Entity is not on same world anymore
-                VISIBILITY_HANDLER.forceShowEntity(player, entity, plugin)
+                VISIBILITY_HANDLER.forceShowEntity(player, bukkit, plugin)
                 iterator.remove()
                 continue
             }
-            val xzDist = (playerLoc.x - other.x).square() + (playerLoc.z - other.z).square()
+            val other = handle.position()
+            val xzDist = (pos.x - other.x).square() + (pos.z - other.z).square()
             if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
-                VISIBILITY_HANDLER.showEntity(player, entity, plugin)
+                VISIBILITY_HANDLER.showEntity(player, bukkit, plugin)
                 iterator.remove()
                 continue
             }
 
-            if (shouldHide(entity, xzDist + (playerLoc.y - other.y).square())) {
-                if (!isHiddenQueue) {
-                    player.hideEntity(plugin, entity)
-                    trackingEntities.add(entity)
-                    iterator.remove()
+            if (shouldHide(bukkit, xzDist + (pos.y - other.y).square())) {
+                if (!te.hidden) {
+                    player.hideEntity(plugin, bukkit)
+                    te.hidden = true
                 }
             } else {
-                if (isHiddenQueue) {
-                    player.showEntity(plugin, entity)
-                    hiddenEntities.add(entity)
-                    iterator.remove()
+                if (te.hidden) {
+                    player.showEntity(plugin, bukkit)
+                    te.hidden = false
                 }
             }
         }
@@ -108,13 +108,12 @@ abstract class PlayerEntityVisibilityProcessor(
         player.syncTick {
             task?.cancel()
             task = null
-            for (entity in hiddenEntities) {
-                if (VALID_TESTER.isValid(entity)) {
-                    VISIBILITY_HANDLER.showEntity(player, entity, plugin)
+            for (te in trackedEntities) {
+                if (te.hidden && VALID_TESTER.isValid(te.bukkitEntity)) {
+                    VISIBILITY_HANDLER.showEntity(player, te.bukkitEntity, plugin)
                 }
             }
-            hiddenEntities.clear()
-            trackingEntities.clear()
+            trackedEntities.clear()
         }
     }
 
@@ -129,24 +128,30 @@ abstract class PlayerEntityVisibilityProcessor(
         } ?: error("Failed to schedule update task for player ${player.name}")
     }
 
+    data class TrackedEntity(
+        @JvmField val bukkitEntity: Entity,
+        @JvmField var hidden: Boolean = false,
+    )
+
     inner class TrackListener: Listener {
         @EventHandler
         fun onTrackEntity(e: UserTrackEntityEvent) {
             if (e.player !== player) return
-            if (e.entity is Player) return // Do not hide players, while remove them from tab list
-            if (shouldHide(e.entity)) {
-                hiddenEntities.add(e.entity)
+            if (e.entity is Player) return // Do not hide players, while this removes them from tab list
+            val hidden = shouldHideDefault(e.entity)
+            if (hidden) {
                 player.hideEntity(plugin, e.entity)
                 e.isCancelled = true
-            } else {
-                trackingEntities.add(e.entity)
             }
+            trackedEntities.add(TrackedEntity(e.entity, hidden))
         }
     }
 
     companion object {
         private val VISIBILITY_HANDLER by Versioned(PlayerEntityVisibilityHandler::class.java)
         private val VALID_TESTER by Versioned(EntityValidTester::class.java)
+        private val HANDLE_GETTER by Versioned(EntityHandleGetter::class.java)
+        private val LEVEL_GETTER by Versioned(LevelHandler::class.java)
     }
 
 }
