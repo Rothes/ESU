@@ -23,24 +23,26 @@ object MappingsLoader {
     private val version = ServerCompatibility.serverVersion
     private val versionString = if (version <= 21) "1.${version.shortString()}" else version.shortString()
 
-    val hasSpigotMembers = version < 18
-
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$versionString").toFile()
     private val fileHashes = FileHashes(cacheFolder)
 
     private const val SERVER_CL = "serverCl.jar"
     private const val SERVER_MOJMAP = "serverMojmap.jar"
 
+    val hasSpigotMembers = version < 18
+
     val craftBukkitPackage =
         "org\\.bukkit\\.craftbukkit\\.([^.]+)\\.CraftServer".toRegex()
             .matchEntire(Bukkit.getServer().javaClass.canonicalName)
             ?.groupValues[1]
 
-    val loadedFiles = {
+    val loadedFiles: CachedFiles
+
+    init {
         val mappings = loadMappings()
         val servers = loadServers(mappings)
-        CachedFiles(mappings, servers)
-    }()
+        loadedFiles = CachedFiles(mappings, servers)
+    }
 
     fun mappingsHash() = fileHashes.dataFile.sha1
 
@@ -181,7 +183,7 @@ object MappingsLoader {
 
         val prefix = "net/minecraft/server/$craftBukkitPackage/"
         fun String.prefixed() = "$prefix${substringAfterLast('/')}"
-        if (MappingsLoader.version.minor <= 16) {
+        if (MappingsLoader.version <= 16) {
             // Mappings doesn't contain NMS package, fixing it
 
             with(cacheFolder.resolve("bukkit-cl.csrg")) {
