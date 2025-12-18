@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.util.entity
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.collect.FastIteLinkedQueue
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
@@ -110,15 +111,19 @@ abstract class PlayerEntityVisibilityProcessor(
 
     fun shutdown() {
         listener.unregister()
-        player.syncTick {
-            task?.cancel()
-            task = null
-            for (te in trackedEntities) {
-                if (te.hidden && VALID_TESTER.isValid(te.bukkitEntity)) {
-                    VISIBILITY_HANDLER.showEntity(player, te.bukkitEntity, plugin)
+        try {
+            player.syncTick {
+                task?.cancel()
+                task = null
+                for (te in trackedEntities) {
+                    if (te.hidden && VALID_TESTER.isValid(te.bukkitEntity)) {
+                        VISIBILITY_HANDLER.showEntity(player, te.bukkitEntity, plugin)
+                    }
                 }
+                trackedEntities.clear()
             }
-            trackedEntities.clear()
+        } catch (e: IllegalStateException) {
+            core.err("Failed to restore state for player ${player.name}, offline?", e)
         }
     }
 
