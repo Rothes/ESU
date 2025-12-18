@@ -291,7 +291,10 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private fun handleChunkPacket(event: PacketSendEvent) {
         val wrapper = WrapperPlayServerChunkData(event)
         val player = event.getPlayer<Player>()
-        val pd = playerData[player]!!
+        val pd = playerData[player] ?: let {
+            core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
+            return
+        }
         val column = wrapper.column
         val chunkKey = getChunkKey(column.x, column.z)
 
