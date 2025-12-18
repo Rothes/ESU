@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.util.entity
 
-import io.github.rothes.esu.bukkit.event.UserTrackEntityEvent
 import io.github.rothes.esu.bukkit.util.collect.FastIteLinkedQueue
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
@@ -13,6 +12,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
+import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -43,9 +43,9 @@ abstract class PlayerEntityVisibilityProcessor(
                 val entities = chunk.entities
                 for (entity in entities) {
                     if (entity is Player) continue
-                    // If FULL_SUPPORT, we don't need to add this entity to queue.
-                    // UserTrackEntityEvent triggers when it starts to track.
-                    if (UserTrackEntityEvent.FULL_SUPPORT && !entity.trackedBy.contains(player)) continue
+                    // We don't need to add this entity to queue.
+                    // PlayerTrackEntityEvent triggers when it starts to track.
+                    if (!entity.trackedBy.contains(player)) continue
 
                     // We don't process visibility here; Let #update() do it.
                     trackedEntities.add(TrackedEntity(entity))
@@ -100,7 +100,7 @@ abstract class PlayerEntityVisibilityProcessor(
                 }
             } else {
                 if (te.hidden) {
-                    if (UserTrackEntityEvent.FULL_SUPPORT) trackAllowedBuffer.add(handle.id)
+                    trackAllowedBuffer.add(handle.id)
                     player.showEntity(plugin, bukkit)
                     te.hidden = false
                 }
@@ -141,7 +141,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
     inner class TrackListener: Listener {
         @EventHandler
-        fun onTrackEntity(e: UserTrackEntityEvent) {
+        fun onTrackEntity(e: PlayerTrackEntityEvent) {
             if (e.player !== player) return
             if (e.entity is Player) return // Do not hide players, while this removes them from tab list
             if (trackAllowedBuffer.remove(e.entity.entityId)) return
