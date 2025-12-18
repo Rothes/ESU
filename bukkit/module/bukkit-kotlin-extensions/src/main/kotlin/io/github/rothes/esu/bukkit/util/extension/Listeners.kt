@@ -1,12 +1,12 @@
 package io.github.rothes.esu.bukkit.util.extension
 
-import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.core.EsuBootstrap
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 
-fun Listener.register(plugin: Plugin = bootstrap) {
+fun Listener.register(plugin: Plugin = EsuBootstrap.instance as Plugin) {
     Bukkit.getPluginManager().registerEvents(this, plugin)
 }
 
