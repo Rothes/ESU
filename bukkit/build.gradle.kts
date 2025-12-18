@@ -54,7 +54,7 @@ allprojects {
 dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     api(project(":common"))
-    api(project(":bukkit:module:bukkit-versions"))
+    api(project(":bukkit:module:bukkit-modules-bom"))
     compileOnly(project(":bukkit:version:base"))
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
 

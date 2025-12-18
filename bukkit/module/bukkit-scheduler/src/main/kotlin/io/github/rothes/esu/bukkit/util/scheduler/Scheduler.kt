@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.util.scheduler
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
 import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
+import io.github.rothes.esu.core.EsuBootstrap
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -10,7 +11,6 @@ import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
-import io.github.rothes.esu.bukkit.bootstrap as esuPlugin
 
 object Scheduler {
 
@@ -166,5 +166,8 @@ object Scheduler {
      * Create a wrapped plugin instance that bypasses "Plugin attempted to register task while disabled" check
      */
     private fun Plugin.alwaysEnabled(): Plugin = createChild(name = "$name (force-enabled)", forceEnabled = true)
+
+    private val esuPlugin: Plugin
+        get() = EsuBootstrap.instance as Plugin
 
 }
