@@ -68,7 +68,8 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             event.message(handle(message.esu, config.message.doneAdvancement)?.server)
         }
 
-        private fun processComponent(user: User, message: Component, modifier: ModuleConfig.Message.MessageModifier): Component {
+        private fun processComponent(user: User, message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {
+            if (modifier.format.isEmpty()) return null
             return user.buildMiniMessage(
                 modifier.format,
                 component("message",
@@ -79,7 +80,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
 
         private fun handle(message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {
             val handler = { user: User ->
-                user.message(processComponent(user, message, modifier))
+                processComponent(user, message, modifier)?.let { user.message(it) }
             }
             Bukkit.getOnlinePlayers().forEach {
                 handler(it.user)
