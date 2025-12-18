@@ -4,6 +4,7 @@ plugins {
     id("java")
     id("java-library")
     kotlin("jvm")
+    `no-build-dir`
     `maven-publish`
     id("com.gradleup.shadow")
     id("com.github.gmazzo.buildconfig") version "6.0.6"

@@ -1,5 +1,6 @@
 plugins {
     id("io.papermc.paperweight.userdev")
+    `no-build-dir`
 }
 
 allprojects {
