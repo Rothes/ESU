@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.util.version.adapter.v20
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.v20
 
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
