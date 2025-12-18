@@ -1,18 +1,7 @@
+import io.papermc.paperweight.userdev.PaperweightUserDependenciesExtension
+
 plugins {
-    id("io.papermc.paperweight.userdev")
     `no-build-dir`
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
-
-dependencies {
-    val serverVer = rootProject.property("targetMinecraftVersion").toString()
-    paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
 }
 
 subprojects {
@@ -26,6 +15,7 @@ subprojects {
         project.name.substring(1).replace('_', '.')
 
     dependencies {
+        val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:module:bukkit-modules-bom"))

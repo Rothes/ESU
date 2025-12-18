@@ -1,18 +1,18 @@
+import io.papermc.paperweight.userdev.PaperweightUserDependenciesExtension
+
 plugins {
-    id("io.papermc.paperweight.userdev")
     `no-build-dir`
 }
 
-allprojects {
+subprojects {
     apply(plugin = "io.papermc.paperweight.userdev")
     dependencies {
         compileOnly(project(":common"))
         val serverVer = rootProject.property("targetMinecraftVersion").toString()
+        val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
     }
-}
 
-subprojects {
     publishing {
         repositories {
             mavenLocal()
