@@ -56,7 +56,12 @@ abstract class PlayerEntityVisibilityProcessor(
         }
     }
 
+    protected open fun setupUpdate() {
+        trackAllowedBuffer.clear() // Clear buffer in case of some entries are still in there
+    }
+
     open fun update() {
+        setupUpdate()
         val viewDist = player.sendViewDistance + 1 // Add 1 to debounce
         val maxSqrDist = (viewDist shl 4).square() shl 1 // Diagonal
 
