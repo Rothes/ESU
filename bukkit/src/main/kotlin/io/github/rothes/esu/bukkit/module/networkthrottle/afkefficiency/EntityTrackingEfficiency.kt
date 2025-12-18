@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
@@ -11,6 +12,7 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.util.extension.math.square
+import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import java.util.concurrent.ConcurrentHashMap
@@ -63,10 +65,18 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
         @Comment("Player could see nearby entities in this distance")
         val visibleEntityDistance: Double = 7.0,
         @Comment("Server game tick interval to update player nearby entities")
-        val updateIntervalTicks: Long = 5,
+        var updateIntervalTicks: Long = 5,
     ): BaseFeatureConfiguration(true) {
 
         val visibleEntityDistanceSquared by lazy { visibleEntityDistance.square() }
+
+        @PostProcess
+        private fun pp() {
+            if (updateIntervalTicks < 1) {
+                core.warn("[$name] UpdateIntervalTicks must be > 0 !")
+                updateIntervalTicks = 1
+            }
+        }
     }
 
 }
