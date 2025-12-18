@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.core.util.AdventureConverter.esu
@@ -48,6 +47,7 @@ interface PlayerAdapter {
 
     }
 
+    @Suppress("DEPRECATION")
     private object CB: PlayerAdapter {
 
         override fun getDisplayName(player: Player): Component = player.displayName.legacy

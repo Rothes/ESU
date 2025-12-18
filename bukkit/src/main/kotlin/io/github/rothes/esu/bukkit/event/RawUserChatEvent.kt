@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.event
 
-import io.github.rothes.esu.bukkit.legacy
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server

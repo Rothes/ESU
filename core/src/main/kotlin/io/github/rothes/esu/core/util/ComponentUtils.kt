@@ -40,6 +40,7 @@ object ComponentUtils {
         Tag.inserting(deserialize.capitalize())
     }
 
+    @Deprecated("0.13.1")
     fun fromLegacy(legacyText: String): Component {
         return LegacyComponentSerializer.legacySection().deserialize(legacyText)
     }
@@ -50,6 +51,9 @@ object ComponentUtils {
 
     val String.miniMessage
         get() = fromMiniMessage(this)
+
+    val String.legacy: Component
+        get() = LegacyComponentSerializer.legacySection().deserialize(this)
 
     val String.legacyColorCharParsed
         get() = if (isEmpty()) this else buildString(this.length) {
