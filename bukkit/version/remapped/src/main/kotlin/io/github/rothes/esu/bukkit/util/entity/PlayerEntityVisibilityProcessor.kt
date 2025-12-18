@@ -29,8 +29,8 @@ abstract class PlayerEntityVisibilityProcessor(
     @Volatile private var task: ScheduledTask? = null
     private val listener = TrackListener()
 
-    val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
-    val trackAllowedBuffer = IntOpenHashSet(4) // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
+    protected val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
+    protected val trackAllowedBuffer = IntOpenHashSet(2) // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
 
     abstract val updateIntervalTicks: Long
 
@@ -119,7 +119,6 @@ abstract class PlayerEntityVisibilityProcessor(
                 }
             }
             trackedEntities.clear()
-            trackAllowedBuffer.clear()
         }
     }
 
