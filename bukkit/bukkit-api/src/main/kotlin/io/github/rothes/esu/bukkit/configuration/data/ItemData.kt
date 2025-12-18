@@ -1,8 +1,8 @@
-package io.github.rothes.esu.bukkit.config.data
+package io.github.rothes.esu.bukkit.configuration.data
 
 import com.destroystokyo.paper.profile.ProfileProperty
 import dev.lone.itemsadder.api.CustomStack
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.lore_
@@ -69,7 +69,7 @@ data class ItemData(
                     for ((key, level) in enchantments) {
                         val enchantment = Enchantment.getByKey(NamespacedKey.fromString(key))
                         if (enchantment == null) {
-                            plugin.err("Unknown enchantment $key")
+                            core.err("Unknown enchantment $key")
                             continue
                         }
                         meta.addEnchant(enchantment, level, true)

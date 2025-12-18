@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency
 
-import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.entity.PlayerEntityVisibilityProcessor
 import io.github.rothes.esu.bukkit.util.extension.createChild
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.FeatureConfig, Unit>() {
 
     private val playerData = ConcurrentHashMap<Player, VisibilityProcessor>()
-    private val pl = bootstrap.createChild(name = "${bootstrap.name}-$name")
+    private val pl = plugin.createChild(name = "${plugin.name}-$name")
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {

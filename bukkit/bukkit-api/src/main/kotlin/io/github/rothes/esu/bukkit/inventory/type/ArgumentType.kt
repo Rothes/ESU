@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit.inventory.type
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
 import io.github.rothes.esu.bukkit.inventory.DynamicHolder
 import org.bukkit.inventory.ItemStack
 
-open class SimpleType<H: DynamicHolder<*>>(
+open class ArgumentType<H: DynamicHolder<*>>(
     final override val name: String
 ): InventoryType<H> {
 
@@ -13,22 +13,26 @@ open class SimpleType<H: DynamicHolder<*>>(
     }
 
     override fun toString(): String {
-        return "SimpleType(name='$name')"
+        return "ArgumentType(name='$name')"
     }
+
+    protected val InventoryData.InventoryItem.arg
+        get() = type?.substringAfter(']')?.removePrefix(" ")?.ifEmpty { null }
 
     companion object {
         fun <H: DynamicHolder<*>> create(name: String, func: (
             slot: Int,
             item: InventoryData.InventoryItem,
+            arg: String?,
             holder: H,
-        ) -> ItemStack?): SimpleType<H> {
-            return object : SimpleType<H>(name) {
+        ) -> ItemStack?): ArgumentType<H> {
+            return object : ArgumentType<H>(name) {
                 override fun parseType(
                     slot: Int,
                     item: InventoryData.InventoryItem,
                     holder: H,
                 ): ItemStack? {
-                    return func(slot, item, holder)
+                    return func(slot, item, item.arg, holder)
                 }
             }
         }
@@ -36,10 +40,11 @@ open class SimpleType<H: DynamicHolder<*>>(
         fun <H: DynamicHolder<*>> create(name: String, func: (
             slot: Int,
             item: InventoryData.InventoryItem,
-        ) -> ItemStack?): SimpleType<H> {
-            return object : SimpleType<H>(name) {
+            arg: String?,
+        ) -> ItemStack?): ArgumentType<H> {
+            return object : ArgumentType<H>(name) {
                 override fun parseType(slot: Int, item: InventoryData.InventoryItem, holder: H): ItemStack? {
-                    return func(slot, item)
+                    return func(slot, item, item.arg)
                 }
             }
         }

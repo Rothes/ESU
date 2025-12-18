@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
@@ -55,7 +55,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
         }
     }
 
-    private val witherNerfKey = NamespacedKey.fromString("wither-mod", bootstrap)!!
+    private val witherNerfKey = NamespacedKey.fromString("wither-mod", plugin)!!
     fun handleEntity(e: Entity) {
         if (e !is Wither) return
 

@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module
 
 import bukkit.com.rylinaux.plugman.PlugManBukkit
 import com.rylinaux.plugman.PlugMan
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.module.AutoReloadExtensionPluginsModule.ModuleConfig
 import io.github.rothes.esu.bukkit.plugin
@@ -25,7 +26,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (plugin.initialized)
+            if (core.initialized)
                 return Feature.AvailableCheck.fail { "Esu is already initialized".message }
             if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
                 return Feature.AvailableCheck.fail { "PlugMan not found".message }
@@ -50,12 +51,12 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
         val toLoad = data.pluginsToLoad.toList()
         data.pluginsToLoad.clear()
 
-        if (!plugin.enabledHot)
+        if (!core.enabledHot)
             return
 
         for (pl in toLoad) {
             if (Bukkit.getPluginManager().isPluginEnabled(pl)) {
-                plugin.warn("[AutoReloadExtensionPlugins] Plugin $pl is already enabled")
+                core.warn("[AutoReloadExtensionPlugins] Plugin $pl is already enabled")
                 continue
             }
             try {
@@ -67,7 +68,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
                     PlugManBukkit.getInstance().pluginManager.load(pl)
                 }
             } catch (e: Throwable) {
-                plugin.err("Failed to load plugin $pl :", e)
+                core.err("Failed to load plugin $pl :", e)
             }
         }
     }
@@ -75,7 +76,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     @Suppress("DEPRECATION")
     override fun onDisable() {
         super.onDisable()
-        if (plugin.isEnabled || !plugin.disabledHot)
+        if (core.isEnabled || !core.disabledHot)
             return
         val esuName = plugin.description.name
         val plugins = Bukkit.getPluginManager().plugins.filter {

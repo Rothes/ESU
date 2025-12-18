@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
-import io.github.rothes.esu.bukkit.config.data.ItemData
+import io.github.rothes.esu.bukkit.configuration.data.ItemData
 import io.github.rothes.esu.bukkit.event.UserLoginEvent
 import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager

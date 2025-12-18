@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
-import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
@@ -40,7 +40,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
             if (!ServerCompatibility.isProxyMode) {
-                plugin.err("[DynamicChunkSendRate] This server is not on BungeeCord mode or Velocity mode. You should not enable this feature.")
+                core.err("[DynamicChunkSendRate] This server is not on BungeeCord mode or Velocity mode. You should not enable this feature.")
                 return Feature.AvailableCheck.fail { "This server is not on BungeeCord mode or Velocity mode".message }
             }
 
@@ -50,7 +50,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
                 allocation
                 takeCarry
             } catch (t: Throwable) {
-                plugin.err("[DynamicChunkSendRate] Server not supported: $t")
+                core.err("[DynamicChunkSendRate] Server not supported: $t")
                 return Feature.AvailableCheck.fail { "Server not supported".message }
             }
             null
@@ -58,7 +58,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
     }
 
     override fun onEnable() {
-        Bukkit.getMessenger().registerIncomingPluginChannel(bootstrap, CHANNEL_ID) { channel, player, message ->
+        Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { channel, player, message ->
             val chunkLoaderData = (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
 
             val max =
@@ -86,7 +86,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
     }
 
     override fun onDisable() {
-        Bukkit.getMessenger().unregisterIncomingPluginChannel(bootstrap, CHANNEL_ID)
+        Bukkit.getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL_ID)
     }
 
     @Comment("Enable DynamicChunkSendRate. Make sure you have velocity mode on, and installed ESU on velocity.")

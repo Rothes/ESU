@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.inventory.action
 
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.core
 import java.lang.reflect.Modifier
 
 object ActionRegistry {
@@ -46,7 +46,7 @@ object ActionRegistry {
         val name = string.substring(1, index).lowercase()
         val action = registry[name]
         if (action == null) {
-            plugin.warn("Unknown action '$string'")
+            core.warn("Unknown action '$string'")
             return null
         }
         return ParsedAction(action, string.substring(index + 1).removePrefix(" ").ifEmpty { null })

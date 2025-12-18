@@ -1,12 +1,13 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
-import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.entity.MapPlayerEntityVisibilityHolder
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import it.unimi.dsi.fastutil.Hash
 import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
@@ -24,7 +25,7 @@ class UserCullData(
     }
 
     @ApiStatus.Internal val lock = ReentrantLock()
-    private val hiddenHolder = MapPlayerEntityVisibilityHolder(player, bootstrap, 64, Hash.FAST_LOAD_FACTOR)
+    private val hiddenHolder = MapPlayerEntityVisibilityHolder(player, plugin, 64, Hash.FAST_LOAD_FACTOR)
     private val pendingChanges = mutableListOf<CulledChange>()
     private var tickedTime = 0
     private var isRemoved = false
@@ -108,9 +109,9 @@ class UserCullData(
                 }
                 if (change.culled) {
                     // hideEntity requires plugin enabled
-                    if (bootstrap.isEnabled) player.hideEntity(bootstrap, change.entity)
+                    if (plugin.isEnabled) player.hideEntity(plugin, change.entity)
                 } else {
-                    player.showEntity(bootstrap, change.entity)
+                    player.showEntity(plugin, change.entity)
                 }
             }
         }

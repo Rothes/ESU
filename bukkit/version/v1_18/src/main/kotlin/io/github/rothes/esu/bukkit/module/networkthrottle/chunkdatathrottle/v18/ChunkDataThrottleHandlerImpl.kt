@@ -20,10 +20,10 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import com.google.common.primitives.Ints
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v18.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
@@ -180,10 +180,10 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                         }
                     }
                 }
-                plugin.info("Loaded ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}")
+                core.info("Loaded ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}")
             }
         } catch (e: Exception) {
-            plugin.err("Failed to load hotData", e)
+            core.err("Failed to load hotData", e)
         }
         if (firstEnable) {
             PacketEvents.getAPI().eventManager.registerListener(PacketListener)
@@ -202,7 +202,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListener)
         unregister()
 
-        if (plugin.disabledHot) {
+        if (core.disabledHot) {
             val nanoTime = System.nanoTime()
 
             val filter = playerData.entries.filter { it.value.throttledChunks.isNotEmpty() }
@@ -233,7 +233,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 it.flush()
             }
             hotDataFile.toFile().deleteOnExit()
-            plugin.info("Saved ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}. Size ${hotDataFile.fileSize()}")
+            core.info("Saved ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}. Size ${hotDataFile.fileSize()}")
         }
         // Clear these so we can save our memory
         playerData.values.forEach { it.throttledChunks.clear() }
@@ -717,7 +717,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
         val throttledChunks = player.throttledChunks ?: let {
-            plugin.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
+            core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
             return
         }
 
@@ -902,7 +902,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                     }
                 }
             } catch (t: Throwable) {
-                plugin.err("[ChunkDataThrottle] An exception occurred while processing packet", t)
+                core.err("[ChunkDataThrottle] An exception occurred while processing packet", t)
             }
         }
 //        private val nanoTimes = it.unimi.dsi.fastutil.longs.LongArrayList(1_000_000)
@@ -1082,7 +1082,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             fun checkEmptyBlockList(key: String, list: MutableList<Block>) {
                 if (list.isEmpty()) {
                     list.add(Blocks.BEDROCK)
-                    plugin.warn("[ChunkDataThrottle] Anti-xray random block list of '$key' is empty! We have added bedrock to it.")
+                    core.warn("[ChunkDataThrottle] Anti-xray random block list of '$key' is empty! We have added bedrock to it.")
                 }
             }
             antiXrayRandomBlockList.default?.let {

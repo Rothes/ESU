@@ -18,6 +18,7 @@ subprojects {
         val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
         paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
         compileOnly(project(":common"))
+        compileOnly(project(":bukkit:bukkit-api"))
         compileOnly(project(":bukkit:module:bukkit-modules-bom"))
         if (!isRemapped) {
             compileOnly(project(":bukkit"))

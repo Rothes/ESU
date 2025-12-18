@@ -1,8 +1,8 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.extension.register
@@ -37,7 +37,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
             if (ServerCompatibility.serverVersion < 18) {
-                plugin.err("[EntityCulling] This feature requires Spigot 1.18 .")
+                core.err("[EntityCulling] This feature requires Spigot 1.18 .")
                 return Feature.AvailableCheck.fail { "Server is not supported".message }
             }
             raytraceHandler?.checkConfig()

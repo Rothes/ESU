@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.config.data
+package io.github.rothes.esu.bukkit.configuration.data
 
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeIf

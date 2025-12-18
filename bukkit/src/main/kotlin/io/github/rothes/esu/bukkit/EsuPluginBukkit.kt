@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.command.EsuBukkitCommandManager
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
-import io.github.rothes.esu.bukkit.event.internal.InternalListeners
 import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
+import io.github.rothes.esu.bukkit.listener.InternalListeners
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
@@ -34,15 +34,15 @@ import org.incendo.cloud.description.Description
 
 class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
-): EsuCore {
+): EsuCoreBukkit {
 
     override var initialized: Boolean = false
         private set
 
     override val basePermissionNode: String = "esu"
 
-    var enabledHot: Boolean by InitOnce()
-    var disabledHot: Boolean by InitOnce()
+    override var enabledHot: Boolean by InitOnce()
+    override var disabledHot: Boolean by InitOnce()
 
     init {
         EsuCore.instance = this
@@ -218,13 +218,6 @@ class EsuPluginBukkit(
         }
         return found
     }
-
-    // JavaPlugin methods
-    val isEnabled
-        get() = bootstrap.isEnabled
-    @Suppress("DEPRECATION")
-    val description
-        get() = bootstrap.description
 
     internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot)
 

@@ -53,10 +53,8 @@ allprojects {
 
 dependencies {
     paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
-    api(project(":common"))
-    api(project(":bukkit:module:bukkit-modules-bom"))
+    api(project(":bukkit:bukkit-api"))
     compileOnly(project(":bukkit:version:remapped"))
-    compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
 
     compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.13")
 
@@ -70,19 +68,10 @@ dependencies {
         exclude("com.tcoded", "FoliaLib")
     }
 
-    compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
-    compileOnly("io.lumine:Mythic-Dist:5.8.0")
-    compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
-    compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
-
-    compileOnly("fr.xephi:authme:5.6.1-SNAPSHOT")
-
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.11.7")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude("org.bukkit")
     }
-    compileOnly("net.momirealms:craft-engine-core:0.0.49")
-    compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
 
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
 }

@@ -5,7 +5,7 @@ import io.github.rothes.esu.core.module.CommonModule
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
-import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.plugin.Plugin
 
 abstract class BukkitModule<C, L> : CommonModule<C, L>() {
 
@@ -16,7 +16,7 @@ abstract class BukkitModule<C, L> : CommonModule<C, L>() {
         super.onDisable()
     }
 
-    fun registerListener(listener: Listener, plugin: JavaPlugin = io.github.rothes.esu.bukkit.bootstrap) {
+    fun registerListener(listener: Listener, plugin: Plugin = io.github.rothes.esu.bukkit.plugin) {
         Bukkit.getPluginManager().registerEvents(listener, plugin)
         registeredListeners.add(listener)
     }

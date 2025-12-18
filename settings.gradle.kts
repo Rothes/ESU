@@ -9,6 +9,7 @@ include("core:dep-core-impl")
 include("common")
 
 include("bukkit")
+include("bukkit:bukkit-api")
 include("bukkit:dep-bukkit")
 include("bukkit:module")
 include("bukkit:module:bukkit-modules-bom", "bukkit:module:bukkit-kotlin-extensions", "bukkit:module:bukkit-scheduler", "bukkit:module:bukkit-versions")

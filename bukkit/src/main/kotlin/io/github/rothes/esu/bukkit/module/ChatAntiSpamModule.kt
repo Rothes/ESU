@@ -1,13 +1,13 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.command.parser.UserParser
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.notifyUsers
 import io.github.rothes.esu.bukkit.module.chatantispam.ChecksMan
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
@@ -58,7 +58,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             if (it.hasPerm("notify"))
                 notifyUsers.add(it)
         }
-        val cmd = plugin.commandManager.commandBuilder("antispam", "as").permission(perm("command.admin"))
+        val cmd = core.commandManager.commandBuilder("antispam", "as").permission(perm("command.admin"))
         registerCommandJvm {
             cmd.literal("data").optional(
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
@@ -141,7 +141,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             CasDataManager.purgeCache(false)
         } catch (e: NoClassDefFoundError) {
             // Ehh.. Plugin Jar got deleted?
-            plugin.err("Failed to purge cache while disabling module $name", e)
+            core.err("Failed to purge cache while disabling module $name", e)
         }
         Bukkit.getOnlinePlayers().forEach { CasDataManager.saveSpamDataNow(it.user) }
     }

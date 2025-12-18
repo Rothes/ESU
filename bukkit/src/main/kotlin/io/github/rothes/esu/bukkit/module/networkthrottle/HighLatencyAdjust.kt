@@ -6,8 +6,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
@@ -53,7 +53,7 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
             if (!ServerCompatibility.isPaper) {
-                plugin.err("[HighLatencyAdjust] This feature requires Paper server")
+                core.err("[HighLatencyAdjust] This feature requires Paper server")
                 return Feature.AvailableCheck.fail { "This feature requires Paper server".message }
             }
             null
@@ -104,7 +104,7 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
     }
 
     override fun onDisable() {
-        if (plugin.isEnabled || plugin.disabledHot) {
+        if (core.isEnabled || core.disabledHot) {
             for ((player, v) in adjusted.entries) {
                 data.originalViewDistance[player.uniqueId] = v
             }

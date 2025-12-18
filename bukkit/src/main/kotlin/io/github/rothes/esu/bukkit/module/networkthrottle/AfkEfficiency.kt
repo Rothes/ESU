@@ -2,12 +2,12 @@ package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import com.destroystokyo.paper.event.player.PlayerStartSpectatingEntityEvent
 import com.destroystokyo.paper.event.player.PlayerStopSpectatingEntityEvent
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.module.core.PlayerTimeProvider
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.AfkEfficiencyFeature
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.EntityTrackingEfficiency
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.LimitedPacketEfficiency
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
@@ -121,7 +121,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
                 try {
                     feature.onEnableEfficiency(this)
                 } catch (e: Throwable) {
-                    plugin.err("[AfkEfficiency] An error occurred while enabling ${feature.name}", e)
+                    core.err("[AfkEfficiency] An error occurred while enabling ${feature.name}", e)
                 }
             }
             user.message(lang, { afkEfficiencyEnabled })
@@ -135,7 +135,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
                     try {
                         feature.onDisableEfficiency(this)
                     } catch (e: Throwable) {
-                        plugin.err("[AfkEfficiency] An error occurred while disabling ${feature.name}", e)
+                        core.err("[AfkEfficiency] An error occurred while disabling ${feature.name}", e)
                     }
                 }
                 user.message(lang, { afkEfficiencyDisabled })

@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.core
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.CoreModule
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.util.extension.readUuid
@@ -55,20 +55,20 @@ object CoreController {
 
         fun loadData() {
             try {
-                if (!plugin.enabledHot || !hotData.exists()) return
+                if (!core.enabledHot || !hotData.exists()) return
                 hotData.inputStream().asSource().buffered().use { buf ->
                     require(buf.readByte() == DATA_VERSION) { "Different hot data version" }
                     buf.readTimeMap(RunningProviders.attackTime.map)
                     buf.readTimeMap(RunningProviders.moveTime.map, RunningProviders.posMoveTime.map)
                 }
             } catch (e: Throwable) {
-                plugin.err("[CoreModule] Failed to load hotData", e)
+                core.err("[CoreModule] Failed to load hotData", e)
             }
         }
 
         fun saveData() {
             try {
-                if (!plugin.isEnabled && !plugin.disabledHot) return
+                if (!core.isEnabled && !core.disabledHot) return
                 hotData.outputStream(StandardOpenOption.CREATE).use { stream ->
                     Buffer().apply {
                         writeByte(DATA_VERSION)
@@ -78,7 +78,7 @@ object CoreController {
                 }
                 hotData.toFile().deleteOnExit()
             } catch (e: Throwable) {
-                plugin.err("[CoreModule] Failed to save hotData", e)
+                core.err("[CoreModule] Failed to save hotData", e)
             }
         }
 
@@ -176,7 +176,7 @@ object CoreController {
                 try {
                     listener.onTimeChanged(player, old, time)
                 } catch (e: Throwable) {
-                    plugin.err("An provider exception occurred:", e)
+                    core.err("An provider exception occurred:", e)
                 }
             }
         }

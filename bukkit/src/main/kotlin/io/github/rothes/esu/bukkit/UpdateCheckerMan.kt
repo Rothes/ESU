@@ -17,7 +17,7 @@ object UpdateCheckerMan {
             BuildConfig.PLUGIN_PLATFORM,
             ConsoleUser,
             EnumMap<VersionAction, () -> Unit>(VersionAction::class.java).apply {
-                put(VersionAction.PROHIBIT) { Bukkit.getPluginManager().disablePlugin(bootstrap) }
+                put(VersionAction.PROHIBIT) { Bukkit.getPluginManager().disablePlugin(plugin) }
             },
             { Bukkit.getOnlinePlayers().map { it.user } },
             EsuCore.instance.basePermissionNode

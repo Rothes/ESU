@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.inventory.type
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
 import io.github.rothes.esu.bukkit.inventory.DynamicHolder
 import org.bukkit.inventory.ItemStack
 

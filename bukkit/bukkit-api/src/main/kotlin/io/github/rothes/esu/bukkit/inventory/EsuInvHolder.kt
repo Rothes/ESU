@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.inventory
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
-import io.github.rothes.esu.bukkit.plugin
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.util.AdventureConverter.server
@@ -34,7 +34,7 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
             if (item != null)
                 inv.setItem(slot, parseType(slot, item))
             else if (char != ' ' && char != '.')
-                plugin.warn("Icon $char in layout ${inventoryData.layout} is not set!")
+                core.warn("Icon $char in layout ${inventoryData.layout} is not set!")
         }
         if (inventoryData.size != null) {
             var base = 0

@@ -8,15 +8,16 @@ import io.github.rothes.esu.lib.adventure.audience.Audience
 import io.github.rothes.esu.lib.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.plugin.Plugin
 import java.util.*
 
-val plugin: EsuPluginBukkit
-    get() = EsuCore.instance as EsuPluginBukkit
+val plugin: Plugin
+    get() = EsuBootstrap.instance as Plugin
 
-val bootstrap: EsuBootstrapBukkit
-    get() = EsuBootstrap.instance as EsuBootstrapBukkit
+val core: EsuCoreBukkit
+    get() = EsuCore.instance as EsuCoreBukkit
 
-val adventure = BukkitAudiences.create(bootstrap)
+val adventure = BukkitAudiences.create(plugin)
 
 val Player.user: PlayerUser
     get() = BukkitUserManager[this]

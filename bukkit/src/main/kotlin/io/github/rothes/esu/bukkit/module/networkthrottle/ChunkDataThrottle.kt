@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
-import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.version.versioned
@@ -26,7 +26,7 @@ object ChunkDataThrottle: CommonFeature<ChunkDataThrottle.FeatureConfig, EmptyCo
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
             if (ServerCompatibility.serverVersion < 18) {
-                plugin.err("[ChunkDataThrottle] This feature requires Minecraft 1.18+")
+                core.err("[ChunkDataThrottle] This feature requires Minecraft 1.18+")
                 return Feature.AvailableCheck.fail { "This feature requires Minecraft 1.18+".message }
             }
             null

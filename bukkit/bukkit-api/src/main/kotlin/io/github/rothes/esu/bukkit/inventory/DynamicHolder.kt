@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.inventory
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
 import io.github.rothes.esu.bukkit.inventory.action.ActionRegistry
 import io.github.rothes.esu.bukkit.inventory.type.TypeRegistry
 import io.github.rothes.esu.bukkit.user

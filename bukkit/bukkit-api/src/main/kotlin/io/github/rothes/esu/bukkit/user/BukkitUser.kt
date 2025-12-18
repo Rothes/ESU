@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
-import io.github.rothes.esu.bukkit.config.data.ItemData
+import io.github.rothes.esu.bukkit.configuration.data.ItemData
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration

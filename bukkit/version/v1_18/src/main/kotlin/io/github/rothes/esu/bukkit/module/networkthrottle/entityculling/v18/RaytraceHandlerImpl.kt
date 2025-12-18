@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v18
 
-import io.github.rothes.esu.bukkit.bootstrap
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
@@ -91,7 +91,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
     override fun checkConfig(): Feature.AvailableCheck? {
         if (config.raytraceThreads < 1) {
-            plugin.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
+            core.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
             return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
         }
         return null
@@ -197,7 +197,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                                     data.tick()
                                 }
                             } catch (e: Throwable) {
-                                plugin.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
+                                core.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
                             }
                         }
                     }
@@ -233,7 +233,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                     cullData.withLock {
                         cullData.setCulled(event.entity, entity.id, true, pend = false)
                     }
-                    bukkit.hideEntity(bootstrap, event.entity)
+                    bukkit.hideEntity(plugin, event.entity)
                 }
             }
         }
@@ -257,7 +257,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
                 }
                 for (entity in event.chunk.entities) {
                     @Suppress("DEPRECATION") // Stable API
-                    player.hideEntity(bootstrap, entity)
+                    player.hideEntity(plugin, entity)
                 }
             }
         }

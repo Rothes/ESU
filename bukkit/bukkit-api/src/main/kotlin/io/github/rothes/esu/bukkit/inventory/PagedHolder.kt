@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.inventory
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
-import io.github.rothes.esu.bukkit.config.data.ItemData
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
+import io.github.rothes.esu.bukkit.configuration.data.ItemData
 import io.github.rothes.esu.bukkit.inventory.type.SimpleType
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import it.unimi.dsi.fastutil.ints.Int2ReferenceLinkedOpenHashMap

@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit.command
 
-import io.github.rothes.esu.bukkit.bootstrap
 import io.github.rothes.esu.bukkit.command.parser.MCRegistryValueParsers
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
+import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
@@ -23,7 +23,7 @@ import org.incendo.cloud.setting.ManagerSetting
 import kotlin.jvm.optionals.getOrNull
 
 class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
-    bootstrap,
+    plugin,
     ExecutionCoordinator.asyncCoordinator(),
     SenderMapper.create(
         {

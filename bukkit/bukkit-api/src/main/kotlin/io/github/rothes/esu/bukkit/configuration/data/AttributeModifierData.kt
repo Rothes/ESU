@@ -1,9 +1,9 @@
-package io.github.rothes.esu.bukkit.config.data
+package io.github.rothes.esu.bukkit.configuration.data
 
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.inventory.EquipmentSlotGroup
-import java.util.UUID
+import java.util.*
 
 data class AttributeModifierData(
     val key: String = UUID.randomUUID().toString().lowercase(),

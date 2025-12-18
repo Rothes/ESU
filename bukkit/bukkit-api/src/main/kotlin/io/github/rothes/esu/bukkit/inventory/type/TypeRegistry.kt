@@ -1,8 +1,8 @@
 package io.github.rothes.esu.bukkit.inventory.type
 
-import io.github.rothes.esu.bukkit.config.data.InventoryData
+import io.github.rothes.esu.bukkit.configuration.data.InventoryData
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.inventory.DynamicHolder
-import io.github.rothes.esu.bukkit.plugin
 import org.bukkit.inventory.ItemStack
 
 open class TypeRegistry<H: DynamicHolder<*>> {
@@ -26,7 +26,7 @@ open class TypeRegistry<H: DynamicHolder<*>> {
             idRaw.substringBefore(']').substring(1)
         } else idRaw
         val type = registry[id] ?: return item.item.item.also {
-            plugin.warn("Unknown type '${item.type}'")
+            core.warn("Unknown type '${item.type}'")
         }
         return type.parseType(slot, item, holder)
     }
