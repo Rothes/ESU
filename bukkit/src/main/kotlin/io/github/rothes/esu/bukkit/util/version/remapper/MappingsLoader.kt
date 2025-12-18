@@ -21,9 +21,11 @@ import java.util.jar.JarFile
 object MappingsLoader {
 
     private val version = ServerCompatibility.serverVersion
+    private val versionString = if (version <= 21) "1.${version.shortString()}" else version.shortString()
+
     val hasSpigotMembers = version < 18
 
-    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$version").toFile()
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$versionString").toFile()
     private val fileHashes = FileHashes(cacheFolder)
 
     private const val SERVER_CL = "serverCl.jar"
@@ -149,9 +151,9 @@ object MappingsLoader {
         val files = buildList {
             add("server.jar" to getServerJarUrl(pkg))
             add("mojang.txt" to getServerMappingsUrl(pkg))
-            add("bukkit-cl.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-${MappingsLoader.version}-cl.csrg?at=$commit")
+            add("bukkit-cl.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-$versionString-cl.csrg?at=$commit")
             if (hasSpigotMembers)
-                add("bukkit-members.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-${MappingsLoader.version}-members.csrg?at=$commit")
+                add("bukkit-members.csrg" to "https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/mappings/bukkit-$versionString-members.csrg?at=$commit")
         }
         cacheFolder.mkdirs()
         fileHashes.clear()
@@ -176,10 +178,11 @@ object MappingsLoader {
                 }
             }
         }
+
+        val prefix = "net/minecraft/server/$craftBukkitPackage/"
+        fun String.prefixed() = "$prefix${substringAfterLast('/')}"
         if (MappingsLoader.version.minor <= 16) {
             // Mappings doesn't contain NMS package, fixing it
-            val prefix = "net/minecraft/server/$craftBukkitPackage/"
-            fun String.prefixed() = "$prefix${substringAfterLast('/')}"
 
             with(cacheFolder.resolve("bukkit-cl.csrg")) {
                 writeText(
@@ -194,6 +197,8 @@ object MappingsLoader {
                     } + "\nnet/minecraft/server/MinecraftServer net/minecraft/server/$craftBukkitPackage/MinecraftServer"
                 )
             }
+        }
+        if (hasSpigotMembers) {
             with(cacheFolder.resolve("bukkit-members.csrg")) {
                 val regex = "L([^;)]+)".toRegex()
                 fun String.handleArgs() = replace(regex) {
@@ -234,16 +239,14 @@ object MappingsLoader {
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString()).body().deserialize<StashCommits>()
         val commit = response.values.firstOrNull { commit ->
-            commit.message == "Update to Minecraft $version"
+            commit.message == "Update to Minecraft $versionString"
         } ?: error("Failed to find spigot mapping commit")
         return commit.id
     }
 
     private fun getMinecraftVersion(): McVersionManifest.Version {
         val response = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json".readUrl().deserialize<McVersionManifest>()
-        val version = response.versions.first {
-            it.id == version.toString()
-        }
+        val version = response.versions.first { it.id == versionString }
         return version
     }
 

@@ -26,6 +26,20 @@ data class Version(
         )
     }
 
+    fun shortString(): String {
+        return buildString {
+            append(major)
+            if (minor != 0 && patch != 0) {
+                append('.')
+                append(minor)
+            }
+            if (patch != 0) {
+                append('.')
+                append(patch)
+            }
+        }
+    }
+
     override fun toString(): String {
         return "$major.$minor.$patch"
     }
