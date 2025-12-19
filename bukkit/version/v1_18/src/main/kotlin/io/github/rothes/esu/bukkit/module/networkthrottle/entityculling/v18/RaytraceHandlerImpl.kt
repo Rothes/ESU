@@ -230,12 +230,8 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         private var tickedEntities = 0
 
         override fun shouldHideDefault(entity: org.bukkit.entity.Entity): Boolean {
-            if (entity is Firework) {
-                // This blocks players from using elytra
-                return false
-            }
-            val handle = HANDLE_GETTER.getHandle(entity)
-            return shouldCull && !config.visibleEntityTypes.contains(handle.type)
+            // Do not hide Firework, it blocks players from using elytra
+            return shouldCull && entity !is Firework && !config.visibleEntityTypes.contains(HANDLE_GETTER.getHandle(entity).type)
         }
 
         override fun setupUpdate() {
