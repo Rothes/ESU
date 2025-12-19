@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 import java.util.logging.Level
@@ -147,7 +148,7 @@ abstract class PlayerEntityVisibilityProcessor(
     )
 
     inner class TrackListener: Listener {
-        @EventHandler
+        @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
         fun onTrackEntity(e: PlayerTrackEntityEvent) {
             if (e.player !== player) return
             if (e.entity is Player) return // Do not hide players, while this removes them from tab list
