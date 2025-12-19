@@ -4,11 +4,11 @@ import net.minecraft.core.Registry
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey
 
-interface MCRegistryAccessHandler {
+interface NmsRegistryAccessHandler {
 
     fun getServerRegistryAccess(): RegistryAccess
 
-    fun <T: Any> getRegistryOrThrow(registryAccess: RegistryAccess, registryKey: ResourceKey<out Registry<T>>): Registry<T>
+    fun <T: Any> getRegistryOrThrow(registryKey: ResourceKey<out Registry<T>>, registryAccess: RegistryAccess = getServerRegistryAccess()): Registry<T>
 
     fun <T: Any> getNullable(registry: Registry<T>, key: ResourceKey<T>): T?
 

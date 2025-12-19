@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.v19_3
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
@@ -8,7 +8,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 
-object MCRegistriesImpl: MCRegistries {
+object NmsRegistriesImpl: NmsRegistries {
 
     override val block: ResourceKey<Registry<Block>> = Registries.BLOCK
     override val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>> = Registries.BLOCK_ENTITY_TYPE

@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.command.parser
 
 import io.github.rothes.esu.bukkit.util.version.Versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceKey
@@ -11,8 +11,8 @@ import org.incendo.cloud.parser.ArgumentParseResult
 import org.incendo.cloud.parser.ArgumentParser
 import org.incendo.cloud.suggestion.BlockingSuggestionProvider
 
-class MCRegistryValueParser<C, T: Any>(
-    val accessHandler: MCRegistryAccessHandler,
+class NmsRegistryValueParser<C, T: Any>(
+    val accessHandler: NmsRegistryAccessHandler,
     registryKey: ResourceKey<out Registry<T>>,
 ): ArgumentParser<C, T>, BlockingSuggestionProvider.Strings<C> {
 
@@ -20,7 +20,7 @@ class MCRegistryValueParser<C, T: Any>(
         private val KEY_HANDLER by Versioned(ResourceKeyHandler::class.java)
     }
 
-    val registry = accessHandler.getRegistryOrThrow(accessHandler.getServerRegistryAccess(), registryKey)
+    val registry = accessHandler.getRegistryOrThrow(registryKey)
 
     override fun parse(commandContext: CommandContext<C & Any>, commandInput: CommandInput): ArgumentParseResult<T> {
         val input = commandInput.readString()

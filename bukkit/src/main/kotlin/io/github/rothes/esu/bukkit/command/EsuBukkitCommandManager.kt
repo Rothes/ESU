@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.command
 
-import io.github.rothes.esu.bukkit.command.parser.MCRegistryValueParsers
+import io.github.rothes.esu.bukkit.command.parser.NmsRegistryValueParsers
 import io.github.rothes.esu.bukkit.command.parser.UserParser
 import io.github.rothes.esu.bukkit.command.parser.location.ChunkLocationParser
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
@@ -54,8 +54,8 @@ class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
         parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
         EsuExceptionHandlers(exceptionController()).register()
 
-        if (MCRegistryValueParsers.isSupported) {
-            for (parser in MCRegistryValueParsers.all<User>()) {
+        if (NmsRegistryValueParsers.isSupported) {
+            for (parser in NmsRegistryValueParsers.all<User>()) {
                 parserRegistry().registerParser(parser)
             }
         }

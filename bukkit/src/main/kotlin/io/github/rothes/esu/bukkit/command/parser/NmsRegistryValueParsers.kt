@@ -5,14 +5,14 @@ import io.github.rothes.esu.bukkit.util.version.versioned
 import net.minecraft.world.entity.EntityType
 import org.incendo.cloud.parser.ParserDescriptor
 
-interface MCRegistryValueParsers {
+interface NmsRegistryValueParsers {
 
     fun <C> entityType(): ParserDescriptor<C, EntityType<*>>
 
     companion object {
 
         val isSupported = ServerCompatibility.serverVersion >= "17.1"
-        val instance: MCRegistryValueParsers by lazy { MCRegistryValueParsers::class.java.versioned() }
+        val instance: NmsRegistryValueParsers by lazy { NmsRegistryValueParsers::class.java.versioned() }
 
         fun <C> all(): List<ParserDescriptor<C, *>> {
             return listOf(

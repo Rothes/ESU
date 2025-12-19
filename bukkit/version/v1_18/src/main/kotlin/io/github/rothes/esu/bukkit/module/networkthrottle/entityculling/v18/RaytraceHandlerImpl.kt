@@ -63,12 +63,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private val ENTITY_TYPES: Int
 
     init {
-        val registryAccessHandler = MCRegistryAccessHandler::class.java.versioned()
-        val registries = MCRegistries::class.java.versioned()
-        val registry = registryAccessHandler.getRegistryOrThrow(
-            registryAccessHandler.getServerRegistryAccess(),
-            registries.entityType
-        )
+        val registryAccessHandler = NmsRegistryAccessHandler::class.java.versioned()
+        val registries = NmsRegistries::class.java.versioned()
+        val registry = registryAccessHandler.getRegistryOrThrow(registries.entityType)
         ENTITY_TYPES = registryAccessHandler.size(registry)
     }
 
