@@ -8,6 +8,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
@@ -245,7 +246,11 @@ abstract class PlayerEntityVisibilityProcessor(
                         trackedEntities.remove(entry.entityId)
                     }
                     for (trackedEntity in tickReverse) {
-                        super.processReverse(trackedEntity)
+                        // Check tick thread again, some movement would probably happen during this 0-50ms delay.
+                        // If not on same tick thread, this trackedEntity would be removed on next update.
+                        if (trackedEntity.bukkitEntity.checkTickThread()) {
+                            super.processReverse(trackedEntity)
+                        }
                     }
                 }
             }
