@@ -214,14 +214,14 @@ abstract class PlayerEntityVisibilityProcessor(
             this.tickFar.clear()
             this.tickReverse.clear()
             task = player.nextTick {
-                for (entry in tickFar) {
-                    val trackedEntity = entry.trackedEntity
-                    if (trackedEntity.hidden) {
-                        VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
-                    }
-                    trackedEntities.remove(entry.entityId)
-                }
                 if (task != null) { // Got shut-down?
+                    for (entry in tickFar) {
+                        val trackedEntity = entry.trackedEntity
+                        if (trackedEntity.hidden) {
+                            VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                        }
+                        trackedEntities.remove(entry.entityId)
+                    }
                     for (trackedEntity in tickReverse) {
                         super.processReverse(trackedEntity)
                     }
