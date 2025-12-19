@@ -38,6 +38,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.entity.Firework
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -227,6 +228,15 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         private var predicatedPlayerPos: Vec3? = null
 
         private var tickedEntities = 0
+
+        override fun shouldHideDefault(entity: org.bukkit.entity.Entity): Boolean {
+            if (entity is Firework) {
+                // This blocks players from using elytra
+                return false
+            }
+            val handle = HANDLE_GETTER.getHandle(entity)
+            return shouldCull && !config.visibleEntityTypes.contains(handle.type)
+        }
 
         override fun setupUpdate() {
             tickedEntities = 0
