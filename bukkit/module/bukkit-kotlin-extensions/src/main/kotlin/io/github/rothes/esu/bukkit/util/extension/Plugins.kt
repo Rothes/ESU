@@ -4,11 +4,12 @@ import org.bukkit.plugin.Plugin
 import java.lang.reflect.Proxy
 
 fun Plugin.createChild(name: String = this.name, forceEnabled: Boolean = false): Plugin {
-    return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { _, method, args ->
+    return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Plugin::class.java)) { p, method, args ->
         when (method.name) {
             "isEnabled" -> forceEnabled || this.isEnabled
             "getName" -> name
-            "hashCode" -> this.hashCode() // Not necessary but we want to avoid cost of method#invoke
+            "hashCode" -> name.hashCode()
+            "equals" -> p === args[0] || (args[0] is Plugin && name == (args[0] as Plugin).name)
             else -> {
                 if (args == null)
                     method.invoke(this)
