@@ -16,6 +16,7 @@ import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -84,7 +85,7 @@ abstract class PlayerEntityVisibilityProcessor(
             val handle = HANDLE_GETTER.getHandle(bukkit)
             if (!VALID_TESTER.isValid(handle)) {
                 // The entity has been removed from the world
-                iterator.remove()
+                if (processInvalid(entry)) iterator.remove()
                 continue
             }
             if (LEVEL_GETTER.level(handle) !== level) {
@@ -121,6 +122,7 @@ abstract class PlayerEntityVisibilityProcessor(
     }
 
     protected abstract fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean
+    protected abstract fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean
 
     open fun shutdown() {
         listener.unregister()
@@ -186,6 +188,10 @@ abstract class PlayerEntityVisibilityProcessor(
             return true
         }
 
+        override fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean {
+            return true
+        }
+
         override fun scheduleTick() {
             task = player.delayedTick(updateIntervalTicks) {
                 tick()
@@ -197,6 +203,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
     abstract class OffTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
 
+        protected val invalid = IntArrayList()
         protected val tickFar = ArrayList<FarEntry>()
         protected val tickReverse = ArrayList<TrackedEntity>()
 
@@ -209,13 +216,23 @@ abstract class PlayerEntityVisibilityProcessor(
             return false
         }
 
+        override fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean {
+            invalid.add(entry.intKey)
+            return false
+        }
+
         override fun postUpdate() {
+            val invalid = invalid.toIntArray()
             val tickFar = ArrayList(tickFar)
             val tickReverse = ArrayList(tickReverse)
+            this.invalid.clear()
             this.tickFar.clear()
             this.tickReverse.clear()
             task = player.nextTick {
                 if (task != null) { // Got shut-down?
+                    for (entityId in invalid) {
+                        trackedEntities.remove(entityId)
+                    }
                     for (entry in tickFar) {
                         val trackedEntity = entry.trackedEntity
                         if (trackedEntity.hidden) {
