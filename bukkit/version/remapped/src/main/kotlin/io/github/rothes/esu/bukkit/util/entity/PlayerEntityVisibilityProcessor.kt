@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.util.entity
 
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.util.collect.FastIteLinkedQueue
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
@@ -15,7 +14,8 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import it.unimi.dsi.fastutil.ints.Int2ReferenceMap
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -31,8 +31,7 @@ abstract class PlayerEntityVisibilityProcessor(
     protected var task: ScheduledTask? = null
     private val listener = TrackListener()
 
-    protected val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
-    protected val trackAllowedBuffer = IntOpenHashSet(2) // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
+    protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>()
 
     open fun shouldHideDefault(entity: Entity): Boolean = true
     open fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState = shouldHide(entity.bukkitEntity, distSqr)
@@ -49,7 +48,7 @@ abstract class PlayerEntityVisibilityProcessor(
                     if (!entity.trackedBy.contains(player)) continue
 
                     // We don't process visibility here; Let #update() do it.
-                    trackedEntities.add(TrackedEntity(entity))
+                    trackedEntities.put(entity.entityId, TrackedEntity(entity))
                 }
             }
             listener.register(plugin)
@@ -77,8 +76,9 @@ abstract class PlayerEntityVisibilityProcessor(
         val level = LEVEL_GETTER.level(playerHandle)
         val pos = playerHandle.position()
 
-        val iterator = trackedEntities.iterator()
-        for (te in iterator) {
+        val iterator = trackedEntities.int2ReferenceEntrySet().iterator()
+        for (entry in iterator) {
+            val te = entry.value
             val bukkit = te.bukkitEntity
             val handle = HANDLE_GETTER.getHandle(bukkit)
             if (!VALID_TESTER.isValid(handle)) {
@@ -88,34 +88,38 @@ abstract class PlayerEntityVisibilityProcessor(
             }
             if (LEVEL_GETTER.level(handle) !== level) {
                 // Entity is not on same world anymore
-                processFarEntity(te, false)
-                iterator.remove()
+                if (processFarEntity(entry, false)) iterator.remove()
                 continue
             }
             val other = handle.position()
             val xzDist = (pos.x - other.x).square() + (pos.z - other.z).square()
             if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
-                processFarEntity(te, true)
-                iterator.remove()
+                if (processFarEntity(entry, true)) iterator.remove()
                 continue
             }
 
             when (shouldHide(handle, xzDist + (pos.y - other.y).square())) {
-                HideState.HIDE -> if (!te.hidden) processReverse(te, handle)
-                HideState.SHOW -> if (te.hidden) processReverse(te, handle)
+                HideState.HIDE -> if (!te.hidden) processReverse(te)
+                HideState.SHOW -> if (te.hidden) processReverse(te)
                 HideState.SKIP -> {}
             }
         }
     }
 
-    protected open fun postUpdate() {
-        trackAllowedBuffer.clear() // Clear buffer in case of some entries are still in there
+    protected open fun postUpdate() { }
+
+    protected open fun processReverse(trackedEntity: TrackedEntity) {
+        if (!trackedEntity.hidden) {
+            player.hideEntity(plugin, trackedEntity.bukkitEntity)
+            trackedEntity.hidden = true
+        } else {
+            player.showEntity(plugin, trackedEntity.bukkitEntity)
+            trackedEntity.hidden = false
+        }
     }
 
-    protected abstract fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean)
-
-    protected abstract fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity)
+    protected abstract fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean
 
     open fun shutdown() {
         listener.unregister()
@@ -123,7 +127,7 @@ abstract class PlayerEntityVisibilityProcessor(
             player.syncTick {
                 task?.cancel()
                 task = null
-                for (te in trackedEntities) {
+                for (te in trackedEntities.values) {
                     if (te.hidden && VALID_TESTER.isValid(te.bukkitEntity)) {
                         VISIBILITY_HANDLER.showEntity(player, te.bukkitEntity, plugin)
                     }
@@ -147,13 +151,15 @@ abstract class PlayerEntityVisibilityProcessor(
         fun onTrackEntity(e: PlayerTrackEntityEvent) {
             if (e.player !== player) return
             if (e.entity is Player) return // Do not hide players, while this removes them from tab list
-            if (trackAllowedBuffer.remove(e.entity.entityId)) return
+
+            val entityId = e.entity.entityId
+            if (trackedEntities.containsKey(entityId)) return
             val hidden = shouldHideDefault(e.entity)
             if (hidden) {
                 player.hideEntity(plugin, e.entity)
                 e.isCancelled = true
             }
-            trackedEntities.add(TrackedEntity(e.entity, hidden))
+            trackedEntities.put(entityId, TrackedEntity(e.entity, hidden))
         }
     }
 
@@ -167,7 +173,8 @@ abstract class PlayerEntityVisibilityProcessor(
 
         abstract val updateIntervalTicks: Long
 
-        override fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean) {
+        override fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean {
+            val trackedEntity = entry.value
             if (trackedEntity.hidden) {
                 if (attemptTrack) {
                     VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
@@ -175,17 +182,7 @@ abstract class PlayerEntityVisibilityProcessor(
                     VISIBILITY_HANDLER.forceShowEntity(player, trackedEntity.bukkitEntity, plugin)
                 }
             }
-        }
-
-        override fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity) {
-            if (!trackedEntity.hidden) {
-                player.hideEntity(plugin, trackedEntity.bukkitEntity)
-                trackedEntity.hidden = true
-            } else {
-                trackAllowedBuffer.add(handle.id)
-                player.showEntity(plugin, trackedEntity.bukkitEntity)
-                trackedEntity.hidden = false
-            }
+            return true
         }
 
         override fun scheduleTick() {
@@ -199,16 +196,16 @@ abstract class PlayerEntityVisibilityProcessor(
 
     abstract class OffTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
 
-        protected val tickFar = ArrayList<TrackedEntity>()
+        protected val tickFar = ArrayList<Int2ReferenceMap.Entry<TrackedEntity>>()
         protected val tickReverse = ArrayList<TrackedEntity>()
 
-        override fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean) {
-            if (!trackedEntity.hidden) return
-            tickFar.add(trackedEntity)
+        override fun processReverse(trackedEntity: TrackedEntity) {
+            tickReverse.add(trackedEntity)
         }
 
-        override fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity) {
-            tickReverse.add(trackedEntity)
+        override fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean {
+            tickFar.add(entry)
+            return false
         }
 
         override fun postUpdate() {
@@ -217,19 +214,16 @@ abstract class PlayerEntityVisibilityProcessor(
             this.tickFar.clear()
             this.tickReverse.clear()
             task = player.nextTick {
-                for (trackedEntity in tickFar) {
-                    VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                for (entry in tickFar) {
+                    val trackedEntity = entry.value
+                    if (trackedEntity.hidden) {
+                        VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                    }
+                    trackedEntities.remove(entry.intKey)
                 }
                 if (task != null) { // Got shut-down?
                     for (trackedEntity in tickReverse) {
-                        if (!trackedEntity.hidden) {
-                            player.hideEntity(plugin, trackedEntity.bukkitEntity)
-                            trackedEntity.hidden = true
-                        } else {
-                            trackAllowedBuffer.add(trackedEntity.bukkitEntity.entityId)
-                            player.showEntity(plugin, trackedEntity.bukkitEntity)
-                            trackedEntity.hidden = false
-                        }
+                        super.processReverse(trackedEntity)
                     }
                 }
             }
