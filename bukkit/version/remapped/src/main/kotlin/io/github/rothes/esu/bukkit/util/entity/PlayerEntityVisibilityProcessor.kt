@@ -196,7 +196,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
     abstract class OffTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
 
-        protected val tickFar = ArrayList<Int2ReferenceMap.Entry<TrackedEntity>>()
+        protected val tickFar = ArrayList<FarEntry>()
         protected val tickReverse = ArrayList<TrackedEntity>()
 
         override fun processReverse(trackedEntity: TrackedEntity) {
@@ -204,7 +204,7 @@ abstract class PlayerEntityVisibilityProcessor(
         }
 
         override fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean {
-            tickFar.add(entry)
+            tickFar.add(FarEntry(entry.intKey, entry.value))
             return false
         }
 
@@ -215,11 +215,11 @@ abstract class PlayerEntityVisibilityProcessor(
             this.tickReverse.clear()
             task = player.nextTick {
                 for (entry in tickFar) {
-                    val trackedEntity = entry.value
+                    val trackedEntity = entry.trackedEntity
                     if (trackedEntity.hidden) {
                         VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
                     }
-                    trackedEntities.remove(entry.intKey)
+                    trackedEntities.remove(entry.entityId)
                 }
                 if (task != null) { // Got shut-down?
                     for (trackedEntity in tickReverse) {
@@ -228,6 +228,11 @@ abstract class PlayerEntityVisibilityProcessor(
                 }
             }
         }
+
+        protected class FarEntry(
+            val entityId: Int,
+            val trackedEntity: TrackedEntity,
+        )
 
     }
 
