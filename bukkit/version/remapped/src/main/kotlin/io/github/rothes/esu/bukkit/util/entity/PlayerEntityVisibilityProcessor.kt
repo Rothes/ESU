@@ -222,6 +222,10 @@ abstract class PlayerEntityVisibilityProcessor(
         }
 
         override fun postUpdate() {
+            if (invalid.isEmpty && tickFar.isEmpty() && tickReverse.isEmpty()) {
+                // Nothing to update
+                return
+            }
             val invalid = invalid.toIntArray()
             val tickFar = ArrayList(tickFar)
             val tickReverse = ArrayList(tickReverse)
