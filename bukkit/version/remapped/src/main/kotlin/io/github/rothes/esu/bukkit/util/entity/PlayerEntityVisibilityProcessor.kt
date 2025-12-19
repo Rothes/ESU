@@ -231,8 +231,8 @@ abstract class PlayerEntityVisibilityProcessor(
         }
 
         protected class FarEntry(
-            val entityId: Int,
-            val trackedEntity: TrackedEntity,
+            @JvmField val entityId: Int,
+            @JvmField val trackedEntity: TrackedEntity,
         )
 
     }
