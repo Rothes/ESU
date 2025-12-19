@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
@@ -27,16 +28,15 @@ abstract class PlayerEntityVisibilityProcessor(
     val plugin: Plugin,
 ) {
 
-    @Volatile private var task: ScheduledTask? = null
+    protected var task: ScheduledTask? = null
     private val listener = TrackListener()
 
     protected val trackedEntities = FastIteLinkedQueue<TrackedEntity>()
     protected val trackAllowedBuffer = IntOpenHashSet(2) // Buffer for UserTrackEntityEvent to skip #shouldHideDefault()
 
-    abstract val updateIntervalTicks: Long
-
     open fun shouldHideDefault(entity: Entity): Boolean = true
-    abstract fun shouldHide(entity: Entity, distSqr: Double): Boolean
+    open fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState = shouldHide(entity.bukkitEntity, distSqr)
+    abstract fun shouldHide(entity: Entity, distSqr: Double): HideState
 
     fun start() {
         task = player.syncTick {
@@ -53,16 +53,23 @@ abstract class PlayerEntityVisibilityProcessor(
                 }
             }
             listener.register(plugin)
-            schedule()
+            scheduleTick()
         }
     }
 
-    protected open fun setupUpdate() {
-        trackAllowedBuffer.clear() // Clear buffer in case of some entries are still in there
+    open fun tick() {
+        setupUpdate()
+        try {
+            update()
+        } catch (e: Throwable) {
+            plugin.logger.log(Level.SEVERE, "Failed to update ${player.name}", e)
+        }
+        postUpdate()
     }
 
-    open fun update() {
-        setupUpdate()
+    protected open fun setupUpdate() { }
+
+    protected open fun update() {
         val viewDist = player.sendViewDistance + 1 // Add 1 to debounce
         val maxSqrDist = (viewDist shl 4).square() shl 1 // Diagonal
 
@@ -81,7 +88,7 @@ abstract class PlayerEntityVisibilityProcessor(
             }
             if (LEVEL_GETTER.level(handle) !== level) {
                 // Entity is not on same world anymore
-                VISIBILITY_HANDLER.forceShowEntity(player, bukkit, plugin)
+                processFarEntity(te, false)
                 iterator.remove()
                 continue
             }
@@ -89,27 +96,28 @@ abstract class PlayerEntityVisibilityProcessor(
             val xzDist = (pos.x - other.x).square() + (pos.z - other.z).square()
             if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
-                VISIBILITY_HANDLER.showEntity(player, bukkit, plugin)
+                processFarEntity(te, true)
                 iterator.remove()
                 continue
             }
 
-            if (shouldHide(bukkit, xzDist + (pos.y - other.y).square())) {
-                if (!te.hidden) {
-                    player.hideEntity(plugin, bukkit)
-                    te.hidden = true
-                }
-            } else {
-                if (te.hidden) {
-                    trackAllowedBuffer.add(handle.id)
-                    player.showEntity(plugin, bukkit)
-                    te.hidden = false
-                }
+            when (shouldHide(handle, xzDist + (pos.y - other.y).square())) {
+                HideState.HIDE -> if (!te.hidden) processReverse(te, handle)
+                HideState.SHOW -> if (te.hidden) processReverse(te, handle)
+                HideState.SKIP -> {}
             }
         }
     }
 
-    fun shutdown() {
+    protected open fun postUpdate() {
+        trackAllowedBuffer.clear() // Clear buffer in case of some entries are still in there
+    }
+
+    protected abstract fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean)
+
+    protected abstract fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity)
+
+    open fun shutdown() {
         listener.unregister()
         try {
             player.syncTick {
@@ -127,16 +135,7 @@ abstract class PlayerEntityVisibilityProcessor(
         }
     }
 
-    private fun schedule() {
-        task = player.delayedTick(updateIntervalTicks) {
-            try {
-                update()
-            } catch (e: Throwable) {
-                plugin.logger.log(Level.SEVERE, "Failed to update ${player.name}", e)
-            }
-            schedule()
-        } ?: error("Failed to schedule update task for player ${player.name}")
-    }
+    protected abstract fun scheduleTick()
 
     data class TrackedEntity(
         @JvmField val bukkitEntity: Entity,
@@ -156,6 +155,86 @@ abstract class PlayerEntityVisibilityProcessor(
             }
             trackedEntities.add(TrackedEntity(e.entity, hidden))
         }
+    }
+
+    enum class HideState {
+        HIDE,
+        SHOW,
+        SKIP,
+    }
+
+    abstract class SyncTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
+
+        abstract val updateIntervalTicks: Long
+
+        override fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean) {
+            if (trackedEntity.hidden) {
+                if (attemptTrack) {
+                    VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                } else {
+                    VISIBILITY_HANDLER.forceShowEntity(player, trackedEntity.bukkitEntity, plugin)
+                }
+            }
+        }
+
+        override fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity) {
+            if (!trackedEntity.hidden) {
+                player.hideEntity(plugin, trackedEntity.bukkitEntity)
+                trackedEntity.hidden = true
+            } else {
+                trackAllowedBuffer.add(handle.id)
+                player.showEntity(plugin, trackedEntity.bukkitEntity)
+                trackedEntity.hidden = false
+            }
+        }
+
+        override fun scheduleTick() {
+            task = player.delayedTick(updateIntervalTicks) {
+                tick()
+                scheduleTick()
+            } ?: error("Failed to schedule update task for player ${player.name}")
+        }
+
+    }
+
+    abstract class OffTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
+
+        protected val tickFar = ArrayList<TrackedEntity>()
+        protected val tickReverse = ArrayList<TrackedEntity>()
+
+        override fun processFarEntity(trackedEntity: TrackedEntity, attemptTrack: Boolean) {
+            if (!trackedEntity.hidden) return
+            tickFar.add(trackedEntity)
+        }
+
+        override fun processReverse(trackedEntity: TrackedEntity, handle: net.minecraft.world.entity.Entity) {
+            tickReverse.add(trackedEntity)
+        }
+
+        override fun postUpdate() {
+            val tickFar = ArrayList(tickFar)
+            val tickReverse = ArrayList(tickReverse)
+            this.tickFar.clear()
+            this.tickReverse.clear()
+            task = player.nextTick {
+                for (trackedEntity in tickFar) {
+                    VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                }
+                if (task != null) { // Got shut-down?
+                    for (trackedEntity in tickReverse) {
+                        if (!trackedEntity.hidden) {
+                            player.hideEntity(plugin, trackedEntity.bukkitEntity)
+                            trackedEntity.hidden = true
+                        } else {
+                            trackAllowedBuffer.add(trackedEntity.bukkitEntity.entityId)
+                            player.showEntity(plugin, trackedEntity.bukkitEntity)
+                            trackedEntity.hidden = false
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     companion object {

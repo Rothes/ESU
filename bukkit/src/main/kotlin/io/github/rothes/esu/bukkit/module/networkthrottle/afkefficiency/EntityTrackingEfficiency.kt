@@ -47,13 +47,13 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
         playerData.remove(playerHolder.player)?.shutdown()
     }
 
-    private class VisibilityProcessor(player: Player): PlayerEntityVisibilityProcessor(player, pl) {
+    private class VisibilityProcessor(player: Player): PlayerEntityVisibilityProcessor.SyncTick(player, pl) {
 
         override val updateIntervalTicks: Long
             get() = config.updateIntervalTicks
 
-        override fun shouldHide(entity: Entity, distSqr: Double): Boolean {
-            return distSqr >= config.visibleEntityDistanceSquared
+        override fun shouldHide(entity: Entity, distSqr: Double): HideState {
+            return if (distSqr >= config.visibleEntityDistanceSquared) HideState.HIDE else HideState.SHOW
         }
 
     }

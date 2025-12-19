@@ -1,31 +1,28 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v18
 
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.CullDataManager
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
 import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.UserCullData
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.entity.PlayerEntityVisibilityProcessor
+import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
-import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.*
 import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.math.floorI
 import io.github.rothes.esu.core.util.extension.math.frac
 import io.github.rothes.esu.core.util.extension.math.square
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
@@ -41,16 +38,14 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntitySpawnEvent
-import org.bukkit.event.world.ChunkLoadEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Flag
-import org.spigotmc.TrackingRange
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.*
@@ -69,10 +64,13 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         ENTITY_TYPES = registryAccessHandler.size(registry)
     }
 
-    private val levelEntitiesHandler by Versioned(LevelEntitiesHandler::class.java)
-    private val playerVelocityGetter by Versioned(PlayerVelocityGetter::class.java)
-    private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
-    private val occludeTester by Versioned(BlockOccludeTester::class.java)
+    private val pl = plugin.createChild(name = "${plugin.name}-EntityCulling")
+    private val players = ConcurrentHashMap<Player, VisibilityProcessor>()
+
+    private val VELOCITY_GETTER by Versioned(PlayerVelocityGetter::class.java)
+    private val LEVEL_GETTER by Versioned(LevelHandler::class.java)
+    private val HANDLE_GETTER by Versioned(EntityHandleGetter::class.java)
+    private val OCCLUDE_TESTER by Versioned(BlockOccludeTester::class.java)
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0
@@ -84,18 +82,12 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private var previousElapsedTime = 0L
     private var previousDelayTime = 0L
 
-    private val removedEntities = ConcurrentLinkedQueue<Int>()
-
     override fun checkConfig(): Feature.AvailableCheck? {
         if (config.raytraceThreads < 1) {
             core.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
             return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
         }
         return null
-    }
-
-    override fun onEntityRemove(entity: org.bukkit.entity.Entity) {
-        removedEntities.add(entityHandleGetter.getHandle(entity).id)
     }
 
     override fun onReload() {
@@ -110,14 +102,22 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     override fun onEnable() {
         init()
         registerCommands(Commands)
+        for (player in Bukkit.getOnlinePlayers()) {
+            players[player] = VisibilityProcessor(player).also { it.start() }
+        }
+        Listeners.register()
     }
 
     override fun onDisable() {
         super.onDisable()
+        Listeners.unregister()
         coroutine?.close()
         coroutine = null
         lastThreads = 0
-        EntitySummonListener.unregister()
+        for (processor in players.values) {
+            processor.shutdown()
+        }
+        players.clear()
     }
 
     private fun init() {
@@ -125,10 +125,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         if (lastThreads != config.raytraceThreads)
             startThread()
         raytracer = if (config.fastRaytrace) StepRayTracer else DDARayTracer
-        if (config.entityCulledByDefault)
-            EntitySummonListener.register()
-        else
-            EntitySummonListener.unregister()
     }
 
     private fun startThread() {
@@ -147,56 +143,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         CoroutineScope(context).launch {
             while (isActive) {
                 val millis = System.currentTimeMillis()
-                val entitiesRemove = IntArray(removedEntities.size) { removedEntities.poll() }
-                Bukkit.getWorlds().flatMapTo(
-                    ArrayList(Bukkit.getOnlinePlayers().size + 1)
-                ) { bukkitWorld ->
-                    val level = (bukkitWorld as CraftWorld).handle
-                    val players = level.players()
-                    if (players.isEmpty()) return@flatMapTo emptyList()
-                    // `level.entityLookup.all` + distance check is already the fastest way to collect all entities to check.
-                    // Get regions from entityLookup, then loop over each chunk to collect entities is 2x slower.
-                    val entitiesRaw: Iterable<Entity?> = levelEntitiesHandler.getEntitiesAll(level) // May collect null entity on Paper 1.20.1
-
-                    /* Sort entities by tracking range */
-                    val entityTypeMap = Reference2ReferenceOpenHashMap<EntityType<*>, MutableList<Entity>>(ENTITY_TYPES)
-                    for (entity in entitiesRaw) {
-                        if (entity == null || entity is ServerPlayer) continue // Skip players, bukkit api hides tab list too.
-                        val get = entityTypeMap.get(entity.type)
-                        if (get != null) get.add(entity)
-                        else entityTypeMap[entity.type] = ArrayList<Entity>(32).also { it.add(entity) }
-                    }
-                    val entityMap = Int2ReferenceOpenHashMap<MutableList<Entity>>(ENTITY_TYPES)
-                    for ((type, list) in entityTypeMap) {
-                        val vanillaRange = type.clientTrackingRange() shl 4
-                        val range = TrackingRange.getEntityTrackingRange(list[0], vanillaRange)
-                        val get = entityMap.get(range)
-                        if (get != null)
-                            get.addAll(list)
-                        else
-                            entityMap.put(range, list)
-                    }
-                    val entities = entityMap.int2ReferenceEntrySet().map {
-                        val squaredRange = (it.intKey + 8).square() // Add extra 8 blocks
-                        SortedEntities(squaredRange, it.value)
-                    }
-                    /* Sort entities by tracking range */
-
-                    players.map { player ->
-                        launch {
-                            val bukkit = player.bukkitEntity
-                            if (!bukkit.connected) return@launch // Player may disconnect at the same time
-                            try {
-                                val data = CullDataManager[bukkit]
-                                data.withLock {
-                                    data.onEntityRemove(entitiesRemove)
-                                    tickPlayer(player, bukkit, data, level, entities)
-                                    data.tick()
-                                }
-                            } catch (e: Throwable) {
-                                core.err("[EntityCulling] Failed to update player ${bukkit.name}", e)
-                            }
-                        }
+                players.values.map { processor ->
+                    launch {
+                        processor.tick()
                     }
                 }.joinAll()
                 val elapsed = System.currentTimeMillis() - millis
@@ -208,115 +157,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         }
         lastThreads = nThreads
         coroutine = context
-    }
-
-    object EntitySummonListener : Listener {
-
-        private val levelHandler by Versioned(LevelHandler::class.java)
-
-        @EventHandler
-        fun onEntitySpawn(event: EntitySpawnEvent) {
-            val entity = (event.entity as CraftEntity).handle
-            val level = levelHandler.level(entity) as? ServerLevel ?: return
-            for (player in level.players()) {
-                val bukkit = player.bukkitEntity
-                val viewDistanceSquared = bukkit.viewDistance.square() shl 8
-                if (entity === player) continue
-                val dist = (player.x - entity.x).square() + (player.z - entity.z).square()
-                if (dist > viewDistanceSquared) continue
-                val cullData = CullDataManager[bukkit]
-                if (!cullData.shouldCull) continue
-                if (bukkit.checkTickThread()) {
-                    cullData.withLock {
-                        cullData.setCulled(event.entity, entity.id, true, pend = false)
-                    }
-                    bukkit.hideEntity(plugin, event.entity)
-                }
-            }
-        }
-
-        @EventHandler
-        fun onChunkLoad(event: ChunkLoadEvent) {
-            for (player in event.world.players) {
-                if (!player.checkTickThread()) continue
-                val viewDistance = player.viewDistance + 2
-                val playerChunk = player.chunk
-
-                if (abs(event.chunk.x - playerChunk.x) > viewDistance || abs(event.chunk.z - playerChunk.z) > viewDistance)
-                    continue
-
-                val cullData = CullDataManager[player]
-                if (!cullData.shouldCull) continue
-                cullData.withLock {
-                    for (entity in event.chunk.entities) {
-                        cullData.setCulled(entity, entity.entityId, true, pend = false)
-                    }
-                }
-                for (entity in event.chunk.entities) {
-                    @Suppress("DEPRECATION") // Stable API
-                    player.hideEntity(plugin, entity)
-                }
-            }
-        }
-
-    }
-
-    fun tickPlayer(player: ServerPlayer, bukkit: Player, userCullData: UserCullData, level: ServerLevel, entities: List<SortedEntities>) {
-        val viewDistanceSquared = (bukkit.viewDistance + 1).square() shl 8
-
-        val playerX = player.x
-        val playerY = player.y
-        val playerZ = player.z
-
-        val shouldCull = userCullData.shouldCull
-        val predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
-            val velocity = playerVelocityGetter.getPlayerMoveVelocity(player)
-            if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
-                var x = playerX
-                var y = player.eyeY
-                var z = playerZ
-
-                var vx = velocity.x
-                var vy = velocity.y
-                var vz = velocity.z
-
-                for (i in 0 until 3) {
-                    x += vx
-                    y += vy
-                    z += vz
-
-                    vx *= 0.91f
-                    vy *= 0.98f
-                    vz *= 0.91f
-                }
-                Vec3(x, y, z)
-            } else null
-        } else null
-
-        var tickedEntities = 0
-
-        for ((trackRange, entities) in entities) {
-            val maxRange = min(trackRange, viewDistanceSquared)
-            for (entity in entities) {
-                val pos = entity.position()
-                val dist = (playerX - pos.x).square() + (playerZ - pos.z).square()
-                if (dist > maxRange) continue
-
-                tickedEntities++
-                if (
-                    !shouldCull
-                    || dist + (playerY - pos.y).square() <= forceVisibleDistanceSquared
-                    || entity.isCurrentlyGlowing
-                    || config.visibleEntityTypes.contains(entity.type)
-                ) {
-                    userCullData.setCulled(entity.bukkitEntity, entity.id, false)
-                    continue
-                }
-
-                userCullData.setCulled(entity.bukkitEntity, entity.id, raytrace(player, predicatedPlayerPos, entity.boundingBox, level))
-            }
-        }
-        userCullData.shouldCull = tickedEntities >= config.cullThreshold
     }
 
     fun raytrace(player: ServerPlayer, predPlayer: Vec3?, aabb: AABB, level: ServerLevel): Boolean {
@@ -365,6 +205,82 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             }
         }
         return true
+    }
+
+    private object Listeners: Listener {
+        @EventHandler
+        fun onPlayerJoin(event: PlayerJoinEvent) {
+            players[event.player] = VisibilityProcessor(event.player).also { it.start() }
+        }
+
+        @EventHandler
+        fun onPlayerQuit(event: PlayerQuitEvent) {
+            players.remove(event.player)?.shutdown()
+        }
+    }
+
+    class VisibilityProcessor(player: Player): PlayerEntityVisibilityProcessor.OffTick(player, pl) {
+
+        private val serverPlayer = HANDLE_GETTER.getHandle(player) as ServerPlayer
+        private var level: ServerLevel = LEVEL_GETTER.level(serverPlayer)
+        private var shouldCull = true
+        private var predicatedPlayerPos: Vec3? = null
+
+        private var tickedEntities = 0
+
+        override fun setupUpdate() {
+            tickedEntities = 0
+            level = LEVEL_GETTER.level(serverPlayer)
+            predicatedPlayerPos = if (shouldCull && config.predicatePlayerPositon) {
+                val velocity = VELOCITY_GETTER.getPlayerMoveVelocity(serverPlayer)
+                if (velocity.lengthSqr() >= 0.06) { // Threshold for sprinting
+                    var x = serverPlayer.x
+                    var y = serverPlayer.eyeY
+                    var z = serverPlayer.z
+
+                    var vx = velocity.x
+                    var vy = velocity.y
+                    var vz = velocity.z
+
+                    for (i in 0 until 2) {
+                        x += vx
+                        y += vy
+                        z += vz
+
+                        vx *= 0.91f
+                        vy *= 0.98f
+                        vz *= 0.91f
+                    }
+                    Vec3(x, y, z)
+                } else null
+            } else null
+        }
+
+        override fun postUpdate() {
+            super.postUpdate()
+            shouldCull = tickedEntities >= config.cullThreshold
+        }
+
+        override fun shouldHide(entity: Entity, distSqr: Double): HideState {
+            tickedEntities++
+            if (!shouldCull) return HideState.SKIP
+            if (distSqr <= forceVisibleDistanceSquared
+                || entity.isCurrentlyGlowing
+                || config.visibleEntityTypes.contains(entity.type)
+            ) {
+                return HideState.SHOW
+            }
+
+            return if (raytrace(serverPlayer, predicatedPlayerPos, entity.boundingBox, level))
+                HideState.HIDE else HideState.SHOW
+        }
+
+        override fun shouldHide(entity: org.bukkit.entity.Entity, distSqr: Double): HideState {
+            error("Use RaytraceHandlerImpl.VisibilityProcessor.shouldHide(net.minecraft.world.entity.Entity, double)")
+        }
+
+        override fun scheduleTick() {}
+
     }
 
     interface RayTracer {
@@ -428,7 +344,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) { // It can never be null, but we don't want the kotlin npe check!
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (occludeTester.isFullOcclude(blockState))
+                    if (OCCLUDE_TESTER.isFullOcclude(blockState))
                         return true
                 }
             }
@@ -509,7 +425,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
                 if (section != null) {
                     val blockState = section.get((currX and 15) or ((currZ and 15) shl 4) or ((currY and 15) shl (4 + 4)))
-                    if (occludeTester.isFullOcclude(blockState))
+                    if (OCCLUDE_TESTER.isFullOcclude(blockState))
                         return true
                 }
 
@@ -604,8 +520,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
         }
     }
 
-    data class SortedEntities(val trackRangeSquared: Int, val entities: List<Entity>)
-
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
         val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
@@ -620,11 +534,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             Set to false to use 3D-DDA algorithm, for scenarios requiring more accurate results.
         """)
         val fastRaytrace: Boolean = true,
-        @Comment("""
-            Mark entities culled at first seen.
-            To prevent flickering on entity spawning, and related packets.
-        """)
-        val entityCulledByDefault: Boolean = true,
         @Comment("These entity types are considered always visible.")
         val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER),
         @Comment("Entities within this radius are considered always visible.")
@@ -643,6 +552,10 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             Set -1 to always do culling.
         """)
         val cullThreshold: Int = -1,
-    ): ConfigurationPart
+    ): ConfigurationPart {
+
+        @RemovedNode
+        val entityCulledByDefault: Boolean = true
+    }
 
 }
