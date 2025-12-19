@@ -263,8 +263,8 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
 
         override fun shouldHide(entity: Entity, distSqr: Double): HideState {
             tickedEntities++
-            if (!shouldCull) return HideState.SKIP
-            if (distSqr <= forceVisibleDistanceSquared
+            if (!shouldCull
+                || distSqr <= forceVisibleDistanceSquared
                 || entity.isCurrentlyGlowing
                 || config.visibleEntityTypes.contains(entity.type)
             ) {
