@@ -206,7 +206,7 @@ abstract class PlayerEntityVisibilityProcessor(
     abstract class OffTick(player: Player, plugin: Plugin) : PlayerEntityVisibilityProcessor(player, plugin) {
 
         protected val invalid = IntArrayList()
-        protected val tickFar = ArrayList<FarEntry>()
+        protected val tickFar = ArrayList<TrackedEntity>()
         protected val tickReverse = ArrayList<TrackedEntity>()
 
         override fun processReverse(trackedEntity: TrackedEntity) {
@@ -214,7 +214,8 @@ abstract class PlayerEntityVisibilityProcessor(
         }
 
         override fun processFarEntity(key: Int, trackedEntity: TrackedEntity, attemptTrack: Boolean): Boolean {
-            tickFar.add(FarEntry(key, trackedEntity))
+            if (trackedEntity.hidden) tickFar.add(trackedEntity)
+            invalid.add(key)
             return false
         }
 
@@ -229,38 +230,29 @@ abstract class PlayerEntityVisibilityProcessor(
                 return
             }
             val invalid = invalid.toIntArray()
-            val tickFar = ArrayList(tickFar)
-            val tickReverse = ArrayList(tickReverse)
+            val tickFar = tickFar.toArray()
+            val tickReverse = tickReverse.toArray()
             this.invalid.clear()
             this.tickFar.clear()
             this.tickReverse.clear()
             task = player.nextTick {
-                if (task != null) { // Got shut-down?
-                    for (entityId in invalid) {
-                        trackedEntities.remove(entityId)
-                    }
-                    for (entry in tickFar) {
-                        val trackedEntity = entry.trackedEntity
-                        if (trackedEntity.hidden) {
-                            VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
-                        }
-                        trackedEntities.remove(entry.entityId)
-                    }
-                    for (trackedEntity in tickReverse) {
-                        // Check tick thread again, some movement would probably happen during this 0-50ms delay.
-                        // If not on same tick thread, this trackedEntity would be removed on next update.
-                        if (trackedEntity.bukkitEntity.checkTickThread()) {
-                            super.processReverse(trackedEntity)
-                        }
+                if (task == null) return@nextTick // This processor has been shutdown
+
+                for (entityId in invalid) trackedEntities.remove(entityId)
+                for (trackedEntity in tickFar) {
+                    trackedEntity as TrackedEntity
+                    VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
+                }
+                for (trackedEntity in tickReverse) {
+                    trackedEntity as TrackedEntity
+                    // Check tick thread again, some movement may happen during this 0-50ms delay.
+                    // If not on same tick thread, this trackedEntity would likely be removed on next update.
+                    if (trackedEntity.bukkitEntity.checkTickThread()) {
+                        super.processReverse(trackedEntity)
                     }
                 }
             }
         }
-
-        protected class FarEntry(
-            @JvmField val entityId: Int,
-            @JvmField val trackedEntity: TrackedEntity,
-        )
 
     }
 
