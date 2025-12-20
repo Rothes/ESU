@@ -33,7 +33,7 @@ abstract class PlayerEntityVisibilityProcessor(
     protected var task: ScheduledTask? = null
     private val listener = TrackListener()
 
-    protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>()
+    protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>(16, 0.85f)
 
     open fun shouldHideDefault(entity: Entity): Boolean = true
     open fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState = shouldHide(entity.bukkitEntity, distSqr)
@@ -80,10 +80,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
         val iterator = trackedEntities.int2ReferenceEntrySet().fastIterator()
         for (entry in iterator) {
-            val te = entry.value ?: let {
-                plugin.logger.warning("[PEVP] CME detect on player ${player.name}")
-                continue
-            }
+            val te = entry.value
             val bukkit = te.bukkitEntity
             val handle = HANDLE_GETTER.getHandle(bukkit)
             if (!VALID_TESTER.isValid(handle)) {
@@ -208,6 +205,7 @@ abstract class PlayerEntityVisibilityProcessor(
         protected val invalid = IntArrayList()
         protected val tickFar = ArrayList<TrackedEntity>()
         protected val tickReverse = ArrayList<TrackedEntity>()
+        private var errUpdateTimes = 0
 
         override fun processReverse(trackedEntity: TrackedEntity) {
             tickReverse.add(trackedEntity)
@@ -222,6 +220,20 @@ abstract class PlayerEntityVisibilityProcessor(
         override fun processInvalid(key: Int, trackedEntity: TrackedEntity): Boolean {
             invalid.add(key)
             return false
+        }
+
+        override fun update() {
+            try {
+                super.update()
+                errUpdateTimes = 0
+            } catch (e: NullPointerException) {
+                // Possibly CME. While we are iterating the map off-tick, player tracked another entity on tick thread.
+                // This would break anything based on the current impl, so I guess we can ignore it.
+                if (++errUpdateTimes >= 4) {
+                    plugin.logger.log(Level.SEVERE, "Failed to update player ${player.name} several times in a row: ", e)
+                    errUpdateTimes = 0
+                }
+            }
         }
 
         override fun postUpdate() {
