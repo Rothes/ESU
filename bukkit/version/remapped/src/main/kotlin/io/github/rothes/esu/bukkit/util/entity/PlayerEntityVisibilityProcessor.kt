@@ -15,7 +15,6 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import org.bukkit.entity.Entity
@@ -81,24 +80,27 @@ abstract class PlayerEntityVisibilityProcessor(
 
         val iterator = trackedEntities.int2ReferenceEntrySet().fastIterator()
         for (entry in iterator) {
-            val te = entry.value
+            val te = entry.value ?: let {
+                plugin.logger.warning("[PEVP] CME detect on player ${player.name}")
+                continue
+            }
             val bukkit = te.bukkitEntity
             val handle = HANDLE_GETTER.getHandle(bukkit)
             if (!VALID_TESTER.isValid(handle)) {
                 // The entity has been removed from the world
-                if (processInvalid(entry)) iterator.remove()
+                if (processInvalid(entry.intKey, te)) iterator.remove()
                 continue
             }
             if (LEVEL_GETTER.level(handle) !== level) {
                 // Entity is not on same world anymore
-                if (processFarEntity(entry, false)) iterator.remove()
+                if (processFarEntity(entry.intKey, te, false)) iterator.remove()
                 continue
             }
             val other = handle.position()
             val xzDist = (pos.x - other.x).square() + (pos.z - other.z).square()
             if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
-                if (processFarEntity(entry, true)) iterator.remove()
+                if (processFarEntity(entry.intKey, te, true)) iterator.remove()
                 continue
             }
 
@@ -122,8 +124,8 @@ abstract class PlayerEntityVisibilityProcessor(
         }
     }
 
-    protected abstract fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean
-    protected abstract fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean
+    protected abstract fun processFarEntity(key: Int, trackedEntity: TrackedEntity, attemptTrack: Boolean): Boolean
+    protected abstract fun processInvalid(key: Int, trackedEntity: TrackedEntity): Boolean
 
     open fun shutdown() {
         listener.unregister()
@@ -177,8 +179,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
         abstract val updateIntervalTicks: Long
 
-        override fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean {
-            val trackedEntity = entry.value
+        override fun processFarEntity(key: Int, trackedEntity: TrackedEntity, attemptTrack: Boolean): Boolean {
             if (trackedEntity.hidden) {
                 if (attemptTrack) {
                     VISIBILITY_HANDLER.showEntity(player, trackedEntity.bukkitEntity, plugin)
@@ -189,7 +190,7 @@ abstract class PlayerEntityVisibilityProcessor(
             return true
         }
 
-        override fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean {
+        override fun processInvalid(key: Int, trackedEntity: TrackedEntity): Boolean {
             return true
         }
 
@@ -212,13 +213,13 @@ abstract class PlayerEntityVisibilityProcessor(
             tickReverse.add(trackedEntity)
         }
 
-        override fun processFarEntity(entry: Int2ReferenceMap.Entry<TrackedEntity>, attemptTrack: Boolean): Boolean {
-            tickFar.add(FarEntry(entry.intKey, entry.value))
+        override fun processFarEntity(key: Int, trackedEntity: TrackedEntity, attemptTrack: Boolean): Boolean {
+            tickFar.add(FarEntry(key, trackedEntity))
             return false
         }
 
-        override fun processInvalid(entry: Int2ReferenceMap.Entry<TrackedEntity>): Boolean {
-            invalid.add(entry.intKey)
+        override fun processInvalid(key: Int, trackedEntity: TrackedEntity): Boolean {
+            invalid.add(key)
             return false
         }
 
