@@ -79,7 +79,7 @@ abstract class PlayerEntityVisibilityProcessor(
         val level = LEVEL_GETTER.level(playerHandle)
         val pos = playerHandle.position()
 
-        val iterator = trackedEntities.int2ReferenceEntrySet().iterator()
+        val iterator = trackedEntities.int2ReferenceEntrySet().fastIterator()
         for (entry in iterator) {
             val te = entry.value
             val bukkit = te.bukkitEntity
