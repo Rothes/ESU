@@ -140,7 +140,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
                 }
                 user.message(lang, { afkEfficiencyDisabled })
             }
-            reschedule(delta)
+            if (delta >= 0) reschedule(delta)
         }
 
         private fun createAfkTask(lastAction: Long): Job {
@@ -184,7 +184,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         private object Paper: Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun onSpectate(event: PlayerStartSpectatingEntityEvent) {
-                playerMap[event.player]?.cancel()
+                playerMap[event.player]?.disableEfficiency(-1)
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun onSpectate(event: PlayerStopSpectatingEntityEvent) {
