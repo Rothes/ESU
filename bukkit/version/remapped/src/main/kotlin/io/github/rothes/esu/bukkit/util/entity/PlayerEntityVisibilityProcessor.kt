@@ -226,7 +226,7 @@ abstract class PlayerEntityVisibilityProcessor(
             try {
                 super.update()
                 errUpdates = 0
-            } catch (e: Exception) {
+            } catch (e: RuntimeException) {
                 if (e is ArrayIndexOutOfBoundsException || e is NullPointerException) {
                     // Possibly CME. While we are iterating the map off-tick, player tracked another entity on tick thread.
                     // This would break anything based on the current impl, so I guess we can ignore it.
