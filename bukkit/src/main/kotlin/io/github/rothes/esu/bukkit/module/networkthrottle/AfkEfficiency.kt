@@ -158,7 +158,8 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
 
         @EventHandler
         fun onJoin(event: PlayerJoinEvent) {
-            playerMap[event.player] = PlayerHolder(event.player)
+            // Is it possible we got a not removed element??
+            playerMap.put(event.player, PlayerHolder(event.player))?.shutdown()
         }
 
         @EventHandler
