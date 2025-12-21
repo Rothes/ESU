@@ -292,7 +292,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val wrapper = WrapperPlayServerChunkData(event)
         val player = event.getPlayer<Player>()
         val pd = playerData[player] ?: let {
-            core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
+            if (player.isOnline) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
             return
         }
         val column = wrapper.column
@@ -720,7 +720,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
         val throttledChunks = player.throttledChunks ?: let {
-            core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}. Offline?")
+            if (player.isOnline) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
             return
         }
 
