@@ -205,7 +205,7 @@ abstract class PlayerEntityVisibilityProcessor(
         protected val invalid = IntArrayList()
         protected val tickFar = ArrayList<TrackedEntity>()
         protected val tickReverse = ArrayList<TrackedEntity>()
-        private var errUpdateTimes = 0
+        private var errUpdates = 0
 
         override fun processReverse(trackedEntity: TrackedEntity) {
             tickReverse.add(trackedEntity)
@@ -225,14 +225,18 @@ abstract class PlayerEntityVisibilityProcessor(
         override fun update() {
             try {
                 super.update()
-                errUpdateTimes = 0
-            } catch (e: NullPointerException) {
-                // Possibly CME. While we are iterating the map off-tick, player tracked another entity on tick thread.
-                // This would break anything based on the current impl, so I guess we can ignore it.
-                if (++errUpdateTimes >= 4) {
-                    plugin.logger.log(Level.SEVERE, "Failed to update player ${player.name} several times in a row: ", e)
-                    errUpdateTimes = 0
+                errUpdates = 0
+            } catch (e: Exception) {
+                if (e is ArrayIndexOutOfBoundsException || e is NullPointerException) {
+                    // Possibly CME. While we are iterating the map off-tick, player tracked another entity on tick thread.
+                    // This would break anything based on the current impl, so I guess we can ignore it.
+                    if (++errUpdates >= 4) {
+                        plugin.logger.log(Level.SEVERE, "Failed to update player ${player.name} several times in a row: ", e)
+                        errUpdates = 0
+                    }
+                    return
                 }
+                throw e
             }
         }
 
