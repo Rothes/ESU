@@ -33,7 +33,7 @@ abstract class PlayerEntityVisibilityProcessor(
     protected var task: ScheduledTask? = null
     private val listener = TrackListener()
 
-    protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>(16, 0.85f)
+    protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>(16, 0.9f)
 
     open fun shouldHideDefault(entity: Entity): Boolean = true
     open fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState = shouldHide(entity.bukkitEntity, distSqr)
