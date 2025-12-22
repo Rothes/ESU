@@ -3,10 +3,12 @@ package io.github.rothes.esu.bukkit.command.parser
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.versioned
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.level.biome.Biome
 import org.incendo.cloud.parser.ParserDescriptor
 
 interface NmsRegistryValueParsers {
 
+    fun <C> biome(): ParserDescriptor<C, Biome>
     fun <C> entityType(): ParserDescriptor<C, EntityType<*>>
 
     companion object {
