@@ -5,11 +5,13 @@ import net.minecraft.core.Registry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.level.biome.Biome
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 
 object NmsRegistriesImpl: NmsRegistries {
 
+    override val biome: ResourceKey<Registry<Biome>> = Registries.BIOME
     override val block: ResourceKey<Registry<Block>> = Registries.BLOCK
     override val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>> = Registries.BLOCK_ENTITY_TYPE
     override val entityType: ResourceKey<Registry<EntityType<*>>> = Registries.ENTITY_TYPE

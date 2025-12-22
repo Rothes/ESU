@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.*
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.MCRegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
 import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -17,7 +17,7 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         registerFeature(ChunkDataThrottle)
         registerFeature(DynamicChunkSendRate)
         registerFeature(EntityCulling)
-        if (MCRegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
+        if (NmsRegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
         registerFeature(HighLatencyAdjust)
         registerFeature(SkipUnnecessaryPackets)
     }
@@ -35,11 +35,11 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
     }
 
     override fun buildConfigLoader(builder: YamlConfigurationLoader.Builder) {
-        if (MCRegistryValueSerializers.isSupported) {
+        if (NmsRegistryValueSerializers.isSupported) {
             builder.defaultOptions { options ->
                 options.serializers { builder ->
-                    builder.register(MCRegistryValueSerializers.instance.block)
-                        .register(MCRegistryValueSerializers.instance.entityType)
+                    builder.register(NmsRegistryValueSerializers.instance.block)
+                        .register(NmsRegistryValueSerializers.instance.entityType)
                 }
             }
         }
@@ -63,7 +63,7 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         val originalViewDistance: MutableMap<UUID, Int> = linkedMapOf(),
     )
 
-    class ModuleLang(): ConfigurationPart
+    class ModuleLang: ConfigurationPart
 
 }
 
