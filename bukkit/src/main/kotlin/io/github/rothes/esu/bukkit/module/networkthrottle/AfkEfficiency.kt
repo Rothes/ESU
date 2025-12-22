@@ -184,7 +184,10 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         private object Paper: Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun onSpectate(event: PlayerStartSpectatingEntityEvent) {
-                playerMap[event.player]?.disableEfficiency(-1)
+                playerMap[event.player]?.let {
+                    it.disableEfficiency(-1)
+                    it.cancel()
+                }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun onSpectate(event: PlayerStopSpectatingEntityEvent) {
