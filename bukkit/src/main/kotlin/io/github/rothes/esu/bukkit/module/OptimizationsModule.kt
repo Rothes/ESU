@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.module.optimizations.BiomeSpawnersFeature
 import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.meta.Comment
@@ -15,6 +16,10 @@ import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
 
 object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, EmptyConfiguration>() {
+
+    init {
+        registerFeature(BiomeSpawnersFeature)
+    }
 
     override fun onEnable() {
         registerListener(object : Listener {
