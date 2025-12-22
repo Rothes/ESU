@@ -16,9 +16,7 @@ object EntityCulling : CommonFeature<EntityCulling.FeatureConfig, EmptyConfigura
 
     private val raytraceHandler =
         if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= 19)
-            RaytraceHandler::class.java.versioned().also {
-                registerFeature(it)
-            }
+            RaytraceHandler::class.java.versioned().also { registerFeature(it) }
         else null
 
     override fun checkUnavailable(): Feature.AvailableCheck? {

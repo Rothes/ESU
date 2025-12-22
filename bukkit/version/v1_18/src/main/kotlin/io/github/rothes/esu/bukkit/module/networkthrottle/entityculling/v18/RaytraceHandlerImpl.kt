@@ -211,7 +211,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private object Listeners: Listener {
         @EventHandler
         fun onPlayerJoin(event: PlayerJoinEvent) {
-            players[event.player] = VisibilityProcessor(event.player).also { it.start() }
+            players.put(event.player, VisibilityProcessor(event.player).also { it.start() })?.shutdown()
         }
 
         @EventHandler
