@@ -468,7 +468,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             // We could do the same thing to the top section,
             // but it never happens in vanilla generated chunks,
             // so, no.
-            checkSurfaceInvisible(bvArr, invisible, 0x1000 * (8 - 1), BV_INVISIBLE)
+            checkSurfaceInvisible(bvArr, invisible, 0x1000 * 8, BV_INVISIBLE)
         }
 
         id = 0
