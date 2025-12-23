@@ -22,9 +22,17 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         private set
     final override var parent: Feature<*, *>? = null
         private set
-    private var _module: Module<*, *>? = null
     override val module: Module<*, *>
-        get() = _module ?: error("Feature $name is not attached to a module")
+        get() {
+            var feat = parent
+            while (feat?.parent != null) {
+                feat = feat.parent
+            }
+            if (feat !is Module<*, *>) {
+                error("Feature $name is not attached to a module")
+            }
+            return feat
+        }
 
     final override val configClass: Class<C>
     final override val langClass: Class<L>
@@ -83,14 +91,6 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
 
     final override fun setParent(parent: Feature<*, *>?) {
         this.parent = parent
-        var temp = parent
-        while (temp?.parent != null) {
-            temp = temp.parent
-        }
-        if (temp !is Module<*, *>) {
-            temp = null
-        }
-        _module = temp
     }
 
     protected val children = linkedMapOf<String, Feature<*, *>>()
