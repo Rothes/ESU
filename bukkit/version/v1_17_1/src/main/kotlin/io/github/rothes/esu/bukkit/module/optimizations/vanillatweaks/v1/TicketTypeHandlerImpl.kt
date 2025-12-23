@@ -1,18 +1,16 @@
-package io.github.rothes.esu.bukkit.module.optimizations.v1
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v1
 
-import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeFeature
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
 import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
 import net.minecraft.server.level.TicketType
 import java.lang.reflect.Modifier
 
-class TicketTypeHandlerImpl: TicketTypeHandler {
+object TicketTypeHandlerImpl: TicketTypeFeature.TicketTypeHandler {
 
-    companion object {
-        private val expiryTicksField = TicketType::class.java.declaredFields
-            .first { it.type == Long::class.java && !Modifier.isStatic(it.modifiers) }
-        private val expiryTicksFieldPrivate = Modifier.isPrivate(expiryTicksField.modifiers)
-    }
+    private val expiryTicksField = TicketType::class.java.declaredFields
+        .first { it.type == Long::class.java && !Modifier.isStatic(it.modifiers) }
+    private val expiryTicksFieldPrivate = Modifier.isPrivate(expiryTicksField.modifiers)
 
     val map = TicketType::class.java.declaredFields
         .filter { it.type.isAssignableFrom(TicketType::class.java) }
@@ -20,17 +18,17 @@ class TicketTypeHandlerImpl: TicketTypeHandler {
         .map { getTicketType(it) }
         .associateBy { it.name }
 
-    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
+    override fun getTicketTypeMap(): Map<String, TicketTypeFeature.TicketTypeHandler.TicketType> {
         return map
     }
 
-    private fun getTicketType(handle: TicketType<*>): TicketTypeHandler.TicketType {
+    private fun getTicketType(handle: TicketType<*>): TicketTypeFeature.TicketTypeHandler.TicketType {
         return if (expiryTicksFieldPrivate) TicketTypeCBImpl(handle) else TicketTypePaperImpl(handle)
     }
 
     class TicketTypePaperImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeFeature.TicketTypeHandler.TicketType {
 
         override val name: String = handle.toString()
 
@@ -44,7 +42,7 @@ class TicketTypeHandlerImpl: TicketTypeHandler {
     // On Spigot, it's not public
     class TicketTypeCBImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeFeature.TicketTypeHandler.TicketType {
 
         override val name: String = handle.toString()
 

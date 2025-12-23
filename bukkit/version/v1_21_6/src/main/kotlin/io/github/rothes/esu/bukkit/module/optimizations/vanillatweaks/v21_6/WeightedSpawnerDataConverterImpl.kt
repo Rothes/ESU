@@ -1,6 +1,6 @@
-package io.github.rothes.esu.bukkit.module.optimizations.v21_6
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v21_6
 
-import io.github.rothes.esu.bukkit.module.optimizations.BiomeSpawnersFeature
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.BiomeSpawnersFeature
 import net.minecraft.util.random.Weighted
 import net.minecraft.util.random.WeightedList
 import net.minecraft.world.level.biome.MobSpawnSettings

@@ -1,9 +1,8 @@
-package io.github.rothes.esu.bukkit.module.optimizations
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 
 import com.google.common.collect.ImmutableMap
 import io.github.rothes.esu.bukkit.command.parser.NmsRegistryValueParsers
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.module.optimizations.BiomeSpawnersFeature.BiomeSettings.WeightedSpawnerData
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
@@ -68,7 +67,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
                 }
             }
         }) {
-            it.manager().parserRegistry().registerParser(NmsRegistryValueParsers.instance.biome())
+            it.manager().parserRegistry().registerParser(NmsRegistryValueParsers.Companion.instance.biome())
         }
         applySettings()
     }
@@ -132,7 +131,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
         get() = {
             it.defaultOptions { op ->
                 op.serializers { b ->
-                    b.register(NmsRegistryValueSerializers.instance.entityType)
+                    b.register(NmsRegistryValueSerializers.Companion.instance.entityType)
                 }
             }
         }
@@ -155,8 +154,8 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
 
     interface WeightedSpawnerDataConverter {
 
-        fun fromWeightedList(weightedList: Any) : List<WeightedSpawnerData>
-        fun toWeightedList(list: List<WeightedSpawnerData>) : Any
+        fun fromWeightedList(weightedList: Any) : List<BiomeSettings.WeightedSpawnerData>
+        fun toWeightedList(list: List<BiomeSettings.WeightedSpawnerData>) : Any
 
     }
 

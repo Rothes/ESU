@@ -1,12 +1,12 @@
-package io.github.rothes.esu.bukkit.module.optimizations.v21_6__paper
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v21_6__paper
 
-import io.github.rothes.esu.bukkit.module.optimizations.TicketTypeHandler
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeFeature
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.level.TicketType
 
-object TicketTypeHandlerImpl: TicketTypeHandler {
+object TicketTypeHandlerImpl: TicketTypeFeature.TicketTypeHandler {
 
     private val KEY_HANDLER by Versioned(ResourceKeyHandler::class.java)
 
@@ -17,14 +17,14 @@ object TicketTypeHandlerImpl: TicketTypeHandler {
             name to TicketTypeMoonriseImpl(it.value, name)
         }
 
-    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
+    override fun getTicketTypeMap(): Map<String, TicketTypeFeature.TicketTypeHandler.TicketType> {
         return map
     }
 
     class TicketTypeMoonriseImpl(
         override val handle: TicketType<*>,
         override val name: String,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeFeature.TicketTypeHandler.TicketType {
 
         override var expiryTicks: Long
             get() = handle.timeout()
