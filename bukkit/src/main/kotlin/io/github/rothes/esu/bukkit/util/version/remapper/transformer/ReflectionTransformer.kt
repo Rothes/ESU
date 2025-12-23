@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.util.version.remapper
+package io.github.rothes.esu.bukkit.util.version.remapper.transformer
 
 import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
@@ -11,7 +11,7 @@ import org.objectweb.asm.tree.LdcInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 
-class ReflectTransformer(
+class ReflectionTransformer(
     val mapping: IMappingFile,
 ): Transformer {
 

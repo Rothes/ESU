@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.remapper
 
+import io.github.rothes.esu.bukkit.util.version.remapper.transformer.ReflectionTransformer
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
@@ -34,7 +35,7 @@ object JarRemapper {
             val renamer = Renamer.builder().apply {
                 mappings.forEach { mapping ->
                     if (mapping != null) {
-                        add { ReflectTransformer(mapping) }
+                        add { ReflectionTransformer(mapping) }
                         add(Transformer.renamerFactory(mapping, false))
                     }
                 }
