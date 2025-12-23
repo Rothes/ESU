@@ -2,10 +2,6 @@ anti-lag:
   waterlogged:
     # 若启用此选项，将禁止含水方块中的水流动。
     disable-water-spread:
-
-    # 若启用此选项，每次活塞推动后，含水方块中的水都会被重新添加。
-    keep-water-after-piston-push:
-
     # 若启用此选项，将阻止活塞推动含水方块。
     # 可阻止“水墙机”、“铺水机”的运作。
     disable-waterlogged-block-push:

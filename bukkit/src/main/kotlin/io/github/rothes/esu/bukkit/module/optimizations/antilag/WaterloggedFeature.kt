@@ -2,7 +2,6 @@ package io.github.rothes.esu.bukkit.module.optimizations.antilag
 
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
@@ -51,28 +50,12 @@ object WaterloggedFeature: CommonFeature<WaterloggedFeature.FeatureConfig, Unit>
                     return
                 }
             }
-            if (!config.disableWaterSpread || !config.keepWaterAfterPistonPush) {
-                return
-            }
-            val face = e.direction
-            for (block in blocks) {
-                val waterlogged = block.blockData as? Waterlogged ?: continue
-                if (waterlogged.isWaterlogged)
-                    Scheduler.schedule(block.location, 3) {
-                        val moved = block.getRelative(face)
-                        val blockData = moved.blockData as Waterlogged
-                        blockData.isWaterlogged = true
-                        moved.blockData = blockData
-                    }
-            }
         }
     }
 
     data class FeatureConfig(
         @Comment("Enable this will disable water spread from waterlogged blocks.")
         val disableWaterSpread: Boolean = false,
-        @Comment("If enabled, water in waterlogged blocks will always be refilled after a piston push.")
-        val keepWaterAfterPistonPush: Boolean = false,
         @Comment("""
                 If enabled, waterlogged blocks cannot be pushed by pistons.
                 This can block any ocean maker flying machine.
