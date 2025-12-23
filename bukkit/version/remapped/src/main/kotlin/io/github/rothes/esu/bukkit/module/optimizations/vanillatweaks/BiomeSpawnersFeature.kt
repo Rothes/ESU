@@ -49,20 +49,20 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
 
     override fun onEnable() {
         registerCommands(object {
-            @Command("esu optimizations biomeSpawners dump <biome>")
+            @Command("esu optimizations biomeSpawners export <biome>")
             @ShortPerm
-            fun dump(sender: User, biome: Biome) {
+            fun export(sender: User, biome: Biome) {
                 dumpSettings(biome)
-                sender.miniMessage("<pc>Settings of biome <pdc>${getBiomeKey(biome)} <pc>have been dumped.")
+                sender.miniMessage("<pc>Settings of biome <pdc>${getBiomeKey(biome)} <pc>have been exported.")
             }
 
-            @Command("esu optimizations biomeSpawners dumpAll")
+            @Command("esu optimizations biomeSpawners exportAll")
             @ShortPerm
-            fun dumpAll(sender: User) {
+            fun exportAll(sender: User) {
                 val registryAccess by Versioned(NmsRegistryAccessHandler::class.java)
                 val registry = registryAccess.getRegistryOrThrow(NmsRegistries::class.java.versioned().biome)
                 for (biome in registryAccess.values(registry)) {
-                    dump(sender, biome)
+                    export(sender, biome)
                 }
             }
         })
@@ -157,7 +157,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
     }
 
     @Comment("""
-        Modify natural spawners of the biome. Use command /esu optimizations biomeSpawners dump <biome>
+        Modify natural spawners of the biome. Use command /esu optimizations biomeSpawners export <biome>
          to dump current biome settings, and change it in $DIR_NAME directory.
     """)
     class FeatureConfig: BaseFeatureConfiguration()
