@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 
 import com.google.common.collect.ImmutableMap
-import io.github.rothes.esu.bukkit.command.parser.NmsRegistryValueParsers
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -66,9 +65,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
                     dump(sender, biome)
                 }
             }
-        }) {
-            it.manager().parserRegistry().registerParser(NmsRegistryValueParsers.Companion.instance.biome())
-        }
+        })
         applySettings()
     }
 

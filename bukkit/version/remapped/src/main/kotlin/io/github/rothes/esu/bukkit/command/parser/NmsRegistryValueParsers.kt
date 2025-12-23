@@ -18,7 +18,8 @@ interface NmsRegistryValueParsers {
 
         fun <C> all(): List<ParserDescriptor<C, *>> {
             return listOf(
-                instance.entityType()
+                instance.biome(),
+                instance.entityType(),
             )
         }
     }
