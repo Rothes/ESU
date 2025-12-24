@@ -542,7 +542,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                 id -= SECTION_BLOCKS // Rollback for the loop below
 
                 val freqId = IntArray(frequency.size) { it }.sortedByDescending { frequency[it] }.toIntArray()
-                remappedStateIndex = IntArray(frequency.size) //
+                remappedStateIndex = IntArray(frequency.size)
                 for (i in 0 until remappedStateIndex.size) {
                     val oldStateIndex = freqId[i]
                     remappedStateIndex[oldStateIndex] = i
@@ -557,13 +557,13 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
                                         frequency.size - empty     and (1 shl bits - 1) ||
                                         frequency.size - empty + 1 <= (1 shl 4))
                     ) {
-                        unchangedMapId = -1 // All changed.
+                        unchangedMapId = randomBlockIds.random() // The first index stores the random block.
                         // Move all to next index. 0 index is our random block.
                         for ((i, v) in remappedStateIndex.withIndex()) {
                             remappedStateIndex[i] = v + 1
                         }
                         IntArray(frequency.size - empty + 1) { i ->
-                            if (i == 0) randomBlockIds.random()
+                            if (i == 0) unchangedMapId
                             else sectionData.states[remappedStateIndex.indexOf(i)]
                         }
                     } else {
