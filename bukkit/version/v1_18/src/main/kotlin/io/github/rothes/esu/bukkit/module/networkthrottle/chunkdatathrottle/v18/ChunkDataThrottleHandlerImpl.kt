@@ -317,12 +317,12 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val invisible = pd.invisibleArr
 
         if (!minimalHeightInvisibleCheck) for (i in 0 until 16 * 16) bvArr[i] = Y_MINUS
-        // Handle neighbour chunks starts
-        handleNeighbourChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS,  X_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS, X_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS,  Z_LAVA)
-        handleNeighbourChunk(bvArr, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS, Z_LAVA)
-        // Handle neighbour chunks ends
+        // Handle neighbor chunks starts
+        handleNeighborChunk(bvArr, level, column.x + 1, column.z, 0x00, 0x10, +0x0f, X_PLUS,  X_LAVA)
+        handleNeighborChunk(bvArr, level, column.x - 1, column.z, 0x0f, 0x10, -0x0f, X_MINUS, X_LAVA)
+        handleNeighborChunk(bvArr, level, column.x, column.z + 1, 0x00, 0x01, +0xf0, Z_PLUS,  Z_LAVA)
+        handleNeighborChunk(bvArr, level, column.x, column.z - 1, 0xf0, 0x01, -0xf0, Z_MINUS, Z_LAVA)
+        // Handle neighbor chunks ends
 
         class SectionData(
             @JvmField
@@ -617,8 +617,8 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         pd.throttledChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(invisible.toLongArray())))
     }
 
-    private fun handleNeighbourChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
-                                     bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte, lavaValue: Byte) {
+    private fun handleNeighborChunk(blocking: ByteArray, level: ServerLevel, chunkX: Int, chunkZ: Int,
+                                    bid: Int, bidStep: Int, arrOffset: Int, arrValue: Byte, lavaValue: Byte) {
         val chunk = level.getChunkIfLoaded(chunkX, chunkZ) ?: return
 
         val indexLoop = 0x100 - bidStep * 16
