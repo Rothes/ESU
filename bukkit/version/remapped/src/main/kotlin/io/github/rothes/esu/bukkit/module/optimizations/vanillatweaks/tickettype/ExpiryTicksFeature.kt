@@ -8,6 +8,8 @@ import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 
 object ExpiryTicksFeature: CommonFeature<ExpiryTicksFeature.FeatureConfig, Unit>() {
 
+    private var previousSettingHash: Int = 0
+
     override fun onEnable() {
         applyTicketType()
     }
@@ -19,6 +21,8 @@ object ExpiryTicksFeature: CommonFeature<ExpiryTicksFeature.FeatureConfig, Unit>
     }
 
     private fun applyTicketType() {
+        val config = config
+        if (previousSettingHash == config.hashCode()) return
         for ((key, value) in config.ticketType) {
             val ticketType = TicketTypeHandler.handler.getTicketTypeMap()[key]
             if (ticketType == null) {
@@ -27,6 +31,7 @@ object ExpiryTicksFeature: CommonFeature<ExpiryTicksFeature.FeatureConfig, Unit>
             }
             ticketType.expiryTicks = value
         }
+        previousSettingHash = config.hashCode()
     }
 
     @Comment("""
