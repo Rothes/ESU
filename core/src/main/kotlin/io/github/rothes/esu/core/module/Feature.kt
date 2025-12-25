@@ -24,8 +24,8 @@ interface Feature<C, L> {
 
     val permissionNode: String
 
-    fun setConfigInstance(instance: C) {}
-    fun setLangInstance(instance: MultiLangConfiguration<L>) {}
+    fun setConfigInstance(instance: C?) {}
+    fun setLangInstance(instance: MultiLangConfiguration<L>?) {}
     fun setEnabled(value: Boolean) {
         // Notify children
         for (feature in getFeatures().let { if (enabled) it else it.reversed() }) {

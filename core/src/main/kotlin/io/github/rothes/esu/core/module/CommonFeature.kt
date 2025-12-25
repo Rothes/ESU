@@ -76,11 +76,11 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         unregisterCommands()
     }
 
-    final override fun setConfigInstance(instance: C) {
+    final override fun setConfigInstance(instance: C?) {
         _config = instance
     }
 
-    override fun setLangInstance(instance: MultiLangConfiguration<L>) {
+    override fun setLangInstance(instance: MultiLangConfiguration<L>?) {
         _lang = instance
     }
 
