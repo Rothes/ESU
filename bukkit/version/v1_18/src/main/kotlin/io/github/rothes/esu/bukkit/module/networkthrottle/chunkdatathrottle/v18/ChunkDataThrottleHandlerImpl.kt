@@ -789,7 +789,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         if (fullUpdateThreshold >= 0 && playerChunk.updatedBlocks >= fullUpdateThreshold) {
             try {
                 throttledChunks.put(chunkKey, FULL_CHUNK)
-                chunkSender.sendChunk(nms, level, chunk)
+                chunkSender.sendChunkSafely(nms, level, chunk)
                 counter.resentChunks++
             } catch (e: Exception) {
                 throttledChunks.put(chunkKey, playerChunk)
