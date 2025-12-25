@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v1.tickettype
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.v1
 
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
