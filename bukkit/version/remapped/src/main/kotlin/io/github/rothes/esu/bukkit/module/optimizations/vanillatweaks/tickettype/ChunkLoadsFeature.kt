@@ -16,6 +16,7 @@ object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig,
                     continue
                 }
                 val handle = findTicketType(key)?.handle ?: continue
+                handle.persist = value.persist
                 handle.loadsChunk = value.loadsChunk
                 handle.ticksChunk = value.ticksChunk
                 println("$key ${handle.doesLoad()} ${handle.doesSimulate()}")
@@ -29,12 +30,13 @@ object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig,
     data class FeatureConfig(
         val overrides: Map<String, LoadSettings> = TicketTypeHandler.handler.getTicketTypeMap().mapValues {
             with(advancedHandler) {
-                LoadSettings(it.value.handle.loadsChunk, it.value.handle.ticksChunk)
+                LoadSettings(it.value.handle.persist, it.value.handle.loadsChunk, it.value.handle.ticksChunk)
             }
         }
     ): BaseFeatureConfiguration() {
 
         data class LoadSettings(
+            val persist: Boolean = false,
             val loadsChunk: Boolean = true,
             val ticksChunk: Boolean = false,
         )
