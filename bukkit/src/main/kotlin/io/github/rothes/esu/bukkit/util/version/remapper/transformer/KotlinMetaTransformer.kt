@@ -46,7 +46,7 @@ class KotlinMetaTransformer(
                 val iterator1 = value.listIterator()
                 for (str in iterator1) {
                     // TODO we are just modifying all strings, but not verifying if it's actually a class param
-                    if (!str.startsWith('L')) continue
+                    if (!str.startsWith('L') || !str.endsWith(';')) continue
                     val clazz = mapping.getClass(str.substring(1, str.length - 1)) ?: continue
                     iterator1.set("L${clazz.mapped};")
                     modified = true
