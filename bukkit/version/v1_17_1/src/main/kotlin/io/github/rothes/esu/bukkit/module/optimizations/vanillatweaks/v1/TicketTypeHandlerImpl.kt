@@ -15,20 +15,20 @@ object TicketTypeHandlerImpl: TicketTypeHandler {
     val map = TicketType::class.java.declaredFields
         .filter { it.type.isAssignableFrom(TicketType::class.java) }
         .map { it.accessibleGet(null) as TicketType<*> }
-        .map { getTicketType(it) }
+        .map { wrapTicketType(it) }
         .associateBy { it.name }
 
-    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
+    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.NmsTicketType> {
         return map
     }
 
-    private fun getTicketType(handle: TicketType<*>): TicketTypeHandler.TicketType {
-        return if (expiryTicksFieldPrivate) TicketTypeCBImpl(handle) else TicketTypePaperImpl(handle)
+    private fun wrapTicketType(handle: TicketType<*>): TicketTypeHandler.NmsTicketType {
+        return if (expiryTicksFieldPrivate) NmsTicketTypeCBImpl(handle) else NmsTicketTypePaperImpl(handle)
     }
 
-    class TicketTypePaperImpl(
+    class NmsTicketTypePaperImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeHandler.NmsTicketType {
 
         override val name: String = handle.toString()
 
@@ -40,9 +40,9 @@ object TicketTypeHandlerImpl: TicketTypeHandler {
     }
 
     // On Spigot, it's not public
-    class TicketTypeCBImpl(
+    class NmsTicketTypeCBImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeHandler.NmsTicketType {
 
         override val name: String = handle.toString()
 

@@ -1,13 +1,14 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 
 import io.github.rothes.esu.bukkit.util.version.Versioned
+import net.minecraft.server.level.TicketType
 
 interface TicketTypeHandler {
 
-    fun getTicketTypeMap(): Map<String, TicketType>
+    fun getTicketTypeMap(): Map<String, NmsTicketType>
 
-    interface TicketType {
-        val handle: Any
+    interface NmsTicketType {
+        val handle: TicketType<*>
         val name: String
         var expiryTicks: Long
     }

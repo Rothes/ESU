@@ -14,17 +14,17 @@ object TicketTypeHandlerImpl: TicketTypeHandler {
         .entrySet()
         .associate {
             val name = KEY_HANDLER.getResourceKeyString(it.key)
-            name to TicketTypeMoonriseImpl(it.value, name)
+            name to NmsTicketTypeMoonriseImpl(it.value, name)
         }
 
-    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
+    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.NmsTicketType> {
         return map
     }
 
-    class TicketTypeMoonriseImpl(
+    class NmsTicketTypeMoonriseImpl(
         override val handle: TicketType<*>,
         override val name: String,
-    ): TicketTypeHandler.TicketType {
+    ): TicketTypeHandler.NmsTicketType {
 
         override var expiryTicks: Long
             get() = handle.timeout()
