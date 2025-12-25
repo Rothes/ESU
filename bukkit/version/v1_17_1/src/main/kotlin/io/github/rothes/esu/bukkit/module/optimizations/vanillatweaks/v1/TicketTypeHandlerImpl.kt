@@ -1,12 +1,12 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v1
 
-import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeFeature
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
 import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
 import net.minecraft.server.level.TicketType
 import java.lang.reflect.Modifier
 
-object TicketTypeHandlerImpl: TicketTypeFeature.TicketTypeHandler {
+object TicketTypeHandlerImpl: TicketTypeHandler {
 
     private val expiryTicksField = TicketType::class.java.declaredFields
         .first { it.type == Long::class.java && !Modifier.isStatic(it.modifiers) }
@@ -18,17 +18,17 @@ object TicketTypeHandlerImpl: TicketTypeFeature.TicketTypeHandler {
         .map { getTicketType(it) }
         .associateBy { it.name }
 
-    override fun getTicketTypeMap(): Map<String, TicketTypeFeature.TicketTypeHandler.TicketType> {
+    override fun getTicketTypeMap(): Map<String, TicketTypeHandler.TicketType> {
         return map
     }
 
-    private fun getTicketType(handle: TicketType<*>): TicketTypeFeature.TicketTypeHandler.TicketType {
+    private fun getTicketType(handle: TicketType<*>): TicketTypeHandler.TicketType {
         return if (expiryTicksFieldPrivate) TicketTypeCBImpl(handle) else TicketTypePaperImpl(handle)
     }
 
     class TicketTypePaperImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeFeature.TicketTypeHandler.TicketType {
+    ): TicketTypeHandler.TicketType {
 
         override val name: String = handle.toString()
 
@@ -42,7 +42,7 @@ object TicketTypeHandlerImpl: TicketTypeFeature.TicketTypeHandler {
     // On Spigot, it's not public
     class TicketTypeCBImpl(
         override val handle: TicketType<*>,
-    ): TicketTypeFeature.TicketTypeHandler.TicketType {
+    ): TicketTypeHandler.TicketType {
 
         override val name: String = handle.toString()
 
