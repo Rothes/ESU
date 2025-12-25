@@ -2,10 +2,23 @@ package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettyp
 
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 
 object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig, Unit>() {
+
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: let {
+            if (ServerCompatibility.isPaper) {
+                // Moonrise chunk system rewrite does not respect #doesSimulate()
+                return errFail { "This feature doesn't work on Paper.".message }
+            }
+            null
+        }
+    }
 
     override fun apply() {
         val allowNothing = ServerCompatibility.serverVersion >= "21.9"
