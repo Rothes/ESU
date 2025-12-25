@@ -1,6 +1,6 @@
-package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v1
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v1.tickettype
 
-import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeHandler
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGet
 import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
 import net.minecraft.server.level.TicketType

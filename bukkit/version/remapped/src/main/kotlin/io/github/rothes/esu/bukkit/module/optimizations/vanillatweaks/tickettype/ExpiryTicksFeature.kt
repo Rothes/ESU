@@ -1,7 +1,6 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeHandler
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration

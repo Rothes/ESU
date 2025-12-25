@@ -1,6 +1,6 @@
-package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.v21_6__paper
+package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.v21_6__paper
 
-import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.TicketTypeHandler
+import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import net.minecraft.core.registries.BuiltInRegistries
