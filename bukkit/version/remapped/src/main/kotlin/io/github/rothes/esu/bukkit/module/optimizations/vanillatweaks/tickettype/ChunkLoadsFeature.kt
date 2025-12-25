@@ -32,7 +32,6 @@ object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig,
                 handle.persist = value.persist
                 handle.loadsChunk = value.loadsChunk
                 handle.ticksChunk = value.ticksChunk
-                println("$key ${handle.doesLoad()} ${handle.doesSimulate()}")
             }
         }
     }
