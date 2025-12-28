@@ -4,9 +4,6 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.configuration.meta.RemovedNode
-import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
-import io.github.rothes.esu.lib.configurate.objectmapping.meta.Setting
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*
@@ -66,10 +63,6 @@ object EsuConfig {
         val disableJarFileCache: Boolean = false,
     ): ConfigurationPart {
 
-        @field:Setting("maven-repository")
-        @RemovedNode("0.11.0")
-        private var mavenRepoInternal: Unit = Unit
-
         data class Database(
             @Comment("""
                 The database software you want to use.
@@ -101,34 +94,6 @@ object EsuConfig {
                     "MARIADB" -> "jdbc:mariadb://$host:$port/$database"
                     else      -> error("Unsupported database type: $databaseType")
                 }
-
-            @RemovedNode("0.9.1")
-            val jdbcDriver: String? = null
-            @RemovedNode("0.9.1")
-            val jdbcUrl: String? = null
-
-            @PostProcess
-            private fun upgrade() {
-                if (jdbcUrl != null) {
-                    val split = jdbcUrl.split(':', limit = 3)
-                    if (split.size < 3) return
-                    when (split[1]) {
-                        "h2" -> {
-                            databaseType = "H2"
-                        }
-                        "mysql",
-                        "mariadb" -> {
-                            databaseType = split[1].uppercase()
-                            val reg = "//(.+):(.+)/(.+)".toRegex().matchEntire(split[2])
-                            if (reg != null) {
-                                host = reg.groups[1]?.value ?: host
-                                port = reg.groups[2]?.value?.toIntOrNull() ?: port
-                                database = reg.groups[3]?.value ?: database
-                            }
-                        }
-                    }
-                }
-            }
 
         }
     }
