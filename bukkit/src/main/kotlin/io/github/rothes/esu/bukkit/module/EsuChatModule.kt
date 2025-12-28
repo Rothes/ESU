@@ -7,7 +7,9 @@ import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMA
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.papi
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
@@ -38,6 +40,7 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>() {
@@ -84,10 +87,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     playerDisplay(receiver, pd),
                     pLang(receiver, lang, { whisper.placeholders })
                 )
-                val initiative = updateLast(sender, LastTarget(receiver, last.getIfPresent(receiver).let {
-                    it == null || it.user != sender || !it.initiative
-                })).initiative
-                updateLast(receiver, LastTarget(sender, !initiative))
+                val initiative = updateLast(sender, receiver)
                 for (user in spying) {
                     if (user.isOnline && user != sender && user != receiver)
                         user.message(
@@ -101,7 +101,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("$REPLY_COMMANDS <message>")
             fun reply(sender: User, @Argument(parserName = "greedyString") message: String) {
-                val last = last.getIfPresent(sender)?.user
+                val last = last.getIfPresent(sender)
                 if (last == null) {
                     sender.message(
                         lang, { whisper.replyNoLastTarget },
@@ -109,14 +109,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                     )
                     return
                 }
-                if (!last.isOnline) {
+                val user = last.userGetter()
+                if (user == null || !user.isOnline) {
                     sender.message(
                         lang, { whisper.receiverOffline },
                         pLang(sender, lang, { whisper.placeholders }),
                     )
                     return
                 }
-                whisper(sender, last, message)
+                whisper(sender, user, message)
             }
 
             @Commands(Command("spy"), Command("spy toggle"))
@@ -192,20 +193,48 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 }
             }
 
-            fun updateLast(user: User, lastTarget: LastTarget): LastTarget {
-                val present = last.getIfPresent(user)
-                val value = if (present?.user == lastTarget.user) present else lastTarget
-                last.put(user, value)
-                return value
+            fun updateLast(sender: User, receiver: User): Boolean {
+                val previous = last.getIfPresent(receiver)
+                val initiative = previous == null || previous.userGetter() != sender || !previous.initiative
+
+                last.put(sender, LastTarget(receiver, initiative))
+                last.put(receiver, LastTarget(sender, !initiative))
+                return initiative
             }
 
             data class LastTarget(
-                val user: User,
+                val userGetter: UserGetter,
                 /**
                  * If the message is sent by sender firstly.
                  */
                 val initiative: Boolean,
-            )
+            ) {
+                constructor(user: User, initiative: Boolean) : this(when (user) {
+                    is PlayerUser -> PlayerUserGetter(user)
+                    is ConsoleUser -> ConsoleUserGetter
+                    is GenericUser -> GenericUserGetter
+                    else -> WrappedUserGetter(user)
+                }, initiative)
+
+                @FunctionalInterface
+                interface UserGetter {
+                    operator fun invoke(): User?
+                }
+                class WrappedUserGetter(val user: User) : UserGetter {
+                    override fun invoke(): User = user
+                }
+                class PlayerUserGetter(val uuid: UUID) : UserGetter {
+                    constructor(playerUser: PlayerUser) : this(playerUser.uuid)
+
+                    override fun invoke(): User? = BukkitUserManager.getCache(uuid)
+                }
+                object ConsoleUserGetter : UserGetter {
+                    override fun invoke(): User = ConsoleUser
+                }
+                object GenericUserGetter : UserGetter {
+                    override fun invoke(): User? = null
+                }
+            }
         }
 
         object Emote {
