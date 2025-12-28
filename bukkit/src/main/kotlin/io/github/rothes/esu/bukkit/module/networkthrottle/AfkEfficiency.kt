@@ -108,7 +108,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
 
         @Synchronized
         fun shutdown() {
-            disableEfficiency()
+            disableEfficiency(-1)
             cancel()
         }
 
@@ -128,7 +128,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         }
 
         @Synchronized
-        fun disableEfficiency(delta: Long = CoreModule.providers.posMoveTime[player]) {
+        fun disableEfficiency(delta: Long) {
             if (inAfk) {
                 inAfk = false
                 for (feature in efficiencyFeatures) {
