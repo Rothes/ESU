@@ -9,6 +9,7 @@ import io.github.rothes.esu.bukkit.util.entity.PlayerEntityVisibilityProcessor
 import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.*
 import io.github.rothes.esu.bukkit.util.version.versioned
@@ -211,7 +212,11 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private object Listeners: Listener {
         @EventHandler
         fun onPlayerJoin(event: PlayerJoinEvent) {
-            players.put(event.player, VisibilityProcessor(event.player).also { it.start() })?.shutdown()
+            val player = event.player
+            val processor = VisibilityProcessor(player)
+            players.put(player, processor)?.shutdown()
+            // Delay start() by 1 tick: chunk loader isn't initialized yet at PlayerJoinEvent time
+            player.nextTick { processor.start() }
         }
 
         @EventHandler
