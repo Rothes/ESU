@@ -23,8 +23,7 @@ object TicketTypeCommandsObjImpl: TicketTypeCommandsFeature.TicketTypeCommandsOb
     fun getTickets(sender: PlayerUser,
                    chunkX: Int = sender.player.location.x.floorI() shr 4, chunkZ: Int = sender.player.location.z.floorI() shr 4,
                    world: World = sender.player.world) {
-        val level = (world as CraftWorld).handle
-        val chunkSource = level.getChunkSource()
+        val chunkSource = (world as CraftWorld).handle.getChunkSource() // This field is private on Spigot, call method getter
         val distanceManager = ACCESSOR.invokeExact(chunkSource) as DistanceManager
         val chunkKey = CoordinateUtils.getChunkKey(chunkX, chunkZ)
         sender.message(INVOKER.invokeExact(distanceManager, chunkKey) as String)

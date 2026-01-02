@@ -7,7 +7,6 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import io.github.rothes.esu.core.util.extension.math.floorI
 import net.minecraft.server.level.ServerChunkCache
-import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.TicketStorage
 import org.bukkit.World
 import org.bukkit.craftbukkit.CraftWorld
@@ -22,9 +21,8 @@ object TicketTypeCommandsObjImpl: TicketTypeCommandsFeature.TicketTypeCommandsOb
     fun getTickets(sender: PlayerUser,
                    chunkX: Int = sender.player.x.floorI() shr 4, chunkZ: Int = sender.player.z.floorI() shr 4,
                    world: World = sender.player.world) {
-        val level = (world as CraftWorld).handle as LevelAccessor // Convert to LevelAccessor
-        val chunkSource = level.chunkSource  // This field is private on Spigot, call method getter
-        val ticketStorage = ACCESSOR.invoke(chunkSource) as TicketStorage
+        val chunkSource = (world as CraftWorld).handle.getChunkSource() // This field is private on Spigot, call method getter
+        val ticketStorage = ACCESSOR.invokeExact(chunkSource) as TicketStorage
         val chunkKey = CoordinateUtils.getChunkKey(chunkX, chunkZ)
         sender.message("Load Ticket: " + ticketStorage.getTicketDebugString(chunkKey, false))
         sender.message("Tick Ticket: " + ticketStorage.getTicketDebugString(chunkKey, true))
