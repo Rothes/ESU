@@ -1,9 +1,6 @@
 package io.github.rothes.esu.bukkit.util.version.remapper.transformer
 
-import net.neoforged.art.api.Transformer
 import net.neoforged.srgutils.IMappingFile
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
@@ -12,28 +9,15 @@ import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 
 class ReflectionTransformer(
-    val mapping: IMappingFile,
-): Transformer {
+    mapping: IMappingFile,
+): ClassNodeTransformer(mapping) {
 
-    override fun process(entry: Transformer.ClassEntry): Transformer.ClassEntry {
-        val reader = ClassReader(entry.data)
-        val classNode = ClassNode()
-        reader.accept(classNode, 0)
+    override fun transform(classNode: ClassNode): Boolean {
         var modified = false
         for (method in classNode.methods) {
             modified = modified || handleMethod(method)
         }
-        if (!modified)
-            return entry
-
-        val writer = ClassWriter(0)
-        classNode.accept(writer)
-
-        val data = writer.toByteArray()
-        return if (entry.isMultiRelease)
-            Transformer.ClassEntry.create(entry.className, entry.time, data, entry.version)
-        else
-            Transformer.ClassEntry.create(entry.name, entry.time, data)
+        return modified
     }
 
     private fun handleMethod(method: MethodNode): Boolean {
