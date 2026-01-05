@@ -181,8 +181,10 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 data.restartOnOverride = null
                 ConfigLoader.save(dataPath, data)
 
-                UserManager.instance.getUsers().forEach { user ->
-                    if (user.isOnline) user.kick(lang, { kickMessage })
+                if (config.kickPlayersOnRestart) {
+                    UserManager.instance.getUsers().forEach { user ->
+                        if (user.isOnline) user.kick(lang, { kickMessage })
+                    }
                 }
 
                 runCommands()
@@ -210,6 +212,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
 
     data class ModuleConfig(
         val commands: List<String> = listOf("stop"),
+        val kickPlayersOnRestart: Boolean = true,
         val notifyRestartAt: List<KDuration> = listOf(KDuration.parse("10m"), KDuration.parse("5m"), KDuration.parse("1m"), KDuration.parse("30s"), KDuration.parse("5s")),
         val restartAt: LocalTime = LocalTime.parse("05:00:00"),
         val restartInterval: Duration = KDuration.parse("3d").toJavaDuration(),
