@@ -37,7 +37,8 @@ object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig,
     }
 
     @Comment("""
-        Overrides the chunk loads level of ticket types.
+        Overrides the chunk loads options of ticket types.
+        Changing loads-chunk and ticks-chunk on Paper has no use, due to Moonrise chunk system optimization.
     """)
     data class FeatureConfig(
         val overrides: Map<String, LoadSettings> = TicketTypeHandler.handler.getTicketTypeMap().mapValues {

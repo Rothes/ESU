@@ -11,9 +11,12 @@ vanilla-tweaks:
   biome-spawners:
   # 更改服务器标签类型设置。
   # 标签用于控制区块的加载。详情请参阅 https://zh.minecraft.wiki/w/区块#标签
-  # 将 expiry-ticks 设置为 0 或负值将使得区块永久加载，直到标签被手动移除。
   ticket-type:
-    # 每次启用或重新加载模块时，会将标签的持续游戏刻(expiry-ticks)修改为以下值。
-    # 例如，如果设置“portal: 1”，则通过传送门传送加载的区块将在 1 个游戏刻后立即卸载，
-    # 由此可导致“区块加载器”将不再有用。
-    startup-settings:
+    # 调整标签类型的过期/超时游戏刻设置。
+    # 设置 expiry-ticks 为 0 或负数将使得区块永久加载，直到标签被手动移除。
+    expiry-ticks:
+    # 调整标签类型的区块加载设置。
+    # 由于 Moonrise 区块系统优化，在 Paper 服务端上修改 loads-chunk 或 ticks-chunk 不会产生作用。
+    chunk-loads:
+    # 引入在 Minecraft 1.21.9 加入的更多设置.
+    chunk-unloads:
