@@ -39,7 +39,7 @@ allprojects {
 
         maven { // Geyser
             name = "Opencollab"
-            url = uri("https://repo.opencollab.dev/maven-snapshots/")
+            url = uri("https://repo.opencollab.dev/main/")
         }
         maven("https://jitpack.io")
     }
