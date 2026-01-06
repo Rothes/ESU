@@ -34,6 +34,7 @@ import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
+import org.geysermc.floodgate.api.FloodgateApi
 import org.incendo.cloud.annotations.Command
 
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>() {
@@ -72,6 +73,12 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         @EventHandler
         fun onJoin(e: UserLoginEvent) {
             val user = e.user
+
+            if (!config.bookNews.showUnreadNewsOnJoinForGeyser
+                && Bukkit.getPluginManager().isPluginEnabled("floodgate")
+                && FloodgateApi.getInstance().isFloodgateId(user.uuid)
+            ) return
+
             val news = NewsDataManager.news
             if (news.isEmpty()) return
             val checked = NewsDataManager.getChecked(user)
@@ -368,6 +375,13 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             """)
             val channel: String = "main",
             val showUnreadNewsOnJoin: Boolean = true,
+            @Comment("""
+                Minecraft Bedrock (Geyser players) does not support clickable messages,
+                 thus they cannot access this feature properly.
+                Set this to false so we won't show the gui on join for them.
+                Requires Floodgate installed.
+            """)
+            val showUnreadNewsOnJoinForGeyser: Boolean = false,
             @Comment("The default layout when you create a new news.")
             val newLayout: Map<String, String> = mapOf(
                 "default" to """
