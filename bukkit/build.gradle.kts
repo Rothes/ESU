@@ -36,6 +36,11 @@ allprojects {
             name = "NeoForged"
             url = uri("https://maven.neoforged.net/releases/")
         }
+
+        maven { // Geyser
+            name = "Opencollab"
+            url = uri("https://repo.opencollab.dev/maven-snapshots/")
+        }
         maven("https://jitpack.io")
     }
 
@@ -72,6 +77,8 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude("org.bukkit")
     }
+
+    compileOnly("org.geysermc.floodgate:api:2.2.4-SNAPSHOT")
 
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
 }
