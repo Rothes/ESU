@@ -10,31 +10,31 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
 
 data class SpamData(
-    @SerializedName("t", alternate = ["muteUntil"])
+    @SerializedName("t")
     var muteUntil: Long = -1,
-    @SerializedName("m", alternate = ["muteMultiplier"])
+    @SerializedName("m")
     var muteMultiplier: Double = 1.0,
     /**
      * Sent messages.
      */
-    @SerializedName("rc", alternate = ["records"])
+    @SerializedName("rc")
     val records: ArrayDeque<MessageRecord> = ArrayDeque(),
-    @SerializedName("sc", alternate = ["scores"])
+    @SerializedName("sc")
     val scores: ArrayDeque<SpamScore> = ArrayDeque(),
     /**
      * Other player names tried to whisper.
      */
-    @SerializedName("wt", alternate = ["whisperTargets"])
+    @SerializedName("wt")
     val whisperTargets: ArrayDeque<WhisperTarget> = ArrayDeque(),
     /**
      * All timestamps that the user tried to send a message, whatever filtered.
      */
-    @SerializedName("rq", alternate = ["requests"])
+    @SerializedName("rq")
     val requests: ArrayDeque<Long> = ArrayDeque(),
     /**
      * All timestamps that the message filtered sent.
      */
-    @SerializedName("ft", alternate = ["filtered"])
+    @SerializedName("ft")
     val filtered: ArrayDeque<Long> = ArrayDeque(),
 ) {
 
@@ -77,25 +77,25 @@ data class SpamData(
     }
 
     data class MessageRecord(
-        @SerializedName("m", alternate = ["message"])
+        @SerializedName("m")
         val message: String,
-        @SerializedName("t", alternate = ["time"])
+        @SerializedName("t")
         var time: Long,
     )
 
     data class SpamScore(
-        @SerializedName("k", alternate = ["type"])
+        @SerializedName("k")
         val type: String,
-        @SerializedName("s", alternate = ["score"])
+        @SerializedName("s")
         var score: Double,
-        @SerializedName("t", alternate = ["time"])
+        @SerializedName("t")
         var time: Long
     )
 
     data class WhisperTarget(
-        @SerializedName("p", alternate = ["player"])
+        @SerializedName("p")
         val player: String,
-        @SerializedName("t", alternate = ["lastTime"])
+        @SerializedName("t")
         var lastTime: Long,
     )
 }
