@@ -376,7 +376,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val channel: String = "main",
             val showUnreadNewsOnJoin: Boolean = true,
             @Comment("""
-                Minecraft Bedrock (Geyser players) does not support clickable messages,
+                Minecraft Bedrock (Geyser players) does not support clickable texts,
                  thus they cannot access this feature properly.
                 Set this to false so we won't show the gui on join for them.
                 Requires Floodgate installed.

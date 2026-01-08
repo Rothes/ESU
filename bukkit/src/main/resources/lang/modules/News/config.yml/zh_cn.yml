@@ -2,5 +2,10 @@ book-news:
   # 此子服的新闻频道。所有新闻数据都存储到数据库，
   # 因此如果你有多个相同子服，可使用同个频道。
   channel:
+  # Minecraft 基岩版 (Geyser玩家) 不支持可点击交互的文本，
+  # 因此他们无法正常使用此功能。
+  # 设置该选项为 false 则不会在加入服务器时为他们打开书本界面。
+  # 需要安装 Floodgate 。
+  show-unread-news-on-join-for-geyser: false
   # 添加新闻时，默认的布局格式。
   new-layout:
