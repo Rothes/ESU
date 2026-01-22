@@ -1,8 +1,8 @@
 package io.github.rothes.esu.core.util
 
-import io.github.rothes.esu.core.EsuCore
 import java.io.IOException
-import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URI
 import java.net.URL
 
@@ -13,16 +13,17 @@ object NetworkUtils {
 
     val String.hostLatency: Long
         get() {
+            // Use Socket instead of InetAddress.isReachable (which requires root on linux) for platform independent
+            val socket = Socket()
             try {
-                val address = InetAddress.getByName(this)
                 val start = System.currentTimeMillis()
-                val reachable = address.isReachable(500)
-                if (!reachable) return -1
+                socket.connect(InetSocketAddress(this, 80), 500)
                 val latency = System.currentTimeMillis() - start
                 return latency
-            } catch (e: IOException) {
-                EsuCore.instance.err("Failed to test latency to $this : $e")
+            } catch (_: IOException) {
                 return -1
+            } finally {
+                socket.close() // No kotlin-stdlib
             }
         }
 
