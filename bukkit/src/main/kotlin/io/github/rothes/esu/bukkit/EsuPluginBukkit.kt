@@ -186,6 +186,8 @@ class EsuPluginBukkit(
                 }
             } catch (_: IllegalStateException) {
                 // Cannot read world asynchronously on Folia, when player is opening a world inv
+            } catch (_: NullPointerException) {
+                // Shutting down on Folia
             }
 
             BukkitUserManager.getCache(player.uniqueId)?.let { user ->
