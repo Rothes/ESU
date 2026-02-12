@@ -251,7 +251,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
             data class MuteDurationMultiplier(
                 @Comment("Last Mute must within this interval to trigger a multiplier")
-                val maxMuteInterval: Duration = 15.minutes.toJavaDuration(),
+                val maxMuteInterval: Duration = 4.minutes.toJavaDuration(),
                 val multiplier: Double = 2.0,
                 val multiplierMax: Double = 32.0,
             ): ConfigurationPart
@@ -279,15 +279,15 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
                 data class Condition(
                     val drift: Duration = 2.seconds.toJavaDuration(),
-                    val minRequestInterval: Duration = 20.seconds.toJavaDuration(),
-                    val samples: Int = 5,
+                    val minRequestInterval: Duration = 25.seconds.toJavaDuration(),
+                    val samples: Int = 6,
                 ): ConfigurationPart
             }
 
             data class Frequency(
                 val maxMessages: Int = 8,
                 val maxMessagesPer: Duration = 25.seconds.toJavaDuration(),
-                val minimalInterval: Duration = 1.5.seconds.toJavaDuration(),
+                val minimalInterval: Duration = 0.25.seconds.toJavaDuration(),
             ): ConfigurationPart
 
             data class IllegalCharacters(
