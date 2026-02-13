@@ -29,7 +29,7 @@ abstract class BukkitModule<C, L> : CommonModule<C, L>() {
     }
 
     fun log(msg: String) {
-        ConsoleUser.log("[$name] $msg]")
+        ConsoleUser.log("[$name] $msg")
     }
 
 }
