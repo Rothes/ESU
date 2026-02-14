@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.*
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
 import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.configuration.ConfigLoader
@@ -17,7 +18,10 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         registerFeature(ChunkDataThrottle)
         registerFeature(DynamicChunkSendRate)
         registerFeature(EntityCulling)
-        if (NmsRegistryValueSerializers.isSupported) registerFeature(EntityUpdateInterval::class.java.versioned())
+        if (NmsRegistryValueSerializers.isSupported) {
+            if (ServerCompatibility.isPaper) registerFeature(EntityTrackingRange)
+            registerFeature(EntityUpdateInterval::class.java.versioned())
+        }
         registerFeature(HighLatencyAdjust)
         registerFeature(SkipUnnecessaryPackets)
     }

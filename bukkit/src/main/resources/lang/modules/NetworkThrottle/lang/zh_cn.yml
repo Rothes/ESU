@@ -1,5 +1,12 @@
 afk-efficiency:
   afk-efficiency-enabled: <tc>节能模式已启用，世界更新将会推迟。<title:0:365d:0><subtitle><tc>节能模式启用中
   afk-efficiency-disabled: <title:0:1s:0.5s><subtitle><pdc>节能模式已关闭<sound:minecraft:block.note_block.bell:master:0.5>
+entity-tracking-range:
+  updated-tracked-entities: <pc>已更新所有实体的追踪距离.
+  client-tracking-range:
+    get: <pdc><type> <pc>的客户端追踪距离为 <pdc><value> <pc>区块.
+  spigot-tracking-range:
+    get: <pc>世界 <pdc><world> <pc>中 <pdc><type> <pc>的 Spigot 追踪距离为 <pdc><value> <pc>方块.
+    set: <pc>已临时设置 <pdc><type> <pc>的 Spigot 追踪距离为 <pdc><value> <pc>方块.<chat><sc>请 <click:run_command:'/esu networkThrottle entityTrackingRange updateTrackedEntities'><sdc>[更新]</sdc></click> 以应用更改.
 high-latency-adjust:
   adjusted-warning: '<ec><b>注意: </b><pc>您的网络延迟似乎过高. 为了您的游戏体验, 我们已自动调整您的渲染距离. 您随时可在游戏设置中自行更改.'

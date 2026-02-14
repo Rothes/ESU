@@ -99,6 +99,11 @@ entity-culling:
     # 设为 -1 则始终遮挡剔除。
     cull-threshold: -1
 
+entity-tracking-range:
+  # 修改实体类型的客户端追踪距离(Client Tracking Range).
+  # 单位为区块.
+  client-tracking-range-override:
+
 entity-update-interval:
   # 控制实体类型位置更新数据包发送的游戏刻间隔。
   # 更高的数字意味着更高的实体移动数据包，亦是更高的不同步，
