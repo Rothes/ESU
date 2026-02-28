@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.3.0"
-adventure = "4.25.0"
+adventure = "4.26.1"
 bstats = "3.1.0"
 exposed = "1.0.0-rc-4"
 h2database = "2.2.224"
