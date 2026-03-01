@@ -21,5 +21,7 @@ whisper:
 ignore:
   placeholders:
     prefix: '<sc>[<sdc>屏蔽<sc>] '
-  ignoring-player: <pl:prefix><nc>现在开始 <vnc>屏蔽</vnc> <pdc><player></pdc> 的消息。
-  receiving-player: <pl:prefix><pc>现在开始 <vpc>接收</vpc> <pdc><player></pdc> 的消息。
+  ignore-player: <pl:prefix><pc>现在开始<vnc>屏蔽</vnc> <pdc><player></pdc> 的消息。
+  receive-player: <pl:prefix><pc>现在开始<vpc>接收</vpc> <pdc><player></pdc> 的消息。
+  already-ignoring-player: <pl:prefix><ec>你已经屏蔽过 <pdc><player></pdc> 了。
+  already-receiving-player: <pl:prefix><ec>你没有屏蔽 <pdc><player></pdc> 。
