@@ -16,6 +16,7 @@ import io.github.rothes.esu.core.user.User
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
@@ -49,7 +50,7 @@ object StorageManager {
 
     object UsersTable : Table("users") {
         val dbId = integer("id").autoIncrement()
-        val uuid = uuid("uuid").uniqueIndex("uk_uuid")
+        val uuid = javaUUID("uuid").uniqueIndex("uk_uuid")
         val name = varchar("name", 16, "utf8mb3_general_ci").nullable().uniqueIndex("uk_name")
         val language = varchar("language", 12, "utf8mb3_general_ci").nullable()
         val colorScheme = varchar("color_scheme", 32, "utf8mb3_general_ci").nullable()
