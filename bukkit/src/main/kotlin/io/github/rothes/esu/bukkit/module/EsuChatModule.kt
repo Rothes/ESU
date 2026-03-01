@@ -59,8 +59,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             registerCommands(ChatHandler.Emote)
         registerCommands(ChatHandler.Ignore)
 
-        for (player in Bukkit.getOnlinePlayers()) {
-            val user = player.user
+        for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
             ChatHandler.Whisper.checkSpyOnJoin(user)
             ignoreCache[user] = EsuChatStorage.fetchIgnoreUsers(user)
         }
@@ -73,7 +72,6 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     }
 
     private fun isIgnored(sender: User, receiver: User): Boolean {
-        if (receiver is ConsoleUser) return false
         return ignoreCache[receiver]?.contains(sender.dbId) ?: error("No cache of user $receiver")
     }
 
