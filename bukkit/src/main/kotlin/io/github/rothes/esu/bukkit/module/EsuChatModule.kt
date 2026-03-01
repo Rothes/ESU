@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent.Companion.EMOTE_COMMA
 import io.github.rothes.esu.bukkit.event.RawUserReplyEvent.Companion.REPLY_COMMANDS
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent.Companion.WHISPER_COMMANDS
 import io.github.rothes.esu.bukkit.module.EsuChatModule.ModuleConfig.PrefixedMessageModifier
+import io.github.rothes.esu.bukkit.module.esuchat.EsuChatStorage
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -34,35 +35,87 @@ import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import it.unimi.dsi.fastutil.ints.IntSet
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.ModuleLang>() {
 
+    private val ignoreCache = ConcurrentHashMap<User, IntSet>()
+
     override fun onEnable() {
-        Listeners.enable()
+        Listeners.register()
         if (config.whisper.enabled)
             registerCommands(ChatHandler.Whisper)
         if (config.emote.enabled)
             registerCommands(ChatHandler.Emote)
+        registerCommands(ChatHandler.Ignore)
 
         for (player in Bukkit.getOnlinePlayers()) {
-            ChatHandler.Whisper.checkSpyOnJoin(player.user)
+            val user = player.user
+            ChatHandler.Whisper.checkSpyOnJoin(user)
+            ignoreCache[user] = EsuChatStorage.fetchIgnoreUsers(user)
         }
     }
 
     override fun onDisable() {
         super.onDisable()
-        Listeners.disable()
+        Listeners.unregister()
+        ignoreCache.clear()
+    }
+
+    private fun isIgnored(sender: User, receiver: User): Boolean {
+        if (receiver is ConsoleUser) return false
+        return ignoreCache[receiver]?.contains(sender.dbId) ?: error("No cache of user $receiver")
     }
 
     object ChatHandler {
+
+        object Ignore {
+
+            @Command("ignore|block <player>")
+            fun ignore(sender: User, player: User) {
+                val set = ignoreCache[sender]!!
+                if (set.add(player.dbId)) {
+                    EsuChatStorage.addIgnore(sender, player)
+                    sender.message(lang, { ignore.ignorePlayer },
+                        pLang(sender, lang, { ignore.placeholders }),
+                        user(player, "player")
+                    )
+                } else {
+                    sender.message(lang, { ignore.alreadyIgnoringPlayer },
+                        pLang(sender, lang, { ignore.placeholders }),
+                        user(player, "player")
+                    )
+                }
+            }
+
+            @Command("unignore|unblock <player>")
+            fun unignore(sender: User, player: User) {
+                val set = ignoreCache[sender]!!
+                if (set.remove(player.dbId)) {
+                    EsuChatStorage.removeIgnore(sender, player)
+                    sender.message(lang, { ignore.receivePlayer },
+                        pLang(sender, lang, { ignore.placeholders }),
+                        user(player, "player")
+                    )
+                } else {
+                    sender.message(lang, { ignore.alreadyReceivingPlayer },
+                        pLang(sender, lang, { ignore.placeholders }),
+                        user(player, "player")
+                    )
+                }
+            }
+
+        }
 
         object Whisper {
 
@@ -73,6 +126,9 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
             fun whisper(sender: User, receiver: User, @Argument(parserName = "greedyString") message: String) {
+                if (isIgnored(sender, receiver)) {
+                    return sender.message(lang, { whisper.receiverBlocked })
+                }
                 val parsed = parseMessage(sender, message, config.whisper.prefixedMessageModifiers)
 
                 val papi = papi(sender)
@@ -244,6 +300,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val papi = papi(sender)
 
                 for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
+                    if (isIgnored(sender, user)) continue
                     val tags = arrayOf(
                         playerDisplay(user, "sender", sender), component("message", msg), papi
                     )
@@ -296,6 +353,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                 val message = component("message", msg)
                 val papi = papi(sender)
                 for (user in users) {
+                    if (isIgnored(sender, user)) continue
                     user.message(
                         format.player, message, papi,
                         pLang(user, lang, { chat.placeholders }),
@@ -314,12 +372,16 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
     object Listeners: Listener {
 
-        fun enable() {
-            Listeners.register()
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun onJoin(e: PlayerJoinEvent) {
+            val user = e.player.user
+            ignoreCache[user] = EsuChatStorage.fetchIgnoreUsers(user)
         }
 
-        fun disable() {
-            Listeners.unregister()
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun onQuit(e: PlayerQuitEvent) {
+            val user = e.player.user
+            ignoreCache.remove(user)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -576,6 +638,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             ),
             val replyNoLastTarget: MessageData = "<ec>There's no last direct message target.".message,
             val receiverOffline: MessageData = "<ec>The receiver is not online.".message,
+            val receiverBlocked: MessageData = "<ec>You have been blocked by the receiver.".message,
             val spy: Spy = Spy(),
         ) {
 
@@ -594,8 +657,10 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val placeholders: Map<String, String> = mapOf(
                 "prefix" to "<sc>[<sdc>Ignore<sc>] ",
             ),
-            val ignoringPlayer: MessageData = "<pl:prefix><nc>You are now <vnc>ignoring</vnc> <pdc><player></pdc>.".message,
-            val receivingPlayer: MessageData = "<pl:prefix><pc>You are now <vpc>receiving</vpc> <pdc><player></pdc>.".message,
+            val ignorePlayer: MessageData = "<pl:prefix><pc>You are now <vnc>ignoring</vnc> <pdc><player></pdc>.".message,
+            val receivePlayer: MessageData = "<pl:prefix><pc>You are now <vpc>receiving</vpc> <pdc><player></pdc>.".message,
+            val alreadyIgnoringPlayer: MessageData = "<pl:prefix><ec>You are already ignoring <edc><player></edc>.".message,
+            val alreadyReceivingPlayer: MessageData = "<pl:prefix><ec>You are already receiving <edc><player></edc>.".message,
         )
     }
 
