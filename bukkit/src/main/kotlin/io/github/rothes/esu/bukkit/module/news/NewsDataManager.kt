@@ -2,15 +2,18 @@ package io.github.rothes.esu.bukkit.module.news
 
 import io.github.rothes.esu.bukkit.module.NewsModule
 import io.github.rothes.esu.core.coroutine.IOScope
-import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
+import io.github.rothes.esu.core.storage.userId
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.DataSerializer.serialize
 import kotlinx.coroutines.*
 import kotlinx.datetime.LocalDateTime
-import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -30,7 +33,7 @@ object NewsDataManager {
     }
 
     object NewsCheckedTable: Table("news_checked") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_news_checked__user__id")
+        val user = userId()
         val channel = varchar("channel", 32)
         val checked = integer("checked")
 
