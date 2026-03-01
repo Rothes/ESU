@@ -7,9 +7,9 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager.ChatS
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.coroutine.IOScope
-import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.StorageManager.upgrader
+import io.github.rothes.esu.core.storage.userId
 import io.github.rothes.esu.core.util.ConversionUtils.epochMilli
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
@@ -29,7 +29,7 @@ import kotlin.concurrent.write
 object CasDataManager {
 
     object ChatSpamTable: Table("chat_spam_data") {
-        val user = integer("user").references(StorageManager.UsersTable.dbId, ReferenceOption.CASCADE, ReferenceOption.CASCADE, "fk_chat_spam_data__user__id").uniqueIndex("uk_user")
+        val user = userId().uniqueIndex("uk_user")
         val ip = varchar("ip", 45, collate = "ascii_general_ci").uniqueIndex("uk_ip")
         val lastAccess = datetime("last_access")
         val data = json<SpamData>("data", { it.serialize() }, { it.deserialize() })
