@@ -11,6 +11,7 @@ whisper:
     prefix: <sdc><hover:show_text:'<pc>私聊频道'>📨 </hover>
   reply-no-last-target: <ec>找不到上一个私聊对象。
   receiver-offline: <ec>私聊接收者已离线。
+  receiver-blocked: <ec>你已被该私聊对象屏蔽。
   spy:
     placeholders:
       prefix: '<sc>[<sdc>监听<sc>] '
