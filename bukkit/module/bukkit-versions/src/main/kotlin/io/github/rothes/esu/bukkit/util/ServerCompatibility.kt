@@ -12,7 +12,9 @@ import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
 
-    val serverVersion: Version = Bukkit.getServer().bukkitVersion.split('-')[0].toVersion().drop(1)
+    val serverVersion: Version = Bukkit.getServer().bukkitVersion.split('-')[0].toVersion().let {
+        if (it.major == 1) it.drop(1) else it // Remove "1." before 26.1 release
+    }
 
     val isPaper = try {
         Class.forName($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
