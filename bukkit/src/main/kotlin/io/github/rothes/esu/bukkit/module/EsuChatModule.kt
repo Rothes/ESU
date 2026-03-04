@@ -72,7 +72,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     }
 
     private fun isIgnored(sender: User, receiver: User): Boolean {
-        return ignoreCache[receiver]?.contains(sender.dbId) ?: error("No cache of user $receiver")
+        return ignoreCache[receiver]?.contains(sender.dbId) ?: false // Player may disconnect at this moment, so cache removed
     }
 
     object ChatHandler {
