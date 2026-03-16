@@ -19,9 +19,7 @@ interface PlayerAdapter {
         val instance = if (ServerCompatibility.isPaper) Paper else CB
 
         private val playerChunkSentHandler by Versioned(PlayerChunkSentHandler::class.java)
-
-        private val paper20 =
-            ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= 20
+        private val playerConnectedHandler by Versioned(PlayerConnectedHandler::class.java)
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
             return playerChunkSentHandler.isChunkSentNms(this, chunkKey)
@@ -36,13 +34,17 @@ interface PlayerAdapter {
             set(value) = instance.setDisplayName(this, value)
 
         val OfflinePlayer.connected: Boolean
-            get() = if (paper20) isConnected else isOnline
+            get() = playerConnectedHandler.isPlayerConnected(this)
 
         interface PlayerChunkSentHandler {
 
             fun isChunkSentNms(player: Player, chunkKey: Long): Boolean
             fun isChunkSentBukkit(player: Player, chunkKey: Long): Boolean
 
+        }
+
+        interface PlayerConnectedHandler {
+            fun isPlayerConnected(player: OfflinePlayer): Boolean
         }
 
     }
