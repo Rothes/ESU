@@ -32,6 +32,7 @@ import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
@@ -292,7 +293,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
         val wrapper = WrapperPlayServerChunkData(event)
         val player = event.getPlayer<Player>()
         val pd = playerData[player] ?: let {
-            if (player.isOnline) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
+            if (player.connected) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
             return
         }
         val column = wrapper.column
@@ -720,7 +721,7 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
 
     private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
         val throttledChunks = player.throttledChunks ?: let {
-            if (player.isOnline) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
+            if (player.connected) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
             return
         }
 
