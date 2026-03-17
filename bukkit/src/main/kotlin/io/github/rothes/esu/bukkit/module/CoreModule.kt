@@ -3,6 +3,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.module.core.CoreController
 import io.github.rothes.esu.bukkit.module.core.DisabledProviders
 import io.github.rothes.esu.bukkit.module.core.Providers
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.extension.headerIfNotNull
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
@@ -35,6 +36,23 @@ object CoreModule: BukkitModule<CoreModule.ModuleConfig, Unit>() {
         }
     }
 
-    class ModuleConfig: BaseModuleConfiguration(true)
+    data class ModuleConfig(
+        @Comment("""
+            Enable this to store core player data to database.
+            This helps modules to work more powerful.
+        """)
+        val persistentStorage: PersistentStorage = PersistentStorage(),
+    ): BaseModuleConfiguration(true) {
+
+        data class PersistentStorage(
+            val enabled: Boolean = true,
+            @Comment("""
+                Set this to the name in proxy of this server.
+                If you have servers which syncs player data between,
+                 you can use the same server name.
+            """)
+            val serverName: String = "default",
+        )
+    }
 
 }
