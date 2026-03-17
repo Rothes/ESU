@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit
 
+import com.github.luben.zstd.Zstd
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuBootstrap
@@ -108,6 +109,9 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             )
             MavenResolver.testDependency("at.yawk.lz4:lz4-java:1.10.4") {
                 LZ4Factory.fastestInstance()
+            }
+            MavenResolver.testDependency("com.github.luben:zstd-jni:1.5.7-7") {
+                Zstd.compressBound(16)
             }
             MavenResolver.testDependency("it.unimi.dsi:fastutil:8.5.15") {
                 // For 1.16.5
