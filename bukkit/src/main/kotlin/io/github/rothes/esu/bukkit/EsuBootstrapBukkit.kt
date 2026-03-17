@@ -106,7 +106,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                 extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
                 loader = loader,
             )
-            MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
+            MavenResolver.testDependency("at.yawk.lz4:lz4-java:1.10.4") {
                 LZ4Factory.fastestInstance()
             }
             MavenResolver.testDependency("it.unimi.dsi:fastutil:8.5.15") {
