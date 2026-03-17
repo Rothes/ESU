@@ -7,9 +7,6 @@ import io.github.rothes.esu.bukkit.module.core.persistence.PersistentData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.core.util.extension.readUuid
-import io.github.rothes.esu.core.util.extension.writeUuid
-import kotlinx.io.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -20,19 +17,14 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.jetbrains.annotations.ApiStatus
-import java.nio.file.StandardOpenOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.io.path.exists
-import kotlin.io.path.inputStream
-import kotlin.io.path.outputStream
 
 object CoreController {
 
     fun onEnable() {
         if (CoreModule.config.persistentStorage.enabled) CorePersistentStorage // Init table
         Listeners.register()
-        HotDataHandler.loadData()
         val now = System.currentTimeMillis()
         for (p in Bukkit.getOnlinePlayers()) {
             if (tryLoadPersistentData(p)) continue
@@ -79,63 +71,6 @@ object CoreController {
             )
         }
         CorePersistentStorage.saveUserData(player.user, persistent)
-    }
-
-    private object HotDataHandler {
-
-        private const val DATA_VERSION: Byte = 1
-
-        private val hotData
-            get() = CoreModule.moduleFolder.resolve("hotData.tmp")
-
-        fun loadData() {
-            try {
-                if (!core.enabledHot || !hotData.exists()) return
-                hotData.inputStream().asSource().buffered().use { buf ->
-                    require(buf.readByte() == DATA_VERSION) { "Different hot data version" }
-                    buf.readTimeMap(RunningProviders.attackTime.map)
-                    buf.readTimeMap(RunningProviders.moveTime.map, RunningProviders.posMoveTime.map)
-                }
-            } catch (e: Throwable) {
-                core.err("[CoreModule] Failed to load hotData", e)
-            }
-        }
-
-        fun saveData() {
-            try {
-                if (!core.isEnabled && !core.disabledHot) return
-                hotData.outputStream(StandardOpenOption.CREATE).use { stream ->
-                    Buffer().apply {
-                        writeByte(DATA_VERSION)
-                        writeTimeMap(RunningProviders.attackTime.map)
-                        writeTimeMap(RunningProviders.moveTime.map)
-                    }.copyTo(stream)
-                }
-                hotData.toFile().deleteOnExit()
-            } catch (e: Throwable) {
-                core.err("[CoreModule] Failed to save hotData", e)
-            }
-        }
-
-        private fun Sink.writeTimeMap(map: Map<Player, Long>) {
-            writeInt(map.size)
-            for ((player, time) in map) {
-                writeUuid(player.uniqueId)
-                writeLong(time)
-            }
-        }
-        private fun Source.readTimeMap(vararg maps: MutableMap<Player, Long>) {
-            val size = readInt()
-            repeat(size) {
-                val uuid = readUuid()
-                val time = readLong()
-                Bukkit.getPlayer(uuid)?.let { player ->
-                    for (map in maps) {
-                        map.putIfAbsent(player, time)
-                    }
-                }
-            }
-        }
     }
 
     object RunningProviders: Providers {
