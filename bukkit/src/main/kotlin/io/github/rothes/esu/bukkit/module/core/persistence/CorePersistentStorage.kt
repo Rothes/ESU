@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.userId
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
 import io.github.rothes.esu.core.util.DataSerializer.decode
 import io.github.rothes.esu.core.util.DataSerializer.encode
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ object CorePersistentStorage {
                 CoreTable.upsert {
                     it[user] = u.dbId
                     it[server] = CoreModule.config.persistentStorage.serverName
+                    it[lastUpdate] = System.currentTimeMillis().localDateTime
                     it[data] = ExposedBlob(v.serializer(d))
                     it[dataVersion] = v
                 }
