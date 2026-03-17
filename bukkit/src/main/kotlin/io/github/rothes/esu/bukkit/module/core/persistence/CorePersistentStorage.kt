@@ -13,6 +13,8 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
+import org.jetbrains.exposed.v1.datetime.CurrentDateTime
+import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -23,6 +25,7 @@ object CorePersistentStorage {
     object CoreTable: Table("core_persistent_storage") {
         val user = userId()
         val server = varchar("server", 32)
+        val lastUpdate = datetime("last_update").defaultExpression(CurrentDateTime)
         val data = blob("data")
         val dataVersion = enumeration<DataVersion>("data_version")
 
