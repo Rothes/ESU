@@ -60,7 +60,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         registerCommands(ChatHandler.Ignore)
 
         for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
-            ChatHandler.Whisper.checkSpyOnJoin(user)
+            if (user != ConsoleUser) // ConsoleUser is added on init
+                ChatHandler.Whisper.checkSpyOnJoin(user)
             ignoreCache[user] = EsuChatStorage.fetchIgnoreUsers(user)
         }
     }
