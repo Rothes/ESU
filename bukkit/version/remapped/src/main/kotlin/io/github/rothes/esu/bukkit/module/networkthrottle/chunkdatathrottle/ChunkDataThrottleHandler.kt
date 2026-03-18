@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v18
+package io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
@@ -21,9 +21,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMu
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.module.NetworkThrottleModule
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler
-import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.v18.ChunkDataThrottleHandlerImpl.SectionGetter.Companion.container
+import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler.SectionGetter.Companion.container
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
@@ -38,8 +36,11 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.bukkit.util.version.versioned
+import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
+import io.github.rothes.esu.core.module.CommonFeature
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.core.util.extension.readUuid
@@ -66,7 +67,7 @@ import net.minecraft.world.level.chunk.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World.Environment
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
+import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -74,12 +75,14 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.incendo.cloud.annotations.Command
 import java.io.ByteArrayInputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.experimental.and
 import kotlin.experimental.or
+import kotlin.inc
 import kotlin.io.path.fileSize
 import kotlin.io.path.outputStream
 import kotlin.math.abs
@@ -87,7 +90,17 @@ import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 
-object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleHandlerImpl.HandlerConfig, Unit>(), Listener {
+object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerConfig, Unit>(), Listener {
+
+    override val name: String = "ChunkHandler"
+
+    val counter: Counter = Counter()
+
+    data class Counter(
+        var minimalChunks: Long = 0,
+        var resentChunks: Long = 0,
+        var resentBlocks: Long = 0,
+    )
 
     private const val HOT_DATA_VERSION: Byte = 1
 
@@ -120,12 +133,13 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
     private val containerReader by Versioned(PalettedContainerReader::class.java)
     private val levelHandler by Versioned(LevelHandler::class.java)
     private val chunkSender by Versioned(ChunkSender::class.java)
-
-    private val hotDataFile = NetworkThrottleModule.moduleFolder.resolve("minimalChunksData.tmp")
     private val playerData = ConcurrentHashMap<Player, PlayerData>()
 
     private var previousNonInvisible: Set<Block>? = null
     private var wasEnabled = false
+
+    private val hotDataFile
+        get() = module.moduleFolder.resolve("minimalChunksData.tmp")
 
     override fun onReload() {
         super.onReload()
@@ -190,6 +204,14 @@ object ChunkDataThrottleHandlerImpl: ChunkDataThrottleHandler<ChunkDataThrottleH
             PacketEvents.getAPI().eventManager.registerListener(PacketListener)
             register()
         }
+        registerCommands(object {
+            @Command("esu networkThrottle chunkDataThrottle stats")
+            @ShortPerm("chunkDataThrottle")
+            fun chunkDataThrottleView(sender: User) {
+                val (minimalChunks, resentChunks, resentBlocks) = counter
+                sender.message("minimalChunks: $minimalChunks ; resentChunks: $resentChunks ; resentBlocks: $resentBlocks")
+            }
+        })
     }
 
     override fun onDisable() {
