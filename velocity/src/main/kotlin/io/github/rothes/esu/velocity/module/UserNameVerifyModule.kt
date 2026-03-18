@@ -2,7 +2,7 @@ package io.github.rothes.esu.velocity.module
 
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.player.ServerPreConnectEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.ComponentUtils.component
@@ -16,17 +16,16 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
 
     object Listener {
 
-        @Subscribe(order = PostOrder.LATE)
-        fun onLogin(e: ServerPreConnectEvent) {
-            // We need to use this event to make sure the client has sent their settings, for locale.
+        @Subscribe(order = PostOrder.FIRST)
+        fun onLogin(e: PostLoginEvent) {
             val username = e.player.username
             for ((key, regex) in config.requirements) {
                 if (regex.matchEntire(username) == null) {
                     val user = e.player.user
+                    user.awaitSettings(2000) // Wait for client locale configuration
                     user.kick(lang, { kickMessage.messages[key] },
                         component("prefix", user.buildMiniMessage(lang, { kickMessage.prefix }))
                     )
-                    e.result = ServerPreConnectEvent.ServerResult.denied()
                     break
                 }
             }

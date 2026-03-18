@@ -7,6 +7,7 @@ import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PluginMessageEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
+import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.proxy.ConsoleCommandSource
@@ -200,6 +201,11 @@ class EsuPluginVelocity(
         VelocityUserManager.getCache(event.player.uniqueId)?.let {
             VelocityUserManager.unload(it)
         }
+    }
+
+    @Subscribe(order = PostOrder.FIRST)
+    fun onReceiveConfiguration(event: PlayerSettingsChangedEvent) {
+        event.player.user.onSettingsReceived()
     }
 
     @Subscribe

@@ -8,6 +8,8 @@ import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.velocity.plugin
 import java.util.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
 class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityUser() {
@@ -54,6 +56,26 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
         dbId = userData.dbId
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
+    }
+
+    private var waitingSettings: CountDownLatch? = CountDownLatch(1)
+
+    fun awaitSettings(timeout: Long = 1000): Boolean {
+        if (player.hasSentPlayerSettings()) {
+            return true
+        } else {
+            val latch = waitingSettings ?: return true // Now settings sent?
+            return try {
+                latch.await(timeout, TimeUnit.MILLISECONDS)
+            } catch (_: InterruptedException) {
+                false
+            }
+        }
+    }
+
+    internal fun onSettingsReceived() {
+        waitingSettings?.countDown()
+        waitingSettings = null
     }
 
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
