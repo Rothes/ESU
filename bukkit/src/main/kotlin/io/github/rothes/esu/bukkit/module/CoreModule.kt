@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.util.extension.headerIfNotNull
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
+import org.bukkit.Bukkit
 
 object CoreModule: BukkitModule<CoreModule.ModuleConfig, Unit>() {
 
@@ -49,9 +50,9 @@ object CoreModule: BukkitModule<CoreModule.ModuleConfig, Unit>() {
             @Comment("""
                 Set this to the name in proxy of this server.
                 If you have servers which syncs player data between,
-                 you can use the same server name.
+                 you can use the same server name here.
             """)
-            val serverName: String = "default",
+            val serverName: String = Bukkit.getServer().port.toString(),
         )
     }
 
