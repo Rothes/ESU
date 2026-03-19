@@ -19,10 +19,10 @@ repositories {
 
 dependencies {
     // Velocity
-    compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
+    compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
+    kapt("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
     compileOnly("com.github.rothes.velocity:velocity-proxy:dev~3.0.0-SNAPSHOT")
-    compileOnly("io.netty:netty-all:4.1.114.Final")
+    compileOnly("io.netty:netty-all:4.2.10.Final")
     // Project
     api(project(":common"))
     compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))

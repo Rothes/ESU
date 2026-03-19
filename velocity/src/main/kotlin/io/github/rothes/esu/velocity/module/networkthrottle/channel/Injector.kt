@@ -171,7 +171,7 @@ object Injector {
 
     class EsuPreDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
 
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             if (msg is ByteBuf) {
                 data.oppositeSize = msg.readableBytes()
             } else {
@@ -184,7 +184,7 @@ object Injector {
 
     class EsuFinDecoder(val data: EsuPipelineData): ChannelInboundHandlerAdapter() {
 
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             if (msg is ByteBuf) {
                 val peUser = data.peUser
                 val readerIndex = msg.readerIndex()
