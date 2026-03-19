@@ -51,10 +51,20 @@ object CoreController {
         val persistent = CorePersistentStorage.loadUserData(player.user) ?: return false
 
         with(RunningProviders) {
-            attackTime.map[player] = persistent.attackTime
-            genericActiveTime.map[player] = persistent.genericActiveTime
-            moveTime.map[player] = persistent.moveTime
-            posMoveTime.map[player] = persistent.posMoveTime
+            if (persistent.lastActionDuration != null) {
+                val now = System.currentTimeMillis()
+                with(persistent.lastActionDuration) {
+                    attackTime.map[player] = now - attack
+                    genericActiveTime.map[player] = now - generic
+                    moveTime.map[player] = now - move
+                    posMoveTime.map[player] = now - posMove
+                }
+            } else {
+                attackTime.map[player] = persistent.attackTime
+                genericActiveTime.map[player] = persistent.genericActiveTime
+                moveTime.map[player] = persistent.moveTime
+                posMoveTime.map[player] = persistent.posMoveTime
+            }
         }
         return true
     }
@@ -62,12 +72,15 @@ object CoreController {
     private fun savePersistentData(player: Player) {
         if (!CoreModule.config.persistentStorage.enabled) return
 
+        val now = System.currentTimeMillis()
         val persistent = with(RunningProviders) {
             PersistentData(
-                attackTime = moveTime[player],
-                genericActiveTime = genericActiveTime[player],
-                moveTime = moveTime[player],
-                posMoveTime = posMoveTime[player],
+                lastActionDuration = PersistentData.LastActionDuration(
+                    attack = now - moveTime[player],
+                    generic = now - genericActiveTime[player],
+                    move = now - moveTime[player],
+                    posMove = now - posMoveTime[player],
+                ),
             )
         }
         CorePersistentStorage.saveUserData(player.user, persistent)
