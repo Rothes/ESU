@@ -2,6 +2,7 @@ package io.github.rothes.esu.bukkit.module.core.persistence
 
 import com.github.luben.zstd.Zstd
 import io.github.rothes.esu.bukkit.module.CoreModule
+import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.storage.StorageManager.database
 import io.github.rothes.esu.core.storage.userId
@@ -47,7 +48,8 @@ object CorePersistentStorage {
         ZSTD ({ Zstd.compress(it.encode()) },{ Zstd.decompress(it).decode() }),
     }
 
-    fun saveUserData(u: User, d: PersistentData, v: DataVersion = DataVersion.ZSTD) {
+    fun saveUserData(u: PlayerUser, d: PersistentData, v: DataVersion = DataVersion.ZSTD) {
+        if (!u.logonBefore) return
         IOScope.launch {
             transaction(database) {
                 CoreTable.upsert {
