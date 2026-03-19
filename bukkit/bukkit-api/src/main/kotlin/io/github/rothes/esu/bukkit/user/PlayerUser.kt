@@ -27,7 +27,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
             val cache = field
             if (cache != null) {
                 // Check if the instance is as it is.
-                if (cache.isOnline && cache.connected) {
+                if (cache.connected) {
                     return cache
                 }
             }
