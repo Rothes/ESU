@@ -74,8 +74,10 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
     }
 
     internal fun onSettingsReceived() {
-        waitingSettings?.countDown()
-        waitingSettings = null
+        waitingSettings?.let {
+            it.countDown()
+            waitingSettings = null
+        }
     }
 
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
