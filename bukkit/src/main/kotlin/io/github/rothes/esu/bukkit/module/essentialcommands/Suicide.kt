@@ -28,7 +28,7 @@ object Suicide: BaseCommand<Suicide.Config, Suicide.Lang>() {
 
     override fun onEnable() {
         registerCommands(object {
-            @Command("suicide")
+            @Command("suicide|kill")
             @ShortPerm
             fun suicide(sender: User, @Flag("confirm") confirm: Boolean = false) {
                 if (!confirm) {
