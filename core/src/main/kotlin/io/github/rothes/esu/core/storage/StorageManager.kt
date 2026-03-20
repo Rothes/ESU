@@ -1,5 +1,6 @@
 package io.github.rothes.esu.core.storage
 
+import com.google.common.cache.CacheBuilder
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.rothes.esu.core.EsuCore
@@ -13,9 +14,11 @@ import io.github.rothes.esu.core.storage.StorageManager.UsersTable.tableName
 import io.github.rothes.esu.core.storage.StorageManager.UsersTable.uuid
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.user.UserManager
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.*
@@ -23,6 +26,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.SQLIntegrityConstraintViolationException
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object StorageManager {
 
@@ -40,6 +44,8 @@ object StorageManager {
     }
     @Deprecated("0.12.4")
     val coroutineScope = IOScope
+
+    private val userDataCache = CacheBuilder.newBuilder().expireAfterAccess(4, TimeUnit.HOURS).build<Int, UserData>()
 
     object MetaTable : Table("metadata") {
         val key = varchar("key", 32)
@@ -96,20 +102,25 @@ object StorageManager {
         }
     }
 
-    fun getUuid(userId: Int): UUID? {
-        return with(UsersTable) {
-            transaction(database) {
-                select(uuid).where(dbId eq userId).singleOrNull()?.get(uuid)
-            }
-        }
+    fun getUuid(userId: Int): UUID {
+        return getUserData(userId).uuid
+    }
+
+    fun getName(userId: Int): String? {
+        val data = getUserData(userId)
+        return data.name ?: UserManager.instance.getCache(data.uuid)?.nameUnsafe
+    }
+
+    fun getUserData(userId: Int): UserData {
+        return userDataCache.asMap().computeIfAbsent(userId) { getUserData(userId) }
     }
 
     fun getUserData(where: UUID): UserData {
         return with(UsersTable) {
             transaction(database) {
-                select(dbId, language, colorScheme).where(uuid eq where).singleOrNull()?.let {
-                    UserData(it[dbId], where, it[language], it[colorScheme])
-                } ?: UserData(insert { it[uuid] = where }[dbId], where, null, null)
+                select(dbId, name, language, colorScheme).where(uuid eq where).singleOrNull()?.let {
+                    UserData(it[dbId], where, it[name],  it[language], it[colorScheme])
+                } ?: UserData(insert { it[uuid] = where }[dbId], where, null, null, null)
             }
         }
     }
@@ -118,18 +129,43 @@ object StorageManager {
         return with(UsersTable) {
             transaction(database) {
                 select(uuid, dbId, language, colorScheme).where(name eq where).singleOrNull()?.let {
-                    UserData(it[dbId], it[uuid], it[language], it[colorScheme])
+                    UserData(it[dbId], it[uuid], where, it[language], it[colorScheme])
                 }
             }
         }
     }
 
     fun getConsoleUserData(): UserData {
-        return with(UsersTable) {
-            transaction(database) {
-                select(language, colorScheme).where(dbId eq ConsoleConst.DATABASE_ID).single().let {
-                    UserData(ConsoleConst.DATABASE_ID, ConsoleConst.UUID, it[language], it[colorScheme])
-                }
+        return readUserData(ConsoleConst.DATABASE_ID)
+    }
+
+    fun loadUserDataCache(userId: Int) {
+        userDataCache.put(userId, readUserData(userId))
+    }
+
+    fun loadUserDataCache(users: Iterable<Int>) {
+        val map = userDataCache.asMap()
+        transaction(database) {
+            with(UsersTable) {
+                select(dbId, uuid, name, language, colorScheme)
+                    .where { dbId inList users }
+                    .map {
+                        val data = UserData(it[dbId], it[uuid], it[name], it[language], it[colorScheme])
+                        map[data.dbId] = data
+                    }
+            }
+        }
+    }
+
+    private fun readUserData(userId: Int): UserData {
+        return transaction(database) {
+            with(UsersTable) {
+                select(uuid, name, language, colorScheme)
+                    .where { dbId eq userId }
+                    .single()
+                    .let {
+                        UserData(userId, it[uuid], it[name], it[language], it[colorScheme])
+                    }
             }
         }
     }
@@ -187,6 +223,7 @@ object StorageManager {
     data class UserData(
         val dbId: Int,
         val uuid: UUID,
+        val name: String?,
         val language: String?,
         val colorScheme: String?,
     )
