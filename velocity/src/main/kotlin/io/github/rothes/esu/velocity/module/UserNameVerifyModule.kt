@@ -22,7 +22,7 @@ object UserNameVerifyModule: VelocityModule<UserNameVerifyModule.ModuleConfig, U
             for ((key, regex) in config.requirements) {
                 if (regex.matchEntire(username) == null) {
                     val user = e.player.user
-                    user.awaitSettings(2000) // Wait for client locale configuration
+                    user.awaitSettings(500) // Wait for client locale configuration
                     user.kick(lang, { kickMessage.messages[key] },
                         component("prefix", user.buildMiniMessage(lang, { kickMessage.prefix }))
                     )
