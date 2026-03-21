@@ -7,6 +7,7 @@ import io.github.rothes.esu.bukkit.module.news.EditorManager
 import io.github.rothes.esu.bukkit.module.news.NewsDataManager
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
@@ -25,6 +26,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.time
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.ConversionUtils.localDateTime
+import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.inventory.Book
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.event.ClickEvent
@@ -152,7 +154,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                     )
                 )
             }
-            user.openBook(Book.builder().pages(news.flatMap { it.toPages(user, context) }).build())
+            user.openNewsBook(Book.builder().pages(news.flatMap { it.toPages(user, context) }).build())
         }
 
         @Command("news checked")
@@ -174,7 +176,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             val news = NewsDataManager.news
             val new = component("new", user.buildMiniMessage(lang, { bookNews.editor.bookLayout.button.new })
                 .clickEvent(ClickEvent.runCommand("/news editor new")))
-            user.openBook(Book.builder().pages(
+            user.openNewsBook(Book.builder().pages(
                 if (news.isEmpty()) {
                     listOf(user.buildMiniMessage(lang, { bookNews.editor.bookLayout.emptyLayout }, new))
                 } else {
@@ -346,7 +348,16 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
                         .clickEvent(ClickEvent.runCommand("/news editor editAgain"))),
                 )
             }
-            openBook(Book.builder().pages(item.toPages(this, context)))
+            openNewsBook(Book.builder().pages(item.toPages(this, context)).build())
+        }
+
+        private fun PlayerUser.openNewsBook(book: Book) {
+            if (ServerCompatibility.serverVersion >= "21.6") {
+                // Work around Adventure openBook regression on 1.21.6+ by using Paper/Bukkit path.
+                player.openBook(book.server)
+                return
+            }
+            openBook(book)
         }
 
         private fun String.initLayout(user: User): String {
