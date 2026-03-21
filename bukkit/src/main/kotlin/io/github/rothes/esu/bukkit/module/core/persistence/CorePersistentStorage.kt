@@ -45,20 +45,21 @@ object CorePersistentStorage {
         val serializer: (PersistentData) -> ByteArray,
         val deserializer: (ByteArray) -> PersistentData
     ) {
-        PLAIN ({ it.encode() },                     { it.decode() }),
-        ZSTD_A({ Zstd.compress(it.encode()) },{ Zstd.decompress(it).decode() }), // Legacy Paper doesn't support decompress method which was added since 1.5.7-4
+        PLAIN ({ it.encode() }, { it.decode() }),
+        ZSTD_A({ Zstd.compress(it.encode()) }, { Zstd.decompress(it).decode() }), // Legacy Paper doesn't support decompress method which was added since 1.5.7-4
         ZSTD  ({
             val encode = it.encode()
             val compress = Zstd.compress(encode)
             ByteBuffer.allocate(Int.SIZE_BYTES + compress.size).apply {
                 putInt(encode.size)
                 put(compress)
-                flip()
             }.array()
         }, {
             ByteBuffer.wrap(it).let { buf ->
                 val int = buf.getInt()
-                Zstd.decompress(buf.array(), int).decode()
+                val compressed = ByteArray(buf.remaining())
+                buf.get(compressed)
+                Zstd.decompress(compressed, int).decode()
             }
         } )
     }
