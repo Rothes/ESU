@@ -21,6 +21,7 @@ import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.upsert
+import java.nio.ByteBuffer
 
 object CorePersistentStorage {
 
@@ -44,8 +45,22 @@ object CorePersistentStorage {
         val serializer: (PersistentData) -> ByteArray,
         val deserializer: (ByteArray) -> PersistentData
     ) {
-        PLAIN({ it.encode() },                     { it.decode() }),
-        ZSTD ({ Zstd.compress(it.encode()) },{ Zstd.decompress(it).decode() }),
+        PLAIN ({ it.encode() },                     { it.decode() }),
+        ZSTD_A({ Zstd.compress(it.encode()) },{ Zstd.decompress(it).decode() }), // Legacy Paper doesn't support decompress method which was added since 1.5.7-4
+        ZSTD  ({
+            val encode = it.encode()
+            val compress = Zstd.compress(encode)
+            ByteBuffer.allocate(Int.SIZE_BYTES + compress.size).apply {
+                putInt(encode.size)
+                put(compress)
+                flip()
+            }.array()
+        }, {
+            ByteBuffer.wrap(it).let { buf ->
+                val int = buf.getInt()
+                Zstd.decompress(buf.array(), int).decode()
+            }
+        } )
     }
 
     fun saveUserData(u: PlayerUser, d: PersistentData, v: DataVersion = DataVersion.ZSTD) {
