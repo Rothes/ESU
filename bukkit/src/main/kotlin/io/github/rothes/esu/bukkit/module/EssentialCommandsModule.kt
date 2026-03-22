@@ -23,6 +23,7 @@ object EssentialCommandsModule: BukkitModule<BaseModuleConfiguration, EssentialC
     data class ModuleLang(
         val unsafeTeleportSpot: MessageData = "<ec>Cannot find a safe spot for teleport.".message,
         val teleportingPlayer: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
+        val teleportFailedUnknown: MessageData = "<ec>Failed to teleport.".message,
     ): ConfigurationPart
 
 }

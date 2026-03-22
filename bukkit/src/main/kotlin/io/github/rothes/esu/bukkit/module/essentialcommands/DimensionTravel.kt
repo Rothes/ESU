@@ -50,8 +50,12 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     else -> error("Unsupported world environment ${world.environment}")
                 }
                 val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
-                player.tp(spot)
                 sender.message(module.lang, { teleportingPlayer }, player(player))
+                player.tp(spot) { success ->
+                    if (!success) {
+                        sender.message(module.lang, { teleportFailedUnknown })
+                    }
+                }
             }
         })
     }
