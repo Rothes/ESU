@@ -53,50 +53,51 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
 
         override fun onPacketSend(e: PacketSendEvent) {
             if (e.isCancelled) return
+            val player = e.getPlayer<Player>() ?: return
             when (e.packetType) {
                 PacketType.Play.Server.PARTICLE -> {
-                    checkCancel(e, config.rangedPackets.processed.particle) {
+                    checkCancel(player, e, config.rangedPackets.processed.particle) {
                         val wrapper = WrapperPlayServerParticle(e)
-                        wrapper.position.distanceSqr(e.playerPos)
+                        wrapper.position.distanceSqr(player.playerPos)
                     }
                 }
                 PacketType.Play.Server.SOUND_EFFECT -> {
-                    checkCancel(e, config.rangedPackets.processed.soundEffect) {
+                    checkCancel(player, e, config.rangedPackets.processed.soundEffect) {
                         val wrapper = WrapperPlayServerSoundEffect(e)
-                        wrapper.effectPosition.distanceSqr(e.playerPos)
+                        wrapper.effectPosition.distanceSqr(player.playerPos)
                     }
                 }
                 PacketType.Play.Server.ENTITY_SOUND_EFFECT -> {
-                    checkCancel(e, config.rangedPackets.processed.entitySoundEffect) {
+                    checkCancel(player, e, config.rangedPackets.processed.entitySoundEffect) {
                         val wrapper = WrapperPlayServerEntitySoundEffect(e)
-                        entityIdDist(e, wrapper.entityId)
+                        entityIdDist(player, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.NAMED_SOUND_EFFECT -> {} // Legacy
                 PacketType.Play.Server.HURT_ANIMATION -> {
-                    checkCancel(e, config.rangedPackets.processed.hurtAnimation) {
+                    checkCancel(player, e, config.rangedPackets.processed.hurtAnimation) {
                         val wrapper = WrapperPlayServerHurtAnimation(e)
-                        entityIdDist(e, wrapper.entityId)
+                        entityIdDist(player, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.DAMAGE_EVENT -> {
-                    checkCancel(e, config.rangedPackets.processed.damageEvent) {
+                    checkCancel(player, e, config.rangedPackets.processed.damageEvent) {
                         val wrapper = WrapperPlayServerDamageEvent(e)
-                        entityIdDist(e, wrapper.entityId)
+                        entityIdDist(player, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.ENTITY_HEAD_LOOK -> {
-                    checkCancel(e, config.rangedPackets.processed.entityHeadLook) {
+                    checkCancel(player, e, config.rangedPackets.processed.entityHeadLook) {
                         val wrapper = WrapperPlayServerEntityHeadLook(e)
-                        entityIdDist(e, wrapper.entityId)
+                        entityIdDist(player, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.SPAWN_EXPERIENCE_ORB -> {} // Legacy
                 PacketType.Play.Server.TIME_UPDATE -> {
-                    checkCancel(e, config.globalPackets.timeUpdate)
+                    checkCancel(player, e, config.globalPackets.timeUpdate)
                 }
                 PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
                     val actions = EnumSet.copyOf(wrapper.actions)
                     if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
@@ -106,11 +107,11 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     }
                 }
                 PacketType.Play.Server.PLAYER_INFO -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfo(e)
                     when (wrapper.action) {
-                        WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateLatency)
-                        WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateGameMode)
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> checkCancel(player, e, config.globalPackets.playerInfoUpdate.updateLatency)
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE -> checkCancel(player, e, config.globalPackets.playerInfoUpdate.updateGameMode)
                         else -> {}
                     }
                 }
@@ -118,12 +119,12 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         }
 
         @Suppress("NOTHING_TO_INLINE")
-        private inline fun checkCancel(e: PacketSendEvent, bool: Boolean) {
-            if (!bool && e.getPlayer<Player>().isInAfk()) e.isCancelled = true
+        private inline fun checkCancel(player: Player, e: PacketSendEvent, bool: Boolean) {
+            if (!bool && player.isInAfk()) e.isCancelled = true
         }
 
-        private inline fun checkCancel(e: PacketSendEvent, maxDist: Double, scope: () -> Double) {
-            if (maxDist < 0 || !e.getPlayer<Player>().isInAfk()) return
+        private inline fun checkCancel(player: Player, e: PacketSendEvent, maxDist: Double, scope: () -> Double) {
+            if (maxDist < 0 || !player.isInAfk()) return
             if (maxDist == 0.0 || maxDist < scope.invoke()) {
                 e.isCancelled = true
             }
@@ -141,14 +142,14 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
             return (x - o.x).square() + (y - o.y).square() + (z - o.z).square()
         }
 
-        private fun entityIdDist(e: PacketSendEvent, entityId: Int): Double {
-            val loc = e.playerPos
+        private fun entityIdDist(player: Player, entityId: Int): Double {
+            val loc = player.playerPos
             val entity = SpigotConversionUtil.getEntityById(loc.world, entityId)
             return entity?.location?.distanceSquared(loc) ?: Double.MAX_VALUE // For null entity just cancel it
         }
 
-        private val PacketSendEvent.playerPos: Location
-            get() = getPlayer<Player>().location
+        private val Player.playerPos: Location
+            get() = location
 
     }
 
