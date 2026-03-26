@@ -15,6 +15,7 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.util.extension.math.square
+import io.netty.channel.Channel
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.*
@@ -96,7 +97,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     e.checkCancel(config.globalPackets.timeUpdate)
                 }
                 PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!e.player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
                     val actions = EnumSet.copyOf(wrapper.actions)
                     if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
@@ -106,7 +107,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     }
                 }
                 PacketType.Play.Server.PLAYER_INFO -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!e.player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfo(e)
                     when (wrapper.action) {
                         WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> e.checkCancel(config.globalPackets.playerInfoUpdate.updateLatency)
@@ -119,15 +120,22 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
 
         @Suppress("NOTHING_TO_INLINE")
         private inline fun PacketSendEvent.checkCancel(bool: Boolean) {
-            if (!bool && getPlayer<Player>().isInAfk()) isCancelled = true
+            if (!bool && player.isInAfk()) isCancelled = true
         }
 
         private inline fun PacketSendEvent.checkCancel(maxDist: Double, scope: () -> Double) {
-            if (maxDist < 0 || !getPlayer<Player>().isInAfk()) return
+            if (maxDist < 0 || !player.isInAfk()) return
             if (maxDist == 0.0 || maxDist < scope.invoke()) {
                 isCancelled = true
             }
         }
+
+        private inline val PacketSendEvent.player: Player
+            get() {
+                @Suppress("RedundantNullableReturnType") // Could be null
+                val player: Player? = getPlayer()
+                return player ?: throw IllegalStateException("Failed to get player of ${(channel as Channel).remoteAddress()}")
+            }
 
         @Suppress("NOTHING_TO_INLINE")
         private inline fun Player.isInAfk(): Boolean {
@@ -148,7 +156,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         }
 
         private val PacketSendEvent.playerPos: Location
-            get() = getPlayer<Player>().location
+            get() = player.location
 
     }
 
