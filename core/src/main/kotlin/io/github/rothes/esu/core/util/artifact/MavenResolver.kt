@@ -48,6 +48,7 @@ object MavenResolver {
     object MavenRepos {
         val NEO_FORGED = RemoteRepository.Builder("NeoForged", "default", "https://maven.neoforged.net/releases/").build()!!
         val CODEMC = RemoteRepository.Builder("codemc", "default", "https://repo.codemc.org/repository/maven-public/").build()!!
+        val SONATYPE_SNAPSHOT = RemoteRepository.Builder("sonatypeOssSnapshots", "default", "https://central.sonatype.com/repository/maven-snapshots/").build()!!
     }
 
     private val filter = mutableSetOf<String>()
