@@ -20,11 +20,11 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Flag
-import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 object Suicide: BaseCommand<Suicide.Config, Suicide.Lang>() {
 
-    private val suicided = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofSeconds(1)).build<Player, Unit>()
+    private val suicided = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.SECONDS).build<Player, Unit>()
 
     override fun onEnable() {
         registerCommands(object {
