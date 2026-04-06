@@ -26,8 +26,8 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
             try {
-                val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-            } catch (_: NoClassDefFoundError) {
+                Class.forName($$"ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData")
+            } catch (_: ClassNotFoundException) {
                 return Feature.AvailableCheck.fail { "Server not supported".message }
             }
             null
