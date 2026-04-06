@@ -12,9 +12,11 @@ import org.spigotmc.SpigotConfig
 
 object ServerCompatibility {
 
-    val serverVersion: Version = Bukkit.getServer().bukkitVersion.split('-')[0].toVersion().let {
-        if (it.major == 1) it.drop(1) else it // Remove "1." before 26.1 release
-    }
+    val serverVersion: Version = Bukkit.getServer().version
+        .substringAfter("MC: ").substringBefore(')')
+        .toVersion().let {
+            if (it.major == 1) it.drop(1) else it // Remove "1." before 26.1 release
+        }
 
     val isPaper = try {
         Class.forName($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
@@ -31,7 +33,7 @@ object ServerCompatibility {
     }
 
     val isMojmap = try {
-        !MappingEnvironment.reobf()
+        serverVersion > 26 || !MappingEnvironment.reobf()
     } catch (_: NoClassDefFoundError) {
         false
     }
@@ -44,7 +46,7 @@ object ServerCompatibility {
         false
     }
 
-    val hasMojmap = serverVersion >= "14.4"
+    val hasMojmap = serverVersion >= "14.4" && serverVersion < "26"
 
     val asyncTp = try {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)
