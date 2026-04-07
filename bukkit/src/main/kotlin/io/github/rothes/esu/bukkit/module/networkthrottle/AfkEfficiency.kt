@@ -19,6 +19,7 @@ import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
+import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -30,6 +31,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.min
 
 object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.FeatureLang>() {
 
@@ -91,7 +93,14 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         private var afkTask: Job? = null
 
         init {
-            reschedule()
+            val delay = config.minimumActivateDelay
+            if (delay.valuePositive) {
+                val now = System.currentTimeMillis()
+                val lastAction = CoreModule.providers.posMoveTime[player]
+                reschedule(min(lastAction, now - delay.toMillis()))
+            } else {
+                reschedule()
+            }
         }
 
         @Synchronized
@@ -213,7 +222,11 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         @Comment("""
             The duration player must afk for to trigger afk efficiency mode.
         """)
-        val afkDuration: Duration = Duration.ofMinutes(2)
+        val afkDuration: Duration = Duration.ofMinutes(2),
+        @Comment("""
+            The minimum activation delay for players who just joined the server.
+        """)
+        val minimumActivateDelay: Duration = Duration.ofSeconds(30),
     ): BaseFeatureConfiguration()
 
     data class FeatureLang(

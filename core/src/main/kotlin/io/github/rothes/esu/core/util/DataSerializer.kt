@@ -1,9 +1,13 @@
 package io.github.rothes.esu.core.util
 
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.annotations.Expose
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
+
 
 object DataSerializer {
 
@@ -34,11 +38,24 @@ object DataSerializer {
     inline fun <reified T> ByteArray.decode(typeToken: TypeToken<T>): T = this.toString(Charsets.UTF_8).deserialize(typeToken)
 
     private fun createGson(): Gson {
-        return GsonBuilder().disableHtmlEscaping().enableComplexMapKeySerialization().apply {
-            for ((type, typeAdapter) in typeAdapters) {
-                registerTypeAdapter(type, typeAdapter)
-            }
-        }.create()
+        return GsonBuilder()
+            .disableHtmlEscaping()
+            .enableComplexMapKeySerialization()
+            .addSerializationExclusionStrategy(object : ExclusionStrategy {
+                override fun shouldSkipField(f: FieldAttributes): Boolean {
+                    val expose = f.getAnnotation(Expose::class.java) ?: return false
+                    return !expose.serialize
+                }
+
+                override fun shouldSkipClass(clazz: Class<*>?): Boolean {
+                    return false
+                }
+            })
+            .apply {
+                for ((type, typeAdapter) in typeAdapters) {
+                    registerTypeAdapter(type, typeAdapter)
+                }
+            }.create()
     }
 
 }

@@ -1,8 +1,5 @@
-package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.v18
+package io.github.rothes.esu.bukkit.module.networkthrottle.entityculling
 
-import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.PlayerVelocityGetter
-import io.github.rothes.esu.bukkit.module.networkthrottle.entityculling.RaytraceHandler
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.entity.PlayerEntityVisibilityProcessor
@@ -14,11 +11,11 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.*
 import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
-import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.configuration.meta.RemovedNode
+import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.math.floorI
@@ -28,7 +25,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
@@ -38,7 +34,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.entity.Firework
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -50,10 +46,13 @@ import org.incendo.cloud.annotations.Flag
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.sign
+import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
 
-object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, EmptyConfiguration>() {
+object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfiguration>() {
 
     private const val COLLISION_EPSILON = 1E-7
     private val INIT_SECTION: Array<LevelChunkSection> = arrayOf()
@@ -84,10 +83,9 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
     private var previousElapsedTime = 0L
     private var previousDelayTime = 0L
 
-    override fun checkConfig(): Feature.AvailableCheck? {
+    fun checkConfig(): Feature.AvailableCheck? {
         if (config.raytraceThreads < 1) {
-            core.err("[EntityCulling] At least one raytrace thread is required to enable this feature.")
-            return Feature.AvailableCheck.fail { "At least one raytrace thread is required!".message }
+            return errFail { "At least one raytrace thread is required!".message }
         }
         return null
     }
@@ -272,7 +270,7 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             shouldCull = tickedEntities >= config.cullThreshold
         }
 
-        override fun shouldHide(entity: Entity, distSqr: Double): HideState {
+        override fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState {
             tickedEntities++
             if (!shouldCull
                 || distSqr <= forceVisibleDistanceSquared
@@ -563,10 +561,6 @@ object RaytraceHandlerImpl: RaytraceHandler<RaytraceHandlerImpl.RaytraceConfig, 
             Set -1 to always do culling.
         """)
         val cullThreshold: Int = -1,
-    ): ConfigurationPart {
-
-        @RemovedNode
-        val entityCulledByDefault: Boolean = true
-    }
+    )
 
 }

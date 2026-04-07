@@ -382,7 +382,8 @@ object ConfigLoader {
                                                 // Mostly caused by hot-update
                                                 EsuCore.instance.err("Failed to check ${clazz.canonicalName} isData: " + e.message)
                                             } else if (e.javaClass.simpleName != "KotlinReflectionInternalError") {
-                                                e.printStackTrace()
+                                                // Use clazz.name instead of canonicalName, which may throw ClassNotFoundException
+                                                EsuCore.instance.err("Failed to check ${clazz.name} isData (E2): ", e)
                                             }
                                             false
                                         }

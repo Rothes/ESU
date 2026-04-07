@@ -2,11 +2,11 @@ package io.github.rothes.esu.bukkit.module.core
 
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.CoreModule
+import io.github.rothes.esu.bukkit.module.core.persistence.CorePersistentStorage
+import io.github.rothes.esu.bukkit.module.core.persistence.PersistentData
+import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.core.util.extension.readUuid
-import io.github.rothes.esu.core.util.extension.writeUuid
-import kotlinx.io.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -17,20 +17,17 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.jetbrains.annotations.ApiStatus
-import java.nio.file.StandardOpenOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.io.path.exists
-import kotlin.io.path.inputStream
-import kotlin.io.path.outputStream
 
 object CoreController {
 
     fun onEnable() {
+        if (CoreModule.config.persistentStorage.enabled) CorePersistentStorage // Init table
         Listeners.register()
-        HotDataHandler.loadData()
         val now = System.currentTimeMillis()
         for (p in Bukkit.getOnlinePlayers()) {
+            if (tryLoadPersistentData(p)) continue
             RunningProviders.moveTime.map.putIfAbsent(p, now)
             RunningProviders.posMoveTime.map.putIfAbsent(p, now)
             RunningProviders.attackTime.map.putIfAbsent(p, now)
@@ -39,68 +36,54 @@ object CoreController {
 
     fun onDisable() {
         Listeners.unregister()
-        HotDataHandler.saveData()
+        for (player in Bukkit.getOnlinePlayers()) {
+            savePersistentData(player)
+        }
         RunningProviders.moveTime.map.clear()
         RunningProviders.posMoveTime.map.clear()
         RunningProviders.attackTime.map.clear()
         RunningProviders.genericActiveTime.map.clear()
     }
 
-    private object HotDataHandler {
+    private fun tryLoadPersistentData(player: Player): Boolean {
+        if (!CoreModule.config.persistentStorage.enabled) return false
 
-        private const val DATA_VERSION: Byte = 1
+        val persistent = CorePersistentStorage.loadUserData(player.user) ?: return false
 
-        private val hotData
-            get() = CoreModule.moduleFolder.resolve("hotData.tmp")
-
-        fun loadData() {
-            try {
-                if (!core.enabledHot || !hotData.exists()) return
-                hotData.inputStream().asSource().buffered().use { buf ->
-                    require(buf.readByte() == DATA_VERSION) { "Different hot data version" }
-                    buf.readTimeMap(RunningProviders.attackTime.map)
-                    buf.readTimeMap(RunningProviders.moveTime.map, RunningProviders.posMoveTime.map)
+        with(RunningProviders) {
+            if (persistent.lastActionDuration != null) {
+                val now = System.currentTimeMillis()
+                with(persistent.lastActionDuration) {
+                    attackTime.map[player] = now - attack
+                    genericActiveTime.map[player] = now - generic
+                    moveTime.map[player] = now - move
+                    posMoveTime.map[player] = now - posMove
                 }
-            } catch (e: Throwable) {
-                core.err("[CoreModule] Failed to load hotData", e)
+            } else {
+                attackTime.map[player] = persistent.attackTime
+                genericActiveTime.map[player] = persistent.genericActiveTime
+                moveTime.map[player] = persistent.moveTime
+                posMoveTime.map[player] = persistent.posMoveTime
             }
         }
+        return true
+    }
 
-        fun saveData() {
-            try {
-                if (!core.isEnabled && !core.disabledHot) return
-                hotData.outputStream(StandardOpenOption.CREATE).use { stream ->
-                    Buffer().apply {
-                        writeByte(DATA_VERSION)
-                        writeTimeMap(RunningProviders.attackTime.map)
-                        writeTimeMap(RunningProviders.moveTime.map)
-                    }.copyTo(stream)
-                }
-                hotData.toFile().deleteOnExit()
-            } catch (e: Throwable) {
-                core.err("[CoreModule] Failed to save hotData", e)
-            }
-        }
+    private fun savePersistentData(player: Player) {
+        if (!CoreModule.config.persistentStorage.enabled) return
 
-        private fun Sink.writeTimeMap(map: Map<Player, Long>) {
-            writeInt(map.size)
-            for ((player, time) in map) {
-                writeUuid(player.uniqueId)
-                writeLong(time)
-            }
+        val now = System.currentTimeMillis()
+        val persistent = with(RunningProviders) {
+            PersistentData(
+                lastActionDuration = PersistentData.LastActionDuration(
+                    attack = now - moveTime[player],
+                    generic = now - genericActiveTime[player],
+                    move = now - moveTime[player],
+                    posMove = now - posMoveTime[player],
+                ),
+            )
         }
-        private fun Source.readTimeMap(vararg maps: MutableMap<Player, Long>) {
-            val size = readInt()
-            repeat(size) {
-                val uuid = readUuid()
-                val time = readLong()
-                Bukkit.getPlayer(uuid)?.let { player ->
-                    for (map in maps) {
-                        map.putIfAbsent(player, time)
-                    }
-                }
-            }
-        }
+        CorePersistentStorage.saveUserData(player.user, persistent)
     }
 
     object RunningProviders: Providers {
@@ -139,6 +122,7 @@ object CoreController {
         @EventHandler(priority = EventPriority.LOWEST)
         fun onPlayerJoin(event: PlayerJoinEvent) {
             val p = event.player
+            if (tryLoadPersistentData(p)) return
             val now = System.currentTimeMillis()
             RunningProviders.moveTime[p] = now
             RunningProviders.posMoveTime[p] = now
@@ -148,6 +132,7 @@ object CoreController {
         @EventHandler(priority = EventPriority.MONITOR)
         fun onPlayerQuit(event: PlayerQuitEvent) {
             val p = event.player
+            savePersistentData(p)
             RunningProviders.attackTime.unload(p)
             RunningProviders.posMoveTime.unload(p)
             RunningProviders.moveTime.unload(p)

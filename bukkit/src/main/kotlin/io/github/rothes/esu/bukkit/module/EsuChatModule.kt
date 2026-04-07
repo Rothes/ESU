@@ -60,7 +60,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         registerCommands(ChatHandler.Ignore)
 
         for (user in Bukkit.getOnlinePlayers().map { it.user }.plus(ConsoleUser)) {
-            ChatHandler.Whisper.checkSpyOnJoin(user)
+            if (user != ConsoleUser) // ConsoleUser is added on init
+                ChatHandler.Whisper.checkSpyOnJoin(user)
             ignoreCache[user] = EsuChatStorage.fetchIgnoreUsers(user)
         }
     }
@@ -81,6 +82,11 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("ignore|block <player>")
             fun ignore(sender: User, player: User) {
+                if (sender == player) {
+                    return sender.message(lang, { ignore.cannotIgnoreSelf },
+                        pLang(sender, lang, { ignore.placeholders })
+                    )
+                }
                 val set = ignoreCache[sender]!!
                 if (set.add(player.dbId)) {
                     EsuChatStorage.addIgnore(sender, player)
@@ -655,6 +661,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             val placeholders: Map<String, String> = mapOf(
                 "prefix" to "<sc>[<sdc>Ignore<sc>] ",
             ),
+            val cannotIgnoreSelf: MessageData = "<pl:prefix><ec>You cannot ignore yourself.".message,
             val ignorePlayer: MessageData = "<pl:prefix><pc>You are now <vnc>ignoring</vnc> <pdc><player></pdc>.".message,
             val receivePlayer: MessageData = "<pl:prefix><pc>You are now <vpc>receiving</vpc> <pdc><player></pdc>.".message,
             val alreadyIgnoringPlayer: MessageData = "<pl:prefix><ec>You are already ignoring <edc><player></edc>.".message,

@@ -5,7 +5,7 @@ import java.time.Duration
 object DurationExt {
 
     val Duration.valuePositive: Boolean
-        get() = (seconds and nano.toLong()) > 0
+        get() = (seconds or nano.toLong()) > 0
     val Duration.valueNegative: Boolean
         get() = seconds < 0
 

@@ -15,6 +15,7 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.util.extension.math.square
+import io.netty.channel.Channel
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.*
@@ -55,48 +56,48 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
             if (e.isCancelled) return
             when (e.packetType) {
                 PacketType.Play.Server.PARTICLE -> {
-                    checkCancel(e, config.rangedPackets.processed.particle) {
+                    e.checkCancel(config.rangedPackets.processed.particle) {
                         val wrapper = WrapperPlayServerParticle(e)
                         wrapper.position.distanceSqr(e.playerPos)
                     }
                 }
                 PacketType.Play.Server.SOUND_EFFECT -> {
-                    checkCancel(e, config.rangedPackets.processed.soundEffect) {
+                    e.checkCancel(config.rangedPackets.processed.soundEffect) {
                         val wrapper = WrapperPlayServerSoundEffect(e)
                         wrapper.effectPosition.distanceSqr(e.playerPos)
                     }
                 }
                 PacketType.Play.Server.ENTITY_SOUND_EFFECT -> {
-                    checkCancel(e, config.rangedPackets.processed.entitySoundEffect) {
+                    e.checkCancel(config.rangedPackets.processed.entitySoundEffect) {
                         val wrapper = WrapperPlayServerEntitySoundEffect(e)
                         entityIdDist(e, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.NAMED_SOUND_EFFECT -> {} // Legacy
                 PacketType.Play.Server.HURT_ANIMATION -> {
-                    checkCancel(e, config.rangedPackets.processed.hurtAnimation) {
+                    e.checkCancel(config.rangedPackets.processed.hurtAnimation) {
                         val wrapper = WrapperPlayServerHurtAnimation(e)
                         entityIdDist(e, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.DAMAGE_EVENT -> {
-                    checkCancel(e, config.rangedPackets.processed.damageEvent) {
+                    e.checkCancel(config.rangedPackets.processed.damageEvent) {
                         val wrapper = WrapperPlayServerDamageEvent(e)
                         entityIdDist(e, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.ENTITY_HEAD_LOOK -> {
-                    checkCancel(e, config.rangedPackets.processed.entityHeadLook) {
+                    e.checkCancel(config.rangedPackets.processed.entityHeadLook) {
                         val wrapper = WrapperPlayServerEntityHeadLook(e)
                         entityIdDist(e, wrapper.entityId)
                     }
                 }
                 PacketType.Play.Server.SPAWN_EXPERIENCE_ORB -> {} // Legacy
                 PacketType.Play.Server.TIME_UPDATE -> {
-                    checkCancel(e, config.globalPackets.timeUpdate)
+                    e.checkCancel(config.globalPackets.timeUpdate)
                 }
                 PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!e.player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
                     val actions = EnumSet.copyOf(wrapper.actions)
                     if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
@@ -106,11 +107,11 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     }
                 }
                 PacketType.Play.Server.PLAYER_INFO -> {
-                    if (!e.getPlayer<Player>().isInAfk()) return
+                    if (!e.player.isInAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfo(e)
                     when (wrapper.action) {
-                        WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateLatency)
-                        WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE -> checkCancel(e, config.globalPackets.playerInfoUpdate.updateGameMode)
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> e.checkCancel(config.globalPackets.playerInfoUpdate.updateLatency)
+                        WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE -> e.checkCancel(config.globalPackets.playerInfoUpdate.updateGameMode)
                         else -> {}
                     }
                 }
@@ -118,16 +119,23 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         }
 
         @Suppress("NOTHING_TO_INLINE")
-        private inline fun checkCancel(e: PacketSendEvent, bool: Boolean) {
-            if (!bool && e.getPlayer<Player>().isInAfk()) e.isCancelled = true
+        private inline fun PacketSendEvent.checkCancel(bool: Boolean) {
+            if (!bool && player.isInAfk()) isCancelled = true
         }
 
-        private inline fun checkCancel(e: PacketSendEvent, maxDist: Double, scope: () -> Double) {
-            if (maxDist < 0 || !e.getPlayer<Player>().isInAfk()) return
+        private inline fun PacketSendEvent.checkCancel(maxDist: Double, scope: () -> Double) {
+            if (maxDist < 0 || !player.isInAfk()) return
             if (maxDist == 0.0 || maxDist < scope.invoke()) {
-                e.isCancelled = true
+                isCancelled = true
             }
         }
+
+        private inline val PacketSendEvent.player: Player
+            get() {
+                @Suppress("RedundantNullableReturnType") // Could be null
+                val player: Player? = getPlayer()
+                return player ?: throw IllegalStateException("Failed to get player of ${(channel as Channel).remoteAddress()}")
+            }
 
         @Suppress("NOTHING_TO_INLINE")
         private inline fun Player.isInAfk(): Boolean {
@@ -148,7 +156,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         }
 
         private val PacketSendEvent.playerPos: Location
-            get() = getPlayer<Player>().location
+            get() = player.location
 
     }
 

@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit
 
+import com.github.luben.zstd.Zstd
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuBootstrap
@@ -106,8 +107,11 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                 extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
                 loader = loader,
             )
-            MavenResolver.testDependency("org.lz4:lz4-java:1.8.0") {
+            MavenResolver.testDependency("at.yawk.lz4:lz4-java:1.10.4") {
                 LZ4Factory.fastestInstance()
+            }
+            MavenResolver.testDependency("com.github.luben:zstd-jni:1.5.7-7") {
+                Zstd.compressBound(16)
             }
             MavenResolver.testDependency("it.unimi.dsi:fastutil:8.5.15") {
                 // For 1.16.5
@@ -126,14 +130,16 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-extensions:2.0.0",
 
-                    "org.incendo:cloud-paper:2.0.0-beta.13",
-
                     "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
                     "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
 
                     "info.debatty:java-string-similarity:2.0.0",
                     "com.hankcs:aho-corasick-double-array-trie:1.2.2",
                 )
+            )
+            MavenResolver.loadDependency(
+                "org.incendo:cloud-paper:2.0.0-SNAPSHOT",
+                extraRepo = listOf(MavenResolver.MavenRepos.SONATYPE_SNAPSHOT)
             )
         }
 

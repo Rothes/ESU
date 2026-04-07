@@ -80,6 +80,7 @@ dependencies {
 
     compileOnly("org.geysermc.floodgate:api:2.2.4-SNAPSHOT")
 
+    compileOnly("com.github.luben:zstd-jni:1.5.7-7")
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
 }
 

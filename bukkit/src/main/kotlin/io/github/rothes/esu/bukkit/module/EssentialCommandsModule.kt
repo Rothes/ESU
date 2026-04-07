@@ -10,8 +10,11 @@ object EssentialCommandsModule: BukkitModule<BaseModuleConfiguration, EssentialC
 
     init {
         listOf(
-            ClientLocale, DimensionTravel, Feed, Heal, Invulnerable, Ip, IpGroup, NoFall, Ping,
-            PlayerChunkTickets, Spectate, Speed, Suicide, TpChunk
+            ClientLocale, DimensionTravel,
+            Feed, Heal, Invulnerable, Ip,
+            IpGroup, Kill, NoFall, Ping,
+            PlayerChunkTickets, Spectate,
+            Speed, Suicide, TpChunk
         ).forEach { cmd -> registerFeature(cmd) }
     }
 
@@ -20,6 +23,7 @@ object EssentialCommandsModule: BukkitModule<BaseModuleConfiguration, EssentialC
     data class ModuleLang(
         val unsafeTeleportSpot: MessageData = "<ec>Cannot find a safe spot for teleport.".message,
         val teleportingPlayer: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
+        val teleportFailedUnknown: MessageData = "<ec>Failed to teleport.".message,
     ): ConfigurationPart
 
 }
