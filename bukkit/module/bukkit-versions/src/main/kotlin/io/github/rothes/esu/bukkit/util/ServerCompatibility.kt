@@ -32,8 +32,8 @@ object ServerCompatibility {
         false
     }
 
-    val isMojmap = try {
-        serverVersion > 26 || !MappingEnvironment.reobf()
+    val isMojmap = serverVersion >= 26 || try {
+        !MappingEnvironment.reobf()
     } catch (_: NoClassDefFoundError) {
         false
     }
