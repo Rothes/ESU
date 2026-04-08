@@ -15,7 +15,7 @@ open class TypeRegistry<H: DynamicHolder<*>> {
     }
 
     open fun register(type: InventoryType<H>): TypeRegistry<H> {
-        registry[type.id] = type
+        registry[type.name.lowercase()] = type
         return this
     }
 
