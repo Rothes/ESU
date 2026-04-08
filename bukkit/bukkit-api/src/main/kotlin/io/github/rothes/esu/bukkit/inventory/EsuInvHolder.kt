@@ -79,7 +79,10 @@ abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHo
 
     open fun handleClick(e: InventoryClickEvent) {
         val clickedInventory = e.clickedInventory ?: return
-        if (clickedInventory.holder == this) {
+        if (e.action == InventoryAction.COLLECT_TO_CURSOR && inventory.contents.any { it != null && it.isSimilar(e.cursor) }) {
+            // Disallow collecting items inside this inventory
+            e.isCancelled = true
+        } else if (clickedInventory.holder == this) {
             handleClick(e.slot, e)
         } else {
             // We don't want players to move their items into our menu!
