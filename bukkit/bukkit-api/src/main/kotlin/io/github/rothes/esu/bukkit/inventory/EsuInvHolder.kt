@@ -21,10 +21,17 @@ import org.bukkit.inventory.ItemStack
 abstract class EsuInvHolder<T>(val inventoryData: InventoryData<T>): InventoryHolder {
 
     private var inv: Inventory by VarLazy {
+        val title = inventoryData.title?.miniMessage?.server
         val inv = if (inventoryData.size != null) {
-            Bukkit.createInventory(this, inventoryData.size, inventoryData.title.miniMessage.server)
+            if (title != null)
+                Bukkit.createInventory(this, inventoryData.size, title)
+            else
+                Bukkit.createInventory(this, inventoryData.size)
         } else if (inventoryData.inventoryType != null) {
-            Bukkit.createInventory(this, inventoryData.inventoryType, inventoryData.title.miniMessage.server)
+            if (title != null)
+                Bukkit.createInventory(this, inventoryData.inventoryType, title)
+            else
+                Bukkit.createInventory(this, inventoryData.inventoryType)
         } else {
             throw IllegalArgumentException("Both inventoryType and size are null in InventoryData")
         }
