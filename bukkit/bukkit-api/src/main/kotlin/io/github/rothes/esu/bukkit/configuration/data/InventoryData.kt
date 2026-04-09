@@ -10,7 +10,7 @@ import org.bukkit.event.inventory.InventoryType
 open class InventoryData<T>(
     val inventoryType: InventoryType? = null,
     val size: Int? = null,
-    val title: String = "Menu",
+    val title: String? = null,
     val layout: String = """
         .........
         .........
@@ -30,7 +30,7 @@ open class InventoryData<T>(
     constructor(
         inventoryType: InventoryType? = null,
         size: Int? = null,
-        title: String = "Menu",
+        title: String? = null,
         layout: String,
         icons: Map<Char, InventoryItem> = linkedMapOf(' ' to InventoryItem()),
         typeIcons: T
