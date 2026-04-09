@@ -25,7 +25,7 @@ abstract class PlayerOptionalCommand<C, L>: BaseCommand<C, L>() {
                     }
                     regCmd()
                 }
-                permission(cmdShortPerm("other"))
+                permission(cmdShortPerm("others"))
                 required("player", PlayerParser.playerParser())
                 if (receivesSilentFlag) flag("silent")
                 handler { ctx ->
