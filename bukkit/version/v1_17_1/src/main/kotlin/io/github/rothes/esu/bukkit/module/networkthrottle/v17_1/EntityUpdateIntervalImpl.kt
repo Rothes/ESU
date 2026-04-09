@@ -15,6 +15,7 @@ class EntityUpdateIntervalImpl: EntityUpdateInterval<EntityUpdateIntervalImpl.Fe
     companion object {
         val entityTypeAccessor = EntityType::class.java.getDeclaredField("updateInterval").usIntAccessor
         val serverEntityAccessor = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor
+//        val ENTITIES_HANDLER by Versioned(LevelEntitiesHandler::class.java)
     }
 
     override fun onReload() {
@@ -34,6 +35,17 @@ class EntityUpdateIntervalImpl: EntityUpdateInterval<EntityUpdateIntervalImpl.Fe
                 val interval = entityTypeAccessor[entityType]
                 sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
             }
+
+            // TODO: apply
+//            @Command("esu networkThrottle entityUpdateInterval apply")
+//            @ShortPerm
+//            fun apply(sender: User) {
+//                for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
+//                    for (entity in ENTITIES_HANDLER.getEntitiesAll(level)) {
+//                        entity.tracker.serverEntity
+//                    }
+//                }
+//            }
         })
     }
 
