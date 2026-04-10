@@ -127,7 +127,7 @@ object Scheduler {
     }
 
     fun Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
-        return schedule(this, plugin.alwaysEnabled(), func)
+        return schedule(this, 1, plugin.alwaysEnabled(), func)
     }
 
     fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
