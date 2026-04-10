@@ -42,6 +42,10 @@ permissions:
       'esu.essentialCommands.clientLocale.command': true
       'esu.essentialCommands.dimensionTravel.command': true
       'esu.essentialCommands.dimensionTravel.command.others': true
+      'esu.essentialCommands.enderChest.command': true
+      'esu.essentialCommands.enderChest.command.edit': true
+      'esu.essentialCommands.enderChest.command.others': true
+      'esu.essentialCommands.enderChest.command.others.edit': true
       'esu.essentialCommands.heal.command': true
       'esu.essentialCommands.heal.command.others': true
       'esu.essentialCommands.feed.command': true
@@ -49,6 +53,10 @@ permissions:
       'esu.essentialCommands.ip.command': true
       'esu.essentialCommands.ipGroup.command': true
       'esu.essentialCommands.kill.command.others': true
+      'esu.essentialCommands.nofall.command': true
+      'esu.essentialCommands.nofall.command.others': true
+      'esu.essentialCommands.openInventory.command': true
+      'esu.essentialCommands.openInventory.command.edit': true
       'esu.essentialCommands.playerChunkTickets.command.genRateTop': true
       'esu.essentialCommands.playerChunkTickets.command.loadRateTop': true
       'esu.essentialCommands.playerChunkTickets.command.tickDistance': true
