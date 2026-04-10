@@ -2,8 +2,8 @@ package io.github.rothes.esu.bukkit.util.version.adapter.adventure.v1
 
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuNativeBook
 import io.github.rothes.esu.lib.adventure.text.Component
+import net.minecraft.world.item.ItemStack
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 
 @Suppress("UnstableApiUsage")
 object EsuNativeBookImpl: EsuNativeBook<Any> {
