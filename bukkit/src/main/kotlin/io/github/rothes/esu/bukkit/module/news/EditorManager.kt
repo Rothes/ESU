@@ -5,6 +5,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEditBook
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
@@ -164,7 +165,7 @@ object EditorManager {
                     val wrapper = WrapperPlayServerSetSlot(event)
                     // Minus 36 to unify with Bukkit. We set slotChanged on window_items packets,
                     // so we only consider player inventory window.
-                    if (wrapper.slot - 36 == data.slot)
+                    if (wrapper.slot - 36 == data.slot && wrapper.item.type != ItemTypes.WRITABLE_BOOK)
                         data.slotChanged = true
                 }
             }
