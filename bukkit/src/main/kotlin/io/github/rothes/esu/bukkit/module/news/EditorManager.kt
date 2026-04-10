@@ -12,19 +12,24 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NewsModule
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BookMeta
 
 object EditorManager {
 
+    private val STATE_ID_GETTER by Versioned(ContainerStateIDGetter::class.java)
     private val editing = mutableMapOf<Player, EditData>()
     private val confirming = mutableMapOf<Player, ConfirmData>()
 
@@ -61,14 +66,8 @@ object EditorManager {
         item.meta { meta: BookMeta ->
             meta.pages = content
         }
-        /* TODO: Check available of windowID = -2
-           Last seen on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=3024144#Set_Container_Slot
-           i.e. 1.21.6; May be removed on later versions
-        */
-        val packet = WrapperPlayServerSetSlot(
-            -2, 0, slot, SpigotConversionUtil.fromBukkitItemStack(item)
-        )
-        PacketEvents.getAPI().playerManager.sendPacket(user.player, packet)
+
+        sendHotBarItem(player, slot, item)
     }
 
     fun cancelEdit(player: Player, callCancel: Boolean) {
@@ -106,9 +105,19 @@ object EditorManager {
 
     private fun restoreSlot(player: Player, slot: Int) {
         val item = player.inventory.getItem(slot)
-        val packet = WrapperPlayServerSetSlot(
-            -2, 0, slot, SpigotConversionUtil.fromBukkitItemStack(item)
-        )
+        sendHotBarItem(player, slot, item)
+    }
+
+    private fun sendHotBarItem(player: Player, slot: Int, item: ItemStack?) {
+        val nmsItem = SpigotConversionUtil.fromBukkitItemStack(item)
+        val packet = if (ServerCompatibility.serverVersion > "21.1") {
+            WrapperPlayServerSetSlot(0, STATE_ID_GETTER[player], 36 + slot, nmsItem)
+        } else {
+            // WindowID = -2 is supported until (or equal) 1.21.1
+            // Setting slots by it doesn't play popTime animation,
+            // and stateID value is ignored.
+            WrapperPlayServerSetSlot(-2, 0, slot, nmsItem)
+        }
         PacketEvents.getAPI().playerManager.sendPacket(player, packet)
     }
 
@@ -171,7 +180,7 @@ object EditorManager {
     }
 
     data class EditData(
-        val slot: Int,
+        val slot: Int, // HotBar slot
         val newsId: Int,
         val lang: String,
         val cancel: () -> Unit,

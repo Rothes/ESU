@@ -1,7 +1,9 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.adventure.v21_6
 
 import com.mojang.serialization.JsonOps
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuNativeBook
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
 import net.minecraft.core.component.DataComponents
@@ -22,6 +24,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 @Suppress("UnstableApiUsage")
 object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
 
+    private val STATE_ID_GETTER by Versioned(ContainerStateIDGetter::class.java)
     private val OPS = JsonOps.INSTANCE
 
     override fun createBook(title: String, author: String, pages: Iterable<MinecraftComponent>): ItemStack {
@@ -40,7 +43,7 @@ object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
 
         fun sendOffHand(item: ItemStack) {
             connection.send(
-                ClientboundContainerSetSlotPacket(0, player.containerMenu.stateId, InventoryMenu.SHIELD_SLOT, item)
+                ClientboundContainerSetSlotPacket(0, STATE_ID_GETTER[player], InventoryMenu.SHIELD_SLOT, item)
             )
         }
 
