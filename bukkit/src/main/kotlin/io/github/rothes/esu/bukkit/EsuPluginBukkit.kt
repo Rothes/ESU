@@ -50,6 +50,7 @@ class EsuPluginBukkit(
 
         loadVersions()
         AnsiFlattener.init()
+        EsuAdventure.initAudience()
         enabledHot = byPlugMan()
     }
 
