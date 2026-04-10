@@ -61,6 +61,10 @@ object EditorManager {
         item.meta { meta: BookMeta ->
             meta.pages = content
         }
+        /* TODO: Check available of windowID = -2
+           Last seen on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=3024144#Set_Container_Slot
+           i.e. 1.21.6; May be removed on later versions
+        */
         val packet = WrapperPlayServerSetSlot(
             -2, 0, slot, SpigotConversionUtil.fromBukkitItemStack(item)
         )
