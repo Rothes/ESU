@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
@@ -251,8 +251,8 @@ abstract class PlayerEntityVisibilityProcessor(
             this.invalid.clear()
             this.tickFar.clear()
             this.tickReverse.clear()
-            task = player.nextTick {
-                if (task == null) return@nextTick // This processor has been shutdown
+            task = player.onTick {
+                if (task == null) return@onTick // This processor has been shutdown
 
                 for (entityId in invalid) trackedEntities.remove(entityId)
                 for (trackedEntity in tickFar) {

@@ -3,8 +3,8 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTick
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.nextTickDeferred
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTickDeferred
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -27,11 +27,11 @@ object Spectate: BaseCommand<FeatureToggle.DefaultTrue, Spectate.Lang>() {
                     return sender.message(lang, { cannotSpectateSelf })
                 }
                 if (caller.gameMode != GameMode.SPECTATOR) {
-                    caller.nextTickDeferred {
+                    caller.onTickDeferred {
                         caller.gameMode = GameMode.SPECTATOR
                     }.join()
                 }
-                target.nextTick {
+                target.onTick {
                     if (caller.checkTickThread())
                         caller.spectatorTarget = target
                     else {

@@ -110,6 +110,14 @@ object Scheduler {
             BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
     }
 
+    fun <T> Entity.onTickDeferred(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
+        val deferred = CompletableDeferred<T>()
+        onTick(plugin) {
+            deferred.complete(func())
+        } ?: error("Failed to schedule task for entity $this")
+        return deferred
+    }
+
     fun <T> Entity.nextTickDeferred(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
         val deferred = CompletableDeferred<T>()
         nextTick(plugin) {
@@ -124,6 +132,10 @@ object Scheduler {
             deferred.complete(func())
         }
         return deferred
+    }
+
+    fun Entity.onTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+        return schedule(this, plugin.alwaysEnabled(), func)
     }
 
     fun Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
