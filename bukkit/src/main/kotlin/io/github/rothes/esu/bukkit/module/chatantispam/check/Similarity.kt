@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 
 import info.debatty.java.stringsimilarity.RatcliffObershelp
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.DeathMessage
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.util.extension.charSize
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList
@@ -36,7 +36,7 @@ object Similarity: Check("similarity") {
                         hit.add(similarity)
                         if (hit.size == allowCount) {
                             val avg = hit.average()
-                            val notify = request.messageMeta.type != MessageType.DEATH
+                            val notify = request.messageMeta !is DeathMessage
                             if (notify)
                                 notifyBlocked(request.user)
                             return CheckResult(

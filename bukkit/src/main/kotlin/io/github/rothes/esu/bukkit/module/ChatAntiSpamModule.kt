@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.notifyUsers
 import io.github.rothes.esu.bukkit.module.chatantispam.ChecksMan
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.MessageType
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user

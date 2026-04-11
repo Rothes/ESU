@@ -10,9 +10,8 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.lang
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
 import io.github.rothes.esu.bukkit.module.CoreModule
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageMeta
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.*
 import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
@@ -50,21 +49,21 @@ object CasListeners: Listener {
 
     @EventHandler
     fun onChat(e: RawUserChatEvent) {
-        if (checkBlocked(e.player, e.message.legacy, Chat)) {
+        if (checkBlocked(e.player, e.message.legacy, ChatMessage)) {
             e.isCancelled = true
         }
     }
 
     @EventHandler
     fun onEmote(e: RawUserEmoteEvent) {
-        if (checkBlocked(e.player, e.message, Emote)) {
+        if (checkBlocked(e.player, e.message, EmoteMessage)) {
             e.isCancelled = true
         }
     }
 
     @EventHandler
     fun onWhisper(e: RawUserWhisperEvent) {
-        if (checkBlocked(e.player, e.message, Whisper(e.target))) {
+        if (checkBlocked(e.player, e.message, WhisperMessage(e.target))) {
             e.isCancelled = true
         }
     }
@@ -74,7 +73,7 @@ object CasListeners: Listener {
         val server = event.deathMessage() ?: return
         val deathMessage = server.esu
         if (deathMessage is TranslatableComponent) {
-            if (checkBlocked(event.player, deathMessage.legacy, Death)) {
+            if (checkBlocked(event.player, deathMessage.legacy, DeathMessage)) {
                 if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "21.5") {
                     event.deathScreenMessageOverride(server)
                 }
@@ -126,7 +125,7 @@ object CasListeners: Listener {
                 break
             }
         }
-        if (messageMeta.type != MessageType.DEATH && scoreValue >= 0) {
+        if (messageMeta !is DeathMessage && scoreValue >= 0) {
             // A lucky player can get muted in check and in this! This is intentional.
             var remainScore = scoreValue
             if (mergeScoreValue) {
@@ -240,11 +239,6 @@ object CasListeners: Listener {
         }
         return this
     }
-
-    object Chat: MessageMeta(MessageType.CHAT, null)
-    object Death: MessageMeta(MessageType.DEATH, null)
-    object Emote: MessageMeta(MessageType.EMOTE, null)
-    class Whisper(receiver: String): MessageMeta(MessageType.WHISPER, receiver)
 
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {

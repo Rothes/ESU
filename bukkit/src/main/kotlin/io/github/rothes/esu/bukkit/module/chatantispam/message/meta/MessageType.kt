@@ -1,4 +1,4 @@
-package io.github.rothes.esu.bukkit.module.chatantispam.message
+package io.github.rothes.esu.bukkit.module.chatantispam.message.meta
 
 enum class MessageType {
     CHAT,

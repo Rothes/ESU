@@ -1,7 +1,7 @@
 package io.github.rothes.esu.bukkit.module.chatantispam.check
 
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.DeathMessage
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.util.extension.DurationExt.compareTo
 
@@ -15,7 +15,7 @@ object Frequency: Check("frequency") {
         with(request.spamCheck.frequency) {
             spamData.records.lastOrNull()?.let {
                 if (minimalInterval >= time - it.time) {
-                    val notify = request.messageMeta.type != MessageType.DEATH
+                    val notify = request.messageMeta !is DeathMessage
                     if (notify)
                         notifyBlocked(request.user)
                     return CheckResult("freq iv", 0.15,
@@ -26,7 +26,7 @@ object Frequency: Check("frequency") {
                 if (it == -1) spamData.records.size else it
             }
             if (maxMessages in 1..times) {
-                val notify = request.messageMeta.type != MessageType.DEATH
+                val notify = request.messageMeta !is DeathMessage
                 if (notify)
                     notifyBlocked(request.user)
                 return CheckResult("freq", 0.2,

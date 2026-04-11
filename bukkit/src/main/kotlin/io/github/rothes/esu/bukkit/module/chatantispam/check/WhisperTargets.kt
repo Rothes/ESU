@@ -2,7 +2,7 @@ package io.github.rothes.esu.bukkit.module.chatantispam.check
 
 import io.github.rothes.esu.bukkit.module.chatantispam.CasListeners.sizedAdd
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
-import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageType
+import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.WhisperMessage
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 
@@ -12,7 +12,7 @@ object WhisperTargets: Check("whisper-targets") {
 
     override fun check(request: MessageRequest): CheckResult {
         val messageMeta = request.messageMeta
-        if (messageMeta.type != MessageType.WHISPER)
+        if (messageMeta !is WhisperMessage)
             return CheckResult()
 
         val conf = config.whisperTargets
@@ -20,7 +20,7 @@ object WhisperTargets: Check("whisper-targets") {
         val spamData = request.spamData
         val time = request.sendTime
 
-        val receiver = messageMeta.receiver!!
+        val receiver = messageMeta.receiver
         val index = spamData.whisperTargets.indexOfFirst { it.player == receiver }
         if (index != -1) {
             if (conf.safeTargets > index && spamData.whisperTargets.size <= conf.safeTargetsMax) {
