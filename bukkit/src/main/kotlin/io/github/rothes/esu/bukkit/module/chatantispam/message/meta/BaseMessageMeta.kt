@@ -7,6 +7,9 @@ abstract class BaseMessageMeta(
     val typeName: String
         get() = javaClass.simpleName.removeSuffix("Message").lowercase()
 
+    override val createdByOwn: Boolean
+        get() = true
+
     override fun toString(): String {
         return typeName
     }

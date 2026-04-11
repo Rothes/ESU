@@ -125,7 +125,7 @@ object CasListeners: Listener {
                 break
             }
         }
-        if (messageMeta !is DeathMessage && scoreValue >= 0) {
+        if (messageMeta.createdByOwn && scoreValue >= 0) {
             // A lucky player can get muted in check and in this! This is intentional.
             var remainScore = scoreValue
             if (mergeScoreValue) {

@@ -4,6 +4,8 @@ interface MessageMeta {
 
     val type: MessageType
 
+    val createdByOwn: Boolean
+
     override fun toString(): String
 
 }
