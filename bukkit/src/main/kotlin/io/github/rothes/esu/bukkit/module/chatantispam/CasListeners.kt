@@ -24,7 +24,9 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.github.rothes.esu.lib.adventure.text.TextComponent
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.adventure.text.event.HoverEvent
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -73,7 +75,21 @@ object CasListeners: Listener {
         val server = event.deathMessage() ?: return
         val deathMessage = server.esu
         if (deathMessage is TranslatableComponent) {
-            if (checkBlocked(event.player, deathMessage.legacy, DeathMessage)) {
+            // If there are 2 arguments in this component, mostly `<Player> was slain by <killer>`,
+            // and the killer entity named (by nametag), and not a player,
+            // we consider it's a player purposed message.
+            fun checkIfPlayerPurposed(): Boolean {
+                if (deathMessage.arguments().size != 2) return false
+                val argument = deathMessage.arguments()[1].value() as? TextComponent ?: return false
+
+                // Check entity type by hover text
+                val hoverEvent = argument.hoverEvent() ?: return false
+                val showEntity = hoverEvent.value() as? HoverEvent.ShowEntity ?: return false
+                return showEntity.type().value() != "player"
+            }
+
+            val createdByOwn = checkIfPlayerPurposed()
+            if (checkBlocked(event.player, deathMessage.legacy, DeathMessage(createdByOwn))) {
                 if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "21.5") {
                     event.deathScreenMessageOverride(server)
                 }
