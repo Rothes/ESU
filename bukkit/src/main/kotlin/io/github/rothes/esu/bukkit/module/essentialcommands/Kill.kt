@@ -1,6 +1,7 @@
 package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -16,8 +17,10 @@ object Kill : BaseCommand<FeatureToggle.DefaultTrue, Kill.Lang>() {
             @Command("kill <player>")
             @ShortPerm("others")
             fun kill(sender: User, player: Player) {
-                player.health = 0.0
-                sender.message(lang, { killedPlayer }, player(player))
+                player.syncTick {
+                    player.health = 0.0
+                    sender.message(lang, { killedPlayer }, player(player))
+                }
             }
         })
     }
