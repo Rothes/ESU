@@ -11,7 +11,7 @@ object WhisperTargets: Check("whisper-targets") {
     override val defaultBlockedMessage = "<ec>You are whispering too many players!".message
 
     override fun check(request: MessageRequest): CheckResult {
-        val messageMeta = request.messageMeta
+        val messageMeta = request.context
         if (messageMeta !is WhisperMessage)
             return CheckResult()
 

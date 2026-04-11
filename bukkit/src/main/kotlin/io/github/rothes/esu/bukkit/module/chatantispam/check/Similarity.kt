@@ -35,7 +35,7 @@ object Similarity: Check("similarity") {
                         hit.add(similarity)
                         if (hit.size == allowCount) {
                             val avg = hit.average()
-                            val notify = request.messageMeta.createdByOwn
+                            val notify = request.context.createdByOwn
                             if (notify)
                                 notifyBlocked(request.user)
                             return CheckResult(

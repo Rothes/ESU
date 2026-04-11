@@ -7,7 +7,7 @@ object SpacesFilter: Check("spaces-filter") {
     private val duplicateSpaceRegex = "[\\s\\u00A0\\u1680\\u180E\\u2000-\\u200B\\u202F\\u205F\\u3000\\uFEFF]+".toRegex()
 
     override fun check(request: MessageRequest): CheckResult {
-        if (!request.messageMeta.createdByOwn) {
+        if (!request.context.createdByOwn) {
             return CheckResult()
         }
         val spacesCheck = request.spamCheck.spaces

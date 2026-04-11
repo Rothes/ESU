@@ -99,7 +99,7 @@ object CasListeners: Listener {
     }
 
     @OptIn(ExperimentalAtomicApi::class)
-    private fun checkBlocked(player: Player, message: String, messageMeta: MessageMeta): Boolean {
+    private fun checkBlocked(player: Player, message: String, messageContext: MessageContext): Boolean {
         val user = player.user
         if (user.hasPerm("bypass")) {
             return false
@@ -109,8 +109,8 @@ object CasListeners: Listener {
         val spamData = user.spamData.purge(afkTime)
         spamData.requests.sizedAdd(config.expireSize.chatRequest, now)
 
-        val spamCheck = config.spamCheck.getOrDefault(messageMeta.type) ?: return false
-        val request = MessageRequest(player, messageMeta, spamCheck, spamData, now, afkTime, message)
+        val spamCheck = config.spamCheck.getOrDefault(messageContext.type) ?: return false
+        val request = MessageRequest(player, messageContext, spamCheck, spamData, now, afkTime, message)
 
         var blockValue = false
         var scoreValue = 0.0
@@ -121,7 +121,7 @@ object CasListeners: Listener {
             val (filter, score, mergeScore, notify, addFilter, mute, block, endChecks) = check.check(request)
             if (filter != null) {
                 val shouldNotify = notify ?: spamCheck.notifyFiltered
-                handleFiltered(player, message, request, messageMeta, filter, spamData, shouldNotify, addFilter)
+                handleFiltered(player, message, request, messageContext, filter, spamData, shouldNotify, addFilter)
             }
             if (mute) {
                 handleMuted(player, spamData)
@@ -141,7 +141,7 @@ object CasListeners: Listener {
                 break
             }
         }
-        if (messageMeta.createdByOwn && scoreValue >= 0) {
+        if (messageContext.createdByOwn && scoreValue >= 0) {
             // A lucky player can get muted in check and in this! This is intentional.
             var remainScore = scoreValue
             if (mergeScoreValue) {
@@ -181,7 +181,7 @@ object CasListeners: Listener {
                         }
                         i++
                     }
-                    handleFiltered(player, if (blockValue) "§8<same above>" else message, request, messageMeta,
+                    handleFiltered(player, if (blockValue) "§8<same above>" else message, request, messageContext,
                         "score", spamData,
                         notify = true,
                         addFilter = false
@@ -208,13 +208,13 @@ object CasListeners: Listener {
         return blockValue
     }
 
-    private fun handleFiltered(player: Player, message: String, request: MessageRequest, messageMeta: MessageMeta,
+    private fun handleFiltered(player: Player, message: String, request: MessageRequest, messageContext: MessageContext,
                                checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
         if (notify) {
             notifyUsers.forEach {
                 it.message(lang, { this.notify.filtered },
                     player(player), it.msgPrefix,
-                    unparsed("message", message), unparsed("check-type", checkType), unparsed("chat-type", messageMeta)
+                    unparsed("message", message), unparsed("check-type", checkType), unparsed("chat-type", messageContext)
                 )
             }
         }

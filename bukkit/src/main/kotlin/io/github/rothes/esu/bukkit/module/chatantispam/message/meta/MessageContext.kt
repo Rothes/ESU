@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.module.chatantispam.message.meta
 
-interface MessageMeta {
+interface MessageContext {
 
     val type: MessageType
 

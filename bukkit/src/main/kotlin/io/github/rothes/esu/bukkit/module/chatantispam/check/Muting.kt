@@ -10,7 +10,7 @@ object Muting: Check("muting") {
     override val defaultBlockedMessage = "<ec>You are getting muted temporarily. Please wait <edc><duration><ec>, and behave better.<br>You can still whisper some of your friends now.".message
 
     override fun check(request: MessageRequest): CheckResult {
-        if (!request.messageMeta.createdByOwn) {
+        if (!request.context.createdByOwn) {
             return CheckResult()
         }
         if (request.spamData.muteUntil > request.sendTime) {

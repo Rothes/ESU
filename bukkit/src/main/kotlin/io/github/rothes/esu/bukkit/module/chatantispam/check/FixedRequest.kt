@@ -10,7 +10,7 @@ object FixedRequest: Check("fixed-request") {
     override val defaultBlockedMessage = "<ec>We detected a suspicious bot chat activity.".message
 
     override fun check(request: MessageRequest): CheckResult {
-        if (!request.messageMeta.createdByOwn) {
+        if (!request.context.createdByOwn) {
             return CheckResult()
         }
 
