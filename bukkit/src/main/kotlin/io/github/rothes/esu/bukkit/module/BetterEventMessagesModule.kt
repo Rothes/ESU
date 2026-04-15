@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
@@ -17,6 +18,7 @@ import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.OptionalUtils.applyTo
 import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.adventure.text.format.NamedTextColor
 import io.github.rothes.esu.lib.adventure.text.format.TextColor
 import org.bukkit.Bukkit
@@ -27,6 +29,7 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.*
+import kotlin.jvm.optionals.getOrElse
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>() {
 
@@ -53,7 +56,15 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
         @EventHandler(priority = EventPriority.HIGHEST)
         fun onJoin(event: PlayerJoinEvent) {
             val message = event.joinMessage() ?: return
-            event.joinMessage(handle(message.esu, config.message.playerJoin)?.server)
+            val esu = message.esu
+
+            val modifier =
+                if (esu is TranslatableComponent && esu.key() == "multiplayer.player.joined.renamed")
+                    config.message.playerJoinRenamed.getOrElse { config.message.playerJoin }
+                else
+                    config.message.playerJoin
+
+            event.joinMessage(handle(esu, modifier)?.server)
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)
@@ -114,6 +125,8 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             val death: MessageModifier = MessageModifier(TextColor.fromHexString("#dd9090")),
             val doneAdvancement: MessageModifier = MessageModifier(TextColor.fromHexString("#edde0e")),
             val playerJoin: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<tc>[<pc>+<tc>] "),
+            @Comment("Modifier for `multiplayer.player.joined.renamed` specifically")
+            val playerJoinRenamed: Optional<MessageModifier> = Optional.empty(),
             val playerQuit: MessageModifier = MessageModifier(NamedTextColor.GRAY, "<tc>[<pc>-<tc>] "),
         ): ConfigurationPart {
 
