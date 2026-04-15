@@ -5,7 +5,6 @@ import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
-import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PluginMessageEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent
@@ -203,13 +202,9 @@ class EsuPluginVelocity(
     }
 
     @Subscribe(order = PostOrder.LAST)
-    fun onLogin(event: LoginEvent) {
-        VelocityUserManager[event.player]
-    }
-
-    @Subscribe(order = PostOrder.LAST)
     fun onLogin(event: PostLoginEvent) {
-        UpdateCheckerMan.onJoin(VelocityUserManager[event.player])
+        if (event.player.isActive) // Player may be kicked
+            UpdateCheckerMan.onJoin(VelocityUserManager[event.player])
     }
 
     @Subscribe(order = PostOrder.LAST)
