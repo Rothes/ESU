@@ -1,9 +1,9 @@
 package io.github.rothes.esu.velocity.command.parser
 
 import com.velocitypowered.api.command.VelocityBrigadierMessage
+import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.velocity.plugin
 import io.github.rothes.esu.velocity.user
-import io.github.rothes.esu.velocity.user.VelocityUser
 import net.kyori.adventure.text.Component
 import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion
 import org.incendo.cloud.caption.CaptionVariable
@@ -19,11 +19,11 @@ import org.incendo.cloud.velocity.VelocityCaptionKeys
 import org.incendo.cloud.velocity.parser.PlayerParser
 import kotlin.jvm.optionals.getOrNull
 
-class UserParser<C>: ArgumentParser<C, VelocityUser>, BlockingSuggestionProvider<C> {
+class UserParser<C>: ArgumentParser<C, User>, BlockingSuggestionProvider<C> {
 
     override fun parse(
         commandContext: CommandContext<C & Any>, commandInput: CommandInput
-    ): ArgumentParseResult<VelocityUser> {
+    ): ArgumentParseResult<User> {
         val input = commandInput.readString()
 
         val player = plugin.server.getPlayer(input).getOrNull()
@@ -43,8 +43,8 @@ class UserParser<C>: ArgumentParser<C, VelocityUser>, BlockingSuggestionProvider
 
     companion object {
 
-        inline fun <reified C> parser(): ParserDescriptor<C, VelocityUser> {
-            return ParserDescriptor.of(UserParser(), VelocityUser::class.java)
+        inline fun <reified C> parser(): ParserDescriptor<C, User> {
+            return ParserDescriptor.of(UserParser(), User::class.java)
         }
 
     }
