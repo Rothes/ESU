@@ -27,7 +27,7 @@ object OptionalSerializer: TypeSerializer<Optional<*>> {
             return Optional.empty<Any>()
         }
         try {
-            return Optional.ofNullable<Any>(serializer.deserialize(type, node))
+            return Optional.ofNullable(serializer.deserialize(value, node))
         } catch (ex: SerializationException) {
             ex.initPath { node.path() }
             EsuCore.instance.err("Could not deserialize ${node.raw()} into $type at ${node.path()}: ${ex.rawMessage()}")
