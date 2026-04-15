@@ -44,7 +44,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
 
     object Listeners: Listener {
 
-        @EventHandler(priority = EventPriority.HIGHEST)
+        @EventHandler(priority = EventPriority.NORMAL)
         fun onDeath(e: RichPlayerDeathEvent) {
             e.setChatMessage { user, old ->
                 old?.let { msg ->
@@ -53,7 +53,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             }
         }
 
-        @EventHandler(priority = EventPriority.HIGHEST)
+        @EventHandler(priority = EventPriority.NORMAL)
         fun onJoin(event: PlayerJoinEvent) {
             val message = event.joinMessage() ?: return
             val esu = message.esu
@@ -67,14 +67,14 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             event.joinMessage(handle(esu, modifier)?.server)
         }
 
-        @EventHandler(priority = EventPriority.HIGHEST)
+        @EventHandler(priority = EventPriority.NORMAL)
         fun onQuit(event: PlayerQuitEvent) {
             val message = event.quitMessage() ?: return
             event.quitMessage(handle(message.esu, config.message.playerQuit)?.server)
         }
 
-        @EventHandler(priority = EventPriority.HIGHEST)
-        fun onQuit(event: PlayerAdvancementDoneEvent) {
+        @EventHandler(priority = EventPriority.NORMAL)
+        fun onAdvancementDone(event: PlayerAdvancementDoneEvent) {
             val message = event.message() ?: return
             event.message(handle(message.esu, config.message.doneAdvancement)?.server)
         }
