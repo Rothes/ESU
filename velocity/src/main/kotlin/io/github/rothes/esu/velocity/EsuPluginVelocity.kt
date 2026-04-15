@@ -1,5 +1,6 @@
 package io.github.rothes.esu.velocity
 
+import com.mojang.brigadier.arguments.StringArgumentType
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
@@ -35,6 +36,7 @@ import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
+import io.leangen.geantyref.TypeToken
 import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
@@ -42,6 +44,7 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.setting.ManagerSetting
 import org.incendo.cloud.velocity.VelocityCommandManager
+import org.incendo.cloud.velocity.parser.PlayerParser
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -90,6 +93,19 @@ class EsuPluginVelocity(
             parserRegistry().registerParser(UserParser.parser())
             parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
             EsuExceptionHandlers(exceptionController()).register()
+
+            // Support non-standard username
+            brigadierManager().registerMapping(
+                object : TypeToken<UserParser<User>>() {}
+            ) { builder ->
+                builder.cloudSuggestions().toConstant(StringArgumentType.greedyString())
+            }
+            brigadierManager().registerMapping(
+                object : TypeToken<PlayerParser<User>>() {}
+            ) { builder ->
+                builder.cloudSuggestions().toConstant(StringArgumentType.greedyString())
+            }
+
         }
     }
 
