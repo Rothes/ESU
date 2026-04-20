@@ -130,16 +130,14 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-extensions:2.0.0",
 
+                    "org.incendo:cloud-paper:2.0.0-beta.15",
+
                     "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
                     "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
 
                     "info.debatty:java-string-similarity:2.0.0",
                     "com.hankcs:aho-corasick-double-array-trie:1.2.2",
                 )
-            )
-            MavenResolver.loadDependency(
-                "org.incendo:cloud-paper:2.0.0-SNAPSHOT",
-                extraRepo = listOf(MavenResolver.MavenRepos.SONATYPE_SNAPSHOT)
             )
         }
 
