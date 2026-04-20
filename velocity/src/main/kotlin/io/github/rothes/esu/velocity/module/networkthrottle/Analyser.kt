@@ -9,6 +9,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.ComponentUtils.duration
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
+import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
@@ -77,7 +78,14 @@ object Analyser {
                              @Flag("side") side: PacketSide? = null,
                              @Flag("player") player: Player? = null,
                              @Flag("server") server: RegisteredServer? = null,
-                             @Flag("limit") limit: Int = 7, ) {
+                             @Flag("limit") limit: Int = 7,
+            ) {
+                data class Sum(
+                    val uncompressed: Long,
+                    val compressed: Long,
+                    val ethernetFrame: Long,
+                )
+
                 val entries = records.mapValues { LinkedList(it.value) }
                     .let { map ->
                         if (side != null)
@@ -94,9 +102,13 @@ object Analyser {
                     .filterValues { it.isNotEmpty() }
                     .mapValues { entry ->
                         val list = entry.value
-                        list.size to (list.sumOf { it.uncompressedSize.toLong() } to list.sumOf { it.compressedSize.toLong() })
+                        list.size to Sum(
+                            list.sumOf { it.uncompressedSize.toLong() },
+                            list.sumOf { it.compressedSize.toLong() },
+                            list.sumOf { NetworkUtils.calculateEthernetFrameBytes(it.compressedSize).toLong() }
+                        )
                     }
-                    .entries.sortedByDescending { it.value.second.second }
+                    .entries.sortedByDescending { it.value.second.ethernetFrame }
                 if (entries.isEmpty()) {
                     sender.message(lang, { analyser.view.noData })
                     return
@@ -104,13 +116,14 @@ object Analyser {
                 sender.message(lang, { analyser.view.header })
                 for ((k, entry) in entries.take(limit)) {
                     val (counts, v) = entry
-                    val (uncompressed, compressed) = v
+                    val (uncompressed, compressed, ethernetFrame) = v
                     sender.message(
                         lang, { analyser.view.entry },
                         unparsed("packet-type", k.name.lowercase()),
                         unparsed("counts", counts),
                         bytes(uncompressed, "uncompressed-size"),
                         bytes(compressed, "compressed-size"),
+                        bytes(ethernetFrame, "ethernet-size"),
                     )
                 }
                 sender.message(
