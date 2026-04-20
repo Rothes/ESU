@@ -8,6 +8,10 @@ import java.net.URL
 
 object NetworkUtils {
 
+    private const val MIN_PAYLOAD = 46
+    private const val MAX_PAYLOAD = 1500
+    private const val ETHERNET_FRAME_OVERHEAD = 6 + 6 + 2 + 4 // MAC destination + MAC source + EtherType/length + CRC
+
     val String.uriLatency: Long
         get() = URI.create(this).toURL().latency
 
@@ -29,5 +33,15 @@ object NetworkUtils {
 
     val URL.latency: Long
         get() = host.hostLatency
+
+    fun calculateEthernetFrameBytes(size: Int): Int {
+        val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
+        val overhead = frames * ETHERNET_FRAME_OVERHEAD
+        val fills = MIN_PAYLOAD - (size - (frames - 1) * MAX_PAYLOAD)
+
+        var ethernetFrameBytes = size + overhead
+        if (fills > 0) ethernetFrameBytes += fills
+        return ethernetFrameBytes
+    }
 
 }

@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
+import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
@@ -23,10 +24,6 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 object TrafficMonitor {
-
-    private const val MIN_PAYLOAD = 46
-    private const val MAX_PAYLOAD = 1500
-    private const val ETHERNET_FRAME_OVERHEAD = 6 + 6 + 2 + 4 // MAC destination + MAC source + EtherType/length + CRC
 
     private var viewers = linkedMapOf<User, Unit>()
     private var task: ScheduledTask? = null
@@ -152,7 +149,7 @@ object TrafficMonitor {
 
         override fun encode(packetData: PacketData) {
             val size = packetData.compressedSize
-            outgoingBytes.getAndAdd(calculateEthernetFrameBytes(size))
+            outgoingBytes.getAndAdd(NetworkUtils.calculateEthernetFrameBytes(size))
         }
 
         override fun flush() {
@@ -165,20 +162,10 @@ object TrafficMonitor {
 
         override fun decode(packetData: PacketData) {
             val size = packetData.compressedSize
-            incomingBytes.getAndAdd(calculateEthernetFrameBytes(size))
+            incomingBytes.getAndAdd(NetworkUtils.calculateEthernetFrameBytes(size))
             incomingPps.getAndIncrement()
         }
 
-    }
-
-    private fun calculateEthernetFrameBytes(size: Int): Int {
-        val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
-        val overhead = frames * ETHERNET_FRAME_OVERHEAD
-        val fills = MIN_PAYLOAD - (size - (frames - 1) * MAX_PAYLOAD)
-
-        var ethernetFrameBytes = size + overhead
-        if (fills > 0) ethernetFrameBytes += fills
-        return ethernetFrameBytes
     }
 
     enum class Unit {
