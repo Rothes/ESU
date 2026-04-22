@@ -77,7 +77,7 @@ object Injector {
         }
         for (player in plugin.server.allPlayers) {
             val channel = (player as ConnectedPlayer).connection.channel
-            eject(channel)
+            uninject(channel)
         }
     }
 
@@ -86,7 +86,7 @@ object Injector {
         val player = e.player as ConnectedPlayer
         val channel = player.connection.channel ?: return
         // Re-inject, because velocity add compression-encoder at this period, and we may not get packet type property.
-        eject(channel)
+        uninject(channel)
         for (data in inject(channel)) {
             data.player = player
         }
@@ -107,7 +107,7 @@ object Injector {
         }
     }
 
-    fun eject(channel: Channel) {
+    fun uninject(channel: Channel) {
         channel.pipeline().remove(ENCODER_NAME_PRE)
         channel.pipeline().remove(ENCODER_NAME_FIN)
         channel.pipeline().remove(DECODER_NAME_PRE)
