@@ -49,8 +49,7 @@ class EsuPluginBukkit(
         BukkitDataSerializer // Register bukkit serializers
 
         loadVersions()
-        AnsiFlattener.init()
-        EsuAdventure.initAudience()
+        EsuAdventure.inject()
         enabledHot = byPlugMan()
     }
 
