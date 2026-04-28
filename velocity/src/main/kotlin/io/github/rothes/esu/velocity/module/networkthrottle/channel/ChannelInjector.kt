@@ -5,7 +5,7 @@ import io.netty.channel.Channel
 
 interface ChannelInjector {
 
-    fun reinjectOnConfiguration(): Boolean
+    fun reinjectOnConfiguration(): Boolean = false
 
     fun inject(channel: Channel, player: Player?)
     fun uninject(channel: Channel, player: Player?)
