@@ -11,9 +11,9 @@ import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectorController
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
 import io.github.rothes.esu.velocity.user
@@ -99,30 +99,30 @@ object TrafficMonitor {
         NetworkThrottleModule.unregisterListener(Listeners)
         if (viewers.isNotEmpty()) {
             viewers.clear()
-            Injector.unregisterHandler(EncoderHandler)
-            Injector.unregisterHandler(DecoderHandler)
+            ChannelInjectorController.unregisterHandler(EncoderHandler)
+            ChannelInjectorController.unregisterHandler(DecoderHandler)
         }
     }
 
     fun forceRecord() {
         if (forceRun.getAndAdd(1) == 0) {
-            Injector.registerHandler(EncoderHandler)
-            Injector.registerHandler(DecoderHandler)
+            ChannelInjectorController.registerHandler(EncoderHandler)
+            ChannelInjectorController.registerHandler(DecoderHandler)
         }
     }
 
     fun cancelForceRecord() {
         if (forceRun.addAndGet(-1) == 0 && viewers.isEmpty()) {
-            Injector.unregisterHandler(EncoderHandler)
-            Injector.unregisterHandler(DecoderHandler)
+            ChannelInjectorController.unregisterHandler(EncoderHandler)
+            ChannelInjectorController.unregisterHandler(DecoderHandler)
         }
     }
 
     fun addViewer(user: User, unit: Unit) {
         synchronized(viewers) {
             if (viewers.isEmpty()) {
-                Injector.registerHandler(EncoderHandler)
-                Injector.registerHandler(DecoderHandler)
+                ChannelInjectorController.registerHandler(EncoderHandler)
+                ChannelInjectorController.registerHandler(DecoderHandler)
             }
             viewers[user] = unit
         }
@@ -132,8 +132,8 @@ object TrafficMonitor {
         synchronized(viewers) {
             viewers.remove(user)
             if (viewers.isEmpty() && forceRun.get() == 0) {
-                Injector.unregisterHandler(EncoderHandler)
-                Injector.unregisterHandler(DecoderHandler)
+                ChannelInjectorController.unregisterHandler(EncoderHandler)
+                ChannelInjectorController.unregisterHandler(DecoderHandler)
             }
         }
     }

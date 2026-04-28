@@ -8,8 +8,8 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import com.velocitypowered.api.scheduler.ScheduledTask
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectorController
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import io.github.rothes.esu.velocity.plugin
 import java.time.Duration
@@ -35,7 +35,7 @@ object DynamicChunkSendRate {
                 }
             }.repeat(Duration.ofSeconds(1)).schedule()
             TrafficMonitor.forceRecord()
-            Injector.registerHandler(EncoderHandler)
+            ChannelInjectorController.registerHandler(EncoderHandler)
         }
     }
 
@@ -44,7 +44,7 @@ object DynamicChunkSendRate {
             task?.cancel()
             task = null
             TrafficMonitor.cancelForceRecord()
-            Injector.unregisterHandler(EncoderHandler)
+            ChannelInjectorController.unregisterHandler(EncoderHandler)
             traffic.clear()
         }
     }

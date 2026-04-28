@@ -12,9 +12,9 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectorController
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.Injector
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Flag
@@ -38,8 +38,8 @@ object Analyser {
         if (running) return false
         running = true
         reset()
-        Injector.registerHandler(EncoderHandler)
-        Injector.registerHandler(DecoderHandler)
+        ChannelInjectorController.registerHandler(EncoderHandler)
+        ChannelInjectorController.registerHandler(DecoderHandler)
         return true
     }
 
@@ -143,8 +143,8 @@ object Analyser {
         if (!running) return false
         running = false
         stopTime = System.currentTimeMillis()
-        Injector.unregisterHandler(EncoderHandler)
-        Injector.unregisterHandler(DecoderHandler)
+        ChannelInjectorController.unregisterHandler(EncoderHandler)
+        ChannelInjectorController.unregisterHandler(DecoderHandler)
         return true
     }
 
