@@ -93,8 +93,12 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
             data class View(
                 val noData: MessageData = "<pc>There's no data for view.".message,
                 val header: MessageData = "<pdc>[Packet Type]<pc> <pc>[count]</pc>: <sc>[size] <tc>/ [raw-size]</tc>".message,
-                val entry: MessageData = ("<hover:show_text:'Compressed Size: <compressed-size>'>" +
-                        "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><ethernet-size> <tc>/ <tdc><uncompressed-size>").message,
+                val entry: MessageData = ("<hover:show_text:'" +
+                            "Uncompressed Size: <uncompressed-size><br>" +
+                            "Compressed Size: <compressed-size><br>" +
+                            "Ethernet Size: <ethernet-size>'" +
+                        ">" +
+                        "<tdc><packet-type> <pc>x<pdc><counts></pc><tc>: <sdc><compressed-size> <tc>/ <tdc><uncompressed-size>").message,
                 val footer: MessageData = "<pc>The analyser has been running for <duration>".message,
             )
         }
