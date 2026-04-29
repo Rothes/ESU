@@ -38,7 +38,10 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
     private var task: CoroutineScope? = null
     private var pausing: Boolean = false
     private var restartOn: Long? = null
+    private var _isRestarting: Boolean = false
 
+    val isRestarting: Boolean
+        get() = _isRestarting
     abstract val consoleUser: User
     abstract val rootCommand: String
     abstract val rootCommandAlias: String
@@ -177,6 +180,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
         scope.launch {
             delay(delayMillis + 50) // Wait some time so message won't repeat
             if (find == null) {
+                _isRestarting = true
                 data.lastAutoRestartTime = LocalDate.now()
                 data.restartOnOverride = null
                 ConfigLoader.save(dataPath, data)
