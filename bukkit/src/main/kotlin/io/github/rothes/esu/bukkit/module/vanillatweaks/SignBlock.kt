@@ -6,6 +6,7 @@ import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.papermc.paper.event.player.PlayerOpenSignEvent
 import net.kyori.adventure.text.Component
@@ -30,7 +31,7 @@ object SignBlock: CommonFeature<Unit, Unit>() {
         override fun checkUnavailable(): Feature.AvailableCheck? {
             return super.checkUnavailable() ?: let {
                 if (!ServerCompatibility.isPaper)
-                    return Feature.AvailableCheck.fail { "Requires Paper".message }
+                    return errFail { "Requires Paper".message }
                 null
             }
         }
