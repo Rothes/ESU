@@ -42,10 +42,11 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
 
     val isRestarting: Boolean
         get() = _isRestarting
-    abstract val consoleUser: User
-    abstract val rootCommand: String
-    abstract val rootCommandAlias: String
-    abstract fun runCommands()
+
+    protected abstract val consoleUser: User
+    protected abstract val rootCommand: String
+    protected abstract val rootCommandAlias: String
+    protected abstract fun runCommands()
 
     override fun doReload() {
         data = ConfigLoader.load(dataPath)
