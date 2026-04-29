@@ -25,9 +25,8 @@ class Versioned<T, V>(
             val prefix = target.packageName + ".v"
             val find = classes
                 .filter {
-                    !it.contains('$') // Not subclass!
-                            && it.startsWith(prefix)
-                            && it.substringAfterLast('.').startsWith(target.simpleName)
+                    it.startsWith(prefix)
+                            && it.substringAfterLast('.').substringAfterLast('$').startsWith(target.simpleName)
                             && (type == null || it.endsWith(type))
                 }
                 .mapNotNull {
@@ -49,7 +48,7 @@ class Versioned<T, V>(
 
             val clazz = Class.forName(find.first)
             if (!target.isAssignableFrom(clazz))
-                error("Found ${clazz.canonicalName}, but it is not an instance of ${target.canonicalName}")
+                error("Found ${clazz.name}, but it is not an instance of ${target.canonicalName}")
 
             @Suppress("UNCHECKED_CAST")
             (clazz.kotlin.objectInstance ?: clazz.getConstructor().newInstance()) as V
