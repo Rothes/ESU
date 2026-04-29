@@ -1,7 +1,5 @@
 package io.github.rothes.esu.velocity
 
-import com.mojang.brigadier.arguments.StringArgumentType
-import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
@@ -10,7 +8,6 @@ import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.PluginContainer
-import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier
@@ -19,7 +16,6 @@ import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.command.EsuExceptionHandlers
 import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.module.Module
@@ -27,23 +23,16 @@ import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
-import io.github.rothes.esu.velocity.command.parser.UserParser
+import io.github.rothes.esu.velocity.command.EsuVelocityCommandManager
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
 import io.github.rothes.esu.velocity.module.AutoRestartModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
-import io.github.rothes.esu.velocity.user.ConsoleUser
 import io.github.rothes.esu.velocity.user.VelocityUserManager
-import io.leangen.geantyref.TypeToken
 import kotlinx.coroutines.Dispatchers
-import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.description.Description
-import org.incendo.cloud.execution.ExecutionCoordinator
-import org.incendo.cloud.parser.standard.StringParser
-import org.incendo.cloud.setting.ManagerSetting
 import org.incendo.cloud.velocity.VelocityCommandManager
-import org.incendo.cloud.velocity.parser.PlayerParser
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -75,38 +64,7 @@ class EsuPluginVelocity(
         enabledHot = byServerUtils()
     }
 
-    override val commandManager: VelocityCommandManager<User> by lazy {
-        VelocityCommandManager<User>(container, server, ExecutionCoordinator.asyncCoordinator(), SenderMapper.create({
-            when (it) {
-                is ConsoleCommandSource -> ConsoleUser
-                is Player               -> it.user
-                else                    -> throw IllegalArgumentException("Unsupported user type: ${it.javaClass.name}")
-            }
-        }, { it.commandSender as CommandSource })).apply {
-            settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
-            captionRegistry().registerProvider { caption, recipient ->
-                recipient.localedOrNull(VelocityEsuLang.get()) {
-                    commandCaptions[caption]
-                }
-            }
-            parserRegistry().registerParser(UserParser.parser())
-            parserRegistry().registerNamedParser("greedyString", StringParser.greedyStringParser())
-            EsuExceptionHandlers(exceptionController()).register()
-
-            // Support non-standard username
-            brigadierManager().registerMapping(
-                object : TypeToken<UserParser<User>>() {}
-            ) { builder ->
-                builder.cloudSuggestions().toConstant(StringArgumentType.greedyString())
-            }
-            brigadierManager().registerMapping(
-                object : TypeToken<PlayerParser<User>>() {}
-            ) { builder ->
-                builder.cloudSuggestions().toConstant(StringArgumentType.greedyString())
-            }
-
-        }
-    }
+    override val commandManager: VelocityCommandManager<User> by lazy { EsuVelocityCommandManager() }
 
     fun onProxyInitialization() {
         EsuConfig           // Load global config
