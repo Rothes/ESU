@@ -5,4 +5,8 @@ interface EncoderChannelHandler {
     fun encode(packetData: PacketData) { }
     fun flush() { }
 
+    fun flush(totalBufferSize: Int) {
+        flush()
+    }
+
 }

@@ -147,13 +147,13 @@ object TrafficMonitor {
 
     object EncoderHandler: EncoderChannelHandler {
 
-        override fun encode(packetData: PacketData) {
-            val size = packetData.compressedSize
-            outgoingBytes.getAndAdd(NetworkUtils.calculateEthernetFrameBytes(size))
-        }
-
-        override fun flush() {
+        override fun flush(totalBufferSize: Int) {
+            val config = config.trafficMonitor
             outgoingPps.getAndIncrement()
+            outgoingBytes.getAndAdd(NetworkUtils.estimateWireFrameBytes(totalBufferSize, config.estimatorOptions))
+            // ACK packet
+            incomingPps.getAndIncrement()
+            incomingBytes.getAndAdd(config.ackPacketLength)
         }
 
     }
@@ -161,9 +161,13 @@ object TrafficMonitor {
     object DecoderHandler: DecoderChannelHandler {
 
         override fun decode(packetData: PacketData) {
+            val config = config.trafficMonitor
             val size = packetData.compressedSize
-            incomingBytes.getAndAdd(NetworkUtils.calculateEthernetFrameBytes(size))
             incomingPps.getAndIncrement()
+            incomingBytes.getAndAdd(NetworkUtils.estimateWireFrameBytes(size, config.estimatorOptions))
+            // ACK packet
+            outgoingPps.getAndIncrement()
+            outgoingBytes.getAndAdd(config.ackPacketLength)
         }
 
     }

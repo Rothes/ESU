@@ -8,10 +8,6 @@ import java.net.URL
 
 object NetworkUtils {
 
-    private const val MIN_PAYLOAD = 46
-    private const val MAX_PAYLOAD = 1500
-    private const val ETHERNET_FRAME_OVERHEAD = 6 + 6 + 2 + 4 // MAC destination + MAC source + EtherType/length + CRC
-
     val String.uriLatency: Long
         get() = URI.create(this).toURL().latency
 
@@ -34,14 +30,48 @@ object NetworkUtils {
     val URL.latency: Long
         get() = host.hostLatency
 
-    fun calculateEthernetFrameBytes(size: Int): Int {
-        val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
-        val overhead = frames * ETHERNET_FRAME_OVERHEAD
-        val fills = MIN_PAYLOAD - (size - (frames - 1) * MAX_PAYLOAD)
+    /**************************
+        Bandwidth Estimator
 
-        var ethernetFrameBytes = size + overhead
-        if (fills > 0) ethernetFrameBytes += fills
-        return ethernetFrameBytes
+        TCP only, no options
+    **************************/
+
+    private const val MTU = 1500
+    private const val IP_HEADER_SIZE = 20
+    private const val TCP_HEADER_SIZE = 20
+    private const val L2_OVERHEAD = 12 + 2 + 4 // MAC + Ethertype + FCS
+    private const val L1_OVERHEAD = 7 + 1 + 12 // Preamble + SFD + IPG
+    private const val FRAME_OVERHEAD = IP_HEADER_SIZE + TCP_HEADER_SIZE
+    private const val MIN_PAYLOAD = 46
+    private const val MAX_PAYLOAD = MTU - FRAME_OVERHEAD
+
+    fun estimateWireFrameBytes(size: Int, options: EstimatorOptions = EstimatorOptions.DEFAULT): Int {
+        val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
+        val overhead = frames * FRAME_OVERHEAD
+
+        var totalBytes = size + overhead
+
+        if (options.includePadding) {
+            val fills = MIN_PAYLOAD - (size - (frames - 1) * MAX_PAYLOAD)
+            if (fills > 0) totalBytes += fills
+        }
+        if (options.includeLayer2) {
+            totalBytes += frames * L2_OVERHEAD
+        }
+        if (options.includeLayer1) {
+            totalBytes += frames * L1_OVERHEAD
+        }
+        return totalBytes
+    }
+
+    data class EstimatorOptions(
+        val includePadding: Boolean = false,
+        val includeLayer2: Boolean = false,
+        val includeLayer1: Boolean = false,
+    ) {
+        companion object {
+            val DEFAULT = EstimatorOptions()
+        }
     }
 
 }

@@ -137,7 +137,7 @@ object ChannelInjectorController {
             with(channel.pipeline()) {
                 if (get(ENCODER_NAME_PRE) != null)
                     error("ESU channel handlers are already injected")
-                val outgoing = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel), player)
+                val outgoing = EsuOutboundPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel), player)
                 addBefore("minecraft-encoder", ENCODER_NAME_PRE, EsuPreEncoder(outgoing))
                 addFirst(ENCODER_NAME_FIN, EsuFinEncoder(outgoing))
 
@@ -154,15 +154,23 @@ object ChannelInjectorController {
             channel.pipeline().remove(DECODER_NAME_FIN)
         }
 
-        data class EsuPipelineData(
+        open class EsuPipelineData(
             val peUser: PEUser,
             val player: Player?,
-            var packetType: PacketTypeCommon = UnknownPacketType,
+        ) {
+            var packetType: PacketTypeCommon = UnknownPacketType
             /** Stores uncompressed size on encoder, and compressed size on decoder. */
-            var oppositeSize: Int = -1,
-        )
+            var oppositeSize: Int = -1
+        }
 
-        class EsuPreEncoder(val data: EsuPipelineData): ChannelOutboundHandlerAdapter() {
+        class EsuOutboundPipelineData(
+            peUser: PEUser,
+            player: Player?,
+        ): EsuPipelineData(peUser, player) {
+            var bufferSize: Int = -1
+        }
+
+        class EsuPreEncoder(val data: EsuOutboundPipelineData): ChannelOutboundHandlerAdapter() {
 
             override fun write(ctx: ChannelHandlerContext, msg: Any?, promise: ChannelPromise?) {
                 if (msg is ByteBuf) {
@@ -178,11 +186,12 @@ object ChannelInjectorController {
 
         }
 
-        class EsuFinEncoder(val data: EsuPipelineData): ChannelOutboundHandlerAdapter() {
+        class EsuFinEncoder(val data: EsuOutboundPipelineData): ChannelOutboundHandlerAdapter() {
 
             override fun write(ctx: ChannelHandlerContext, msg: Any?, promise: ChannelPromise?) {
                 if (encoderHandlers.isNotEmpty() && msg is ByteBuf) {
-                    val packetData = PacketData(data.player, data.packetType, data.oppositeSize, msg.readableBytes())
+                    val size = msg.readableBytes()
+                    val packetData = PacketData(data.player, data.packetType, data.oppositeSize, size)
                     for (handler in encoderHandlers) {
                         try {
                             handler.encode(packetData)
@@ -190,15 +199,18 @@ object ChannelInjectorController {
                             plugin.err("Unhandled exception while handling packet", e)
                         }
                     }
+                    data.bufferSize += size
                 }
                 ctx.write(msg, promise)
             }
 
             override fun flush(ctx: ChannelHandlerContext) {
                 if (encoderHandlers.isNotEmpty()) {
+                    val totalSize = data.bufferSize
+                    data.bufferSize = 0
                     for (handler in encoderHandlers) {
                         try {
-                            handler.flush()
+                            handler.flush(totalSize)
                         } catch (e: Throwable) {
                             plugin.err("Unhandled exception while handling packet", e)
                         }

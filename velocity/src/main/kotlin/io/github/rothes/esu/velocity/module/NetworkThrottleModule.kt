@@ -6,6 +6,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
 import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
@@ -51,7 +52,13 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
         @Comment("We can't know exactly what the actual bandwidth rate and packet rate are at netty level.\n" +
                 "You can modify the calibration parameters here, for advanced users.")
         val trafficCalibration: TrafficCalibration = TrafficCalibration(),
+        val trafficMonitor: TrafficMonitor = TrafficMonitor(),
     ): BaseModuleConfiguration() {
+
+        data class TrafficMonitor(
+            val estimatorOptions: NetworkUtils.EstimatorOptions = NetworkUtils.EstimatorOptions(),
+            val ackPacketLength: Int = 54,
+        )
 
         data class DynamicChunkSendRate(
             val enabled: Boolean = true,

@@ -105,7 +105,7 @@ object Analyser {
                         list.size to Sum(
                             list.sumOf { it.uncompressedSize.toLong() },
                             list.sumOf { it.compressedSize.toLong() },
-                            list.sumOf { NetworkUtils.calculateEthernetFrameBytes(it.compressedSize).toLong() }
+                            list.sumOf { NetworkUtils.estimateWireFrameBytes(it.compressedSize).toLong() }
                         )
                     }
                     .entries.sortedByDescending { it.value.second.ethernetFrame }
