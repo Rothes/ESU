@@ -1,69 +1,37 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.v17_1
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.EntityUpdateInterval
-import io.github.rothes.esu.core.command.annotation.ShortPerm
-import io.github.rothes.esu.core.configuration.meta.Comment
-import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
-import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UnsafeUtils.usIntAccessor
+import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
+import net.minecraft.server.level.ChunkMap
 import net.minecraft.server.level.ServerEntity
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
-import org.incendo.cloud.annotations.Command
 
-class EntityUpdateIntervalImpl: EntityUpdateInterval<EntityUpdateIntervalImpl.FeatureConfig, Unit>() {
+object EntityUpdateIntervalImpl: EntityUpdateInterval() {
 
-    companion object {
-        val entityTypeAccessor = EntityType::class.java.getDeclaredField("updateInterval").usIntAccessor
-        val serverEntityAccessor = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor
-//        val ENTITIES_HANDLER by Versioned(LevelEntitiesHandler::class.java)
+    private val ENTITY_TYPE_UPDATE_INTERVAL = EntityType::class.java.getDeclaredField("updateInterval").usIntAccessor
+
+    override fun getCurrentInterval(entityType: EntityType<*>): Int {
+        return ENTITY_TYPE_UPDATE_INTERVAL[entityType]
     }
 
-    override fun onReload() {
-        super.onReload()
-        if (enabled) {
-            applyUpdateInterval()
+    override fun setCurrentInterval(entityType: EntityType<*>, interval: Int) {
+        ENTITY_TYPE_UPDATE_INTERVAL[entityType] = interval
+    }
+
+    object ApplyCommandImpl : ApplyCommand() {
+
+        val TRACKED_ENTITY_SERVER_ENTITY = ChunkMap.TrackedEntity::class.java.getDeclaredField("serverEntity").usObjAccessor
+        val SERVER_ENTITY_UPDATE_INTERVAL = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor
+
+        override fun handleEntity(entity: Entity): Boolean {
+            val tracker = entity.tracker ?: return false
+            val se = TRACKED_ENTITY_SERVER_ENTITY[tracker] as ServerEntity
+            SERVER_ENTITY_UPDATE_INTERVAL[se] = getCurrentInterval(entity.type)
+            return true
         }
+
     }
 
-    override fun onEnable() {
-        applyUpdateInterval()
-
-        registerCommands(object {
-            @Command("esu networkThrottle entityUpdateInterval entityType <entityType>")
-            @ShortPerm
-            fun getUpdateInterval(sender: User, entityType: EntityType<*>) {
-                val interval = entityTypeAccessor[entityType]
-                sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
-            }
-
-            // TODO: apply
-//            @Command("esu networkThrottle entityUpdateInterval apply")
-//            @ShortPerm
-//            fun apply(sender: User) {
-//                for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
-//                    for (entity in ENTITIES_HANDLER.getEntitiesAll(level)) {
-//                        entity.tracker.serverEntity
-//                    }
-//                }
-//            }
-        })
-    }
-
-    private fun applyUpdateInterval() {
-        val config = config
-        for ((type, interval) in config.entityTypeUpdateInterval) {
-            entityTypeAccessor[type] = interval
-        }
-    }
-
-    data class FeatureConfig(
-        @Comment("""
-            Control the position update interval ticks of entity types.
-            Higher means less entity movement packets (more de-sync), but less network as deal.
-        """)
-        val entityTypeUpdateInterval: Map<EntityType<*>, Int> = mapOf(
-            EntityType.PIG to entityTypeAccessor[EntityType.PIG],
-            EntityType.ZOMBIE to entityTypeAccessor[EntityType.ZOMBIE],
-        )
-    ): BaseFeatureConfiguration()
 }

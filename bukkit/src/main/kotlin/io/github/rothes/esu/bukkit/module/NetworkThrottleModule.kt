@@ -3,7 +3,6 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.module.networkthrottle.*
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.LoadedConfiguration
@@ -20,7 +19,7 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         registerFeature(EntityCulling)
         if (NmsRegistryValueSerializers.isSupported) {
             if (ServerCompatibility.isPaper) registerFeature(EntityTrackingRange)
-            registerFeature(EntityUpdateInterval::class.java.versioned())
+            registerFeature(EntityUpdateInterval.INSTANCE)
         }
         registerFeature(HighLatencyAdjust)
         registerFeature(SkipUnnecessaryPackets)
