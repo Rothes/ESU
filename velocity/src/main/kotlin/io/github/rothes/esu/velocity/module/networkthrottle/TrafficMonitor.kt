@@ -149,7 +149,7 @@ object TrafficMonitor {
 
         override fun flush(totalBufferSize: Int) {
             val config = config.trafficMonitor
-            outgoingPps.getAndIncrement()
+            outgoingPps.getAndAdd(NetworkUtils.estimatePackets(totalBufferSize))
             outgoingBytes.getAndAdd(NetworkUtils.estimateWireFrameBytes(totalBufferSize, config.estimatorOptions))
             // ACK packet
             incomingPps.getAndIncrement()
@@ -163,7 +163,7 @@ object TrafficMonitor {
         override fun decode(packetData: PacketData) {
             val config = config.trafficMonitor
             val size = packetData.compressedSize
-            incomingPps.getAndIncrement()
+            incomingPps.getAndAdd(NetworkUtils.estimatePackets(size))
             incomingBytes.getAndAdd(NetworkUtils.estimateWireFrameBytes(size, config.estimatorOptions))
             // ACK packet
             outgoingPps.getAndIncrement()

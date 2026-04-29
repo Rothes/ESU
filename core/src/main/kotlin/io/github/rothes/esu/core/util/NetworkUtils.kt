@@ -45,6 +45,10 @@ object NetworkUtils {
     private const val MIN_PAYLOAD = 46
     private const val MAX_PAYLOAD = MTU - FRAME_OVERHEAD
 
+    fun estimatePackets(size: Int): Int {
+        return (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
+    }
+
     fun estimateWireFrameBytes(size: Int, options: EstimatorOptions = EstimatorOptions.DEFAULT): Int {
         val frames = (size + (MAX_PAYLOAD - 1)) / (MAX_PAYLOAD)
         val overhead = frames * FRAME_OVERHEAD
