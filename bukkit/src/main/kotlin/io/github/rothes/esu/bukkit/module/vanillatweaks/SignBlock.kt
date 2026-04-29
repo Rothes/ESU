@@ -35,11 +35,11 @@ object SignBlock: CommonFeature<Unit, Unit>() {
             }
         }
 
-        override fun onEnable(){
+        override fun onEnable() {
             Listeners.register()
         }
 
-        override fun onDisable(){
+        override fun onDisable() {
             super.onDisable()
             Listeners.unregister()
         }
