@@ -29,7 +29,7 @@ import io.github.rothes.esu.lib.bstats.bukkit.Metrics
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
-import org.incendo.cloud.bukkit.BukkitCommandManager
+import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
 
 class EsuPluginBukkit(
@@ -81,7 +81,7 @@ class EsuPluginBukkit(
         }
     }
 
-    override val commandManager: BukkitCommandManager<User> by lazy { EsuBukkitCommandManager() }
+    override val commandManager: CommandManager<User> by lazy { EsuBukkitCommandManager() }
 
     fun onLoad() {
     }
