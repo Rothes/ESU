@@ -31,8 +31,8 @@ import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import kotlinx.coroutines.Dispatchers
+import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
-import org.incendo.cloud.velocity.VelocityCommandManager
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -64,7 +64,7 @@ class EsuPluginVelocity(
         enabledHot = byServerUtils()
     }
 
-    override val commandManager: VelocityCommandManager<User> by lazy { EsuVelocityCommandManager() }
+    override val commandManager: CommandManager<User> by lazy { EsuVelocityCommandManager() }
 
     fun onProxyInitialization() {
         EsuConfig           // Load global config
