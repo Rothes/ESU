@@ -38,19 +38,19 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
             @Command("esu networkThrottle entityUpdateInterval entityType <entityType>")
             @ShortPerm
             fun getUpdateInterval(sender: User, entityType: EntityType<*>) {
-                val interval = getCurrentInterval(entityType)
+                val interval = this@EntityUpdateInterval[entityType]
                 sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
             }
         })
     }
 
-    abstract fun getCurrentInterval(entityType: EntityType<*>): Int
-    abstract fun setCurrentInterval(entityType: EntityType<*>, interval: Int)
+    abstract operator fun get(entityType: EntityType<*>): Int
+    abstract operator fun set(entityType: EntityType<*>, interval: Int)
 
     protected fun applyUpdateInterval() {
         val config = config
         for ((type, interval) in config.entityTypeUpdateInterval) {
-            setCurrentInterval(type, interval)
+            this[type] = interval
         }
     }
 
@@ -60,8 +60,8 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
             Higher means less entity movement packets (more de-sync), but less network as deal.
         """)
         val entityTypeUpdateInterval: Map<EntityType<*>, Int> = mapOf(
-            EntityType.PIG to INSTANCE.getCurrentInterval(EntityType.PIG),
-            EntityType.ZOMBIE to INSTANCE.getCurrentInterval(EntityType.ZOMBIE),
+            EntityType.PIG to INSTANCE[EntityType.PIG],
+            EntityType.ZOMBIE to INSTANCE[EntityType.ZOMBIE],
         )
     ): BaseFeatureConfiguration()
 

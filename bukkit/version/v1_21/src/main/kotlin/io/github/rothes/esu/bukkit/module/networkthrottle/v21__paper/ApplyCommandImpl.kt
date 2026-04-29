@@ -12,7 +12,7 @@ object ApplyCommandImpl : EntityUpdateInterval.ApplyCommand() {
     override fun handleEntity(entity: Entity): Boolean {
         val tracker = entity.`moonrise$getTrackedEntity`() ?: return false
         val se = tracker.serverEntity
-        SERVER_ENTITY_UPDATE_INTERVAL[se] = EntityUpdateInterval.INSTANCE.getCurrentInterval(entity.type)
+        SERVER_ENTITY_UPDATE_INTERVAL[se] = EntityUpdateInterval.INSTANCE[entity.type]
         return true
     }
 

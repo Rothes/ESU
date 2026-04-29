@@ -12,11 +12,11 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
 
     private val ENTITY_TYPE_UPDATE_INTERVAL = EntityType::class.java.getDeclaredField("updateInterval").usIntAccessor
 
-    override fun getCurrentInterval(entityType: EntityType<*>): Int {
+    override operator fun get(entityType: EntityType<*>): Int {
         return ENTITY_TYPE_UPDATE_INTERVAL[entityType]
     }
 
-    override fun setCurrentInterval(entityType: EntityType<*>, interval: Int) {
+    override operator fun set(entityType: EntityType<*>, interval: Int) {
         ENTITY_TYPE_UPDATE_INTERVAL[entityType] = interval
     }
 
@@ -28,7 +28,7 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
         override fun handleEntity(entity: Entity): Boolean {
             val tracker = entity.tracker ?: return false
             val se = TRACKED_ENTITY_SERVER_ENTITY[tracker] as ServerEntity
-            SERVER_ENTITY_UPDATE_INTERVAL[se] = getCurrentInterval(entity.type)
+            SERVER_ENTITY_UPDATE_INTERVAL[se] = this@EntityUpdateIntervalImpl[entity.type]
             return true
         }
 
