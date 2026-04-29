@@ -10,7 +10,7 @@ import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.networkthrottle.Analyser
 import io.github.rothes.esu.velocity.module.networkthrottle.DynamicChunkSendRate
 import io.github.rothes.esu.velocity.module.networkthrottle.TrafficMonitor
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectorController
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectionManager
 import io.github.rothes.esu.velocity.util.extension.checkPacketEvents
 
 object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig, NetworkThrottleModule.ModuleLang>() {
@@ -20,7 +20,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
     }
 
     override fun onEnable() {
-        ChannelInjectorController.enable()
+        ChannelInjectionManager.enable()
         TrafficMonitor.enable()
         Analyser.enable()
         DynamicChunkSendRate.enable()
@@ -28,7 +28,7 @@ object NetworkThrottleModule: VelocityModule<NetworkThrottleModule.ModuleConfig,
 
     override fun onDisable() {
         super.onDisable()
-        ChannelInjectorController.disable()
+        ChannelInjectionManager.disable()
         TrafficMonitor.disable()
         Analyser.disable()
         Analyser.reset()

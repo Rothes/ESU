@@ -12,7 +12,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.NetworkUtils
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
-import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectorController
+import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectionManager
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.DecoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.EncoderChannelHandler
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.PacketData
@@ -38,8 +38,8 @@ object Analyser {
         if (running) return false
         running = true
         reset()
-        ChannelInjectorController.registerHandler(EncoderHandler)
-        ChannelInjectorController.registerHandler(DecoderHandler)
+        ChannelInjectionManager.registerHandler(EncoderHandler)
+        ChannelInjectionManager.registerHandler(DecoderHandler)
         return true
     }
 
@@ -143,8 +143,8 @@ object Analyser {
         if (!running) return false
         running = false
         stopTime = System.currentTimeMillis()
-        ChannelInjectorController.unregisterHandler(EncoderHandler)
-        ChannelInjectorController.unregisterHandler(DecoderHandler)
+        ChannelInjectionManager.unregisterHandler(EncoderHandler)
+        ChannelInjectionManager.unregisterHandler(DecoderHandler)
         return true
     }
 

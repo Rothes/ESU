@@ -12,6 +12,7 @@ import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.proxy.VelocityServer
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import com.velocitypowered.proxy.network.ConnectionManager
+import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGetT
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.networkthrottle.UnknownPacketType
@@ -20,14 +21,12 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.*
 import com.github.retrooper.packetevents.protocol.player.User as PEUser
 
-object ChannelInjectorController {
+object ChannelInjectionManager {
 
     val connectionManager by lazy {
-        val server = plugin.server as VelocityServer
         VelocityServer::class.java.declaredFields
             .first { it.type == ConnectionManager::class.java }
-            .also { it.isAccessible = true }
-            .get(server) as ConnectionManager
+            .accessibleGetT<ConnectionManager>(plugin.server as VelocityServer)
     }
 
     private val allInjectors = linkedSetOf<ChannelInjector>()
