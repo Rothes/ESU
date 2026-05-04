@@ -36,6 +36,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.geysermc.floodgate.api.FloodgateApi
 import org.incendo.cloud.annotations.Command
+import kotlin.math.min
 
 object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>() {
 
@@ -85,7 +86,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
             checkedCache[user] = checked
             if (config.bookNews.showUnreadNewsOnJoin && checked < news.first().id)
                 Scheduler.schedule(user.player, 1) {
-                    Commands.news(user)
+                    Commands.newsOpen(user)
                 }
         }
         @EventHandler
@@ -130,41 +131,49 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
 
     object Commands {
         @Command("news")
-        fun news(user: User) {
-            user as PlayerUser
-            val news = NewsDataManager.news
+        fun newsRoot(sender: User) {
+            newsOpen(sender)
+        }
+
+        @Command("news open <before>")
+        fun newsOpen(sender: User, before: Int = -1) {
+            sender as PlayerUser
+            val news = NewsDataManager.news.let { list ->
+                if (before >= 0) list.filter { it.id <= before } else list
+            }
             if (news.isEmpty()) {
-                user.message(lang, { bookNews.noNewsSet })
+                sender.message(lang, { bookNews.noNewsSet })
                 return
             }
 
-            val check = component("check", user.buildMiniMessage(lang, { bookNews.checkButton })
-                .clickEvent(ClickEvent.runCommand("/news checked")))
-            val checked = checkedCache[user] ?: -1
-            val context = user.context({ bookNews.layout }) {
+            val check = component("check", sender.buildMiniMessage(lang, { bookNews.checkButton })
+                .clickEvent(ClickEvent.runCommand("/news checked $before")))
+            val checked = checkedCache[sender] ?: -1
+            val context = sender.context({ bookNews.layout }) {
                 listOf(
                     check,
                     component("new-placeholder",
                         if (id > checked)
-                            user.buildMiniMessage(lang, { bookNews.newPlaceholder })
+                            sender.buildMiniMessage(lang, { bookNews.newPlaceholder })
                         else
                             Component.empty()
                     )
                 )
             }
-            user.openBook(Book.builder().pages(news.flatMap { it.toPages(user, context) }).build())
+            sender.openBook(Book.builder().pages(news.flatMap { it.toPages(sender, context) }).build())
         }
 
-        @Command("news checked")
-        fun newsChecked(user: User) {
+        @Command("news checked <id>")
+        fun newsChecked(sender: User, id: Int = Int.MAX_VALUE) {
             val latest = NewsDataManager.news.firstOrNull()?.id ?: -1
-            if (checkedCache[user] == latest) {
-                user.message(lang, { bookNews.checkedNothing })
+            val num = min(id, latest)
+            if (checkedCache.getOrDefault(sender, -1) >= num) {
+                sender.message(lang, { bookNews.checkedNothing })
                 return
             }
-            user.message(lang, { bookNews.checked })
-            NewsDataManager.setChecked(user, latest)
-            checkedCache[user] = latest
+            sender.message(lang, { bookNews.checked })
+            NewsDataManager.setChecked(sender, num)
+            checkedCache[sender] = num
         }
 
         @ShortPerm("editor")
