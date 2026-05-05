@@ -5,7 +5,7 @@ plugins {
 val serverVer = rootProject.property("targetMinecraftVersion").toString()
 
 dependencies {
-    paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("$serverVer.build.+")
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
     api(project(":bukkit:module:bukkit-modules-bom"))
     api(project(":common"))

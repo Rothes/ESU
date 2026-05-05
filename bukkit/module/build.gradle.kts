@@ -10,7 +10,7 @@ subprojects {
         compileOnly(project(":common"))
         val serverVer = rootProject.property("targetMinecraftVersion").toString()
         val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
-        paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
+        paperweight.paperDevBundle("$serverVer.build.+")
     }
 
     publishing {

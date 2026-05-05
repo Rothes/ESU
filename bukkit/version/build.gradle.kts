@@ -13,10 +13,11 @@ subprojects {
         rootProject.property("targetMinecraftVersion").toString()
     else
         project.name.substring(1).replace('_', '.')
+    val devBundle = if (serverVer.startsWith('1')) "$serverVer-R0.1-SNAPSHOT" else "$serverVer.build.+"
 
     dependencies {
         val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
-        paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
+        paperweight.paperDevBundle(devBundle)
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:bukkit-api"))
         compileOnly(project(":bukkit:module:bukkit-modules-bom"))

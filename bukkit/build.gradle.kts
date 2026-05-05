@@ -1,4 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.internal.impldep.org.bouncycastle.oer.OERDefinition.optional
 
 plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
@@ -57,7 +58,7 @@ allprojects {
 }
 
 dependencies {
-    paperweight.paperDevBundle("$serverVer-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("$serverVer.build.+")
     api(project(":bukkit:bukkit-api"))
     compileOnly(project(":bukkit:version:remapped"))
 
@@ -83,8 +84,6 @@ dependencies {
     compileOnly("com.github.luben:zstd-jni:1.5.7-7")
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
 }
-
-paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
