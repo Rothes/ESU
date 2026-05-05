@@ -66,6 +66,11 @@ object UnsafeUtils {
     val Field.usLongAccessor
         get() = UnsafeLongAccessor(this)
 
+    val Field.usFloatAccessor
+        get() = UnsafeFloatAccessor(this)
+    val Field.usDoubleAccessor
+        get() = UnsafeDoubleAccessor(this)
+
     private val Field.objOffset
         get() = try {
             @Suppress("DEPRECATION")
@@ -104,6 +109,16 @@ object UnsafeUtils {
     class UnsafeLongAccessor(field: Field): UnsafeFieldAccessor(field) {
         operator fun get(obj: Any?): Long = unsafe.getLong(obj, offset)
         operator fun set(obj: Any?, value: Long) = unsafe.putLong(obj, offset, value)
+    }
+
+    class UnsafeFloatAccessor(field: Field): UnsafeFieldAccessor(field) {
+        operator fun get(obj: Any?): Float = unsafe.getFloat(obj, offset)
+        operator fun set(obj: Any?, value: Float) = unsafe.putFloat(obj, offset, value)
+    }
+
+    class UnsafeDoubleAccessor(field: Field): UnsafeFieldAccessor(field) {
+        operator fun get(obj: Any?): Double = unsafe.getDouble(obj, offset)
+        operator fun set(obj: Any?, value: Double) = unsafe.putDouble(obj, offset, value)
     }
 
     abstract class UnsafeFieldAccessor(val field: Field) {

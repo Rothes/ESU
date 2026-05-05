@@ -1,85 +1,49 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
-import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
-import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.plugin
 import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.version.adapter.moonrise.ChunkLimiterHandler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.module.configuration.EnableTogglable
-import io.papermc.paper.configuration.GlobalConfiguration
+import io.github.rothes.esu.core.util.extension.math.floorL
 import org.bukkit.Bukkit
-import org.bukkit.craftbukkit.entity.CraftPlayer
-import kotlin.math.max
 
 object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, EmptyConfiguration>() {
 
     private const val CHANNEL_ID = "esu:dynamic_chunk_send_rate_limit"
 
-    private val limiterLoad by lazy {
-        RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkLoadTicketLimiter")
-            .also { it.isAccessible = true }
-    }
-    private val limiterSend by lazy {
-        RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkSendLimiter")
-            .also { it.isAccessible = true }
-    }
-    private val rateLimiter by lazy {
-        Class.forName("ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter")
-    }
-    private val allocation by lazy {
-        rateLimiter.getDeclaredField("allocation").also { it.isAccessible = true }
-    }
-    private val takeCarry by lazy {
-        rateLimiter.getDeclaredField("takeCarry").also { it.isAccessible = true }
-    }
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (!ServerCompatibility.isProxyMode) {
-                core.err("[DynamicChunkSendRate] This server is not on BungeeCord mode or Velocity mode. You should not enable this feature.")
-                return Feature.AvailableCheck.fail { "This server is not on BungeeCord mode or Velocity mode".message }
-            }
-
-            try {
-                limiterLoad
-                limiterSend
-                allocation
-                takeCarry
-            } catch (t: Throwable) {
-                core.err("[DynamicChunkSendRate] Server not supported: $t")
-                return Feature.AvailableCheck.fail { "Server not supported".message }
-            }
+            if (!ServerCompatibility.isProxyMode) return errFail { "This server is not on BungeeCord mode or Velocity mode".message }
+            if (!ChunkLimiterHandler.isSupported) return errFail { "Server not supported".message }
             null
         }
     }
 
     override fun onEnable() {
         Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { channel, player, message ->
-            val chunkLoaderData = (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
 
-            val max =
-                max(
-                    GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkSendRate,
-                    GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate
-                ).let { if (it !in (0.0 .. 10000.0)) 10000.0 else it }
-            val limiters = listOf(
-                limiterLoad[chunkLoaderData],
-                limiterSend[chunkLoaderData],
+            val types = listOf(
+                ChunkLimiterHandler.Type.GENERATE,
+                ChunkLimiterHandler.Type.LOAD,
             )
-            var times = 20
+            var times = 15
             fun func() {
                 if (--times > 0) {
-                    for (rateLimiter in limiters) {
-                        takeCarry[rateLimiter] = 24 - max
-                        Scheduler.schedule(player, 1) {
-                            func()
-                        }
+                    val handler = ChunkLimiterHandler.instance
+                    for (type in types) {
+                        handler.takeAllocation(player, type, handler.getMaxRate(type).floorL() - 24)
+                    }
+                    Scheduler.schedule(player, 1) {
+                        func()
                     }
                 }
             }

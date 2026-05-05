@@ -2,43 +2,34 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import ca.spottedleaf.moonrise.common.PlatformHooks
 import ca.spottedleaf.moonrise.common.util.MoonriseConstants
-import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.moonrise.ChunkLimiterHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
-import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.craftbukkit.CraftWorld
-import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.incendo.cloud.annotations.Command
-import java.lang.reflect.Field
 
 object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTickets.Lang>() {
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            try {
-                Class.forName($$"ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData")
-            } catch (_: ClassNotFoundException) {
-                return Feature.AvailableCheck.fail { "Server not supported".message }
-            }
+            if (!ChunkLimiterHandler.isSupported) return errFail { "Server not supported".message }
             null
         }
     }
 
     override fun onEnable() {
         registerCommands(object {
-            val HANDLER by Versioned(AllocatingRateLimiterHandler::class.java)
-
-            val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
+            val HANDLER = ChunkLimiterHandler.instance
 
             @Command("tickDistance <num>")
             @ShortPerm("tickDistance")
@@ -100,38 +91,29 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
             private val World.chunkLoader
                 get() = (this as CraftWorld).handle.`moonrise$getPlayerChunkLoader`()
 
-            private val gen = clazz.getDeclaredField("chunkGenerateTicketLimiter").also { it.isAccessible = true }
             @Command("genRateTop")
             @ShortPerm("genRateTop")
             fun genRateTop(sender: User) {
-                rate(sender, gen, AllocatingRateLimiterHandler.Type.GENERATE) { genRateTop }
+                rate(sender, ChunkLimiterHandler.Type.GENERATE) { genRateTop }
             }
 
-            private val load = clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true }
             @Command("loadRateTop")
             @ShortPerm("loadRateTop")
             fun loadRateTop(sender: User) {
-                rate(sender, load, AllocatingRateLimiterHandler.Type.LOAD) { loadRateTop }
+                rate(sender, ChunkLimiterHandler.Type.LOAD) { loadRateTop }
             }
             // We don't add sendRate command as it doesn't have the logic for this.
 
             private fun rate(
                 sender: User,
-                field: Field,
-                type: AllocatingRateLimiterHandler.Type,
+                type: ChunkLimiterHandler.Type,
                 langScope: Lang.() -> Lang.ChunkRateTop
             ) {
-                val map = Bukkit.getOnlinePlayers().associateWith { player ->
-                    (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
-                }.mapValues { entry ->
-                    @Suppress("USELESS_ELVIS") // 1.21.x may return null
-                    val loaderData = entry.value ?: return@mapValues null
-                    val limiter = field[loaderData]
-                    HANDLER.getMaxRate(type) - HANDLER.previewAllocation(limiter, type)
-                }.filter { entry ->
-                    val value = entry.value
-                    value != null && value > 0
-                }.toList().sortedByDescending { it.second }
+                val map = Bukkit.getOnlinePlayers()
+                    .associateWith { player -> HANDLER.getMaxRate(type) - HANDLER.highestAllocation(player, type) }
+                    .filter { entry -> entry.value > 0 }
+                    .toList()
+                    .sortedByDescending { it.second }
                 if (map.isEmpty()) {
                     sender.message(lang, { langScope().noData })
                 } else {
@@ -144,26 +126,6 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
                 }
             }
         })
-    }
-
-    interface AllocatingRateLimiterHandler {
-
-        fun previewAllocation(rateLimiter: Any, type: Type): Long
-
-        fun getMaxRate(type: Type): Double {
-            val config = GlobalConfiguration.get().chunkLoadingBasic
-            return when (type) {
-                Type.LOAD       -> config.playerMaxChunkLoadRate
-                Type.GENERATE   -> config.playerMaxChunkGenerateRate
-                Type.SEND       -> config.playerMaxChunkSendRate
-            }
-        }
-
-        enum class Type {
-            LOAD,
-            GENERATE,
-            SEND,
-        }
     }
 
     data class Lang(

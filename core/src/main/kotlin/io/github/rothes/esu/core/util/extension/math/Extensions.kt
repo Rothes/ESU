@@ -12,4 +12,7 @@ fun Double.square(): Double = this * this
 fun Float.floorI(): Int = floor(this.toDouble()).toInt()
 fun Double.floorI(): Int = floor(this).toInt()
 
+fun Float.floorL(): Long = floor(this.toDouble()).toLong()
+fun Double.floorL(): Long = floor(this).toLong()
+
 fun Double.frac(): Double = this - floor(this)
