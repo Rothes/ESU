@@ -166,7 +166,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         @Command("news checked <id>")
         fun newsChecked(sender: User, id: Int = Int.MAX_VALUE) {
             val latest = NewsDataManager.news.firstOrNull()?.id ?: -1
-            val num = min(id, latest)
+            val num = if (id < 0) latest else min(id, latest)
             if (checkedCache.getOrDefault(sender, -1) >= num) {
                 sender.message(lang, { bookNews.checkedNothing })
                 return
