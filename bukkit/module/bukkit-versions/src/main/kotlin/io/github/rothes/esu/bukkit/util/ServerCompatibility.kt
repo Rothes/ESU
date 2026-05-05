@@ -4,7 +4,6 @@ import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.util.version.drop
 import io.github.rothes.esu.core.util.version.toVersion
 import io.papermc.paper.configuration.GlobalConfiguration
-import io.papermc.paper.util.MappingEnvironment
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -33,8 +32,11 @@ object ServerCompatibility {
     }
 
     val isMojmap = serverVersion >= 26 || try {
-        !MappingEnvironment.reobf()
-    } catch (_: NoClassDefFoundError) {
+        val clazz = Class.forName("io.papermc.paper.util.MappingEnvironment")
+        val method = clazz.getDeclaredMethod("reobf")
+        method.isAccessible = true
+        !(method.invoke(null) as Boolean)
+    } catch (_: ClassNotFoundException) {
         false
     }
 

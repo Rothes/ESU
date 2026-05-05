@@ -1,6 +1,5 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
-import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.plugin
@@ -30,11 +29,14 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
         RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkSendLimiter")
             .also { it.isAccessible = true }
     }
+    private val rateLimiter by lazy {
+        Class.forName("ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter")
+    }
     private val allocation by lazy {
-        AllocatingRateLimiter::class.java.getDeclaredField("allocation").also { it.isAccessible = true }
+        rateLimiter.getDeclaredField("allocation").also { it.isAccessible = true }
     }
     private val takeCarry by lazy {
-        AllocatingRateLimiter::class.java.getDeclaredField("takeCarry").also { it.isAccessible = true }
+        rateLimiter.getDeclaredField("takeCarry").also { it.isAccessible = true }
     }
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
@@ -67,8 +69,8 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
                     GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate
                 ).let { if (it !in (0.0 .. 10000.0)) 10000.0 else it }
             val limiters = listOf(
-                limiterLoad[chunkLoaderData] as AllocatingRateLimiter,
-                limiterSend[chunkLoaderData] as AllocatingRateLimiter,
+                limiterLoad[chunkLoaderData],
+                limiterSend[chunkLoaderData],
             )
             var times = 20
             fun func() {

@@ -1,10 +1,10 @@
 package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import ca.spottedleaf.moonrise.common.PlatformHooks
-import ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 import ca.spottedleaf.moonrise.common.util.MoonriseConstants
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
+import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -36,6 +36,8 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
 
     override fun onEnable() {
         registerCommands(object {
+            val HANDLER by Versioned(AllocatingRateLimiterHandler::class.java)
+
             val clazz = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
 
             @Command("tickDistance <num>")
@@ -102,24 +104,30 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
             @Command("genRateTop")
             @ShortPerm("genRateTop")
             fun genRateTop(sender: User) {
-                rate(sender, gen, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkGenerateRate) { genRateTop }
+                rate(sender, gen, AllocatingRateLimiterHandler.Type.GENERATE) { genRateTop }
             }
 
             private val load = clazz.getDeclaredField("chunkLoadTicketLimiter").also { it.isAccessible = true }
             @Command("loadRateTop")
             @ShortPerm("loadRateTop")
             fun loadRateTop(sender: User) {
-                rate(sender, load, GlobalConfiguration.get().chunkLoadingBasic.playerMaxChunkLoadRate) { loadRateTop }
+                rate(sender, load, AllocatingRateLimiterHandler.Type.LOAD) { loadRateTop }
             }
             // We don't add sendRate command as it doesn't have the logic for this.
 
-            private fun rate(sender: User, field: Field, maxRate: Double, langScope: Lang.() -> Lang.ChunkRateTop) {
+            private fun rate(
+                sender: User,
+                field: Field,
+                type: AllocatingRateLimiterHandler.Type,
+                langScope: Lang.() -> Lang.ChunkRateTop
+            ) {
                 val map = Bukkit.getOnlinePlayers().associateWith { player ->
                     (player as CraftPlayer).handle.`moonrise$getChunkLoader`()
                 }.mapValues { entry ->
+                    @Suppress("USELESS_ELVIS") // 1.21.x may return null
                     val loaderData = entry.value ?: return@mapValues null
-                    val limiter = field[loaderData] as AllocatingRateLimiter
-                    maxRate - limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
+                    val limiter = field[loaderData]
+                    HANDLER.getMaxRate(type) - HANDLER.previewAllocation(limiter, type)
                 }.filter { entry ->
                     val value = entry.value
                     value != null && value > 0
@@ -136,6 +144,26 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
                 }
             }
         })
+    }
+
+    interface AllocatingRateLimiterHandler {
+
+        fun previewAllocation(rateLimiter: Any, type: Type): Long
+
+        fun getMaxRate(type: Type): Double {
+            val config = GlobalConfiguration.get().chunkLoadingBasic
+            return when (type) {
+                Type.LOAD       -> config.playerMaxChunkLoadRate
+                Type.GENERATE   -> config.playerMaxChunkGenerateRate
+                Type.SEND       -> config.playerMaxChunkSendRate
+            }
+        }
+
+        enum class Type {
+            LOAD,
+            GENERATE,
+            SEND,
+        }
     }
 
     data class Lang(

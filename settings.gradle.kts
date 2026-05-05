@@ -28,6 +28,7 @@ include("bukkit:version:v1_21_3")
 include("bukkit:version:v1_21_6")
 include("bukkit:version:v1_21_9")
 include("bukkit:version:v1_21_11")
+include("bukkit:version:v26_1_2")
 
 include("velocity")
 include("velocity:dep-velocity")
