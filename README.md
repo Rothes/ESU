@@ -15,7 +15,7 @@ This project uses the following core dependencies to facilitate development. Tha
 
 ## 🔨 Building
 
-1. Install Git, Gradle 9.2.0+, Java 22.
+1. Install Git, Gradle 9.2.0+, JDK 25.
 2. Clone the repository:
    ```bash
    git clone https://github.com/Rothes/ESU.git
