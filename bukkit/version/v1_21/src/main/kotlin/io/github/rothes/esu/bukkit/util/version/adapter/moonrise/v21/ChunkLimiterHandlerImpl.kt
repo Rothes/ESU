@@ -7,13 +7,12 @@ import org.bukkit.entity.Player
 object ChunkLimiterHandlerImpl : ChunkLimiterHandler() {
 
     override fun getAllocationTaken(player: Player, type: Type): Long {
-        return getMaxRate(type).toLong() - previewAllocation(player, type)
+        return getGlobalMaxRate(type).toLong() - previewAllocation(player, type, Long.MAX_VALUE)
     }
 
-    override fun previewAllocation(player: Player, type: Type): Long {
+    override fun previewAllocation(player: Player, type: Type, take: Long): Long {
         val limiter = player.moonriseChunkLoader.getLimiter(type) as AllocatingRateLimiter
-        val maxRate = getMaxRate(type)
-        return limiter.previewAllocation(System.nanoTime(), maxRate, maxRate.toLong())
+        return limiter.previewAllocation(System.nanoTime(), getGlobalMaxRate(type), take)
     }
 
     override fun takeAllocation(player: Player, type: Type, take: Long): Long {

@@ -36,9 +36,9 @@ object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
         return max - preview
     }
 
-    override fun previewAllocation(player: Player, type: Type): Long {
+    override fun previewAllocation(player: Player, type: Type, take: Long): Long {
         val limiter = player.moonriseChunkLoader.getLimiter(type) as StaggeredRateLimiter
-        return PREVIEW_ALLOCATION.invokeExact(limiter, getMaxRate(type).toLong()) as Long
+        return PREVIEW_ALLOCATION.invokeExact(limiter, take) as Long
     }
 
     override fun takeAllocation(player: Player, type: Type, take: Long): Long {

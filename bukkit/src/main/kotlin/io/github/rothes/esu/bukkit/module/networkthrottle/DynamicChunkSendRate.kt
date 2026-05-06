@@ -40,7 +40,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
                 if (--times > 0) {
                     val handler = ChunkLimiterHandler.instance
                     for (type in types) {
-                        handler.takeAllocation(player, type, handler.getMaxRate(type).floorL() - 24)
+                        handler.takeAllocation(player, type, handler.getGlobalMaxRate(type).floorL() - 24)
                     }
                     Scheduler.schedule(player, 1) {
                         func()
