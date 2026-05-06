@@ -20,11 +20,9 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
         val INSTANCE by Versioned(EntityUpdateInterval::class.java)
     }
 
-    init {
-        registerFeature(ApplyCommand::class.java.versioned())
-    }
-
     override val name: String = "EntityUpdateInterval"
+
+    private var previousConfig: FeatureConfig? = null
 
     override fun onReload() {
         super.onReload()
@@ -41,6 +39,14 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
                 val interval = this@EntityUpdateInterval[entityType]
                 sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
             }
+
+            @Command("esu networkThrottle entityUpdateInterval updateTrackedEntities")
+            @ShortPerm
+            fun updateTrackedEntities(sender: User) {
+                val handler by Versioned(TrackedEntityIntervalUpdater::class.java)
+                val updated = handler.updateTrackedEntities()
+                sender.message("Updated $updated entities")
+            }
         })
     }
 
@@ -49,9 +55,13 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
 
     protected fun applyUpdateInterval() {
         val config = config
-        for ((type, interval) in config.entityTypeUpdateInterval) {
-            this[type] = interval
+        if (config != previousConfig) {
+            for ((type, interval) in config.entityTypeUpdateInterval) {
+                this[type] = interval
+            }
+            TrackedEntityIntervalUpdater::class.java.versioned().updateTrackedEntities()
         }
+        previousConfig = config
     }
 
     data class FeatureConfig(
@@ -65,24 +75,18 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
         )
     ): BaseFeatureConfiguration()
 
-    abstract class ApplyCommand : CommonFeature<Unit, Unit>() {
+    abstract class TrackedEntityIntervalUpdater {
 
-        override fun onEnable() {
-            registerCommands(object {
-                @Command("esu networkThrottle entityUpdateInterval apply")
-                @ShortPerm
-                fun apply(sender: User) {
-                    val entitiesHandler by Versioned(LevelEntitiesHandler::class.java)
+        fun updateTrackedEntities(): Int {
+            val entitiesHandler by Versioned(LevelEntitiesHandler::class.java)
 
-                    var updated = 0
-                    for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
-                        for (entity in entitiesHandler.getEntitiesAll(level)) {
-                            if (handleEntity(entity)) updated++
-                        }
-                    }
-                    sender.message("Updated $updated entities")
+            var updated = 0
+            for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
+                for (entity in entitiesHandler.getEntitiesAll(level)) {
+                    if (handleEntity(entity)) updated++
                 }
-            })
+            }
+            return updated
         }
 
         abstract fun handleEntity(entity: Entity): Boolean

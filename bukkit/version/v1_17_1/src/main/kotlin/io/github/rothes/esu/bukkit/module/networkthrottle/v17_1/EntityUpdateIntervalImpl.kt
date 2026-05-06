@@ -20,7 +20,7 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
         ENTITY_TYPE_UPDATE_INTERVAL[entityType] = interval
     }
 
-    object ApplyCommandImpl : ApplyCommand() {
+    object TrackedEntityIntervalUpdaterImpl : TrackedEntityIntervalUpdater() {
 
         val TRACKED_ENTITY_SERVER_ENTITY = ChunkMap.TrackedEntity::class.java.getDeclaredField("serverEntity").usObjAccessor
         val SERVER_ENTITY_UPDATE_INTERVAL = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor

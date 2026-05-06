@@ -5,7 +5,7 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usIntAccessor
 import net.minecraft.server.level.ServerEntity
 import net.minecraft.world.entity.Entity
 
-object ApplyCommandImpl : EntityUpdateInterval.ApplyCommand() {
+object TrackedEntityIntervalUpdaterImpl : EntityUpdateInterval.TrackedEntityIntervalUpdater() {
 
     val SERVER_ENTITY_UPDATE_INTERVAL = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor
 
