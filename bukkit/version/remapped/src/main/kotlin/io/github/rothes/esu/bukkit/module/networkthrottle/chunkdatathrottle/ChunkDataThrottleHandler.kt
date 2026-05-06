@@ -104,7 +104,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     private const val HOT_DATA_VERSION: Byte = 1
 
-    // The block B is in center. if Y_MINUS, block in B's bottom is occluding(i.e. blocking) .
+    // The block B is at center. if Y_MINUS, block at B's bottom is occluding .
     const val X_PLUS: Byte    = 0b00_00001
     const val X_MINUS: Byte   = 0b00_00010
     const val Z_PLUS: Byte    = 0b00_00100
