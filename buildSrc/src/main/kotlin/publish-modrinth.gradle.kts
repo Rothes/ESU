@@ -27,7 +27,7 @@ project.modrinth {
             ?.let { baseCommit ->
                 rootProject.logSinceCommit(baseCommit)
                     .lines()
-                    .joinToString("\n") { line ->
+                    .joinToString("\n\n") { line ->
                         val (commitHash, commitMessage) = line.split('\t', limit = 2)
                         buildLine(commitHash, commitMessage)
                     }
