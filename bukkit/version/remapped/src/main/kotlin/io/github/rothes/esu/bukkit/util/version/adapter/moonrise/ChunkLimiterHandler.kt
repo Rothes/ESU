@@ -11,8 +11,12 @@ import kotlin.math.max
 
 abstract class ChunkLimiterHandler {
 
-    private val gen = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkGenerateTicketLimiter").usObjAccessor
-    private val load = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkLoadTicketLimiter").usObjAccessor
+    private val gen = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
+        .getDeclaredField("chunkGenerateTicketLimiter").usObjAccessor
+    private val load = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
+        .getDeclaredField("chunkLoadTicketLimiter").usObjAccessor
+    private val send = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
+        .getDeclaredField("chunkSendLimiter").usObjAccessor
 
     abstract fun getAllocationTaken(player: Player, type: Type): Long
     abstract fun previewAllocation(player: Player, type: Type, take: Long): Long
@@ -28,7 +32,7 @@ abstract class ChunkLimiterHandler {
         return if (0 < configRate && configRate <= 10000.0) max(1.0, configRate) else 10000.0
     }
 
-    @Suppress("RedundantNullableReturnType") // TODO: May return null on 1.21.x
+    // TODO: Confirm if may return null on 1.21.x
     protected val Player.moonriseChunkLoader: RegionizedPlayerChunkLoader.PlayerChunkLoaderData
         get() = (this as CraftPlayer).handle.`moonrise$getChunkLoader`()
 
@@ -36,7 +40,7 @@ abstract class ChunkLimiterHandler {
         return when (type) {
             Type.GENERATE   -> gen[this]
             Type.LOAD       -> load[this]
-            Type.SEND       -> TODO()
+            Type.SEND       -> send[this]
         }
     }
 

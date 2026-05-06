@@ -102,7 +102,12 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
             fun loadRateTop(sender: User) {
                 rate(sender, ChunkLimiterHandler.Type.LOAD) { loadRateTop }
             }
-            // We don't add sendRate command as it doesn't have the logic for this.
+
+            @Command("sendRateTop")
+            @ShortPerm("sendRateTop")
+            fun sendRateTop(sender: User) {
+                rate(sender, ChunkLimiterHandler.Type.SEND) { sendRateTop }
+            }
 
             private fun rate(
                 sender: User,
@@ -136,6 +141,10 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
         val loadRateTop: ChunkRateTop = ChunkRateTop(
             "<pc>There's no chunk loads at this moment.".message,
             "<pdc>[player]<pc>: <sc>[chunk load tickets/sec]",
+        ),
+        val sendRateTop: ChunkRateTop = ChunkRateTop(
+            "<pc>There's no chunk sends at this moment.".message,
+            "<pdc>[player]<pc>: <sc>[chunk sends/sec]",
         ),
     ) {
         data class ChunkRateTop(
