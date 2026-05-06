@@ -171,10 +171,11 @@ interface LogUser: User {
 
         fun setFlattener(flattener: ComponentFlattener) {
             this.flattener = flattener
+            this.serializer = buildSerializer() // flattener updated
         }
 
         fun onReload() {
-            serializer = buildSerializer()
+            this.serializer = buildSerializer()
         }
 
         private fun buildSerializer() = ANSIComponentSerializer.builder()
