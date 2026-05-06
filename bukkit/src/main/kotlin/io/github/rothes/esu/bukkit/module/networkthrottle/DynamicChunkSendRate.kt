@@ -12,7 +12,6 @@ import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.module.configuration.EnableTogglable
-import io.github.rothes.esu.core.util.extension.math.floorL
 import org.bukkit.Bukkit
 
 object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, EmptyConfiguration>() {
@@ -29,18 +28,15 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
     }
 
     override fun onEnable() {
-        Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { channel, player, message ->
+        Bukkit.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL_ID) { _, player, _ ->
 
-            val types = listOf(
-                ChunkLimiterHandler.Type.GENERATE,
-                ChunkLimiterHandler.Type.LOAD,
-            )
-            var times = 15
+            var times = 10
             fun func() {
                 if (--times > 0) {
                     val handler = ChunkLimiterHandler.instance
-                    for (type in types) {
-                        handler.takeAllocation(player, type, handler.getGlobalMaxRate(type).floorL() - 24)
+                    for (type in ChunkLimiterHandler.Type.entries) {
+                        val allocationUnused = handler.previewAllocation(player, type, Long.MAX_VALUE)
+                        handler.takeAllocation(player, type, allocationUnused - 24)
                     }
                     Scheduler.schedule(player, 1) {
                         func()
