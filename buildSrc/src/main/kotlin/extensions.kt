@@ -22,6 +22,8 @@ val Project.isRelease
 val Project.finalVersionName
     get() = if (isRelease) project.version as String else "${project.version}-${rootProject.commitsSinceLastTag}"
 
+fun Project.logSinceCommit(commitHash: String) = runGitCommand("log $commitHash..HEAD --reverse --pretty=format:%h%x09%s")
+
 private fun Project.runGitCommand(arg: String): String {
     return providers.of(GitCommand::class.java) { parameters.arg.set(arg) }.get()
 }

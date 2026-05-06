@@ -33,4 +33,5 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          PREVIOUS_COMMIT: ${{ github.event.before }}
         run: gradle modrinth --stacktrace
