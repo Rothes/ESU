@@ -13,8 +13,8 @@ abstract class ChunkLimiterHandler {
     private val gen = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkGenerateTicketLimiter").usObjAccessor
     private val load = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java.getDeclaredField("chunkLoadTicketLimiter").usObjAccessor
 
+    abstract fun getAllocationTaken(player: Player, type: Type): Long
     abstract fun previewAllocation(player: Player, type: Type): Long
-    abstract fun highestAllocation(player: Player, type: Type): Long
     abstract fun takeAllocation(player: Player, type: Type, take: Long): Long
 
     open fun getMaxRate(type: Type): Double {
