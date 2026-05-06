@@ -164,10 +164,14 @@ interface LogUser: User {
                 }
             }
         }.build()
+
         private var serializer = buildSerializer()
 
         fun setFlattener(flattener: ComponentFlattener) {
             this.flattener = flattener
+        }
+
+        fun onReload() {
             serializer = buildSerializer()
         }
 

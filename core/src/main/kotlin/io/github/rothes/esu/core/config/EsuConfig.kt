@@ -4,6 +4,7 @@ import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.user.LogUser
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.*
@@ -30,6 +31,7 @@ object EsuConfig {
         initialized = true
 
         URLConnection.setDefaultUseCaches("jar", !data.disableJarFileCache)
+        LogUser.onReload()
     }
 
     private fun load(): ConfigData = ConfigLoader.load(EsuCore.instance.baseConfigPath().resolve("config.yml"))
