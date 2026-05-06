@@ -19,14 +19,11 @@ import io.netty.channel.Channel
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Ported from Ghost-chu/RIABandwidthSaver .
  */
 object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.FeatureConfig, Unit>() {
-
-    private val limiting = ConcurrentHashMap.newKeySet<Player>()
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents()
@@ -42,13 +39,8 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         PacketEvents.getAPI().eventManager.unregisterListeners(PacketListeners)
     }
 
-    override fun onEnableEfficiency(playerHolder: AfkEfficiency.PlayerHolder) {
-        limiting.add(playerHolder.player)
-    }
-
-    override fun onDisableEfficiency(playerHolder: AfkEfficiency.PlayerHolder) {
-        limiting.remove(playerHolder.player)
-    }
+    override fun onEnableEfficiency(playerHolder: AfkEfficiency.PlayerHolder) {}
+    override fun onDisableEfficiency(playerHolder: AfkEfficiency.PlayerHolder) {}
 
     private object PacketListeners: PacketListenerAbstract(PacketListenerPriority.LOWEST) {
 
@@ -97,7 +89,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     e.checkCancel(config.globalPackets.timeUpdate)
                 }
                 PacketType.Play.Server.PLAYER_INFO_UPDATE -> {
-                    if (!e.player.isInAfk()) return
+                    if (!e.player.inAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfoUpdate(e)
                     val actions = EnumSet.copyOf(wrapper.actions)
                     if (!config.globalPackets.playerInfoUpdate.updateLatency) actions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LATENCY)
@@ -107,7 +99,7 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                     }
                 }
                 PacketType.Play.Server.PLAYER_INFO -> {
-                    if (!e.player.isInAfk()) return
+                    if (!e.player.inAfk()) return
                     val wrapper = WrapperPlayServerPlayerInfo(e)
                     when (wrapper.action) {
                         WrapperPlayServerPlayerInfo.Action.UPDATE_LATENCY -> e.checkCancel(config.globalPackets.playerInfoUpdate.updateLatency)
@@ -120,11 +112,11 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
 
         @Suppress("NOTHING_TO_INLINE")
         private inline fun PacketSendEvent.checkCancel(bool: Boolean) {
-            if (!bool && player.isInAfk()) isCancelled = true
+            if (!bool && player.inAfk()) isCancelled = true
         }
 
         private inline fun PacketSendEvent.checkCancel(maxDist: Double, scope: () -> Double) {
-            if (maxDist < 0 || !player.isInAfk()) return
+            if (maxDist < 0 || !player.inAfk()) return
             if (maxDist == 0.0 || maxDist < scope.invoke()) {
                 isCancelled = true
             }
@@ -136,11 +128,6 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
                 val player: Player? = getPlayer()
                 return player ?: throw IllegalStateException("Failed to get player of ${(channel as Channel).remoteAddress()}")
             }
-
-        @Suppress("NOTHING_TO_INLINE")
-        private inline fun Player.isInAfk(): Boolean {
-            return limiting.contains(this)
-        }
 
         private fun Vector3d.distanceSqr(o: Location): Double {
             return (x - o.x).square() + (y - o.y).square() + (z - o.z).square()

@@ -2,7 +2,9 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency
 import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency.PlayerHolder
+import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency.isInAfkEfficiency
 import io.github.rothes.esu.core.module.CommonFeature
+import org.bukkit.entity.Player
 
 abstract class AfkEfficiencyFeature<C, L>: CommonFeature<C, L>() {
 
@@ -17,5 +19,7 @@ abstract class AfkEfficiencyFeature<C, L>: CommonFeature<C, L>() {
 
     abstract fun onEnableEfficiency(playerHolder: PlayerHolder)
     abstract fun onDisableEfficiency(playerHolder: PlayerHolder)
+
+    fun Player.inAfk(): Boolean = isInAfkEfficiency()
 
 }

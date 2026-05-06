@@ -85,6 +85,10 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         playerMap.clear()
     }
 
+    fun Player.isInAfkEfficiency(): Boolean {
+        return playerMap[this]?.inAfk ?: false
+    }
+
     class PlayerHolder(
         val player: Player,
     ) {
