@@ -5,7 +5,7 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
 
 // This API is added since 1.20.4 (Not a thing on Paper 1.20.3)
-class PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
+object PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
 
     override fun isChunkSentNms(player: Player, chunkKey: Long): Boolean {
         val nms = (player as CraftPlayer).handle
