@@ -36,7 +36,9 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
                     val handler = ChunkLimiterHandler.instance
                     for (type in ChunkLimiterHandler.Type.entries) {
                         val allocationUnused = handler.previewAllocation(player, type, Long.MAX_VALUE)
-                        handler.takeAllocation(player, type, allocationUnused - 24)
+                        val toTake = allocationUnused - 24
+                        if (toTake < 0) continue
+                        handler.takeAllocation(player, type, toTake)
                     }
                     Scheduler.schedule(player, 1) {
                         func()
