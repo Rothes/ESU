@@ -1,7 +1,6 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuBootstrap
-import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -92,11 +91,7 @@ interface Feature<C, L> {
             val OK = AvailableCheck(true, null)
             fun fail(messageBuilder: (User) -> MessageData) = AvailableCheck(false, messageBuilder)
             fun Feature<*, *>.errFail(messageBuilder: (User) -> MessageData): AvailableCheck {
-                // TODO: integrate adventure logger for LogUser
-                val msg = messageBuilder(LogUser.console)
-                msg.chat?.forEach { ln ->
-                    EsuCore.instance.err("[$name] $ln")
-                }
+                LogUser.console.error(messageBuilder(LogUser.console), prefix = name)
                 return AvailableCheck(false, messageBuilder)
             }
         }

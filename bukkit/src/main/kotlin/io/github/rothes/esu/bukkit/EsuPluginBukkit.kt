@@ -49,7 +49,6 @@ class EsuPluginBukkit(
         BukkitDataSerializer // Register bukkit serializers
 
         loadVersions()
-        EsuAdventure.inject()
         enabledHot = byPlugMan()
     }
 
@@ -95,6 +94,7 @@ class EsuPluginBukkit(
         UpdateCheckerMan    // Init update checker
         BukkitUserManager   // Init user manager
         ServerHotLoadSupport(enabledHot).onEnable()
+        EsuAdventure.inject()
 
         Bukkit.getOnlinePlayers().forEach { it.user }
 

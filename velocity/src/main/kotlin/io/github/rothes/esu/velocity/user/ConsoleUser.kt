@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.velocity.plugin
+import org.slf4j.Logger
 import java.util.*
 
 object ConsoleUser: VelocityUser(), LogUser {
@@ -25,6 +26,8 @@ object ConsoleUser: VelocityUser(), LogUser {
 
     override val isOnline: Boolean = true
 
+    override val logger: Logger = plugin.logger
+
     init {
         val userData = StorageManager.getConsoleUserData()
         dbId = userData.dbId
@@ -35,10 +38,6 @@ object ConsoleUser: VelocityUser(), LogUser {
 
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
-    }
-
-    override fun print(string: String) {
-        commandSender.sendPlainMessage(string)
     }
 
 }

@@ -74,7 +74,7 @@ class UpdateChecker(
     fun run() {
         val info = fetch()
         for (message in info.errorMessage) {
-            console.log(EsuLang.get(), message.scope, *message.args)
+            console.info(EsuLang.get(), message.scope, *message.args, prefix = "Updater")
         }
         if (info.notifications == null)
             return
@@ -98,7 +98,7 @@ class UpdateChecker(
             val args = arrayOf(unparsed("latest_version", info.latestVersionName))
             val msg = RemoteMessage(notification.message, *args)
 
-            console.log(console.localed(msg.langMap) { it.message }, *msg.args)
+            console.info(console.localed(msg.langMap) { it.message }, *msg.args, prefix = "Updater")
             if (notification.notifyInGame) {
                 allUsers()
                     .filter { it.hasPermission(perm) }
