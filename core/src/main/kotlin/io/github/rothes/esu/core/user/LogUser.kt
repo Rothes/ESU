@@ -22,12 +22,14 @@ interface LogUser: User {
 
     val logger: Logger
 
+    fun print(message: String)
+
     override fun actionBar(message: Component) {
-        info(message) // Relocate actionBar messages to console message
+        message(message) // Relocate actionBar messages to console message
     }
 
     override fun message(message: Component) {
-        info(message)
+        print(serializer.serialize(message))
     }
 
     /*  Slf4J info  */

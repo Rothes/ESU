@@ -42,4 +42,8 @@ object ConsoleUser: BukkitUser(), LogUser {
         throw UnsupportedOperationException("Cannot kick a ConsoleUser")
     }
 
+    override fun print(message: String) {
+        commandSender.sendMessage(message)
+    }
+
 }
