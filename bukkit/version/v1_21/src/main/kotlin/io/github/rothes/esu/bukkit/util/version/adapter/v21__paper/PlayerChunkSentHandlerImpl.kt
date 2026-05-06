@@ -4,7 +4,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 
-class PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
+object PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
 
     override fun isChunkSentNms(player: Player, chunkKey: Long): Boolean {
         val nms = (player as CraftPlayer).handle

@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 
-class PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
+object PlayerChunkSentHandlerImpl: PlayerAdapter.Companion.PlayerChunkSentHandler {
 
     override fun isChunkSentNms(player: Player, chunkKey: Long): Boolean {
         val nms = (player as CraftPlayer).handle
