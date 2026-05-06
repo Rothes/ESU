@@ -7,6 +7,7 @@ import io.github.rothes.esu.core.util.extension.ClassUtils
 import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
+import kotlin.math.max
 
 abstract class ChunkLimiterHandler {
 
@@ -19,11 +20,12 @@ abstract class ChunkLimiterHandler {
 
     open fun getGlobalMaxRate(type: Type): Double {
         val config = GlobalConfiguration.get().chunkLoadingBasic
-        return when (type) {
+        val configRate = when (type) {
             Type.LOAD       -> config.playerMaxChunkLoadRate
             Type.GENERATE   -> config.playerMaxChunkGenerateRate
             Type.SEND       -> config.playerMaxChunkSendRate
         }
+        return if (0 < configRate && configRate <= 10000.0) max(1.0, configRate) else 10000.0
     }
 
     @Suppress("RedundantNullableReturnType") // TODO: May return null on 1.21.x
