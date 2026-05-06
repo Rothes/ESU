@@ -138,9 +138,6 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     private var previousNonInvisible: Set<Block>? = null
     private var wasEnabled = false
 
-    private val hotDataFile
-        get() = module.moduleFolder.resolve("minimalChunksData.tmp")
-
     override fun onReload() {
         super.onReload()
         if (enabled) buildCache()
@@ -153,53 +150,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         for (player in Bukkit.getOnlinePlayers()) {
             playerData.putIfAbsent(player, PlayerData())
         }
-        try {
-            val toFile = hotDataFile.toFile()
-            if (toFile.exists()) {
-                val nanoTime = System.nanoTime()
-                val bytes = toFile.readBytes()
-                toFile.delete()
-                require(bytes[0] == HOT_DATA_VERSION) { "Different hot data version" }
-                val uncompressedSize = Ints.fromByteArray(bytes.copyOfRange(1, 5))
+        HotDataHandler.onEnable()
 
-                val src = ByteArrayInputStream(
-                    LZ4Factory.fastestInstance().fastDecompressor().decompress(bytes, 5, uncompressedSize)
-                ).asSource().buffered()
-
-                with(src) {
-                    val players = readInt()
-                    repeat(players) {
-                        val mapSize = readInt()
-                        if (mapSize == 0) skip(16)
-                        val player = Bukkit.getPlayer(readUuid())
-                        if (player == null) {
-                            for (j in 0 until mapSize) {
-                                readLong()
-                                repeat(readInt()) {
-                                    readLong()
-                                }
-                            }
-                            return@repeat
-                        }
-
-                        val throttledChunks = player.throttledChunks!!
-                        for (j in 0 until mapSize) {
-                            val chunkKey = readLong()
-                            val longArraySize = readInt()
-                            if (!player.chunkSent(chunkKey)) {
-                                skip(longArraySize * 8L)
-                                continue
-                            }
-                            val longArray = LongArray(longArraySize) { readLong() }
-                            throttledChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(longArray)))
-                        }
-                    }
-                }
-                core.info("Loaded ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}")
-            }
-        } catch (e: Exception) {
-            core.err("Failed to load hotData", e)
-        }
         if (firstEnable) {
             PacketEvents.getAPI().eventManager.registerListener(PacketListener)
             register()
@@ -225,39 +177,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListener)
         unregister()
 
-        if (core.disabledHot) {
-            val nanoTime = System.nanoTime()
-
-            val filter = playerData.entries.filter { it.value.throttledChunks.isNotEmpty() }
-            val buf = Buffer().apply {
-                writeInt(filter.size)
-                for ((user, data) in filter) {
-                    val map = data.throttledChunks.long2ObjectEntrySet().filter { it.value !== FULL_CHUNK }
-                    writeInt(map.size)
-                    writeUuid(user.uniqueId)
-                    if (map.isEmpty()) {
-                        continue
-                    }
-                    for ((chunkKey, playerChunk) in map) {
-                        writeLong(chunkKey)
-                        val longs = playerChunk.invisible.toLongArray()
-                        writeInt(longs.size)
-                        for (long in longs) {
-                            writeLong(long)
-                        }
-                    }
-                }
-            }
-            hotDataFile.outputStream(StandardOpenOption.CREATE).buffered().use {
-                val data = buf.readByteArray()
-                it.write(HOT_DATA_VERSION.toInt())
-                it.write(Ints.toByteArray(data.size))
-                it.write(LZ4Factory.fastestInstance().fastCompressor().compress(data))
-                it.flush()
-            }
-            hotDataFile.toFile().deleteOnExit()
-            core.info("Saved ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}. Size ${hotDataFile.fileSize()}")
-        }
+        HotDataHandler.onTerminate()
         // Clear these so we can save our memory
         playerData.values.forEach { it.throttledChunks.clear() }
         playerData.clear()
@@ -1003,6 +923,98 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             @JvmField
             var updatedBlocks: Int = 0,
         )
+    }
+
+    private object HotDataHandler {
+
+        private val hotDataFile
+            get() = module.moduleFolder.resolve("minimalChunksData.tmp")
+
+        fun onEnable() {
+            try {
+                val file = hotDataFile.toFile()
+                if (file.exists()) {
+                    val nanoTime = System.nanoTime()
+                    val bytes = file.readBytes()
+                    file.delete()
+                    require(bytes[0] == HOT_DATA_VERSION) { "Different hot data version" }
+                    val uncompressedSize = Ints.fromByteArray(bytes.copyOfRange(1, 5))
+
+                    val src = ByteArrayInputStream(
+                        LZ4Factory.fastestInstance().fastDecompressor().decompress(bytes, 5, uncompressedSize)
+                    ).asSource().buffered()
+
+                    with(src) {
+                        val players = readInt()
+                        repeat(players) {
+                            val mapSize = readInt()
+                            if (mapSize == 0) skip(16)
+                            val player = Bukkit.getPlayer(readUuid())
+                            if (player == null) {
+                                for (j in 0 until mapSize) {
+                                    readLong()
+                                    repeat(readInt()) {
+                                        readLong()
+                                    }
+                                }
+                                return@repeat
+                            }
+
+                            val throttledChunks = player.throttledChunks!!
+                            for (j in 0 until mapSize) {
+                                val chunkKey = readLong()
+                                val longArraySize = readInt()
+                                if (!player.chunkSent(chunkKey)) {
+                                    skip(longArraySize * 8L)
+                                    continue
+                                }
+                                val longArray = LongArray(longArraySize) { readLong() }
+                                throttledChunks.put(chunkKey, PlayerData.PlayerChunk(BitSet.valueOf(longArray)))
+                            }
+                        }
+                    }
+                    core.info("Loaded ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}")
+                }
+            } catch (e: Exception) {
+                core.err("Failed to load hotData", e)
+            }
+        }
+
+        fun onTerminate() {
+            if (core.disabledHot) {
+                val nanoTime = System.nanoTime()
+
+                val filter = playerData.entries.filter { it.value.throttledChunks.isNotEmpty() }
+                val buf = Buffer().apply {
+                    writeInt(filter.size)
+                    for ((user, data) in filter) {
+                        val map = data.throttledChunks.long2ObjectEntrySet().filter { it.value !== FULL_CHUNK }
+                        writeInt(map.size)
+                        writeUuid(user.uniqueId)
+                        if (map.isEmpty()) {
+                            continue
+                        }
+                        for ((chunkKey, playerChunk) in map) {
+                            writeLong(chunkKey)
+                            val longs = playerChunk.invisible.toLongArray()
+                            writeInt(longs.size)
+                            for (long in longs) {
+                                writeLong(long)
+                            }
+                        }
+                    }
+                }
+                hotDataFile.outputStream(StandardOpenOption.CREATE).buffered().use {
+                    val data = buf.readByteArray()
+                    it.write(HOT_DATA_VERSION.toInt())
+                    it.write(Ints.toByteArray(data.size))
+                    it.write(LZ4Factory.fastestInstance().fastCompressor().compress(data))
+                    it.flush()
+                }
+                hotDataFile.toFile().deleteOnExit()
+                core.info("Saved ChunkDataThrottle hotData in ${(System.nanoTime() - nanoTime).nanoseconds}. Size ${hotDataFile.fileSize()}")
+            }
+        }
     }
 
     data class HandlerConfig(
