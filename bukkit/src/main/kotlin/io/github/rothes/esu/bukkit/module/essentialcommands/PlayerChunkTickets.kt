@@ -136,15 +136,15 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
     data class Lang(
         val genRateTop: ChunkRateTop = ChunkRateTop(
             "<pc>There's no chunk generates at this moment.".message,
-            "<pdc>[player]<pc>: <sc>[chunk generate tickets/sec]",
+            "<pdc>[player]<pc>: <sc>[chunk generate tickets]",
         ),
         val loadRateTop: ChunkRateTop = ChunkRateTop(
             "<pc>There's no chunk loads at this moment.".message,
-            "<pdc>[player]<pc>: <sc>[chunk load tickets/sec]",
+            "<pdc>[player]<pc>: <sc>[chunk load tickets]",
         ),
         val sendRateTop: ChunkRateTop = ChunkRateTop(
             "<pc>There's no chunk sends at this moment.".message,
-            "<pdc>[player]<pc>: <sc>[chunk sends/sec]",
+            "<pdc>[player]<pc>: <sc>[chunk sends]",
         ),
     ) {
         data class ChunkRateTop(
