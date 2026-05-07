@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 
 object ChunkLimiterHandlerImpl : ChunkLimiterHandler() {
 
-    override fun getAllocationTaken(player: Player, type: Type): Long {
+    override fun getHighestAllocation(player: Player, type: Type): Long {
         return getGlobalMaxRate(type).toLong() - previewAllocation(player, type, Long.MAX_VALUE)
     }
 
