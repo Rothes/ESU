@@ -1,4 +1,5 @@
 import io.papermc.paperweight.userdev.PaperweightUserDependenciesExtension
+import io.papermc.paperweight.userdev.internal.setup.UserdevSetupTask
 
 plugins {
     `no-build-dir`
@@ -40,6 +41,19 @@ subprojects {
             relocate(
                 "org.bukkit.craftbukkit.v${split.take(2).joinToString("_")}_R$i",
                 "org.bukkit.craftbukkit"
+            )
+        }
+    }
+
+    tasks.getByName<UserdevSetupTask>("paperweightUserdevSetup") {
+        launcher = javaToolchainService.launcherFor {
+            // Set Java version for paperweight to remap setup
+            languageVersion.set(
+                JavaLanguageVersion.of(
+                    if (serverVer.startsWith("26")) 25 // Java 25 since 26.1
+                    else if (serverVer.startsWith("1.2")) 21 // Java 21 since 1.20.5
+                    else 17 // For 1.18 we must use Java 17
+                )
             )
         }
     }
