@@ -1,5 +1,4 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.internal.impldep.org.bouncycastle.oer.OERDefinition.optional
 
 plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
