@@ -137,6 +137,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
 
                     "info.debatty:java-string-similarity:2.0.0",
                     "com.hankcs:aho-corasick-double-array-trie:1.2.2",
+                    "io.github.ranlee1:jpinyin:1.0.1",
                 )
             )
         }

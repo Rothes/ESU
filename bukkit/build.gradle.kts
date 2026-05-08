@@ -82,6 +82,7 @@ dependencies {
 
     compileOnly("com.github.luben:zstd-jni:1.5.7-7")
     compileOnly("com.hankcs:aho-corasick-double-array-trie:1.2.2")
+    compileOnly("io.github.ranlee1:jpinyin:1.0.1")
 }
 
 val fileName = "${rootProject.name}-${project.name}"

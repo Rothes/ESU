@@ -1,6 +1,8 @@
 package io.github.rothes.esu.bukkit.module
 
 import com.hankcs.algorithm.AhoCorasickDoubleArrayTrie
+import io.github.ranlee1.jpinyin.PinyinFormat
+import io.github.ranlee1.jpinyin.PinyinHelper
 import io.github.rothes.esu.bukkit.event.RawUserChatEvent
 import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
@@ -125,6 +127,8 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         val blockChat: Boolean = true,
         @Comment("Block writing texts on sign blocks.")
         val blockSign: Boolean = true,
+        @Comment("Convert Chinese characters to Pinyin.")
+        val convertPinyin: Boolean = false,
         @Comment("Ignore case on matching texts.")
         val ignoreCase: Boolean = true,
         @Comment("Normalize text to fix bypassing by characters like blank.")
@@ -155,6 +159,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
 
         fun preprocessText(text: String): String {
             return text
+                .ifLet(convertPinyin) { PinyinHelper.convertToPinyinString(this, " ", PinyinFormat.WITHOUT_TONE) }
                 .ifLet(ignoreCase) { lowercase() }
                 .ifLet(normalizeText) { filterNot { it == ' ' } }
         }
