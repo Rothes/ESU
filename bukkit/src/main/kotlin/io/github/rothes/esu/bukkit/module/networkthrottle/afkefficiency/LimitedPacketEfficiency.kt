@@ -130,10 +130,10 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
             }
 
         private fun Vector3d.distanceSqr(o: Location): Double {
-            return (x - o.x).square() + (y - o.y).square() + (z - o.z).square()
+            return square(x - o.x) + square(y - o.y) + square(z - o.z)
         }
         private fun Vector3i.distanceSqr(o: Location): Double {
-            return (x - o.x).square() + (y - o.y).square() + (z - o.z).square()
+            return square(x - o.x) + square(y - o.y) + square(z - o.z)
         }
 
         private fun entityIdDist(e: PacketSendEvent, entityId: Int): Double {
@@ -170,12 +170,12 @@ object LimitedPacketEfficiency: AfkEfficiencyFeature<LimitedPacketEfficiency.Fea
         ) {
             val processed: RangedPackets by lazy(LazyThreadSafetyMode.NONE) {
                 copy(
-                    particle = particle.square(),
-                    soundEffect = soundEffect.square(),
-                    entitySoundEffect = entitySoundEffect.square(),
-                    hurtAnimation = hurtAnimation.square(),
-                    damageEvent = damageEvent.square(),
-                    entityHeadLook = entityHeadLook.square(),
+                    particle = square(particle),
+                    soundEffect = square(soundEffect),
+                    entitySoundEffect = square(entitySoundEffect),
+                    hurtAnimation = square(hurtAnimation),
+                    damageEvent = square(damageEvent),
+                    entityHeadLook = square(entityHeadLook),
                 )
             }
         }

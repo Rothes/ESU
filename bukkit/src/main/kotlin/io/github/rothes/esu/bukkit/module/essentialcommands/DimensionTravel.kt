@@ -40,8 +40,8 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     World.Environment.NETHER -> {
                         target.world = Bukkit.getWorld("world")
-                        target.x = (target.x.floorI() shl 3).toDouble()
-                        target.z = (target.z.floorI() shl 3).toDouble()
+                        target.x = (floorI(target.x) shl 3).toDouble()
+                        target.z = (floorI(target.z) shl 3).toDouble()
                     }
                     World.Environment.THE_END -> {
                         sender.message(lang, { unsupportedTheEnd })

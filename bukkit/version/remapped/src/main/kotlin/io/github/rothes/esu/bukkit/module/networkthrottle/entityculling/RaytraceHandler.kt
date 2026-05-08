@@ -307,7 +307,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
             var y = from.y
             var z = from.z
 
-            val length = sqrt(stepX.square() + stepY.square() + stepZ.square())
+            val length = sqrt(square(stepX) + square(stepY) + square(stepZ))
 
             stepX /= length
             stepY /= length
@@ -325,9 +325,9 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
                 y += stepY
                 z += stepZ
 
-                val currX = x.floorI()
-                val currY = y.floorI()
-                val currZ = z.floorI()
+                val currX = floorI(x)
+                val currY = floorI(y)
+                val currZ = floorI(z)
 
                 val newChunkX = currX shr 4
                 val newChunkY = currY shr 4
@@ -379,9 +379,9 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
             val fromYAdj = from.y + adjY
             val fromZAdj = from.z + adjZ
 
-            var currX = fromXAdj.floorI()
-            var currY = fromYAdj.floorI()
-            var currZ = fromZAdj.floorI()
+            var currX = floorI(fromXAdj)
+            var currY = floorI(fromYAdj)
+            var currZ = floorI(fromZAdj)
 
             val diffX = toXAdj - fromXAdj
             val diffY = toYAdj - fromYAdj
@@ -399,9 +399,9 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
             val normalizedDiffY = if (diffY == 0.0) Double.MAX_VALUE else dyDouble / diffY
             val normalizedDiffZ = if (diffZ == 0.0) Double.MAX_VALUE else dzDouble / diffZ
 
-            var normalizedCurrX = normalizedDiffX * (if (diffX > 0.0) (1.0 - fromXAdj.frac()) else fromXAdj.frac())
-            var normalizedCurrY = normalizedDiffY * (if (diffY > 0.0) (1.0 - fromYAdj.frac()) else fromYAdj.frac())
-            var normalizedCurrZ = normalizedDiffZ * (if (diffZ > 0.0) (1.0 - fromZAdj.frac()) else fromZAdj.frac())
+            var normalizedCurrX = normalizedDiffX * (if (diffX > 0.0) (1.0 - frac(fromXAdj)) else frac(fromXAdj))
+            var normalizedCurrY = normalizedDiffY * (if (diffY > 0.0) (1.0 - frac(fromYAdj)) else frac(fromYAdj))
+            var normalizedCurrZ = normalizedDiffZ * (if (diffZ > 0.0) (1.0 - frac(fromZAdj)) else frac(fromZAdj))
 
             var chunkSections: Array<LevelChunkSection> = INIT_SECTION
             var section: PalettedContainer<BlockState>? = null

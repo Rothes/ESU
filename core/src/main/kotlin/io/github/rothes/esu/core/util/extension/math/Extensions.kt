@@ -1,18 +1,16 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package io.github.rothes.esu.core.util.extension.math
 
 import kotlin.math.floor
 
-fun Int.square(): Int = this * this
-fun Long.square(): Long = this * this
-fun Float.square(): Float = this * this
-fun Double.square(): Double = this * this
+fun square(i: Int): Int = i * i
+fun square(l: Long): Long = l * l
+fun square(f: Float): Float = f * f
+fun square(d: Double): Double = d * d
 
-fun Float.floorI(): Int = floor(this.toDouble()).toInt()
-fun Double.floorI(): Int = floor(this).toInt()
+fun floorI(f: Float): Int = floor(f.toDouble()).toInt()
+fun floorI(d: Double): Int = floor(d).toInt()
 
-fun Float.floorL(): Long = floor(this.toDouble()).toLong()
-fun Double.floorL(): Long = floor(this).toLong()
+fun floorL(f: Float): Long = floor(f.toDouble()).toLong()
+fun floorL(d: Double): Long = floor(d).toLong()
 
-fun Double.frac(): Double = this - floor(this)
+fun frac(d: Double): Double = d - floor(d)

@@ -40,7 +40,7 @@ object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
 
             val maxAllocation = (LIMITER_MAX_ALLOCATION[limiter] as Double).toLong()
             val preview = LIMITER_PREVIEW_ALLOCATION.invoke(limiter, maxAllocation) as Long
-            ((maxAllocation - preview) * multiplier).floorL()
+            floorL((maxAllocation - preview) * multiplier)
         }
 
         return max

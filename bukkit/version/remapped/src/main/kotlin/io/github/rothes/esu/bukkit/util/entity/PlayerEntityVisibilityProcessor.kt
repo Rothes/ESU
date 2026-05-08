@@ -72,7 +72,7 @@ abstract class PlayerEntityVisibilityProcessor(
 
     protected open fun update() {
         val viewDist = player.sendViewDistance + 1 // Add 1 to debounce
-        val maxSqrDist = (viewDist shl 4).square() shl 1 // Diagonal
+        val maxSqrDist = square(viewDist shl 4) shl 1 // Diagonal
 
         val playerHandle = HANDLE_GETTER.getHandle(player)
         val level = LEVEL_GETTER.level(playerHandle)
@@ -94,14 +94,14 @@ abstract class PlayerEntityVisibilityProcessor(
                 continue
             }
             val other = handle.position()
-            val xzDist = (pos.x - other.x).square() + (pos.z - other.z).square()
+            val xzDist = square(pos.x - other.x) + square(pos.z - other.z)
             if (xzDist > maxSqrDist) {
                 // Entity is out of player visible distance
                 if (processFarEntity(entry.intKey, te, true)) iterator.remove()
                 continue
             }
 
-            when (shouldHide(handle, xzDist + (pos.y - other.y).square())) {
+            when (shouldHide(handle, xzDist + square(pos.y - other.y))) {
                 HideState.HIDE -> if (!te.hidden) processReverse(te)
                 HideState.SHOW -> if (te.hidden) processReverse(te)
                 HideState.SKIP -> {}

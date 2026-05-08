@@ -19,7 +19,7 @@ object TicketTypeCommandsFeature: CommonFeature<FeatureToggle.DefaultFalse, Unit
             @Command("esu optimizations ticketType getTickets [chunkX] [chunkZ] [world]")
             @ShortPerm
             fun getTickets(sender: User,
-                           chunkX: Int = sender.player.x.floorI() shr 4, chunkZ: Int = sender.player.z.floorI() shr 4,
+                           chunkX: Int = floorI(sender.player.x) shr 4, chunkZ: Int = floorI(sender.player.z) shr 4,
                            world: World = sender.player.world) {
                 handler.sendTicketDebugString(sender, chunkX, chunkZ, world)
             }

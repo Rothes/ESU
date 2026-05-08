@@ -68,7 +68,7 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
         var updateIntervalTicks: Long = 5,
     ): BaseFeatureConfiguration(true) {
 
-        val visibleEntityDistanceSquared by lazy { visibleEntityDistance.square() }
+        val visibleEntityDistanceSquared by lazy { square(visibleEntityDistance) }
 
         @PostProcess
         private fun pp() {

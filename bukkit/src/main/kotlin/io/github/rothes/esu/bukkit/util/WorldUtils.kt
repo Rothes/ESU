@@ -19,8 +19,8 @@ object WorldUtils {
         Scheduler.schedule(location) {
             val world = requireNotNull(location.world) { "Location world is null" }
             val y = if (world.environment == World.Environment.NETHER) {
-                val x = location.x.floorI()
-                val z = location.z.floorI()
+                val x = floorI(location.x)
+                val z = floorI(location.z)
                 var y = 125
                 while (true) {
                     if (y == 0) {
