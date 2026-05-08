@@ -5,9 +5,9 @@ import io.github.rothes.esu.bukkit.util.version.adapter.moonrise.ChunkLimiterHan
 import io.github.rothes.esu.core.util.ReflectionUtils.get
 import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
+import io.github.rothes.esu.core.util.extension.math.floorL
 import org.bukkit.entity.Player
-import java.util.concurrent.TimeUnit
-import kotlin.math.max
+import kotlin.math.min
 
 object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
 
@@ -32,18 +32,15 @@ object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
         val rateLimiter = player.moonriseChunkLoader.getLimiter(type) as StaggeredRateLimiter
         val limiters = LIMITERS[rateLimiter] as Array<*> // ca.spottedleaf.moonrise.common.misc.StaggeredRateLimiter.Limiter[]
 
-        var max = Long.MIN_VALUE
-        for (holder in limiters) {
+        val max = limiters.maxOf { holder ->
             val limiter = LIMITER[holder] // ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 
-            if (LIMITER_INTERVAL_NS[limiter] == TimeUnit.SECONDS.toNanos(3_000)) {
-                // https://github.com/Tuinity/Moonrise/pull/181
-                continue
-            }
+            val interval = LIMITER_INTERVAL_NS[limiter] as Long
+            val multiplier = min(1.0, 10e9 / interval) // Multiplier for larger than 1 second interval limiters
 
             val maxAllocation = (LIMITER_MAX_ALLOCATION[limiter] as Double).toLong()
             val preview = LIMITER_PREVIEW_ALLOCATION.invoke(limiter, maxAllocation) as Long
-            max = max(max, maxAllocation - preview)
+            ((maxAllocation - preview) * multiplier).floorL()
         }
 
         return max
