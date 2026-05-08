@@ -115,7 +115,7 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
                 langScope: Lang.() -> Lang.ChunkRateTop
             ) {
                 val map = Bukkit.getOnlinePlayers()
-                    .associateWith { player -> HANDLER.getHighestAllocation(player, type) }
+                    .associateWith { player -> HANDLER.getAllocationLastSecond(player, type) }
                     .filter { entry -> entry.value != 0L }
                     .toList()
                     .sortedByDescending { it.second }

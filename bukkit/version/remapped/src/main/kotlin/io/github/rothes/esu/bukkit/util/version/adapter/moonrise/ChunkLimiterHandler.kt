@@ -18,7 +18,7 @@ abstract class ChunkLimiterHandler {
     private val send = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
         .getDeclaredField("chunkSendLimiter").usObjAccessor
 
-    abstract fun getHighestAllocation(player: Player, type: Type): Long
+    abstract fun getAllocationLastSecond(player: Player, type: Type): Long
     abstract fun previewAllocation(player: Player, type: Type, take: Long): Long
     abstract fun takeAllocation(player: Player, type: Type, take: Long): Long
 
