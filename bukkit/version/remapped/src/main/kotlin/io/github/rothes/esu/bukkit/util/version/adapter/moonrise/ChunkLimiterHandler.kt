@@ -2,7 +2,8 @@ package io.github.rothes.esu.bukkit.util.version.adapter.moonrise
 
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
 import io.github.rothes.esu.bukkit.util.version.versioned
-import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
+import io.github.rothes.esu.core.util.ReflectionUtils.get
+import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import io.github.rothes.esu.core.util.extension.ClassUtils
 import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -12,11 +13,11 @@ import kotlin.math.max
 abstract class ChunkLimiterHandler {
 
     private val gen = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-        .getDeclaredField("chunkGenerateTicketLimiter").usObjAccessor
+        .getDeclaredField("chunkGenerateTicketLimiter").getter
     private val load = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-        .getDeclaredField("chunkLoadTicketLimiter").usObjAccessor
+        .getDeclaredField("chunkLoadTicketLimiter").getter
     private val send = RegionizedPlayerChunkLoader.PlayerChunkLoaderData::class.java
-        .getDeclaredField("chunkSendLimiter").usObjAccessor
+        .getDeclaredField("chunkSendLimiter").getter
 
     abstract fun getAllocationLastSecond(player: Player, type: Type): Long
     abstract fun previewAllocation(player: Player, type: Type, take: Long): Long
