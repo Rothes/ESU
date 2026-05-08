@@ -26,10 +26,8 @@ project.modrinth {
             ?.takeUnless { it.isBlank() || it.all { char -> char == '0' } }
             ?.let { baseCommit ->
                 rootProject.logSinceCommit(baseCommit)
-                    .lines()
-                    .joinToString("\n\n") { line ->
-                        val (commitHash, commitMessage) = line.split('\t', limit = 2)
-                        buildLine(commitHash, commitMessage)
+                    .joinToString("\n\n") { commit ->
+                        buildLine(commit.hashShort, commit.message)
                     }
             }
             ?.ifBlank { buildLine(rootProject.latestCommitHash, rootProject.latestCommitMessage) }

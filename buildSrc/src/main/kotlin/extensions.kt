@@ -22,7 +22,22 @@ val Project.isRelease
 val Project.finalVersionName
     get() = if (isRelease) project.version as String else "${project.version}-${rootProject.commitsSinceLastTag}"
 
-fun Project.logSinceCommit(commitHash: String) = runGitCommand("log $commitHash..HEAD --reverse --pretty=format:%h%x09%s")
+fun Project.logSinceCommit(commitHash: String): List<Commit> {
+    val raw = runGitCommand("log $commitHash..HEAD --reverse --pretty=format:%x01%h%n%B")
+    val map = raw.removePrefix("\u0001") // Remove the char at first commit
+        .split('\u0001').map { commit ->
+            val split = commit.split('\n', limit = 2)
+            val hash = split[0]
+            val message = split[1].trimEnd() // Trim the new line each before last commit
+            Commit(hash, message)
+        }
+    return map
+}
+
+data class Commit(
+    val hashShort: String,
+    val message: String,
+)
 
 private fun Project.runGitCommand(arg: String): String {
     return providers.of(GitCommand::class.java) { parameters.arg.set(arg) }.get()
