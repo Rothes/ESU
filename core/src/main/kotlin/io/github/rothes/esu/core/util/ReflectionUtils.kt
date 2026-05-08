@@ -83,4 +83,12 @@ object ReflectionUtils {
         return this.get(any) as T
     }
 
+    operator fun MethodHandle.get(any: Any?): Any {
+        return invoke(any)
+    }
+
+    operator fun MethodHandle.get(vararg any: Any?): Any {
+        return invokeWithArguments(any)
+    }
+
 }
