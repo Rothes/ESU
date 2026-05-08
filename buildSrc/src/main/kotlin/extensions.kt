@@ -22,6 +22,9 @@ val Project.isRelease
 val Project.finalVersionName
     get() = if (isRelease) project.version as String else "${project.version}-${rootProject.commitsSinceLastTag}"
 
+val Project.lastCommit: Commit
+    get() = Commit(latestCommitHash, latestCommitMessage)
+
 fun Project.logSinceCommit(commitHash: String): List<Commit> {
     val raw = runGitCommand("log $commitHash..HEAD --reverse --pretty=format:%x01%h%n%B")
     val map = raw.removePrefix("\u0001") // Remove the char at first commit

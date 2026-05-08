@@ -17,20 +17,18 @@ project.modrinth {
     val changelog = if (isRelease) {
         "Changelog pending, please wait a moment..."
     } else {
-        fun buildLine(commitHash: String, commitMessage: String): String {
-            val markdownParsed = commitMessage.replace("\n", "\\\n") // Markdown new line
-            return "[$commitHash](https://github.com/Rothes/ESU/commit/$commitHash): $commitMessage"
+        fun Commit.toline(): String {
+            val markdownParsed = message.replace("\n", "\\\n") // Markdown new line
+            return "[$hashShort](https://github.com/Rothes/ESU/commit/$hashShort): $markdownParsed"
         }
 
-        System.getenv("PREVIOUS_COMMIT")
+        val commits = System.getenv("PREVIOUS_COMMIT")
             ?.takeUnless { it.isBlank() || it.all { char -> char == '0' } }
-            ?.let { baseCommit ->
-                rootProject.logSinceCommit(baseCommit)
-                    .joinToString("\n\n") { commit ->
-                        buildLine(commit.hashShort, commit.message)
-                    }
-            }
-            ?.ifBlank { buildLine(rootProject.latestCommitHash, rootProject.latestCommitMessage) }
+            ?.let { baseCommit -> rootProject.logSinceCommit(baseCommit) }
+            ?.ifEmpty { null }
+            ?: listOf(rootProject.lastCommit)
+
+        commits.joinToString("\n\n") { commit -> commit.toline() }
     }
     val versionName = "ESU-${project.name} $finalVersionName"
 
