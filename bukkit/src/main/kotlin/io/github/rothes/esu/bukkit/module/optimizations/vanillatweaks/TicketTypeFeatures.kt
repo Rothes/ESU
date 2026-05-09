@@ -16,7 +16,7 @@ object TicketTypeFeatures: CommonFeature<TicketTypeFeatures.FeatureConfig, Unit>
     init {
         registerFeature(TicketTypeCommandsFeature)
         registerFeature(ExpiryTicksFeature)
-        if (ServerCompatibility.serverVersion >= "21.8") registerFeature(ChunkLoadsFeature) // TODO is it added before 1.21.8?
+        if (ServerCompatibility.serverVersion >= "21.7") registerFeature(ChunkLoadsFeature)
         if (ServerCompatibility.serverVersion >= "21.9") registerFeature(ChunkUnloadsFeature)
     }
 
