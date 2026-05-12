@@ -12,7 +12,9 @@ import org.spigotmc.SpigotConfig
 object ServerCompatibility {
 
     val serverVersion: Version = Bukkit.getServer().version
-        .substringAfter("MC: ").substringBefore(')')
+        .substringAfter("MC: ")
+        .substringBefore(')')
+        .substringBefore(' ') // For Spigot: CraftBukkit version 4598-Spigot-56165ca-d74c5d8 (MC: 1.21.11 Unobfuscated)
         .toVersion().let {
             if (it.major == 1) it.drop(1) else it // Remove "1." before 26.1 release
         }
