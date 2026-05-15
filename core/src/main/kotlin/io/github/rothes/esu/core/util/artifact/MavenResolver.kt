@@ -78,7 +78,13 @@ object MavenResolver {
 
     init {
         val repo = loadRepoConfiguration()
-        repositories = repository.newResolutionRepositories(session, listOfJvm(RemoteRepository.Builder(repo.id, "default", repo.url).build()))
+        repositories = repository.newResolutionRepositories(
+            session,
+            listOfJvm(
+                RemoteRepository.Builder(repo.id, "default", repo.url).build(),
+                RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build(), // Fallback to Maven Central
+            )
+        )
         @Suppress("ReplaceCallWithBinaryOperator") // no-stdlib support
         usingAliyun = repo.id.equals("aliyun")
     }
