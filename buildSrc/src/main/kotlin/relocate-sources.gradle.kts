@@ -6,7 +6,7 @@ plugins {
 
 interface RelocateSourcesExtension {
     val relocates: ListProperty<Relocate>
-    val postSources: Property<(String) -> String>
+    val postSources: Property<(SourceData) -> String>
 
     fun relocate(original: String, relocated: String = original) {
         relocates.add(Relocate(original, relocated))
@@ -16,10 +16,15 @@ interface RelocateSourcesExtension {
         val original: String,
         val relocated: String = original,
     )
+
+    data class SourceData(
+        val artifact: ResolvedArtifactResult,
+        val content: String,
+    )
 }
 
 val extension = project.extensions.create<RelocateSourcesExtension>("relocateSources")
-extension.postSources.convention { it }
+extension.postSources.convention { it.content }
 
 val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
     dependsOn(tasks.classes)
@@ -39,24 +44,29 @@ val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
         .execute()
 
     val relocates = extension.relocates.get().sortedByDescending { it.original.length }
-    val replace = { str: String ->
-        val destPrefix = "io.github.rothes.${rootProject.name.lowercase()}.lib."
-        var res = str
-        relocates.forEach { res = res.replace(it.original, destPrefix + it.relocated) }
-        extension.postSources.get().invoke(res)
-    }
     val rep = relocates.map { relocate ->
         fun String.toPath() = replace('.', '/')
         relocate.original.toPath() to "io/github/rothes/${rootProject.name.lowercase()}/lib/" + relocate.relocated.toPath()
     }
     for (component in result.resolvedComponents) {
-        component.getArtifacts(SourcesArtifact::class.java).forEach {
-            if (it is ResolvedArtifactResult) {
-                zipTree(it.file.absolutePath).visit {
+        component.getArtifacts(SourcesArtifact::class.java).forEach { artifact ->
+            if (artifact is ResolvedArtifactResult) {
+                zipTree(artifact.file.absolutePath).visit {
                     if (path.startsWith("META-INF") || file.isDirectory) return@visit
                     val tmp = tmpDir.resolve(path)
                     tmp.parentFile.mkdirs()
-                    tmp.writeText(replace(file.readText()))
+
+                    val rawText = file.readText()
+                    val destPrefix = "io.github.rothes.${rootProject.name.lowercase()}.lib."
+                    var res = rawText
+                    for (relocate in relocates) {
+                        res = res.replace(relocate.original, destPrefix + relocate.relocated)
+                    }
+                    res = extension.postSources.get().invoke(
+                        RelocateSourcesExtension.SourceData(artifact, res)
+                    )
+
+                    tmp.writeText(res)
                     from(tmp) {
                         duplicatesStrategy = DuplicatesStrategy.WARN
                         var intoPath = path.substringBeforeLast("/")
