@@ -18,9 +18,21 @@ dependencies {
     }
     implementation(libs.adventure.text.serializer.legacy)
     implementation(libs.adventure.text.serializer.plain)
+
+    implementation(libs.configurate.yaml)
 }
 
 relocateSources {
     relocate("net.kyori")
     relocate("net.kyori.adventure", "adventure")
+    relocate("org.spongepowered.configurate", "configurate")
+
+    postSources.set {
+        val identifier = it.artifact.id.componentIdentifier
+        if (identifier !is ModuleComponentIdentifier || !identifier.moduleIdentifier.name.startsWith("configurate"))
+            return@set it.content
+
+        val destPrefix = "io.github.rothes.${rootProject.name.lowercase()}.lib."
+        it.content.replace("org.yaml.snakeyaml", destPrefix + "configurate.yaml.internal.snakeyaml")
+    }
 }

@@ -91,10 +91,15 @@ class EsuBootstrapVelocity @Inject constructor(
                 "net/kyori/adventure/" to "adventure/",
                 "net/kyori/" to "net/kyori/",
 
+                "org/spongepowered/configurate" to "configurate",
+
                 prefix = "io/github/rothes/esu/lib/"
             )
             val loader = { file: File, artifact: Artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori").contains(artifact.groupId))
+                if (artifact.extension == "jar"
+                    && setOf("net.kyori").contains(artifact.groupId)
+                    || artifact.artifactId.startsWith("configurate")
+                )
                     CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
@@ -108,6 +113,8 @@ class EsuBootstrapVelocity @Inject constructor(
                     "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-nbt:${BuildConfig.DEP_VERSION_ADVENTURE}",
+
+                    "io.github.rothes:configurate-yaml:4.3.0-b1",
                 ),
                 loader = loader,
             )

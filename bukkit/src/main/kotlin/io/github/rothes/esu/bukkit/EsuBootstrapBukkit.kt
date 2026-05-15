@@ -79,10 +79,15 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                 "org/bstats" to "bstats",
                 "de/tr7zw/changeme/nbtapi" to "nbtapi",
 
+                "org/spongepowered/configurate" to "configurate",
+
                 prefix = "io/github/rothes/esu/lib/"
             )
             val loader = { file: File, artifact: Artifact ->
-                if (artifact.extension == "jar" && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId))
+                if (artifact.extension == "jar"
+                    && setOf("net.kyori", "org.bstats", "de.tr7zw").contains(artifact.groupId)
+                    || artifact.artifactId.startsWith("configurate")
+                )
                     CachedRelocator.relocate(relocator, file, outputName = "${artifact.groupId}_${artifact.artifactId}")
                 else
                     file
@@ -96,6 +101,8 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
                     "net.kyori:adventure-platform-bukkit:4.4.1",
+
+                    "io.github.rothes:configurate-yaml:4.3.0-b1",
                 ),
                 loader = loader,
             )
