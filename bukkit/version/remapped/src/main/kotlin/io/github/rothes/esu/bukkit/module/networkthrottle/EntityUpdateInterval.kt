@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
 import io.github.rothes.esu.bukkit.util.version.versioned
@@ -43,6 +44,10 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
             @Command("esu networkThrottle entityUpdateInterval updateTrackedEntities")
             @ShortPerm
             fun updateTrackedEntities(sender: User) {
+                if (!ServerCompatibility.isPaper) {
+                    sender.message("§cNot supported on Spigot yet")
+                    return
+                }
                 val handler by Versioned(TrackedEntityIntervalUpdater::class.java)
                 val updated = handler.updateTrackedEntities()
                 sender.message("Updated $updated entities")
@@ -59,7 +64,8 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
             for ((type, interval) in config.entityTypeUpdateInterval) {
                 this[type] = interval
             }
-            TrackedEntityIntervalUpdater::class.java.versioned().updateTrackedEntities()
+            // TODO: We could add Spigot support for this but it requires special source imported server
+            if (ServerCompatibility.isPaper) TrackedEntityIntervalUpdater::class.java.versioned().updateTrackedEntities()
         }
         previousConfig = config
     }
