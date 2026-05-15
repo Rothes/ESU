@@ -3,13 +3,17 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.configuration.meta.RenamedFrom
 import io.github.rothes.esu.core.configuration.serializer.OptionalSerializer
+import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
@@ -32,6 +36,13 @@ import java.util.*
 import kotlin.jvm.optionals.getOrElse
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>() {
+
+    override fun checkUnavailable(): Feature.AvailableCheck? {
+        return super.checkUnavailable() ?: let {
+            if (!ServerCompatibility.isPaper) return errFail { "Requires Paper".message }
+            null
+        }
+    }
 
     override fun onEnable() {
         Listeners.register()
@@ -105,7 +116,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
     }
 
     data class ModuleConfig(
-        @io.github.rothes.esu.core.configuration.meta.Comment(
+        @Comment(
             """
             Customize the message behaviours.
             Set 'message-color' to '${OptionalSerializer.DISABLED}' or a color to override the default color of the vanilla message.
