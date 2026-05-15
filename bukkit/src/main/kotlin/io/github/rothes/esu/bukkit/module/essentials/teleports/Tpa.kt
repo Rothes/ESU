@@ -5,10 +5,12 @@ import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import java.util.*
@@ -51,7 +53,7 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
                     return
                 }
 
-                val requesterPlayer = org.bukkit.Bukkit.getPlayer(requesterId)
+                val requesterPlayer = Bukkit.getPlayer(requesterId)
                 if (requesterPlayer == null) {
                     sender.message(Teleports.lang, { tpaPlayerNotOnline })
                     pendingRequests.remove(sender.uuid)
@@ -59,7 +61,9 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
                 }
 
                 pendingRequests.remove(sender.uuid)
-                requesterPlayer.tp(sender.player.location)
+                requesterPlayer.syncTick {
+                    requesterPlayer.tp(sender.player.location)
+                }
                 sender.message(Teleports.lang, { tpaRequestAccepted })
                 requesterPlayer.user.message(Teleports.lang, { tpaRequestAccepted })
             }
@@ -77,7 +81,7 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 
                 pendingRequests.remove(sender.uuid)
                 sender.message(Teleports.lang, { tpaRequestDenied })
-                org.bukkit.Bukkit.getPlayer(requesterId)?.user?.message(Teleports.lang, { tpaRequestDenied })
+                Bukkit.getPlayer(requesterId)?.user?.message(Teleports.lang, { tpaRequestDenied })
             }
 
             @Command("tpcancel [target]")
@@ -93,9 +97,14 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 
                 pendingRequests.remove(targetId)
                 sender.message(Teleports.lang, { tpaRequestCancelled })
-                org.bukkit.Bukkit.getPlayer(targetId)?.user?.message(Teleports.lang, { tpaRequestCancelled })
+                Bukkit.getPlayer(targetId)?.user?.message(Teleports.lang, { tpaRequestCancelled })
             }
         })
+    }
+
+    override fun onDisable() {
+        pendingRequests.clear()
+        super.onDisable()
     }
 
 }
