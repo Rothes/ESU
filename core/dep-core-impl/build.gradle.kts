@@ -6,11 +6,11 @@ repositories {
     mavenLocal()
     mavenCentral()
 
-    maven("https://jitpack.io")
+    maven("https://central.sonatype.com/repository/maven-snapshots/")
 }
 
 dependencies {
-    implementation("com.github.Rothes.Configurate:configurate-yaml:master-SNAPSHOT")
+    implementation("io.github.rothes:configurate-yaml:4.3.0-SNAPSHOT")
 }
 
 relocateSources {
