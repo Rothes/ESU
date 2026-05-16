@@ -1,12 +1,16 @@
 package io.github.rothes.esu.bukkit.module.essentials.teleports
 
-import io.github.rothes.esu.bukkit.module.essentials.Teleports
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.core.command.annotation.ShortPerm
+import io.github.rothes.esu.core.configuration.ConfigurationPart
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
@@ -14,11 +18,26 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import java.util.*
+import java.util.concurrent.TimeUnit
 
-object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
+object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Tpa.Lang>() {
+
+    data class Lang(
+        val requestSent: MessageData = "<pc>Teleport request sent to <pdc><player></pdc>.".message,
+        val requestReceived: MessageData = "<pc><pdc><player></pdc> has requested to teleport to you.\n<pc>Type <click:run_command:'/tpaccept'><tc>/tpaccept</tc></click> to accept or <click:run_command:'/tpdeny'><tc>/tpdeny</tc></click> to deny.".message,
+        val noPendingRequest: MessageData = "<ec>You have no pending teleport requests.".message,
+        val requestAccepted: MessageData = "<pc>Teleport request accepted.".message,
+        val requestDenied: MessageData = "<pc>Teleport request denied.".message,
+        val requestCancelled: MessageData = "<pc>Teleport request cancelled.".message,
+        val playerNotOnline: MessageData = "<ec>That player is not online.".message,
+        val cannotRequestSelf: MessageData = "<ec>You cannot teleport to yourself.".message,
+        val requestAlreadySent: MessageData = "<ec>You have already sent a teleport request to this player.".message,
+    ) : ConfigurationPart
 
     // target -> requester
-    private val pendingRequests = mutableMapOf<UUID, UUID>()
+    private val pendingRequests: Cache<UUID, UUID> = CacheBuilder.newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .build()
 
     override fun onEnable() {
         registerCommands(object {
@@ -28,82 +47,81 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
             fun tpa(sender: User, target: Player) {
                 if (sender !is PlayerUser) return
                 if (sender.player == target) {
-                    sender.message(Teleports.lang, { tpaCannotRequestSelf })
+                    sender.message(lang, { cannotRequestSelf })
                     return
                 }
 
-                if (pendingRequests[target.uniqueId] == sender.uuid) {
-                    sender.message(Teleports.lang, { tpaRequestAlreadySent })
+                if (pendingRequests.getIfPresent(target.uniqueId) == sender.uuid) {
+                    sender.message(lang, { requestAlreadySent })
                     return
                 }
 
-                pendingRequests[target.uniqueId] = sender.uuid
-                sender.message(Teleports.lang, { tpaRequestSent }, player(target))
-                target.user.message(Teleports.lang, { tpaRequestReceived }, player(sender.player))
+                pendingRequests.put(target.uniqueId, sender.uuid)
+                sender.message(lang, { requestSent }, player(target))
+                target.user.message(lang, { requestReceived }, player(sender.player))
             }
 
             @Command("tpaccept [requester]")
             @ShortPerm
-            fun tpaccept(sender: User, requester: Player?) {
+            fun tpaccept(sender: User, requester: Player? = (sender as? PlayerUser)?.uuid?.let { pendingRequests.getIfPresent(it) }?.let(Bukkit::getPlayer)) {
                 if (sender !is PlayerUser) return
 
-                val requesterId = requester?.uniqueId ?: pendingRequests[sender.uuid]
-                if (requesterId == null || (requester != null && pendingRequests[sender.uuid] != requesterId)) {
-                    sender.message(Teleports.lang, { tpaNoPendingRequest })
+                val expectedId = pendingRequests.getIfPresent(sender.uuid)
+                if (expectedId == null || (requester != null && expectedId != requester.uniqueId)) {
+                    sender.message(lang, { noPendingRequest })
                     return
                 }
 
-                val requesterPlayer = Bukkit.getPlayer(requesterId)
-                if (requesterPlayer == null) {
-                    sender.message(Teleports.lang, { tpaPlayerNotOnline })
-                    pendingRequests.remove(sender.uuid)
+                if (requester == null) {
+                    sender.message(lang, { playerNotOnline })
+                    pendingRequests.invalidate(sender.uuid)
                     return
                 }
 
-                pendingRequests.remove(sender.uuid)
-                requesterPlayer.syncTick {
-                    requesterPlayer.tp(sender.player.location)
+                pendingRequests.invalidate(sender.uuid)
+                requester.syncTick {
+                    requester.tp(sender.player.location)
                 }
-                sender.message(Teleports.lang, { tpaRequestAccepted })
-                requesterPlayer.user.message(Teleports.lang, { tpaRequestAccepted })
+                sender.message(lang, { requestAccepted })
+                requester.user.message(lang, { requestAccepted })
             }
 
             @Command("tpdeny [requester]")
             @ShortPerm
-            fun tpdeny(sender: User, requester: Player?) {
+            fun tpdeny(sender: User, requester: Player? = (sender as? PlayerUser)?.uuid?.let { pendingRequests.getIfPresent(it) }?.let(Bukkit::getPlayer)) {
                 if (sender !is PlayerUser) return
 
-                val requesterId = requester?.uniqueId ?: pendingRequests[sender.uuid]
-                if (requesterId == null || (requester != null && pendingRequests[sender.uuid] != requesterId)) {
-                    sender.message(Teleports.lang, { tpaNoPendingRequest })
+                val expectedId = pendingRequests.getIfPresent(sender.uuid)
+                if (expectedId == null || (requester != null && expectedId != requester.uniqueId)) {
+                    sender.message(lang, { noPendingRequest })
                     return
                 }
 
-                pendingRequests.remove(sender.uuid)
-                sender.message(Teleports.lang, { tpaRequestDenied })
-                Bukkit.getPlayer(requesterId)?.user?.message(Teleports.lang, { tpaRequestDenied })
+                pendingRequests.invalidate(sender.uuid)
+                sender.message(lang, { requestDenied })
+                requester?.user?.message(lang, { requestDenied })
             }
 
             @Command("tpcancel [target]")
             @ShortPerm
-            fun tpcancel(sender: User, target: Player?) {
+            fun tpcancel(sender: User, target: Player? = (sender as? PlayerUser)?.uuid?.let { senderId -> pendingRequests.asMap().entries.find { it.value == senderId }?.key }?.let(Bukkit::getPlayer)) {
                 if (sender !is PlayerUser) return
 
-                val targetId = target?.uniqueId ?: pendingRequests.entries.find { it.value == sender.uuid }?.key
-                if (targetId == null || (target != null && pendingRequests[targetId] != sender.uuid)) {
-                    sender.message(Teleports.lang, { tpaNoPendingRequest })
+                val expectedTargetId = pendingRequests.asMap().entries.find { it.value == sender.uuid }?.key
+                if (expectedTargetId == null || (target != null && expectedTargetId != target.uniqueId)) {
+                    sender.message(lang, { noPendingRequest })
                     return
                 }
 
-                pendingRequests.remove(targetId)
-                sender.message(Teleports.lang, { tpaRequestCancelled })
-                Bukkit.getPlayer(targetId)?.user?.message(Teleports.lang, { tpaRequestCancelled })
+                pendingRequests.invalidate(expectedTargetId)
+                sender.message(lang, { requestCancelled })
+                target?.user?.message(lang, { requestCancelled })
             }
         })
     }
 
     override fun onDisable() {
-        pendingRequests.clear()
+        pendingRequests.invalidateAll()
         super.onDisable()
     }
 
