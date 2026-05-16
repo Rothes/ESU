@@ -63,59 +63,62 @@ object Tpa : CommonFeature<FeatureToggle.DefaultTrue, Tpa.Lang>() {
 
             @Command("tpaccept [requester]")
             @ShortPerm
-            fun tpaccept(sender: User, requester: Player? = (sender as? PlayerUser)?.uuid?.let { pendingRequests.getIfPresent(it) }?.let(Bukkit::getPlayer)) {
+            fun tpaccept(sender: User, requester: Player?) {
                 if (sender !is PlayerUser) return
 
-                val expectedId = pendingRequests.getIfPresent(sender.uuid)
-                if (expectedId == null || (requester != null && expectedId != requester.uniqueId)) {
+                val pendingId = pendingRequests.getIfPresent(sender.uuid)
+                val requesterId = requester?.uniqueId ?: pendingId
+                if (requesterId == null || (requester != null && pendingId != requesterId)) {
                     sender.message(lang, { noPendingRequest })
                     return
                 }
 
-                if (requester == null) {
+                val requesterPlayer = requester ?: Bukkit.getPlayer(requesterId)
+                if (requesterPlayer == null) {
                     sender.message(lang, { playerNotOnline })
                     pendingRequests.invalidate(sender.uuid)
                     return
                 }
 
                 pendingRequests.invalidate(sender.uuid)
-                requester.syncTick {
-                    requester.tp(sender.player.location)
+                requesterPlayer.syncTick {
+                    requesterPlayer.tp(sender.player.location)
                 }
                 sender.message(lang, { requestAccepted })
-                requester.user.message(lang, { requestAccepted })
+                requesterPlayer.user.message(lang, { requestAccepted })
             }
 
             @Command("tpdeny [requester]")
             @ShortPerm
-            fun tpdeny(sender: User, requester: Player? = (sender as? PlayerUser)?.uuid?.let { pendingRequests.getIfPresent(it) }?.let(Bukkit::getPlayer)) {
+            fun tpdeny(sender: User, requester: Player?) {
                 if (sender !is PlayerUser) return
 
-                val expectedId = pendingRequests.getIfPresent(sender.uuid)
-                if (expectedId == null || (requester != null && expectedId != requester.uniqueId)) {
+                val pendingId = pendingRequests.getIfPresent(sender.uuid)
+                val requesterId = requester?.uniqueId ?: pendingId
+                if (requesterId == null || (requester != null && pendingId != requesterId)) {
                     sender.message(lang, { noPendingRequest })
                     return
                 }
 
                 pendingRequests.invalidate(sender.uuid)
                 sender.message(lang, { requestDenied })
-                requester?.user?.message(lang, { requestDenied })
+                Bukkit.getPlayer(requesterId)?.user?.message(lang, { requestDenied })
             }
 
             @Command("tpcancel [target]")
             @ShortPerm
-            fun tpcancel(sender: User, target: Player? = (sender as? PlayerUser)?.uuid?.let { senderId -> pendingRequests.asMap().entries.find { it.value == senderId }?.key }?.let(Bukkit::getPlayer)) {
+            fun tpcancel(sender: User, target: Player?) {
                 if (sender !is PlayerUser) return
 
-                val expectedTargetId = pendingRequests.asMap().entries.find { it.value == sender.uuid }?.key
-                if (expectedTargetId == null || (target != null && expectedTargetId != target.uniqueId)) {
+                val targetId = target?.uniqueId ?: pendingRequests.asMap().entries.find { it.value == sender.uuid }?.key
+                if (targetId == null || (target != null && pendingRequests.getIfPresent(targetId) != sender.uuid)) {
                     sender.message(lang, { noPendingRequest })
                     return
                 }
 
-                pendingRequests.invalidate(expectedTargetId)
+                pendingRequests.invalidate(targetId)
                 sender.message(lang, { requestCancelled })
-                target?.user?.message(lang, { requestCancelled })
+                Bukkit.getPlayer(targetId)?.user?.message(lang, { requestCancelled })
             }
         })
     }
