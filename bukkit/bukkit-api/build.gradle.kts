@@ -15,8 +15,8 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.8.0")
     compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
     compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
-    compileOnly("net.momirealms:craft-engine-core:0.0.49")
-    compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
+    compileOnly("net.momirealms:craft-engine-core:26.5")
+    compileOnly("net.momirealms:craft-engine-bukkit:26.5")
 
     compileOnly("me.clip:placeholderapi:2.11.7")
 

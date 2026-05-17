@@ -21,7 +21,6 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.drops.DropMetadataImpl
 import net.Indyuce.mmoitems.MMOItems
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
-import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -155,7 +154,7 @@ data class ItemData(
 
     private fun createItemByType() =
         craftEngineItemId?.let { ce ->
-            CraftEngineItems.byId(Key.of(ce))?.buildItemStack() ?: error("CraftEngine item '$ce' does not exist")
+            CraftEngineItems.byId(ce)?.buildBukkitItem() ?: error("CraftEngine item '$ce' does not exist")
         } ?: itemsAdderId?.let { ia ->
             CustomStack.getInstance(ia)!!.itemStack.also { it.amount = amount }
         } ?: mythicMobsItemId?.let {
