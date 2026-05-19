@@ -25,7 +25,7 @@ dependencies {
     compileOnly("io.netty:netty-all:4.2.10.Final")
     // Project
     api(project(":common"))
-    compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))
+//    compileOnlyApi(project(":velocity:dep-velocity", configuration = "shadow"))
 
     compileOnlyApi("org.incendo:cloud-velocity:2.0.0-beta.13")
 
