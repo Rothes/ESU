@@ -1,3 +1,4 @@
+import dev.yumi.gradle.licenser.api.rule.HeaderRule
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,16 +8,42 @@ plugins {
     `no-build-dir`
     `maven-publish`
     id("com.gradleup.shadow")
+    id("dev.yumi.gradle.licenser") version "4.0.0"
     id("com.github.gmazzo.buildconfig") version "6.0.6"
 }
 
 allprojects {
+    apply(plugin = "dev.yumi.gradle.licenser")
+
     group = "io.github.rothes"
     project.version = rootProject.property("versionName").toString()
 
     repositories {
         mavenLocal()
         mavenCentral()
+    }
+
+    license {
+        rule(HeaderRule.parse("LICENSE", """
+            This file is part of ESU - https://github.com/Rothes/ESU
+            Copyright (C) 2026 Rothes & contributers
+    
+            ESU is free software: you can redistribute it and/or modify it
+            under the terms of the GNU General Public License as published
+            by the Free Software Foundation, either version 3 of the License,
+            or (at your option) any later version.
+            
+            ESU is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+            See the GNU General Public License for more details.
+            
+            You should have received a copy of the GNU General Public License
+            along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+        """.trimIndent().lines()))
+
+        include("**/*.java")
+        include("**/*.kt")
     }
 }
 
