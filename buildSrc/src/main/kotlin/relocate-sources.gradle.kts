@@ -1,6 +1,7 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar.Companion.shadowJar
+
 plugins {
     java
-    `maven-publish`
     id("com.gradleup.shadow")
 }
 
@@ -79,25 +80,6 @@ val sourcesFatJar = tasks.register("sourcesFatJar", Jar::class) {
                     }
                 }
             }
-        }
-    }
-}
-
-publishing {
-    repositories {
-        mavenLocal()
-    }
-    publications {
-        create<MavenPublication>("mavenJar") {
-            from(components["shadow"])
-
-            artifact(sourcesFatJar) {
-                classifier = "sources"
-            }
-
-            artifactId = project.name
-            groupId = project.group as String?
-            version = project.version as String?
         }
     }
 }

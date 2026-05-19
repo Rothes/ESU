@@ -2,7 +2,6 @@ package io.github.rothes.esu.core.util.artifact
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import io.github.rothes.esu.core.BuildConfig
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.JvmUtils
 import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
@@ -11,6 +10,7 @@ import io.github.rothes.esu.core.util.artifact.injector.URLInjector
 import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
 import io.github.rothes.esu.core.util.extension.listOfJvm
 import io.github.rothes.esu.core.util.extension.mapJvm
+import io.github.rothes.esu.data.KotlinVersion
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.DefaultRepositoryCache
 import org.eclipse.aether.RepositorySystem
@@ -90,8 +90,8 @@ object MavenResolver {
     }
 
     fun loadKotlin() {
-        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${BuildConfig.DEP_VERSION_KOTLIN}", listOfJvm())
-        loadDependency("org.jetbrains.kotlinx:kotlinx-io-core-jvm:${BuildConfig.DEP_VERSION_KOTLINX_IO_CORE}", listOfJvm())
+        loadDependency("org.jetbrains.kotlin:kotlin-reflect:${KotlinVersion.KOTLIN}", listOfJvm())
+        loadDependency("org.jetbrains.kotlinx:kotlinx-io-core-jvm:${KotlinVersion.KOTLINX_IO_CORE}", listOfJvm())
     }
 
     fun loadUrl(url: URL) {

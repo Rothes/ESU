@@ -1,5 +1,6 @@
 plugins {
     `relocate-sources`
+    `esu-publishing`
 }
 
 repositories {
@@ -35,4 +36,9 @@ relocateSources {
         val destPrefix = "io.github.rothes.${rootProject.name.lowercase()}.lib."
         it.content.replace("org.yaml.snakeyaml", destPrefix + "configurate.yaml.internal.snakeyaml")
     }
+}
+
+esuPublishing {
+    nameOverride = "esu-core-dep"
+    useShadow = true
 }

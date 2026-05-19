@@ -21,7 +21,7 @@ subprojects {
         paperweight.paperDevBundle(devBundle)
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:bukkit-api"))
-        compileOnly(project(":bukkit:module:bukkit-modules-bom"))
+        compileOnly(project(":bukkit:module:bukkit-bom"))
         if (!isRemapped) {
             compileOnly(project(":bukkit"))
             compileOnly(project(":bukkit:version:remapped"))
@@ -55,23 +55,6 @@ subprojects {
                     else 17 // For 1.18 we must use Java 17
                 )
             )
-        }
-    }
-
-    if (isRemapped) {
-        publishing {
-            repositories {
-                mavenLocal()
-            }
-            publications {
-                create<MavenPublication>("mavenJar") {
-                    from(components["java"])
-
-                    artifactId = "bukkit-version-${project.name}"
-                    groupId = project.group as String?
-                    version = project.version as String?
-                }
-            }
         }
     }
 }

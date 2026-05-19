@@ -1,5 +1,6 @@
 plugins {
     `relocate-sources`
+    `esu-publishing`
 }
 
 repositories {
@@ -21,4 +22,9 @@ relocateSources {
 
     relocate("de.tr7zw.changeme.nbtapi", "nbtapi")
     relocate("org.bstats", "bstats")
+}
+
+esuPublishing {
+    nameOverride = "esu-bukkit-dep"
+    useShadow = true
 }

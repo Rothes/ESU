@@ -1,5 +1,6 @@
 plugins {
     `relocate-sources`
+    `esu-publishing`
 }
 
 repositories {
@@ -15,4 +16,9 @@ dependencies {
 relocateSources {
     relocate("net.kyori")
     relocate("net.kyori.adventure", "adventure")
+}
+
+esuPublishing {
+    nameOverride = "esu-velocity-dep"
+    useShadow = true
 }

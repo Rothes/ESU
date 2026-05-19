@@ -54,7 +54,10 @@ tasks.shadowJar {
 }
 
 buildConfig {
-    buildConfigField("PLUGIN_PLATFORM", "velocity")
+    val packageName = "${project.group}.esu.data"
+    forClass(packageName, "BuildInfo") {
+        buildConfigField("PLUGIN_PLATFORM", "velocity")
+    }
 }
 
 modrinth {

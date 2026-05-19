@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
+import io.github.rothes.esu.data.DependencyVersion
 import it.unimi.dsi.fastutil.shorts.ShortArrayList
 import net.jpountz.lz4.LZ4Factory
 import org.bukkit.plugin.java.JavaPlugin
@@ -94,12 +95,12 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             }
             MavenResolver.loadDependencies(
                 listOf(
-                    "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-api:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-minimessage:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-ansi:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-gson:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-legacy:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-plain:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-platform-bukkit:4.4.1",
 
                     "io.github.rothes:configurate-yaml:4.3.0-b1",
@@ -109,7 +110,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             MavenResolver.loadDependencies(
                 listOf(
                     "org.bstats:bstats-bukkit:3.1.0",
-                    "de.tr7zw:item-nbt-api:${BuildConfig.DEP_VERSION_NBTAPI}",
+                    "de.tr7zw:item-nbt-api:${DependencyVersion.NBTAPI}",
                 ),
                 extraRepo = listOf(MavenResolver.MavenRepos.CODEMC),
                 loader = loader,
@@ -126,12 +127,12 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
             }
             MavenResolver.loadDependencies(
                 listOf(
-                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-core:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-jdbc:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-kotlin-datetime:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-json:${DependencyVersion.EXPOSED}",
 
-                    "com.zaxxer:HikariCP:${BuildConfig.DEP_VERSION_HIKARICP}",
+                    "com.zaxxer:HikariCP:${DependencyVersion.HIKARICP}",
                     "org.incendo:cloud-core:2.0.0",
                     "org.incendo:cloud-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
@@ -139,8 +140,8 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
 
                     "org.incendo:cloud-paper:2.0.0-beta.15",
 
-                    "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
-                    "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
+                    "com.h2database:h2:${DependencyVersion.H2DATABASE}",
+                    "org.mariadb.jdbc:mariadb-java-client:${DependencyVersion.MARIADB_CLIENT}",
 
                     "info.debatty:java-string-similarity:2.0.0",
                     "com.hankcs:aho-corasick-double-array-trie:1.2.2",

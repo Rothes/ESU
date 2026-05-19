@@ -11,7 +11,7 @@ plugins {
 }
 
 allprojects {
-    group = "io.github.rothes.esu"
+    group = "io.github.rothes"
     project.version = rootProject.property("versionName").toString()
 
     repositories {
@@ -66,40 +66,35 @@ subprojects {
     }
 
     if (project.parent == rootProject) {
-        publishing {
-            repositories {
-                mavenLocal()
-            }
-            publications {
-                create<MavenPublication>("mavenJar") {
-                    from(components["java"])
-
-                    artifactId = project.name
-                    groupId = project.group as String?
-                    version = project.version as String?
-                }
-            }
-        }
-
+        apply(plugin = "esu-publishing")
         apply(plugin = "com.github.gmazzo.buildconfig")
         buildConfig {
+            val packageName = "${project.group}.esu.data"
             when (project.name) {
                 "common", "module" -> {}
                 "core" -> {
-                    buildConfigField("DEP_VERSION_KOTLIN", rootProject.libs.versions.kotlin)
-                    buildConfigField("DEP_VERSION_KOTLINX_IO_CORE", rootProject.libs.versions.kotlinx.io.core)
+                    forClass(packageName, "KotlinVersion") {
+                        buildConfigField("KOTLIN", rootProject.libs.versions.kotlin)
+                        buildConfigField("KOTLINX_IO_CORE", rootProject.libs.versions.kotlinx.io.core)
+                    }
                 }
-                else -> {
+
+                else               -> {
                     apply(plugin = "publish-modrinth")
-                    buildConfigField("VERSION_NAME", provider { finalVersionName })
-                    buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
-                    buildConfigField("VERSION_ID", project.property("versionId").toString())
-                    buildConfigField("DEP_VERSION_ADVENTURE", rootProject.libs.versions.adventure)
-                    buildConfigField("DEP_VERSION_EXPOSED", rootProject.libs.versions.exposed)
-                    buildConfigField("DEP_VERSION_H2DATABASE", rootProject.libs.versions.h2database)
-                    buildConfigField("DEP_VERSION_HIKARICP", rootProject.libs.versions.hikariCP)
-                    buildConfigField("DEP_VERSION_MARIADB_CLIENT", rootProject.libs.versions.mariadb.client)
-                    buildConfigField("DEP_VERSION_PACKETEVENTS", rootProject.libs.versions.packetevents)
+
+                    forClass(packageName, "BuildInfo") {
+                        buildConfigField("VERSION_NAME", provider { finalVersionName })
+                        buildConfigField("VERSION_CHANNEL", project.property("versionChannel").toString())
+                        buildConfigField("VERSION_ID", project.property("versionId").toString())
+                    }
+                    forClass(packageName, "DependencyVersion") {
+                        buildConfigField("ADVENTURE", rootProject.libs.versions.adventure)
+                        buildConfigField("EXPOSED", rootProject.libs.versions.exposed)
+                        buildConfigField("H2DATABASE", rootProject.libs.versions.h2database)
+                        buildConfigField("HIKARICP", rootProject.libs.versions.hikariCP)
+                        buildConfigField("MARIADB_CLIENT", rootProject.libs.versions.mariadb.client)
+                        buildConfigField("PACKETEVENTS", rootProject.libs.versions.packetevents)
+                    }
                 }
             }
         }

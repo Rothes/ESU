@@ -1,4 +1,5 @@
 plugins {
+    `esu-publishing`
     id("io.papermc.paperweight.userdev")
 }
 
@@ -7,7 +8,7 @@ val serverVer = rootProject.property("targetMinecraftVersion").toString()
 dependencies {
     paperweight.paperDevBundle("$serverVer.build.+")
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
-    api(project(":bukkit:module:bukkit-modules-bom"))
+    api(project(":bukkit:module:bukkit-bom"))
     api(project(":common"))
 
     // Item libraries
@@ -24,17 +25,6 @@ dependencies {
 
 }
 
-publishing {
-    repositories {
-        mavenLocal()
-    }
-    publications {
-        create<MavenPublication>("mavenJar") {
-            from(components["java"])
-
-            artifactId = project.name
-            groupId = project.group as String?
-            version = project.version as String?
-        }
-    }
+esuPublishing {
+    nameOverride = "esu-bukkit-api"
 }

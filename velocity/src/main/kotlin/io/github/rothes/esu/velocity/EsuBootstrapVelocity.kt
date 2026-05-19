@@ -14,6 +14,8 @@ import io.github.rothes.esu.core.util.artifact.AetherLoader
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
+import io.github.rothes.esu.data.BuildInfo
+import io.github.rothes.esu.data.DependencyVersion
 import org.bstats.velocity.Metrics
 import org.eclipse.aether.artifact.Artifact
 import org.slf4j.Logger
@@ -23,7 +25,7 @@ import java.nio.file.Path
 @Plugin(
     id = "esu",
     name = "ESU",
-    version = BuildConfig.VERSION_NAME,
+    version = BuildInfo.VERSION_NAME,
     authors = ["Rothes"],
     url = "https://github.com/Rothes/ESU",
     dependencies = [
@@ -106,13 +108,13 @@ class EsuBootstrapVelocity @Inject constructor(
             }
             MavenResolver.loadDependencies(
                 listOf(
-                    "net.kyori:adventure-api:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-minimessage:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-ansi:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-gson:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-legacy:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-text-serializer-plain:${BuildConfig.DEP_VERSION_ADVENTURE}",
-                    "net.kyori:adventure-nbt:${BuildConfig.DEP_VERSION_ADVENTURE}",
+                    "net.kyori:adventure-api:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-minimessage:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-ansi:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-gson:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-legacy:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-plain:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-nbt:${DependencyVersion.ADVENTURE}",
 
                     "io.github.rothes:configurate-yaml:4.3.0-b1",
                 ),
@@ -121,12 +123,12 @@ class EsuBootstrapVelocity @Inject constructor(
 
             MavenResolver.loadDependencies(
                 listOf(
-                    "org.jetbrains.exposed:exposed-core:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-jdbc:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-kotlin-datetime:${BuildConfig.DEP_VERSION_EXPOSED}",
-                    "org.jetbrains.exposed:exposed-json:${BuildConfig.DEP_VERSION_EXPOSED}",
+                    "org.jetbrains.exposed:exposed-core:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-jdbc:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-kotlin-datetime:${DependencyVersion.EXPOSED}",
+                    "org.jetbrains.exposed:exposed-json:${DependencyVersion.EXPOSED}",
 
-                    "com.zaxxer:HikariCP:${BuildConfig.DEP_VERSION_HIKARICP}",
+                    "com.zaxxer:HikariCP:${DependencyVersion.HIKARICP}",
                     "org.incendo:cloud-core:2.0.0",
                     "org.incendo:cloud-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
@@ -134,9 +136,9 @@ class EsuBootstrapVelocity @Inject constructor(
 
                     "org.incendo:cloud-velocity:2.0.0-beta.13",
 
-                    "com.h2database:h2:${BuildConfig.DEP_VERSION_H2DATABASE}",
+                    "com.h2database:h2:${DependencyVersion.H2DATABASE}",
                     "com.mysql:mysql-connector-j:8.4.0",
-                    "org.mariadb.jdbc:mariadb-java-client:${BuildConfig.DEP_VERSION_MARIADB_CLIENT}",
+                    "org.mariadb.jdbc:mariadb-java-client:${DependencyVersion.MARIADB_CLIENT}",
 
                     "it.unimi.dsi:fastutil:8.5.15",
                 )

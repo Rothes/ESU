@@ -102,8 +102,13 @@ tasks.processResources {
 }
 
 buildConfig {
-    buildConfigField("PLUGIN_PLATFORM", "bukkit")
-    buildConfigField("DEP_VERSION_NBTAPI", rootProject.libs.versions.nbt.api)
+    val packageName = "${project.group}.esu.data"
+    forClass(packageName, "BuildInfo") {
+        buildConfigField("PLUGIN_PLATFORM", "bukkit")
+    }
+    forClass(packageName, "DependencyVersion") {
+        buildConfigField("NBTAPI", rootProject.libs.versions.nbt.api)
+    }
 }
 
 modrinth {
