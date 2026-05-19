@@ -41,13 +41,13 @@ project.afterEvaluate {
 //                    tasks.withType<GenerateModuleMetadata>().configureEach {
 //                        enabled = false
 //                    }
+
+                    artifacts.removeIf { it.classifier == "sources" }
+                    artifact(tasks.findByName("sourcesFatJar") ?: tasks.getByName("sourcesJar")) {
+                        classifier = "sources"
+                    }
                 } else {
                     from(components["java"])
-                }
-
-                artifacts.removeIf { it.classifier == "sources" }
-                artifact(tasks.findByName("sourcesFatJar") ?: tasks.getByName("sourcesJar")) {
-                    classifier = "sources"
                 }
 
                 artifactId = extension.nameOverride.orNull ?: project.defaultArtifactId()
