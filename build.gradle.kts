@@ -26,7 +26,7 @@ allprojects {
     license {
         rule(HeaderRule.parse("LICENSE", """
             This file is part of ESU - https://github.com/Rothes/ESU
-            Copyright (C) 2026 Rothes & contributers
+            Copyright (C) 2026 Rothes & contributors
     
             ESU is free software: you can redistribute it and/or modify it
             under the terms of the GNU General Public License as published
@@ -39,7 +39,7 @@ allprojects {
             See the GNU General Public License for more details.
             
             You should have received a copy of the GNU General Public License
-            along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+            along with ESU. If not, see <https://www.gnu.org/licenses/>.
         """.trimIndent().lines()))
 
         include("**/*.java")

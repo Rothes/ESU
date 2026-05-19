@@ -1,3 +1,21 @@
+/*
+ * This file is part of ESU - https://github.com/Rothes/ESU
+ * Copyright (C) 2026 Rothes & contributors
+ *
+ * ESU is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * ESU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with ESU. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package io.github.rothes.esu.core.command
 
 import io.github.rothes.esu.core.EsuCore
@@ -6,12 +24,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.incendo.cloud.caption.Caption
 import org.incendo.cloud.caption.StandardCaptionKeys
-import org.incendo.cloud.exception.ArgumentParseException
-import org.incendo.cloud.exception.CommandExecutionException
-import org.incendo.cloud.exception.InvalidCommandSenderException
-import org.incendo.cloud.exception.InvalidSyntaxException
-import org.incendo.cloud.exception.NoPermissionException
-import org.incendo.cloud.exception.NoSuchCommandException
+import org.incendo.cloud.exception.*
 import org.incendo.cloud.exception.handling.ExceptionContext
 import org.incendo.cloud.exception.handling.ExceptionController
 import org.incendo.cloud.util.TypeUtils

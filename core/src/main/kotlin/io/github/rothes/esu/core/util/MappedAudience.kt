@@ -1,3 +1,21 @@
+/*
+ * This file is part of ESU - https://github.com/Rothes/ESU
+ * Copyright (C) 2026 Rothes & contributors
+ *
+ * ESU is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * ESU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with ESU. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package io.github.rothes.esu.core.util
 
 import io.github.rothes.esu.core.util.AdventureConverter.server
@@ -14,10 +32,10 @@ import io.github.rothes.esu.lib.adventure.sound.SoundStop
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.title.Title
 import io.github.rothes.esu.lib.adventure.title.TitlePart
-import java.util.UUID
-import net.kyori.adventure.title.Title as ServerTitle
+import java.util.*
 import net.kyori.adventure.audience.Audience as ServerAudience
 import net.kyori.adventure.text.Component as ServerComponent
+import net.kyori.adventure.title.Title as ServerTitle
 
 class MappedAudience(
     private val audience: ServerAudience
