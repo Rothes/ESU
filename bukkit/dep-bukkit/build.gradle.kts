@@ -25,6 +25,6 @@ relocateSources {
 }
 
 esuPublishing {
-    nameOverride = "esu-bukkit-dep"
+    nameOverride = "esu-bukkit-lib"
     useShadow = true
 }
