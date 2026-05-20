@@ -38,7 +38,7 @@ val Project.isRelease
     get() = !(project.version as String).contains('-')
 
 val Project.finalVersionName
-    get() = if (isRelease) project.version as String else "${project.version}-${rootProject.commitsSinceLastTag}"
+    get() = if (isRelease) project.version as String else "${project.version.toString().replace("-SNAPSHOT", "-dev")}-${rootProject.commitsSinceLastTag}"
 
 val Project.lastCommit: Commit
     get() = Commit(latestCommitHash, latestCommitMessage)

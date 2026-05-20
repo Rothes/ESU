@@ -46,7 +46,7 @@ kotlin {
 
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
-    archiveFileName = "${fileName}-${project.version}.jar"
+    archiveFileName = provider { "${fileName}-$finalVersionName.jar" }
 
     val pkg = "io.github.rothes.${rootProject.name.lowercase()}.lib"
 

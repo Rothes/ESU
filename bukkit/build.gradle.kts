@@ -87,7 +87,7 @@ dependencies {
 
 val fileName = "${rootProject.name}-${project.name}"
 tasks.shadowJar {
-    archiveFileName = "${fileName}-${project.version}.jar"
+    archiveFileName = provider { "${fileName}-$finalVersionName.jar" }
 
     project(":bukkit:version").subprojects.forEach {
         from(it.tasks.shadowJar) {
@@ -97,7 +97,7 @@ tasks.shadowJar {
 }
 
 tasks.processResources {
-    inputs.property("finalVersionName", finalVersionName)
+    inputs.property("finalVersionName", provider { finalVersionName })
     filter<ReplaceTokens>("tokens" to mapOf("finalVersionName" to finalVersionName))
 }
 
