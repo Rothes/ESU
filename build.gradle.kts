@@ -8,8 +8,18 @@ plugins {
     `no-build-dir`
     `maven-publish`
     id("com.gradleup.shadow")
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
     id("dev.yumi.gradle.licenser") version "4.0.0"
     id("com.github.gmazzo.buildconfig") version "6.0.6"
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
+    }
 }
 
 allprojects {

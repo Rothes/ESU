@@ -21,6 +21,7 @@ import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     java
+    signing
     `maven-publish`
     id("com.gradleup.shadow")
 }
@@ -106,6 +107,17 @@ project.afterEvaluate {
                 }
             }
         }
+    }
+
+    signing {
+        val signingKey: String? by project
+        val signingPassword: String? by project
+        if (signingKey != null && signingPassword != null) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        } else {
+            useGpgCmd()
+        }
+        sign(publishing.publications["mavenJar"])
     }
 
 }
