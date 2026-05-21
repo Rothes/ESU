@@ -27,7 +27,7 @@ plugins {
 }
 
 interface EsuPublishingExtension {
-    val nameOverride: Property<String>
+    val artifactIdOverride: Property<String>
     val useShadow: Property<Boolean>
     val pomDescription: Property<String>
 }
@@ -72,7 +72,7 @@ project.afterEvaluate {
                     from(components["java"])
                 }
 
-                artifactId = extension.nameOverride.orNull ?: project.defaultArtifactId()
+                artifactId = extension.artifactIdOverride.orNull ?: project.defaultArtifactId()
                 groupId = project.group as String?
                 version = project.version as String?
 

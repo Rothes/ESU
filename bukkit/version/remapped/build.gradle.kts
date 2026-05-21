@@ -3,5 +3,5 @@ plugins {
 }
 
 esuPublishing {
-    nameOverride = "esu-bukkit-remapped"
+    artifactIdOverride = "esu-bukkit-remapped"
 }

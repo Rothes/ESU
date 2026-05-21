@@ -39,6 +39,6 @@ relocateSources {
 }
 
 esuPublishing {
-    nameOverride = "esu-core-lib"
+    artifactIdOverride = "esu-core-lib"
     useShadow = true
 }

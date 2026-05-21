@@ -19,6 +19,6 @@ relocateSources {
 }
 
 esuPublishing {
-    nameOverride = "esu-velocity-lib"
+    artifactIdOverride = "esu-velocity-lib"
     useShadow = true
 }

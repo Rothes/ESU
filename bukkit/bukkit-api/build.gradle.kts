@@ -26,5 +26,5 @@ dependencies {
 }
 
 esuPublishing {
-    nameOverride = "esu-bukkit-api"
+    artifactIdOverride = "esu-bukkit-api"
 }

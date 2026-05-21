@@ -25,6 +25,6 @@ relocateSources {
 }
 
 esuPublishing {
-    nameOverride = "esu-bukkit-lib"
+    artifactIdOverride = "esu-bukkit-lib"
     useShadow = true
 }

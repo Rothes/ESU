@@ -16,6 +16,6 @@ subprojects {
     }
 
     extensions.getByType(Esu_publishing_gradle.EsuPublishingExtension::class.java).apply {
-        nameOverride = "esu-bukkit-module-" + project.name.removePrefix("bukkit-")
+        artifactIdOverride = "esu-bukkit-module-" + project.name.removePrefix("bukkit-")
     }
 }
