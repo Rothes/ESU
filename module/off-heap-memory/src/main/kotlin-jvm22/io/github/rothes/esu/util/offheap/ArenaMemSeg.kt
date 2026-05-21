@@ -18,12 +18,9 @@
 
 package io.github.rothes.esu.util.offheap
 
-import java.lang.Boolean
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
-import kotlin.Byte
-import kotlin.Long
 import kotlin.experimental.or
 
 class ArenaMemSeg(
@@ -31,7 +28,7 @@ class ArenaMemSeg(
 ): MemSeg {
 
     companion object {
-        private val NEED_INITIALIZE = Boolean.getBoolean("jdk.internal.foreign.skipZeroMemory")
+        private val NEED_INITIALIZE = java.lang.Boolean.getBoolean("jdk.internal.foreign.skipZeroMemory")
     }
 
     private val arena: Arena = Arena.ofShared()
