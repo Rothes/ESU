@@ -133,6 +133,7 @@ object PlayerChunkTickets : BaseCommand<FeatureToggle.DefaultTrue, PlayerChunkTi
                 langScope: Lang.() -> Lang.ChunkRateTop
             ) {
                 val map = Bukkit.getOnlinePlayers()
+                    .filter { player -> HANDLER.isMoonriseChunkLoaderSet(player) }
                     .associateWith { player -> HANDLER.getAllocationLastSecond(player, type) }
                     .filter { entry -> entry.value != 0L }
                     .toList()

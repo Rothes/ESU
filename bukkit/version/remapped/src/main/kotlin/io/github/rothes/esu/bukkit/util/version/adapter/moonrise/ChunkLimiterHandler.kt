@@ -51,7 +51,12 @@ abstract class ChunkLimiterHandler {
         return if (0 < configRate && configRate <= 10000.0) max(1.0, configRate) else 10000.0
     }
 
-    // TODO: Confirm if may return null on 1.21.x
+    fun isMoonriseChunkLoaderSet(player: Player): Boolean {
+        // This may return null, when player just joined the server
+        @Suppress("SENSELESS_COMPARISON")
+        return player.moonriseChunkLoader != null
+    }
+
     protected val Player.moonriseChunkLoader: RegionizedPlayerChunkLoader.PlayerChunkLoaderData
         get() = (this as CraftPlayer).handle.`moonrise$getChunkLoader`()
 
