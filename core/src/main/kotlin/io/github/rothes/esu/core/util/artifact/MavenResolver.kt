@@ -224,6 +224,7 @@ object MavenResolver {
             f.createNewFile()
         }
         val writer = OutputStreamWriter(Files.newOutputStream(file), Charset.forName("UTF-8"))
+        @Suppress("ConvertTryFinallyToUseCall") // no-stdlib
         try {
             writer.append(buildString {
                 append("// The Maven repository to download dependencies from. DO NOT change if you don't know about it.\n")
