@@ -558,7 +558,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
             Set to false to use 3D-DDA algorithm, for scenarios requiring more accurate results.
         """)
         val fastRaytrace: Boolean = true,
-        @Comment("These entity types are considered always visible.")
+        @Comment("These entity types are always considered visible.")
         val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
@@ -572,7 +572,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
         """)
         val predicatePlayerPositon: Boolean = true,
         @Comment("""
-            Player must can see this amount of entities before we start culling for them.
+            Player must able to see this amount of entities before we start culling for them.
             Set -1 to always do culling.
         """)
         val cullThreshold: Int = -1,
