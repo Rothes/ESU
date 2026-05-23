@@ -64,10 +64,7 @@ import org.incendo.cloud.annotations.Flag
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.sign
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.time.Duration.Companion.seconds
 
 object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfiguration>() {
@@ -549,7 +546,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
 
     data class RaytraceConfig(
         @Comment("Asynchronous threads used to calculate visibility. More to update faster.")
-        val raytraceThreads: Int = Runtime.getRuntime().availableProcessors() / 3,
+        val raytraceThreads: Int = max(1, Runtime.getRuntime().availableProcessors() / 3),
         @Comment("""
             Max updates for each player per second.
             More means greater immediacy, but also higher cpu usage.
