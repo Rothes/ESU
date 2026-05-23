@@ -30,7 +30,7 @@ object BlockOccludeTesterImpl: BlockOccludeTester {
     private val bsCache = BlockBehaviour.BlockStateBase::class.java.getDeclaredField("cache").usNullableObjAccessor
 
     override fun isFullOcclude(blockState: BlockState): Boolean {
-        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS") // No worries
+        @Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS") // No worries
         return canOcclude[blockState]
                 && bsCache[blockState] != null
                 && blockState.isCollisionShapeFullBlock(null, null)
