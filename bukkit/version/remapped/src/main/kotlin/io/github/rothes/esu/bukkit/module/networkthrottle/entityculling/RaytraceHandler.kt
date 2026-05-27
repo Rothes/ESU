@@ -118,6 +118,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
         init()
         registerCommands(Commands)
         for (player in Bukkit.getOnlinePlayers()) {
+            if (player.hasPermission(parent!!.perm("disable"))) continue
             players[player] = VisibilityProcessor(player).also { it.start() }
         }
         Listeners.register()
@@ -226,6 +227,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
         @EventHandler
         fun onPlayerJoin(event: PlayerJoinEvent) {
             val player = event.player
+            if (player.hasPermission(parent!!.perm("disable"))) return
             val processor = VisibilityProcessor(player)
             players.put(player, processor)?.shutdown()
             // Delay start() by 1 tick: chunk loader isn't initialized yet at PlayerJoinEvent time

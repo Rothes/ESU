@@ -80,6 +80,9 @@ permissions:
       'esu.networkThrottle.command.analyser': true
       'esu.networkThrottle.command.chunkDataThrottle': true
 
+  'esu.networkthrottle.entityculling.disable':
+    default: false
+
   'esu.news.admin':
     default: op
     children:
