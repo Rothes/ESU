@@ -18,9 +18,11 @@
 
 package io.github.rothes.esu.bukkit.module
 
+import com.destroystokyo.paper.event.brigadier.AsyncPlayerSendSuggestionsEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.util.ServerCompatibility
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -28,21 +30,25 @@ import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerCommandSendEvent
 import org.bukkit.event.server.ServerCommandEvent
+import org.bukkit.event.server.TabCompleteEvent
 
 object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, BlockedCommandsModule.ModuleLocale>() {
 
     override fun onEnable() {
         Listeners.register()
+        if (ServerCompatibility.isPaper) PaperListeners.register()
     }
 
     override fun onDisable() {
         super.onDisable()
         Listeners.unregister()
+        if (ServerCompatibility.isPaper) PaperListeners.unregister()
     }
 
     object Listeners: Listener {
@@ -59,33 +65,58 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
         @EventHandler
         fun onCommand(event: PlayerCommandSendEvent) {
+            println("SEND " + event.commands)
             val user = event.player.user
             event.commands.removeIf {
                 blocked(user, it, true)
             }
         }
 
-        private fun blocked(user: BukkitUser, command: String, checkHide: Boolean = false): Boolean {
-            val matched = config.blockingCommands.find { group ->
-                if (group.consoleUserExcluded && user is ConsoleUser) {
-                    return@find false
-                }
-
-                if (checkHide && !group.hideCommand) {
-                    return@find false
-                }
-
-                group.commands.any { cmd ->
-                    cmd.containsMatchIn(command)
-                }
+        // This event is not calling at all on Folia (maybe Paper too)
+        @EventHandler(ignoreCancelled = true)
+        fun onCommand(event: TabCompleteEvent) {
+            if (!event.isCommand) return
+            val sender = event.sender
+            val user = if (sender is Player) sender.user else ConsoleUser
+            val buf = event.buffer.substring(1) // Remove '/' char
+            event.completions.removeIf {
+                blocked(user, buf + it, true)
             }
-            if (matched != null) {
-                val key = matched.blockedMessage
-                user.message(user.localedOrNull(lang) { blockedMessage[key] } ?: key.message)
-                return true
-            }
-            return false
         }
+    }
+
+    object PaperListeners: Listener {
+
+        @EventHandler(ignoreCancelled = true)
+        fun onCommand(event: AsyncPlayerSendSuggestionsEvent) { // AsyncTabCompleteEvent may give empty completions (lazy init)
+            val user = event.player.user
+            val buf = event.buffer.substring(1) // Remove '/' char
+            event.suggestions.list.removeIf {
+                blocked(user, buf + it.text, true)
+            }
+        }
+    }
+
+    private fun blocked(user: BukkitUser, command: String, checkHide: Boolean = false): Boolean {
+        val matched = config.blockingCommands.find { group ->
+            if (group.consoleUserExcluded && user is ConsoleUser) {
+                return@find false
+            }
+
+            if (checkHide && !group.hideCommand) {
+                return@find false
+            }
+
+            group.commands.any { cmd ->
+                cmd.containsMatchIn(command)
+            }
+        }
+        if (matched != null) {
+            val key = matched.blockedMessage
+            user.message(user.localedOrNull(lang) { blockedMessage[key] } ?: key.message)
+            return true
+        }
+        return false
     }
 
 
