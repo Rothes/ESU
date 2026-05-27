@@ -85,14 +85,19 @@ object CorePersistentStorage {
     fun saveUserData(u: PlayerUser, d: PersistentData, v: DataVersion = DataVersion.ZSTD) {
         if (!u.logonBefore) return
         IOScope.launch {
-            transaction(database) {
-                CoreTable.upsert {
-                    it[user] = u.dbId
-                    it[server] = CoreModule.config.persistentStorage.serverName
-                    it[lastUpdate] = System.currentTimeMillis().localDateTime
-                    it[data] = ExposedBlob(v.serializer(d))
-                    it[dataVersion] = v
-                }
+            saveUserDataNow(u, d, v)
+        }
+    }
+
+    fun saveUserDataNow(u: PlayerUser, d: PersistentData, v: DataVersion = DataVersion.ZSTD) {
+        if (!u.logonBefore) return
+        transaction(database) {
+            CoreTable.upsert {
+                it[user] = u.dbId
+                it[server] = CoreModule.config.persistentStorage.serverName
+                it[lastUpdate] = System.currentTimeMillis().localDateTime
+                it[data] = ExposedBlob(v.serializer(d))
+                it[dataVersion] = v
             }
         }
     }

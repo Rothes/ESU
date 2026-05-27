@@ -55,7 +55,7 @@ object CoreController {
     fun onDisable() {
         Listeners.unregister()
         for (player in Bukkit.getOnlinePlayers()) {
-            savePersistentData(player)
+            savePersistentData(player, false)
         }
         RunningProviders.moveTime.map.clear()
         RunningProviders.posMoveTime.map.clear()
@@ -87,7 +87,7 @@ object CoreController {
         return true
     }
 
-    private fun savePersistentData(player: Player) {
+    private fun savePersistentData(player: Player, async: Boolean) {
         if (!CoreModule.config.persistentStorage.enabled) return
 
         val now = System.currentTimeMillis()
@@ -101,7 +101,10 @@ object CoreController {
                 ),
             )
         }
-        CorePersistentStorage.saveUserData(player.user, persistent)
+        if (async)
+            CorePersistentStorage.saveUserData(player.user, persistent)
+        else
+            CorePersistentStorage.saveUserDataNow(player.user, persistent)
     }
 
     object RunningProviders: Providers {
@@ -150,7 +153,7 @@ object CoreController {
         @EventHandler(priority = EventPriority.MONITOR)
         fun onPlayerQuit(event: PlayerQuitEvent) {
             val p = event.player
-            savePersistentData(p)
+            savePersistentData(p, true)
             RunningProviders.attackTime.unload(p)
             RunningProviders.posMoveTime.unload(p)
             RunningProviders.moveTime.unload(p)
