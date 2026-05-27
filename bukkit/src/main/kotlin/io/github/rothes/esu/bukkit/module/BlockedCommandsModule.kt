@@ -46,14 +46,14 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
     object Listeners: Listener {
 
-        @EventHandler
+        @EventHandler(ignoreCancelled = true)
         fun onCommand(event: PlayerCommandPreprocessEvent) {
-            event.isCancelled = event.isCancelled || blocked(event.player.user, event.message.substring(1))
+            event.isCancelled = blocked(event.player.user, event.message.substring(1))
         }
 
-        @EventHandler
+        @EventHandler(ignoreCancelled = true)
         fun onCommand(event: ServerCommandEvent) {
-            event.isCancelled = event.isCancelled || blocked(ConsoleUser, event.command)
+            event.isCancelled = blocked(ConsoleUser, event.command)
         }
 
         private fun blocked(user: BukkitUser, command: String): Boolean {
