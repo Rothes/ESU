@@ -35,6 +35,7 @@ import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
+import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -148,6 +149,11 @@ abstract class PlayerEntityVisibilityProcessor(
             player.syncTick {
                 task?.cancel()
                 task = null
+                if (Bukkit.getServer().isStopping) {
+                    // Do not call showEntity once the server is stopping,
+                    // Throws NPE on Folia
+                    return@syncTick trackedEntities.clear()
+                }
                 for (te in trackedEntities.values) {
                     if (te.hidden && VALID_TESTER.isValid(te.bukkitEntity)) {
                         VISIBILITY_HANDLER.showEntity(player, te.bukkitEntity, plugin)
