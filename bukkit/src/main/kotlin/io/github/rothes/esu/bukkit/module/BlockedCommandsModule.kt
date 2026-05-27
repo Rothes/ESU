@@ -31,6 +31,7 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
+import org.bukkit.event.player.PlayerCommandSendEvent
 import org.bukkit.event.server.ServerCommandEvent
 
 object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, BlockedCommandsModule.ModuleLocale>() {
@@ -56,9 +57,21 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
             event.isCancelled = blocked(ConsoleUser, event.command)
         }
 
-        private fun blocked(user: BukkitUser, command: String): Boolean {
+        @EventHandler
+        fun onCommand(event: PlayerCommandSendEvent) {
+            val user = event.player.user
+            event.commands.removeIf {
+                blocked(user, it, true)
+            }
+        }
+
+        private fun blocked(user: BukkitUser, command: String, checkHide: Boolean = false): Boolean {
             val matched = config.blockingCommands.find { group ->
                 if (group.consoleUserExcluded && user is ConsoleUser) {
+                    return@find false
+                }
+
+                if (checkHide && !group.hideCommand) {
                     return@find false
                 }
 
@@ -77,7 +90,8 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
 
     data class ModuleConfig(
-        val blockingCommands: List<BlockingGroup> = arrayListOf(BlockingGroup("no-suicide", listOf("^(.+:)?suicide$".toRegex(), "^(.+:)?kill$".toRegex()))),
+        val blockingCommands: List<BlockingGroup> = arrayListOf(
+            BlockingGroup("no-suicide", listOf("^(.+:)?suicide$".toRegex(), "^(.+:)?kill$".toRegex()))),
     ): BaseModuleConfiguration() {
 
         data class BlockingGroup(
@@ -86,6 +100,8 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
             @Comment("The commands to block. Using regex.")
             val commands: List<Regex> = arrayListOf(),
             val consoleUserExcluded: Boolean = true,
+            @Comment("Hide command from the command list send to player.")
+            val hideCommand: Boolean = true,
         ): ConfigurationPart
 
     }
