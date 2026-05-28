@@ -211,6 +211,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         ): ConfigurationPart
 
         data class ExpireTime(
+            val recordsMinKeep: Int = 3,
             val chatRequest: Duration = 6.minutes.toJavaDuration(),
             val filtered: Duration = 4.5.minutes.toJavaDuration(),
             @Comment("Using base value(hard) plus quadratic function to check expired with a rate.\n" +
@@ -228,6 +229,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                     10.minutes to 2.0,
                     5.minutes to 1.5,
                 ),
+                val minExpireRateMultiplier: Double = 0.2,
             ): ConfigurationPart {
                 fun rate(elapsed: Long, afkTime: Long): Double {
                     val mp = afkDurationMultiplier.entries.firstOrNull { afkTime >= it.key.inWholeMilliseconds }?.value ?: 1.0

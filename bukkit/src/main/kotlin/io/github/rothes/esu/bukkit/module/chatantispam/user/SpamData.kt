@@ -81,16 +81,19 @@ data class SpamData(
     }
 
     fun purge(afkTime: Long): SpamData {
+        val expireTime = config.expireTime
         val now = System.currentTimeMillis()
-        records.removeWhile { config.expireTime.messageRecord.expired(now - it.time, afkTime) }
-        if (config.expireTime.whisperTarget.valuePositive)
-            whisperTargets.removeIf { now - it.lastTime > config.expireTime.whisperTarget.toMillis() }
-        if (config.expireTime.chatRequest.valuePositive)
-            requests.removeWhile { now - it > config.expireTime.chatRequest.toMillis() }
-        if (config.expireTime.filtered.valuePositive)
-            filtered.removeWhile { now - it > config.expireTime.filtered.toMillis() }
-        if (config.expireTime.score > 0)
-            scores.removeWhile { now - it.time > config.expireTime.score }
+        var rm = records.size - expireTime.recordsMinKeep.coerceAtLeast(0)
+
+        records.removeWhile { rm-- > 0 && config.expireTime.messageRecord.expired(now - it.time, afkTime) }
+        if (expireTime.whisperTarget.valuePositive)
+            whisperTargets.removeIf { now - it.lastTime > expireTime.whisperTarget.toMillis() }
+        if (expireTime.chatRequest.valuePositive)
+            requests.removeWhile { now - it > expireTime.chatRequest.toMillis() }
+        if (expireTime.filtered.valuePositive)
+            filtered.removeWhile { now - it > expireTime.filtered.toMillis() }
+        if (expireTime.score > 0)
+            scores.removeWhile { now - it.time > expireTime.score }
         return this
     }
 
