@@ -30,6 +30,18 @@ object RandomCharactersFilter: Check("random-characters-filter") {
                 // 7424 - 7515; 8304~ : Fancy text
             }
         }
+        val continuousRandomChars = request.spamCheck.randomCharacters.filterContinuousLettersAt
+        if (continuousRandomChars > 0) {
+            var num = 0
+            request.message = request.message.filterNot {
+                if (it in '0' .. '9' || it in 'a' .. 'z' || it in 'A' .. 'Z') {
+                    num++
+                } else {
+                    num = 0
+                }
+                num > continuousRandomChars
+            }
+        }
         return CheckResult()
     }
 }

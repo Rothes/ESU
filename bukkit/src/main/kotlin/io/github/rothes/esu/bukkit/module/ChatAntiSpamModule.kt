@@ -324,6 +324,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
             data class RandomCharacters(
                 val filterUnusualCharacters: Boolean = true,
+                val filterContinuousLettersAt: Int = 12,
             ): ConfigurationPart
 
             data class SimilarityCheck(
