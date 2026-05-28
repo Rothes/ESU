@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -43,7 +43,7 @@ import org.spigotmc.TrackingRange as SpigotTrackingRange
 
 object EntityTrackingRange : CommonFeature<EntityTrackingRange.FeatureConfig, EntityTrackingRange.FeatureLang>() {
 
-    private val teAccessor = Entity::class.java.getDeclaredField(if (ServerCompatibility.serverVersion >= 21) "trackedEntity" else "tracker").usNullableObjAccessor
+    private val teAccessor = Entity::class.java.getDeclaredField(if (ServerInfo.mcVersion >= 21) "trackedEntity" else "tracker").usNullableObjAccessor
     private val ctrAccessor = EntityType::class.java.getDeclaredField("clientTrackingRange").usIntAccessor
     private var lastOverride: Map<EntityType<*>, Int>? = null
 

@@ -27,7 +27,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.AfkEffic
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.EntityTrackingEfficiency
 import io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency.LimitedPacketEfficiency
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -202,7 +202,7 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
     // We don't want a player goes into efficiency mode while spectating others, this listener is to solve the issue.
     private object SpectateListeners {
 
-        val listener = if (ServerCompatibility.isPaper) Paper else CB
+        val listener = if (ServerInfo.isPaper) Paper else CB
 
         private object CB: Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

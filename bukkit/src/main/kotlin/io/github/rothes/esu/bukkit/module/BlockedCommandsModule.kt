@@ -22,7 +22,7 @@ import com.destroystokyo.paper.event.brigadier.AsyncPlayerSendSuggestionsEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUser
 import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -42,13 +42,13 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
     override fun onEnable() {
         Listeners.register()
-        if (ServerCompatibility.isPaper) PaperListeners.register()
+        if (ServerInfo.isPaper) PaperListeners.register()
     }
 
     override fun onDisable() {
         super.onDisable()
         Listeners.unregister()
-        if (ServerCompatibility.isPaper) PaperListeners.unregister()
+        if (ServerInfo.isPaper) PaperListeners.unregister()
     }
 
     object Listeners: Listener {

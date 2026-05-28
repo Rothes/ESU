@@ -27,7 +27,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSe
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.NetworkThrottleModule.data
 import io.github.rothes.esu.bukkit.user
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
@@ -70,7 +70,7 @@ object HighLatencyAdjust: CommonFeature<HighLatencyAdjust.FeatureConfig, HighLat
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents() ?: let {
-            if (!ServerCompatibility.isPaper) {
+            if (!ServerInfo.isPaper) {
                 core.err("[HighLatencyAdjust] This feature requires Paper server")
                 return Feature.AvailableCheck.fail { "This feature requires Paper server".message }
             }

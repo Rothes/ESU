@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.scheduler
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility.isFolia
+import io.github.rothes.esu.bukkit.util.ServerInfo.isFolia
 import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.core.EsuBootstrap

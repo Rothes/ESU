@@ -20,7 +20,7 @@ package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 
 import com.google.common.collect.ImmutableMap
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
@@ -54,7 +54,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (ServerCompatibility.serverVersion < 17)
+            if (ServerInfo.mcVersion < 17)
                 return errFail { "This feature requires Minecraft 1.17+".message }
             null
         }

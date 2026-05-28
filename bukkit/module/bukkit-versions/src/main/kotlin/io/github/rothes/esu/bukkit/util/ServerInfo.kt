@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util
 
+import io.github.rothes.esu.core.util.extension.ClassUtils
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.util.version.drop
 import io.github.rothes.esu.core.util.version.toVersion
@@ -27,9 +28,9 @@ import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.spigotmc.SpigotConfig
 
-object ServerCompatibility {
+object ServerInfo {
 
-    val serverVersion: Version = Bukkit.getServer().version
+    val mcVersion: Version = Bukkit.getServer().version
         .substringAfter("MC: ")
         .substringBefore(')')
         .substringBefore(' ') // For Spigot: CraftBukkit version 4598-Spigot-56165ca-d74c5d8 (MC: 1.21.11 Unobfuscated)
@@ -37,40 +38,33 @@ object ServerCompatibility {
             if (it.major == 1) it.drop(1) else it // Remove "1." before 26.1 release
         }
 
-    val isPaper = try {
-        Class.forName($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
-        true
-    } catch (_: ClassNotFoundException) {
-        false
-    }
+    val isPaper: Boolean = ClassUtils.existsClass($$"com.destroystokyo.paper.VersionHistoryManager$VersionData")
 
-    val isFolia = try {
-        Class.forName("io.papermc.paper.threadedregions.RegionizedServer")
-        true
-    } catch (_: ClassNotFoundException) {
-        false
-    }
+    val isFolia: Boolean = ClassUtils.existsClass("io.papermc.paper.threadedregions.RegionizedServer")
 
-    val isMojmap = serverVersion >= 26 || try {
-        val clazz = Class.forName("io.papermc.paper.util.MappingEnvironment")
-        val method = clazz.getDeclaredMethod("reobf")
-        method.isAccessible = true
-        !(method.invoke(null) as Boolean)
-    } catch (_: ClassNotFoundException) {
-        false
-    }
+    val isMojmap: Boolean
+        get() = mcVersion >= 26 || try {
+            val clazz = Class.forName("io.papermc.paper.util.MappingEnvironment")
+            val method = clazz.getDeclaredMethod("reobf")
+            method.isAccessible = true
+            !(method.invoke(null) as Boolean)
+        } catch (_: ClassNotFoundException) {
+            false
+        }
 
-    val isProxyMode = try {
-        SpigotConfig.bungee || GlobalConfiguration.get().proxies.velocity.enabled
-    } catch (_: NoSuchMethodException) {
-        false
-    } catch (_: NoClassDefFoundError) {
-        false
-    }
+    val isProxyMode: Boolean
+        get() = try {
+            SpigotConfig.bungee || GlobalConfiguration.get().proxies.velocity.enabled
+        } catch (_: NoSuchMethodException) {
+            false
+        } catch (_: NoClassDefFoundError) {
+            false
+        }
 
-    val hasMojmap = serverVersion >= "14.4" && serverVersion < "26"
+    val hasMojmap: Boolean
+        get() = mcVersion >= "14.4" && mcVersion < "26"
 
-    val asyncTp = try {
+    val asyncTp: Boolean = try {
         Entity::class.java.getMethod("teleportAsync", Location::class.java)
         true
     } catch (_: NoSuchMethodException) {

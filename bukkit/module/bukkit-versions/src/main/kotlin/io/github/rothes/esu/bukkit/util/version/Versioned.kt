@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.util.version.toVersion
@@ -32,7 +32,7 @@ import kotlin.reflect.KProperty
 class Versioned<T, V>(
     target: Class<V>,
     type: String? = null,
-    version: Version = ServerCompatibility.serverVersion,
+    version: Version = ServerInfo.mcVersion,
 ): ReadOnlyProperty<T, V> {
 
     val handle =
@@ -53,7 +53,7 @@ class Versioned<T, V>(
 
                     if (split.size == 2) {
                         when (split[1]) {
-                            "paper" -> if (!ServerCompatibility.isPaper) return@mapNotNull null
+                            "paper" -> if (!ServerInfo.isPaper) return@mapNotNull null
                         }
                     }
                     it to split[0].replace('_', '.').toVersion()

@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.v21_6
 
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeHandler
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
@@ -42,7 +42,7 @@ object TicketTypeHandlerImpl: TicketTypeHandler {
     }
 
     private fun wrapTicketType(handle: TicketType<*>, name: String): TicketTypeHandler.NmsTicketType {
-        return if (ServerCompatibility.isPaper) NmsTicketTypeMoonriseImpl(handle, name) else NmsTicketTypeCBImpl(handle, name)
+        return if (ServerInfo.isPaper) NmsTicketTypeMoonriseImpl(handle, name) else NmsTicketTypeCBImpl(handle, name)
     }
 
     class NmsTicketTypeMoonriseImpl(

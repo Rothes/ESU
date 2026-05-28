@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.remapper
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.DataSerializer.deserialize
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
@@ -38,7 +38,7 @@ import java.util.jar.JarFile
 
 object MappingsLoader {
 
-    private val version = ServerCompatibility.serverVersion
+    private val version = ServerInfo.mcVersion
     private val versionString = if (version <= 21) "1.${version.shortString()}" else version.shortString()
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$versionString").toFile()

@@ -21,7 +21,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.afkefficiency
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.AfkEfficiency
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.entity.PlayerEntityVisibilityProcessor
 import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -42,7 +42,7 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (ServerCompatibility.serverVersion < 19 || !ServerCompatibility.isPaper)
+            if (ServerInfo.mcVersion < 19 || !ServerInfo.isPaper)
                 return errFail { "Paper 1.19+ is required to enable this.".message }
             null
         }

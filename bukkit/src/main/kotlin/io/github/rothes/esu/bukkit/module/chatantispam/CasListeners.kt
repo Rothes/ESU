@@ -34,7 +34,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.user.CasDataManager
 import io.github.rothes.esu.bukkit.module.chatantispam.user.SpamData
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.user.User
@@ -108,7 +108,7 @@ object CasListeners: Listener {
 
             val createdByOwn = checkIfPlayerPurposed()
             if (checkBlocked(event.player, deathMessage.legacy, DeathMessage(createdByOwn))) {
-                if (ServerCompatibility.isPaper && ServerCompatibility.serverVersion >= "21.5") {
+                if (ServerInfo.isPaper && ServerInfo.mcVersion >= "21.5") {
                     event.deathScreenMessageOverride(server)
                 }
                 event.deathMessage(null)

@@ -21,7 +21,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -57,7 +57,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (!ServerCompatibility.isPaper) return errFail { "Requires Paper".message }
+            if (!ServerInfo.isPaper) return errFail { "Requires Paper".message }
             null
         }
     }

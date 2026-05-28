@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
@@ -36,7 +36,7 @@ interface ItemStackAdapter {
 
     companion object {
 
-        val instance = if (ServerCompatibility.isPaper) Paper else CB
+        val instance = if (ServerInfo.isPaper) Paper else CB
 
         val ItemStack.empty: Boolean
             get() = isAir || amount <= 0

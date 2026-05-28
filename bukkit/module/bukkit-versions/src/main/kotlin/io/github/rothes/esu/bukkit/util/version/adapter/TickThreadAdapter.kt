@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
@@ -30,7 +30,7 @@ interface TickThreadAdapter {
 
     companion object {
 
-        val instance = if (ServerCompatibility.isFolia) Folia else CB
+        val instance = if (ServerInfo.isFolia) Folia else CB
 
         fun Entity.checkTickThread(): Boolean = instance.isOwnedByCurrentRegion(this)
         fun Location.checkTickThread(): Boolean = instance.isOwnedByCurrentRegion(this)

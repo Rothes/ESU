@@ -22,7 +22,7 @@ import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.ChunkUnloadsFeature
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.ExpiryTicksFeature
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeCommandsFeature
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
@@ -34,8 +34,8 @@ object TicketTypeFeatures: CommonFeature<TicketTypeFeatures.FeatureConfig, Unit>
     init {
         registerFeature(TicketTypeCommandsFeature)
         registerFeature(ExpiryTicksFeature)
-        if (ServerCompatibility.serverVersion >= "21.7") registerFeature(ChunkLoadsFeature)
-        if (ServerCompatibility.serverVersion >= "21.9") registerFeature(ChunkUnloadsFeature)
+        if (ServerInfo.mcVersion >= "21.7") registerFeature(ChunkLoadsFeature)
+        if (ServerInfo.mcVersion >= "21.9") registerFeature(ChunkUnloadsFeature)
     }
 
     override val name: String = "TicketType"

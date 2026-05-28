@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit
 
 import com.github.luben.zstd.Zstd
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.remapper.MappingsLoader
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.AetherLoader
@@ -81,14 +81,14 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
     private companion object {
 
         fun loadDependencies() {
-            if (!ServerCompatibility.isMojmap) {
+            if (!ServerInfo.isMojmap) {
                 MavenResolver.loadDependencies(
                     listOf(
                         "net.neoforged:AutoRenamingTool:2.0.13",
                     ),
                     extraRepo = if (MavenResolver.usingAliyun) listOf() else listOf(MavenResolver.MavenRepos.NEO_FORGED)
                 )
-                if (ServerCompatibility.hasMojmap)
+                if (ServerInfo.hasMojmap)
                     MappingsLoader
             }
             val relocator = PackageRelocator(

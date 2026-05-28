@@ -25,7 +25,7 @@ import io.github.rothes.esu.bukkit.listener.InternalListeners
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
@@ -91,7 +91,7 @@ class EsuPluginBukkit(
                         }
                     }
 
-                    val toLoad = if (!ServerCompatibility.isMojmap && ServerCompatibility.hasMojmap) JarRemapper.reobf(file) else file
+                    val toLoad = if (!ServerInfo.isMojmap && ServerInfo.hasMojmap) JarRemapper.reobf(file) else file
                     Versioned.loadVersion(toLoad)
                 }
             }

@@ -19,14 +19,14 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 
 object ChunkLoadsFeature: BaseTicketTypeFeature<ChunkLoadsFeature.FeatureConfig, Unit>() {
 
     override fun apply() {
-        val allowNothing = ServerCompatibility.serverVersion >= "21.9"
+        val allowNothing = ServerInfo.mcVersion >= "21.9"
         with(advancedHandler) {
             for ((key, value) in config.overrides) {
                 if (!allowNothing && !value.loadsChunk && !value.ticksChunk) {

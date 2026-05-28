@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import io.github.rothes.esu.bukkit.plugin
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.version.adapter.moonrise.ChunkLimiterHandler
 import io.github.rothes.esu.core.configuration.ConfigurationPart
@@ -39,7 +39,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (!ServerCompatibility.isProxyMode) return errFail { "This server is not on BungeeCord mode or Velocity mode".message }
+            if (!ServerInfo.isProxyMode) return errFail { "This server is not on BungeeCord mode or Velocity mode".message }
             if (!ChunkLimiterHandler.isSupported) return errFail { "Server not supported".message }
             null
         }
@@ -73,7 +73,7 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
 
     @Comment("Enable DynamicChunkSendRate. Make sure you have velocity mode on, and installed ESU on velocity.")
     data class FeatureConfig(
-        override val enabled: Boolean = ServerCompatibility.isProxyMode,
+        override val enabled: Boolean = ServerInfo.isProxyMode,
     ): EnableTogglable, ConfigurationPart
 
 }

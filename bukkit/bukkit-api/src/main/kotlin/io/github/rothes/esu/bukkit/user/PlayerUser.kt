@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.user
 
 import io.github.rothes.esu.bukkit.audience
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
@@ -85,7 +85,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         player.syncTick {
             val msg = buildMiniMessage(lang, block, params = params)
-            if (ServerCompatibility.isPaper)
+            if (ServerInfo.isPaper)
                 player.kick(msg.server)
             else
                 @Suppress("DEPRECATION") // Spigot

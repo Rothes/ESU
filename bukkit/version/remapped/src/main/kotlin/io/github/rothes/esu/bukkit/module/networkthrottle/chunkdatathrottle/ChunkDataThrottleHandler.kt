@@ -43,7 +43,7 @@ import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.Chun
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -888,7 +888,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
         companion object {
 
-            val instance = if (ServerCompatibility.isPaper) Paper else CB
+            val instance = if (ServerInfo.isPaper) Paper else CB
 
             val LevelChunkSection.container: PalettedContainer<BlockState>
                 get() = instance.getContainer(this)
@@ -1089,7 +1089,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             mutableListOf(Blocks.BEDROCK)
         ).apply {
             put("world", buildList {
-                val cavesUpdate = ServerCompatibility.serverVersion >= 17
+                val cavesUpdate = ServerInfo.mcVersion >= 17
                 add(Blocks.COAL_ORE)
                 if (cavesUpdate) add(Blocks.COPPER_ORE)
                 addAll(listOf(Blocks.IRON_ORE, Blocks.GOLD_ORE,
@@ -1101,7 +1101,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             }.toMutableList())
             put("world_nether", buildList {
                 add(Blocks.NETHER_QUARTZ_ORE)
-                if (ServerCompatibility.serverVersion >= 16) {
+                if (ServerInfo.mcVersion >= 16) {
                     add(Blocks.NETHER_GOLD_ORE)
                     add(Blocks.ANCIENT_DEBRIS)
                 }

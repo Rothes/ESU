@@ -31,7 +31,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.github.rothes.esu.bukkit.module.NewsModule
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.Versioned
@@ -129,7 +129,7 @@ object EditorManager {
 
     private fun sendHotBarItem(player: Player, slot: Int, item: ItemStack?) {
         val nmsItem = SpigotConversionUtil.fromBukkitItemStack(item)
-        val packet = if (ServerCompatibility.serverVersion > "21.1") {
+        val packet = if (ServerInfo.mcVersion > "21.1") {
             WrapperPlayServerSetSlot(0, STATE_ID_GETTER[player], 36 + slot, nmsItem)
         } else {
             // WindowID = -2 is supported until (or equal) 1.21.1

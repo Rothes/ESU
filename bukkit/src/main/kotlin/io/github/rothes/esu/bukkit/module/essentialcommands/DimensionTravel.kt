@@ -20,7 +20,7 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.ServerCompatibility.tp
+import io.github.rothes.esu.bukkit.util.ServerInfo.tp
 import io.github.rothes.esu.bukkit.util.WorldUtils
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData

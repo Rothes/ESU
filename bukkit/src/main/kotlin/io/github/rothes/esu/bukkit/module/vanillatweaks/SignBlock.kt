@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.module.vanillatweaks
 
-import io.github.rothes.esu.bukkit.util.ServerCompatibility
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -48,7 +48,7 @@ object SignBlock: CommonFeature<Unit, Unit>() {
 
         override fun checkUnavailable(): Feature.AvailableCheck? {
             return super.checkUnavailable() ?: let {
-                if (!ServerCompatibility.isPaper)
+                if (!ServerInfo.isPaper)
                     return errFail { "Requires Paper".message }
                 null
             }
