@@ -20,9 +20,9 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.ServerInfo.tp
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTickDeferred
+import io.github.rothes.esu.bukkit.util.version.adapter.TeleportAdapter.Companion.tp
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData

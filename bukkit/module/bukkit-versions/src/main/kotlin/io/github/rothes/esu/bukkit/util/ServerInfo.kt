@@ -24,8 +24,6 @@ import io.github.rothes.esu.core.util.version.drop
 import io.github.rothes.esu.core.util.version.toVersion
 import io.papermc.paper.configuration.GlobalConfiguration
 import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.entity.Entity
 import org.spigotmc.SpigotConfig
 
 object ServerInfo {
@@ -63,26 +61,5 @@ object ServerInfo {
 
     val hasMojmap: Boolean
         get() = mcVersion >= "14.4" && mcVersion < "26"
-
-    val asyncTp: Boolean = try {
-        Entity::class.java.getMethod("teleportAsync", Location::class.java)
-        true
-    } catch (_: NoSuchMethodException) {
-        false
-    }
-
-    fun Entity.tp(location: Location, then: ((Boolean) -> Unit)? = null) {
-        if (asyncTp) {
-            val future = teleportAsync(location)
-            if (then != null) {
-                future.thenAccept(then)
-            }
-        } else {
-            val success = teleport(location)
-            if (then != null) {
-                then(success)
-            }
-        }
-    }
 
 }
