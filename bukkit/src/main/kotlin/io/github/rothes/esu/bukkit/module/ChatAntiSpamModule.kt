@@ -323,7 +323,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
             ): ConfigurationPart
 
             data class RandomCharacters(
-                val removeRandomCharactersOnCheck: Boolean = true
+                val filterUnusualCharacters: Boolean = true,
             ): ConfigurationPart
 
             data class SimilarityCheck(

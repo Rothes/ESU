@@ -23,7 +23,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 object RandomCharactersFilter: Check("random-characters-filter") {
 
     override fun check(request: MessageRequest): CheckResult {
-        if (request.spamCheck.randomCharacters.removeRandomCharactersOnCheck) {
+        if (request.spamCheck.randomCharacters.filterUnusualCharacters) {
             request.message = request.message.filterNot {
                 val char = it.code
                 char < 32 || char in 127..8527
