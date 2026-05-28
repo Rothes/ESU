@@ -65,7 +65,6 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
 
         @EventHandler
         fun onCommand(event: PlayerCommandSendEvent) {
-            println("SEND " + event.commands)
             val user = event.player.user
             event.commands.removeIf {
                 blocked(user, it, true)
