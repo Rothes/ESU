@@ -87,9 +87,32 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 if (spamData == null) {
                     sender.message(lang, { command.data.noData }, user(playerUser), sender.msgPrefix)
                 } else {
+                    val now = System.currentTimeMillis()
+                    val debugString = buildString {
+                        fun Long.dur(): String {
+                            return (now - this).milliseconds.toComponents { d, h, m, s, ns ->
+                                buildString {
+                                    if (d > 0) append(d, 'd')
+                                    if (h > 0) append(h, 'h')
+                                    if (m > 0) append(m, 'm')
+                                    if (s > 0) append(s, 's')
+                                    if (isEmpty()) append(ns / 1_000_000, "ms")
+                                }
+                            }
+                        }
+                        with(spamData) {
+                            append("muteMultiplier=", muteMultiplier, '\n')
+                            append("records=", records.map { "${it.message} (${it.time.dur()})" }, '\n')
+                            append("scores=", scores.map { "(t=${it.type}, s=${it.score}, t=${it.time.dur()})" }, "; ")
+                            append("whisperTargets=", whisperTargets.map { "${it.player} (${it.lastTime.dur()})" }, "; ")
+                            append("requests=", requests.map { it.dur() }, "; ")
+                            append("filtered=", filtered.map { it.dur() })
+                        }
+                    }
                     sender.message(lang, { command.data.data },
-                        user(playerUser), unparsed("debug-data", spamData),
+                        user(playerUser),
                         sender.msgPrefix,
+                        unparsed("debug-data", debugString),
                         unparsed("filtered-size", spamData.filtered.size),
                         unparsed("requested-size", spamData.requests.size),
                         unparsed("requested-size", spamData.requests.size),
