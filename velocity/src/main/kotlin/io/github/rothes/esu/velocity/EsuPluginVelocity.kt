@@ -48,6 +48,7 @@ import io.github.rothes.esu.velocity.module.AutoRestartModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.UserNameVerifyModule
 import io.github.rothes.esu.velocity.user.VelocityUserManager
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
@@ -171,6 +172,7 @@ class EsuPluginVelocity(
         StorageManager.shutdown()
         server.eventManager.unregisterListeners(container)
         try {
+            @OptIn(DelicateCoroutinesApi::class) // Just release the resources
             Dispatchers.shutdown()
         } catch (t: Throwable) {
             err("An exception occurred while shutting down coroutine: $t")

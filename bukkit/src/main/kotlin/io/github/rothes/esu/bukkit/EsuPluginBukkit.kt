@@ -44,6 +44,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassUtils.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -224,6 +225,7 @@ class EsuPluginBukkit(
         StorageManager.shutdown()
         adventure.close()
         try {
+            @OptIn(DelicateCoroutinesApi::class) // Just release the resources
             Dispatchers.shutdown()
         } catch (t: Throwable) {
             err("An exception occurred while shutting down coroutine: $t")
