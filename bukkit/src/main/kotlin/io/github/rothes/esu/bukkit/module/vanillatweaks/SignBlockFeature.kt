@@ -36,7 +36,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.SignChangeEvent
 
-object SignBlock: CommonFeature<Unit, Unit>() {
+object SignBlockFeature: CommonFeature<Unit, Unit>() {
 
     init {
         registerFeature(DisableEditingSignText)
