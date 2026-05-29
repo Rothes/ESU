@@ -88,8 +88,8 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 preprocessConfig(configNode)
                 loadConfig(root, configNode)
                 loadLang(root, langNodes)
-                configNode.save()
-                langNodes.forEachValue { it.save() }
+                configNode.saveIfNotEmpty()
+                langNodes.forEachValue { it.saveIfNotEmpty() }
             }
         }
 
