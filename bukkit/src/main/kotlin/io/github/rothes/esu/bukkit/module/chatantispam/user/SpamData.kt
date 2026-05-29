@@ -85,7 +85,7 @@ data class SpamData(
         val now = System.currentTimeMillis()
         var rm = records.size - expireTime.recordsMinKeep.coerceAtLeast(0)
 
-        records.removeWhile { rm-- > 0 && config.expireTime.messageRecord.expired(now - it.time, afkTime) }
+        records.removeWhile { rm-- > 0 && expireTime.messageRecord.expired(now - it.time, afkTime) }
         if (expireTime.whisperTarget.valuePositive)
             whisperTargets.removeIf { now - it.lastTime > expireTime.whisperTarget.toMillis() }
         if (expireTime.chatRequest.valuePositive)
@@ -95,6 +95,18 @@ data class SpamData(
         if (expireTime.score > 0)
             scores.removeWhile { now - it.time > expireTime.score }
         return this
+    }
+
+    fun nonExpiredRecords(now: Long, afkTime: Long): Int {
+        var i = 0
+        val config = config.expireTime.messageRecord
+        for (record in records.asReversed()) {
+            if (config.expired(now - record.time, afkTime)) {
+                break
+            }
+            i++
+        }
+        return i
     }
 
     data class MessageRecord(

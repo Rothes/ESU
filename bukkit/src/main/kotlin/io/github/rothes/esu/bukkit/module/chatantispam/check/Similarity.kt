@@ -43,7 +43,7 @@ object Similarity: Check("similarity") {
                 val time = request.sendTime
                 val hit = DoubleArrayList(allowCount)
                 val afkMp = afkRateMultiplier.entries.firstOrNull { request.afkTime >= it.key.inWholeMilliseconds }?.value ?: 1.0
-                val allowedSim = max(lowestAllowRate, baseAllowRate - allowRateReducePerRecord * spamData.records.size)
+                val allowedSim = max(lowestAllowRate, baseAllowRate - allowRateReducePerRecord * spamData.nonExpiredRecords(time, request.afkTime))
                 spamData.records.forEach { record ->
                     val expireMp = recordConfig.rate(time - record.time, request.afkTime)
                         .coerceAtLeast(recordConfig.minExpireRateMultiplier)
