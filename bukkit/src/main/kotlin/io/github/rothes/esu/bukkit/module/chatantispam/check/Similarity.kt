@@ -51,9 +51,8 @@ object Similarity: Check("similarity") {
                     val expireMp = recordConfig.rate(time - record.time, request.afkTime)
                         .coerceAtLeast(recordConfig.minExpireRateMultiplier)
 
-                    val similarity = (
-                        ro.similarity(record.message, message) * expireMp * afkMp * charMp
-                    ).coerceAtMost(1.0)
+                    val similarityRaw = ro.similarity(record.message, message)
+                    val similarity = similarityRaw * expireMp * afkMp * charMp
                     if (similarity >= allowedSim) {
                         hit.add(similarity)
                         if (hit.size == allowCount) {
@@ -65,12 +64,20 @@ object Similarity: Check("similarity") {
                                 buildString {
                                     append("sim ")
                                     append("%.2f".format(avg))
+                                    if (expireMp != 1.0) {
+                                        append(" ex")
+                                        append(expireMp)
+                                    }
                                     if (afkMp != 1.0) {
-                                        append(" x")
+                                        append(" ax")
                                         append(afkMp)
                                     }
+                                    if (charMp != 1.0) {
+                                        append(" cx")
+                                        append(charMp)
+                                    }
                                 },
-                                avg.pow(2),
+                                avg.coerceAtMost(1.0).pow(2),
                                 false,
                                 addFilter = notify
                             )
