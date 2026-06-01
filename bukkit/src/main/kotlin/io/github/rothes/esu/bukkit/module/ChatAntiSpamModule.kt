@@ -364,6 +364,10 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                     10.minutes to 1.5,
                     5.minutes to 1.25,
                 ),
+                val charSizeMultiplier: LinkedHashMap<Int, Double> = linkedMapOf(
+                    48 to 1.5,
+                    32767 to 1.0,
+                ),
             ): ConfigurationPart
 
             data class Spaces(

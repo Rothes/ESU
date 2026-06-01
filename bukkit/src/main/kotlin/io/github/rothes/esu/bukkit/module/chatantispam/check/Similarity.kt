@@ -35,8 +35,11 @@ object Similarity: Check("similarity") {
     override fun check(request: MessageRequest): CheckResult {
         with(request.spamCheck.similarityCheck) {
             val recordConfig = config.expireTime.messageRecord
-            val allowCount = blockOnDisallowCount.entries.firstOrNull { it.key >= request.rawMessage.charSize() }?.value
+            val charSize = request.rawMessage.charSize()
+            val allowCount = blockOnDisallowCount.entries.firstOrNull { it.key >= charSize }?.value
                 ?: blockOnDisallowCount.lastEntry().value
+            val charMp = charSizeMultiplier.entries.firstOrNull { it.key >= charSize }?.value
+                ?: charSizeMultiplier.lastEntry().value
             if (allowCount > 0) {
                 val spamData = request.spamData
                 val message = request.message
@@ -49,7 +52,7 @@ object Similarity: Check("similarity") {
                         .coerceAtLeast(recordConfig.minExpireRateMultiplier)
 
                     val similarity = (
-                        ro.similarity(record.message, message) * expireMp * afkMp
+                        ro.similarity(record.message, message) * expireMp * afkMp * charMp
                     ).coerceAtMost(1.0)
                     if (similarity >= allowedSim) {
                         hit.add(similarity)
