@@ -23,6 +23,7 @@ import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.util.extension.charSize
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList
+import java.text.DecimalFormat
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -66,7 +67,7 @@ object Similarity: Check("similarity") {
                                     append("%.2f".format(avg))
                                     if (expireMp != 1.0) {
                                         append(" ex")
-                                        append(expireMp)
+                                        append(DecimalFormat("###.##").format(expireMp))
                                     }
                                     if (afkMp != 1.0) {
                                         append(" ax")
