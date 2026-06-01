@@ -68,6 +68,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
         val toLoad = data.pluginsToLoad.toList()
         data.pluginsToLoad.clear()
+        ConfigLoader.save(dataPath, data)
 
         if (!core.enabledHot)
             return

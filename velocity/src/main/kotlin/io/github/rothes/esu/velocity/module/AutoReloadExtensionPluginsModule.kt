@@ -54,6 +54,7 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
         val toLoad = data.pluginsToLoad.toList()
         data.pluginsToLoad.clear()
+        ConfigLoader.save(dataPath, data)
 
         if (!plugin.enabledHot)
             return
