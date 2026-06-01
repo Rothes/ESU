@@ -366,7 +366,6 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 ),
                 val charSizeMultiplier: LinkedHashMap<Int, Double> = linkedMapOf(
                     48 to 1.5,
-                    32767 to 1.0,
                 ),
             ): ConfigurationPart
 

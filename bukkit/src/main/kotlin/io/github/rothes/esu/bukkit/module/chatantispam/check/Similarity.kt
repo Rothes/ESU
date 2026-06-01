@@ -39,7 +39,7 @@ object Similarity: Check("similarity") {
             val allowCount = blockOnDisallowCount.entries.firstOrNull { it.key >= charSize }?.value
                 ?: blockOnDisallowCount.lastEntry().value
             val charMp = charSizeMultiplier.entries.firstOrNull { it.key >= charSize }?.value
-                ?: charSizeMultiplier.lastEntry().value
+                ?: 1.0
             if (allowCount > 0) {
                 val spamData = request.spamData
                 val message = request.message
