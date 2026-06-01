@@ -40,6 +40,7 @@ object EssentialCommandsModule: BukkitModule<BaseModuleConfiguration, EssentialC
     override fun onEnable() {}
 
     data class ModuleLang(
+        val outOfBoundChunk: MessageData = "<ec>Target spot out of Minecraft bounds.".message,
         val unsafeTeleportSpot: MessageData = "<ec>Cannot find a safe spot for teleport.".message,
         val teleportingPlayer: MessageData = "<tc>Teleporting <tdc><player></tdc>...".message,
         val teleportFailedUnknown: MessageData = "<ec>Failed to teleport.".message,
