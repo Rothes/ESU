@@ -18,20 +18,19 @@
 
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.module.vanillatweaks.AnvilFeature
 import io.github.rothes.esu.bukkit.module.vanillatweaks.SignBlockFeature
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
-import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 
-object VanillaTweaksModule : BukkitModule<VanillaTweaksModule.ModuleConfig, EmptyConfiguration>() {
+object VanillaTweaksModule : BukkitModule<BaseModuleConfiguration, Unit>() {
 
     init {
+        registerFeature(AnvilFeature)
         registerFeature(SignBlockFeature)
     }
 
     override fun onEnable() {
 
     }
-
-    class ModuleConfig: BaseModuleConfiguration()
 
 }
