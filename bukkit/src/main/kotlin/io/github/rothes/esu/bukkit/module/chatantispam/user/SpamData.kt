@@ -63,7 +63,12 @@ data class SpamData(
     fun mute(): Long {
         val now = System.currentTimeMillis()
         with(config.muteHandler.muteDurationMultiplier) {
-            muteMultiplier = if (now - muteUntil <= maxMuteInterval) min(muteMultiplier * multiplier, multiplierMax) else 1.0
+            muteMultiplier =
+                if (now - muteUntil <= doubleInterval)
+                    min(muteMultiplier * multiplier, multiplierMax)
+                else if (now - muteUntil <= resetInterval)
+                    min(muteMultiplier             , multiplierMax)
+                else 1.0
         }
 
         val currMute = if (muteUntil > now) muteUntil - now else 0

@@ -294,7 +294,9 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
 
             data class MuteDurationMultiplier(
                 @Comment("Last Mute must within this interval to trigger a multiplier")
-                val maxMuteInterval: Duration = 4.minutes.toJavaDuration(),
+                val doubleInterval: Duration = 4.minutes.toJavaDuration(),
+                @Comment("Last Mute must after this interval to clear the multiplier")
+                val resetInterval: Duration = 20.minutes.toJavaDuration(),
                 val multiplier: Double = 2.0,
                 val multiplierMax: Double = 32.0,
             ): ConfigurationPart
