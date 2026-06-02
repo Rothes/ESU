@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -39,10 +40,16 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.OptionalUtils.applyTo
+import io.github.rothes.esu.core.util.extension.charSize
+import io.github.rothes.esu.core.util.extension.substringCharSize
 import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.TextComponent
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.adventure.text.TranslationArgument
+import io.github.rothes.esu.lib.adventure.text.event.HoverEvent
 import io.github.rothes.esu.lib.adventure.text.format.NamedTextColor
 import io.github.rothes.esu.lib.adventure.text.format.TextColor
+import io.github.rothes.esu.lib.adventure.text.format.TextDecoration
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -52,6 +59,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.*
 import kotlin.jvm.optionals.getOrElse
+import kotlin.jvm.optionals.getOrNull
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>() {
 
@@ -77,7 +85,44 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
         fun onDeath(e: RichPlayerDeathEvent) {
             e.setChatMessage { user, old ->
                 old?.let { msg ->
-                    processComponent(user, msg, config.message.death)
+                    val config = config
+                    var sized = msg
+
+                    config.maxDeathItemNameSize.getOrNull()?.let { maxItemName ->
+                        try {
+                            if (maxItemName >= 0 && msg is TranslatableComponent) {
+                                var modified = false
+                                val arguments = msg.arguments().toMutableList()
+                                for ((i, arg) in arguments.map { it.value() }.withIndex()) {
+                                    if (arg !is TranslatableComponent || arg.key() != "chat.square_brackets") continue
+                                    val argument = arg.arguments()[0]
+                                    val item = argument.value() as? TextComponent ?: continue
+                                    if (arg.hoverEvent()?.value() !is HoverEvent.ShowItem) continue // Ensure it's item
+                                    if (!item.hasDecoration(TextDecoration.ITALIC)) continue // Not a custom name
+
+                                    val component = item.children().firstOrNull() as? TextComponent ?: continue
+                                    val content = component.content()
+                                    if (content.charSize() <= maxItemName) continue
+                                    arguments[i] = TranslationArgument.component(
+                                        arg.arguments(
+                                            item.children(
+                                                listOf(
+                                                    component.content(content.substringCharSize(0, maxItemName)),
+                                                    Component.text("..", NamedTextColor.GRAY)
+                                                )
+                                            )
+                                        )
+                                    )
+                                    modified = true
+                                }
+
+                                if (modified) sized = msg.arguments(arguments)
+                            }
+                        } catch (e: Exception) {
+                            core.err("Failed to handle maxDeathItemNameSize", e)
+                        }
+                    }
+                    processComponent(user, sized, config.message.death)
                 }
             }
         }
@@ -148,6 +193,10 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                 """]
         )
         val message: Message = Message(),
+        @Comment("""
+            For death message, limit the displayed name length of the item which caused the kill.
+        """)
+        val maxDeathItemNameSize: Optional<Int> = Optional.empty(),
     ): BaseModuleConfiguration() {
 
         data class Message(

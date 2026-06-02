@@ -19,3 +19,21 @@
 package io.github.rothes.esu.core.util.extension
 
 fun String.charSize(): Int = sumOf { if (it.code <= 591) 1 else 2 }
+
+fun String.substringCharSize(start: Int, end: Int): String {
+    var head = -1
+    var ptr = 0
+    var size = 0
+    while (ptr < length) {
+        size += if (this[ptr].code <= 591) 1 else 2
+        if (head == -1 && size >= start) {
+            head = ptr
+        }
+        if (size > end)
+            return substring(head, ptr)
+        else if (size == end)
+            return substring(head, ptr + 1)
+        ptr++
+    }
+    throw IndexOutOfBoundsException()
+}
