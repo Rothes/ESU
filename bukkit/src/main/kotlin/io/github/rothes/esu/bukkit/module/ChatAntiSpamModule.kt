@@ -101,7 +101,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                             }
                         }
                         with(spamData) {
-                            append("muteMultiplier=", muteMultiplier, '\n')
+                            append("muteMultiplier=", muteMultiplier, "; ")
+                            append("muteUntil=", muteUntil.dur(), '\n')
                             append("records=", records.map { "${it.message} (${it.time.dur()})" }, '\n')
                             append("scores=", scores.map { "(t=${it.type}, s=${it.score}, t=${it.time.dur()})" }, "; ")
                             append("whisperTargets=", whisperTargets.map { "${it.player} (${it.lastTime.dur()})" }, "; ")
