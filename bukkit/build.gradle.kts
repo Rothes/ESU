@@ -59,7 +59,7 @@ allprojects {
 dependencies {
     paperweight.paperDevBundle("$serverVer.build.+")
     api(project(":bukkit:bukkit-api"))
-    compileOnly(project(":bukkit:version:remapped"))
+    compileOnlyApi(project(":bukkit:version:remapped"))
 
     compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.13")
 
