@@ -227,7 +227,7 @@ object CasListeners: Listener {
     }
 
     private fun handleFiltered(player: Player, message: String, request: MessageRequest, messageContext: MessageContext,
-                               checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean): Boolean {
+                               checkType: String, spamData: SpamData, notify: Boolean, addFilter: Boolean) {
         if (notify) {
             notifyUsers.forEach {
                 it.message(lang, { this.notify.filtered },
@@ -237,7 +237,7 @@ object CasListeners: Listener {
             }
         }
         if (!addFilter) {
-            return true
+            return
         }
         spamData.purge(request.afkTime)
         val now = System.currentTimeMillis()
@@ -245,7 +245,6 @@ object CasListeners: Listener {
         if (spamData.filtered.size >= config.muteHandler.muteOnFilteredSize) {
             handleMuted(player, spamData)
         }
-        return true
     }
 
     private fun handleMuted(player: Player, spamData: SpamData) {
