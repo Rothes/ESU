@@ -25,7 +25,6 @@ import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import io.github.rothes.esu.core.util.extension.math.floorL
 import org.bukkit.entity.Player
-import kotlin.math.min
 
 object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
 
@@ -50,18 +49,18 @@ object ChunkLimiterHandlerImpl: ChunkLimiterHandler() {
         val rateLimiter = player.moonriseChunkLoader.getLimiter(type) as StaggeredRateLimiter
         val limiters = LIMITERS[rateLimiter] as Array<*> // ca.spottedleaf.moonrise.common.misc.StaggeredRateLimiter.Limiter[]
 
-        val max = limiters.maxOf { holder ->
+        val min = limiters.minOf { holder ->
             val limiter = LIMITER[holder] // ca.spottedleaf.moonrise.common.misc.AllocatingRateLimiter
 
             val interval = LIMITER_INTERVAL_NS[limiter] as Long
-            val multiplier = min(1.0, 10e9 / interval) // Multiplier for larger than 1 second interval limiters
+            val multiplier = 10e9 / interval // Multiply to 1 sec
 
             val maxAllocation = (LIMITER_MAX_ALLOCATION[limiter] as Double).toLong()
             val preview = LIMITER_PREVIEW_ALLOCATION.invoke(limiter, maxAllocation) as Long
             floorL((maxAllocation - preview) * multiplier)
         }
 
-        return max
+        return min
     }
 
     override fun previewAllocation(player: Player, type: Type, take: Long): Long {
