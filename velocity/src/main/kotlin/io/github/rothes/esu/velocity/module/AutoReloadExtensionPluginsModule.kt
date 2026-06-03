@@ -22,6 +22,7 @@ import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.coroutine.IOScope
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
@@ -42,9 +43,9 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
             if (plugin.initialized)
-                return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+                return errFail { "Esu is already initialized".message }
             if (plugin.server.pluginManager.getPlugin("serverutils") == null)
-                return Feature.AvailableCheck.fail { "ServerUtils not found".message }
+                return errFail { "ServerUtils not found".message }
             null
         }
     }

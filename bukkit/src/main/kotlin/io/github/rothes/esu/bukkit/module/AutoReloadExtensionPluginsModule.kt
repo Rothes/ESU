@@ -29,6 +29,7 @@ import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.Feature
+import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.core.user.User
@@ -45,9 +46,9 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
             if (core.initialized)
-                return Feature.AvailableCheck.fail { "Esu is already initialized".message }
+                return errFail { "Esu is already initialized".message }
             if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
-                return Feature.AvailableCheck.fail { "PlugMan not found".message }
+                return errFail { "PlugMan not found".message }
             null
         }
     }
