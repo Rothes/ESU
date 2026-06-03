@@ -18,7 +18,6 @@
 
 package io.github.rothes.esu.bukkit.module
 
-import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
@@ -54,6 +53,7 @@ import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerAdvancementDoneEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -82,64 +82,66 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
     object Listeners: Listener {
 
         @EventHandler(priority = EventPriority.NORMAL)
+        fun onDeath(e: PlayerDeathEvent) {
+            val server = e.deathMessage() ?: return
+            if (server !is net.kyori.adventure.text.TranslatableComponent) return // Only support vanilla messages
+
+            val config = config
+            val maxItemName = config.maxDeathItemNameSize.getOrDefault(-1)
+            val maxEntityName = config.maxDeathEntityNameSize.getOrDefault(-1)
+            if (maxItemName < 0 && maxEntityName < 0) return
+
+            val msg = server.esu as TranslatableComponent
+            var modified = false
+            val arguments = msg.arguments().toMutableList()
+            for ((i, arg) in arguments.map { it.value() }.withIndex()) {
+                fun Component.limitCharSize(size: Int): Component {
+                    return replaceText {
+                        var remain = size
+                        it.match(".+").replacement { c ->
+                            val sz = c.content().charSize()
+                            if (sz <= remain) // Accepts all chars
+                                c.also { remain -= sz }
+                            else if (remain >= 0) // Print ".." in this scope
+                                c.content(c.content().substringCharSize(0, remain))
+                                    .append(Component.text("..", NamedTextColor.GRAY))
+                                    .also { remain = -1 } // No longer accept chars anymore
+                            else // Skip this component
+                                null
+                        }
+                    }
+                }
+                fun setArg(i: Int, component: Component) {
+                    arguments[i] = TranslationArgument.component(component)
+                    modified = true
+                }
+
+                if (maxItemName >= 0 && arg is TranslatableComponent && arg.key() == "chat.square_brackets") {
+                    val argument = arg.arguments()[0]
+                    val item = argument.value() as? TextComponent ?: continue
+                    if (arg.hoverEvent()?.value() !is HoverEvent.ShowItem) continue // Ensure it's item
+                    if (!item.hasDecoration(TextDecoration.ITALIC)) continue // Not a custom name
+
+                    val component = item.children().firstOrNull() as? TextComponent ?: continue
+                    val content = component.content()
+                    if (content.charSize() <= maxItemName) continue
+                    setArg(i, arg.arguments(item.limitCharSize(maxItemName)))
+                } else if (maxEntityName >= 0 && arg is TextComponent) {
+                    val showEntity = arg.hoverEvent()?.value() as? HoverEvent.ShowEntity ?: continue // Ensure it's entity
+                    if (showEntity.type().value() == "player") continue // Skip for player name
+
+                    setArg(i, arg.limitCharSize(maxEntityName))
+                }
+            }
+
+            if (modified) e.deathMessage(msg.arguments(arguments).server)
+        }
+
+        @EventHandler(priority = EventPriority.NORMAL)
         fun onDeath(e: RichPlayerDeathEvent) {
             e.setChatMessage { user, old ->
                 old?.let { msg ->
-                    val config = config
-                    var sized = msg
-
-                    val maxItemName = config.maxDeathItemNameSize.getOrDefault(-1)
-                    val maxEntityName = config.maxDeathEntityNameSize.getOrDefault(-1)
-                    try {
-                        if ((maxItemName >= 0 || maxEntityName >= 0) && msg is TranslatableComponent) {
-                            var modified = false
-                            val arguments = msg.arguments().toMutableList()
-                            for ((i, arg) in arguments.map { it.value() }.withIndex()) {
-                                fun Component.limitCharSize(size: Int): Component {
-                                    return replaceText {
-                                        var remain = size
-                                        it.match(".+").replacement { c ->
-                                            val sz = c.content().charSize()
-                                            if (sz <= remain) // Accepts all chars
-                                                c.also { remain -= sz }
-                                            else if (remain >= 0) // Print ".." in this scope
-                                                c.content(c.content().substringCharSize(0, remain))
-                                                    .append(Component.text("..", NamedTextColor.GRAY))
-                                                    .also { remain = -1 } // No longer accept chars anymore
-                                            else // Skip this component
-                                                null
-                                        }
-                                    }
-                                }
-                                fun setArg(i: Int, component: Component) {
-                                    arguments[i] = TranslationArgument.component(component)
-                                    modified = true
-                                }
-
-                                if (maxItemName >= 0 && arg is TranslatableComponent && arg.key() == "chat.square_brackets") {
-                                    val argument = arg.arguments()[0]
-                                    val item = argument.value() as? TextComponent ?: continue
-                                    if (arg.hoverEvent()?.value() !is HoverEvent.ShowItem) continue // Ensure it's item
-                                    if (!item.hasDecoration(TextDecoration.ITALIC)) continue // Not a custom name
-
-                                    val component = item.children().firstOrNull() as? TextComponent ?: continue
-                                    val content = component.content()
-                                    if (content.charSize() <= maxItemName) continue
-                                    setArg(i, arg.arguments(item.limitCharSize(maxItemName)))
-                                } else if (maxEntityName >= 0 && arg is TextComponent) {
-                                    val showEntity = arg.hoverEvent()?.value() as? HoverEvent.ShowEntity ?: continue // Ensure it's entity
-                                    if (showEntity.type().value() == "player") continue // Skip for player name
-
-                                    setArg(i, arg.limitCharSize(maxEntityName))
-                                }
-                            }
-
-                            if (modified) sized = msg.arguments(arguments)
-                        }
-                    } catch (e: Exception) {
-                        core.err("Failed to handle maxDeathItem/maxEntityNameSize", e)
-                    }
-                    processComponent(user, sized, config.message.death)
+                    processComponent(user, msg, config.message.death)
                 }
             }
         }
