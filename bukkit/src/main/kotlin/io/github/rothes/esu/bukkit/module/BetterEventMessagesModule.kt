@@ -58,8 +58,8 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.*
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrElse
-import kotlin.jvm.optionals.getOrNull
 
 object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleConfig, EmptyConfiguration>() {
 
@@ -88,13 +88,35 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                     val config = config
                     var sized = msg
 
-                    config.maxDeathItemNameSize.getOrNull()?.let { maxItemName ->
-                        try {
-                            if (maxItemName >= 0 && msg is TranslatableComponent) {
-                                var modified = false
-                                val arguments = msg.arguments().toMutableList()
-                                for ((i, arg) in arguments.map { it.value() }.withIndex()) {
-                                    if (arg !is TranslatableComponent || arg.key() != "chat.square_brackets") continue
+                    val maxItemName = config.maxDeathItemNameSize.getOrDefault(-1)
+                    val maxEntityName = config.maxDeathEntityNameSize.getOrDefault(-1)
+                    try {
+                        if ((maxItemName >= 0 || maxEntityName >= 0) && msg is TranslatableComponent) {
+                            var modified = false
+                            val arguments = msg.arguments().toMutableList()
+                            for ((i, arg) in arguments.map { it.value() }.withIndex()) {
+                                fun Component.limitCharSize(size: Int): Component {
+                                    return replaceText {
+                                        var remain = size
+                                        it.match(".+").replacement { c ->
+                                            val sz = c.content().charSize()
+                                            if (sz <= remain) // Accepts all chars
+                                                c.also { remain -= sz }
+                                            else if (remain >= 0) // Print ".." in this scope
+                                                c.content(c.content().substringCharSize(0, remain))
+                                                    .append(Component.text("..", NamedTextColor.GRAY))
+                                                    .also { remain = -1 } // No longer accept chars anymore
+                                            else // Skip this component
+                                                null
+                                        }
+                                    }
+                                }
+                                fun setArg(i: Int, component: Component) {
+                                    arguments[i] = TranslationArgument.component(component)
+                                    modified = true
+                                }
+
+                                if (maxItemName >= 0 && arg is TranslatableComponent && arg.key() == "chat.square_brackets") {
                                     val argument = arg.arguments()[0]
                                     val item = argument.value() as? TextComponent ?: continue
                                     if (arg.hoverEvent()?.value() !is HoverEvent.ShowItem) continue // Ensure it's item
@@ -103,24 +125,19 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                                     val component = item.children().firstOrNull() as? TextComponent ?: continue
                                     val content = component.content()
                                     if (content.charSize() <= maxItemName) continue
-                                    arguments[i] = TranslationArgument.component(
-                                        arg.arguments(
-                                            item.children(
-                                                listOf(
-                                                    component.content(content.substringCharSize(0, maxItemName)),
-                                                    Component.text("..", NamedTextColor.GRAY)
-                                                )
-                                            )
-                                        )
-                                    )
-                                    modified = true
-                                }
+                                    setArg(i, arg.arguments(item.limitCharSize(maxItemName)))
+                                } else if (maxEntityName >= 0 && arg is TextComponent) {
+                                    val showEntity = arg.hoverEvent()?.value() as? HoverEvent.ShowEntity ?: continue // Ensure it's entity
+                                    if (showEntity.type().value() == "player") continue // Skip for player name
 
-                                if (modified) sized = msg.arguments(arguments)
+                                    setArg(i, arg.limitCharSize(maxEntityName))
+                                }
                             }
-                        } catch (e: Exception) {
-                            core.err("Failed to handle maxDeathItemNameSize", e)
+
+                            if (modified) sized = msg.arguments(arguments)
                         }
+                    } catch (e: Exception) {
+                        core.err("Failed to handle maxDeathItem/maxEntityNameSize", e)
                     }
                     processComponent(user, sized, config.message.death)
                 }
@@ -197,6 +214,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             For death message, limit the displayed name length of the item which caused the kill.
         """)
         val maxDeathItemNameSize: Optional<Int> = Optional.empty(),
+        val maxDeathEntityNameSize: Optional<Int> = Optional.empty(),
     ): BaseModuleConfiguration() {
 
         data class Message(
