@@ -35,7 +35,7 @@ import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntArrayList
-import org.bukkit.Bukkit
+import net.minecraft.server.MinecraftServer
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -149,7 +149,7 @@ abstract class PlayerEntityVisibilityProcessor(
             player.syncTick {
                 task?.cancel()
                 task = null
-                if (Bukkit.getServer().isStopping) {
+                if (!MinecraftServer.getServer().isRunning) {
                     // Do not call showEntity once the server is stopping,
                     // Throws NPE on Folia
                     return@syncTick trackedEntities.clear()
