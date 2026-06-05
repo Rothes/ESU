@@ -1,0 +1,80 @@
+package io.github.rothes.esu.velocity.module.serverinfo
+
+import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.proxy.ProxyPingEvent
+import com.velocitypowered.api.proxy.server.ServerPing
+import io.github.rothes.esu.core.module.CommonFeature
+import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
+import io.github.rothes.esu.velocity.plugin
+import java.util.*
+import kotlin.jvm.optionals.getOrNull
+
+object MotdFeature : CommonFeature<BaseFeatureConfiguration, Unit>() {
+
+    init {
+        registerFeature(Mod)
+        registerFeature(Version)
+    }
+
+    override fun onEnable() {
+        plugin.server.eventManager.register(plugin.bootstrap, Listeners)
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        plugin.server.eventManager.unregisterListener(plugin.bootstrap, Listeners)
+    }
+
+    abstract class PingModifierFeature<T> : CommonFeature<T, Unit>() {
+
+        override fun onEnable() {}
+        abstract fun handlePing(ping: ServerPing.Builder)
+
+    }
+
+    private object Listeners {
+
+        @Subscribe
+        fun onPing(event: ProxyPingEvent) {
+            val ping = event.ping.asBuilder()
+            for (feature in getFeatures()) {
+                if (!feature.enabled || feature !is PingModifierFeature<*>) continue
+                feature.handlePing(ping)
+            }
+            event.ping = ping.build()
+        }
+
+    }
+
+    private object Mod : PingModifierFeature<Mod.ModConfig>() {
+
+        override fun handlePing(ping: ServerPing.Builder) {
+            config.modType.getOrNull()?.let { modType -> ping.modType(modType) }
+        }
+
+        data class ModConfig(
+            val modType: Optional<String> = Optional.of("FML"),
+        ): BaseFeatureConfiguration()
+
+    }
+
+    private object Version : PingModifierFeature<Version.ModConfig>() {
+
+        override fun handlePing(ping: ServerPing.Builder) {
+            val config = config
+            ping.version(
+                ServerPing.Version(
+                    config.protocol.getOrNull() ?: ping.version.protocol,
+                    config.name.getOrNull() ?: ping.version.name
+                )
+            )
+        }
+
+        data class ModConfig(
+            val name: Optional<String> = Optional.of("Velocity Rebrand"),
+            val protocol: Optional<Int> = Optional.empty(),
+        ): BaseFeatureConfiguration()
+
+    }
+
+}

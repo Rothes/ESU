@@ -43,10 +43,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.velocity.command.EsuVelocityCommandManager
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
-import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule
-import io.github.rothes.esu.velocity.module.AutoRestartModule
-import io.github.rothes.esu.velocity.module.NetworkThrottleModule
-import io.github.rothes.esu.velocity.module.UserNameVerifyModule
+import io.github.rothes.esu.velocity.module.*
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +96,7 @@ class EsuPluginVelocity(
         ModuleManager.addModule(AutoBroadcastModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(NetworkThrottleModule)
+        ModuleManager.addModule(ServerInfoModule)
         ModuleManager.addModule(UserNameVerifyModule)
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
