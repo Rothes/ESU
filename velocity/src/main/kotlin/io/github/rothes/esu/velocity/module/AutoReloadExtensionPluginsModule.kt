@@ -42,7 +42,7 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (plugin.initialized)
+            if (!enabled && plugin.initialized)
                 return errFail { "Esu is already initialized".message }
             if (plugin.server.pluginManager.getPlugin("serverutils") == null)
                 return errFail { "ServerUtils not found".message }

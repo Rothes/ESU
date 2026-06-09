@@ -45,7 +45,7 @@ object AutoReloadExtensionPluginsModule: BukkitModule<ModuleConfig, EmptyConfigu
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (core.initialized)
+            if (!enabled && core.initialized)
                 return errFail { "Esu is already initialized".message }
             if (!listOf("PlugMan", "PlugManX").any { Bukkit.getPluginManager().isPluginEnabled(it) })
                 return errFail { "PlugMan not found".message }
