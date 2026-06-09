@@ -11,7 +11,10 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.InitOnce
-import org.incendo.cloud.annotations.*
+import org.incendo.cloud.annotations.AnnotationParser
+import org.incendo.cloud.annotations.ArgumentMode
+import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.SyntaxFragment
 import org.incendo.cloud.annotations.descriptor.ImmutableCommandDescriptor
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 
@@ -19,8 +22,10 @@ object EsuAdminCommand {
 
     private var reloadHook: Runnable by InitOnce()
 
-    fun register(rootCmd: String, reloadHook: Runnable) {
+    fun register(reloadHook: Runnable) {
         this.reloadHook = reloadHook
+
+        val rootCmd = EsuCore.instance.basePermissionNode
         val annotationParser = AnnotationParser(EsuCore.instance.commandManager, User::class.java).installCoroutineSupport()
 
         val sp = annotationParser.commandExtractor()
@@ -33,13 +38,15 @@ object EsuAdminCommand {
                 ImmutableCommandDescriptor.of(desc.method(), rootCmd, syntax, rootCmd, desc.requiredSender())
             }
         }
+        annotationParser.registerBuilderDecorator {
+            it.permission("$rootCmd.command.admin")
+        }
 
         annotationParser.manager().parserRegistry().registerParser(ModuleParser.parser())
         annotationParser.parse(EsuAdminCommand)
     }
 
     @Command("reload")
-    @Permission("esu.command.admin")
     fun reload(sender: User) {
         EsuConfig.reloadConfig()
         ColorSchemes.reload()
@@ -51,7 +58,6 @@ object EsuAdminCommand {
     }
 
     @Command("module forceEnable <module>")
-    @Permission("esu.command.admin")
     fun forceEnable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
         val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
@@ -65,7 +71,6 @@ object EsuAdminCommand {
     }
 
     @Command("module forceDisable <module>")
-    @Permission("esu.command.admin")
     fun forceDisable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
         val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
