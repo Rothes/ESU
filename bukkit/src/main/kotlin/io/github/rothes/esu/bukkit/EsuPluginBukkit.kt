@@ -137,7 +137,7 @@ class EsuPluginBukkit(
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
-        EsuAdminCommand.register {
+        EsuAdminCommand.register("esu") {
             BukkitEsuLang.reloadConfig()
             UpdateCheckerMan.reload()
         }

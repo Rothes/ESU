@@ -100,7 +100,7 @@ class EsuPluginVelocity(
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
-        EsuAdminCommand.register {
+        EsuAdminCommand.register("vesu") {
             VelocityEsuLang.reloadConfig()
             UpdateCheckerMan.reload()
         }

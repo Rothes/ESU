@@ -10,23 +10,34 @@ import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.InitOnce
-import org.incendo.cloud.annotations.AnnotationParser
-import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.annotations.Permission
+import org.incendo.cloud.annotations.*
+import org.incendo.cloud.annotations.descriptor.ImmutableCommandDescriptor
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 
 object EsuAdminCommand {
 
     private var reloadHook: Runnable by InitOnce()
 
-    fun register(reloadHook: Runnable) {
+    fun register(rootCmd: String, reloadHook: Runnable) {
         this.reloadHook = reloadHook
         val annotationParser = AnnotationParser(EsuCore.instance.commandManager, User::class.java).installCoroutineSupport()
+
+        val sp = annotationParser.commandExtractor()
+        annotationParser.commandExtractor {
+            sp.extractCommands(it).map { desc ->
+                val syntax = buildList(desc.syntax().size + 1) {
+                    add(SyntaxFragment(rootCmd, listOf(), ArgumentMode.LITERAL))
+                    addAll(desc.syntax())
+                }
+                ImmutableCommandDescriptor.of(desc.method(), rootCmd, syntax, rootCmd, desc.requiredSender())
+            }
+        }
+
         annotationParser.manager().parserRegistry().registerParser(ModuleParser.parser())
         annotationParser.parse(EsuAdminCommand)
     }
 
-    @Command("esu reload")
+    @Command("reload")
     @Permission("esu.command.admin")
     fun reload(sender: User) {
         EsuConfig.reloadConfig()
@@ -37,7 +48,7 @@ object EsuAdminCommand {
         sender.message(EsuLang.instance.get(), { commands.reload.complete })
     }
 
-    @Command("esu module forceEnable <module>")
+    @Command("module forceEnable <module>")
     @Permission("esu.command.admin")
     fun forceEnable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
@@ -50,7 +61,7 @@ object EsuAdminCommand {
         }
     }
 
-    @Command("esu module forceDisable <module>")
+    @Command("module forceDisable <module>")
     @Permission("esu.command.admin")
     fun forceDisable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
