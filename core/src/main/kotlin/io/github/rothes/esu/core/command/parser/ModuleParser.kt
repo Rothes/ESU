@@ -20,6 +20,7 @@ package io.github.rothes.esu.core.command.parser
 
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
+import io.leangen.geantyref.TypeToken
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.context.CommandInput
 import org.incendo.cloud.parser.ArgumentParseResult
@@ -50,7 +51,7 @@ class ModuleParser<C>: ArgumentParser<C, Module<*, *>>, BlockingSuggestionProvid
     companion object {
 
         inline fun <reified C> parser(): ParserDescriptor<C, Module<*, *>> {
-            return ParserDescriptor.of(ModuleParser(), Module::class.java)
+            return ParserDescriptor.of(ModuleParser(), object : TypeToken<Module<*, *>>() {})
         }
 
     }
