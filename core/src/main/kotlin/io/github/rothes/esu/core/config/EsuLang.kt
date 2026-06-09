@@ -55,19 +55,19 @@ abstract class EsuLang<T: BaseEsuLangData> {
                 val forceDisable: ForceDisable = ForceDisable(),
             ) {
                 data class ForceEnable(
-                    val moduleEnabled: MessageData = "<pc>Module <pdc><module-name> <pc>is enabled now.".message,
-                    val alreadyEnabled: MessageData = "<ec>Module <edc><module-name> <ec>is already enabled.".message,
-                    val failedEnable: MessageData = "<ec>Failed to enable module <edc><module-name><ec>.".message,
+                    val moduleEnabled: MessageData = "<sc><b>ESU </b><pdc>» <pc>Module <pdc><module-name> <pc>is enabled now.".message,
+                    val alreadyEnabled: MessageData = "<sc><b>ESU </b><pdc>» <ec>Module <edc><module-name> <ec>is already enabled.".message,
+                    val failedEnable: MessageData = "<sc><b>ESU </b><pdc>» <ec>Failed to enable module <edc><module-name><ec>.".message,
                 )
                 data class ForceDisable(
-                    val moduleDisabled: MessageData = "<pc>Module <pdc><module-name> <pc>is disabled now.".message,
-                    val alreadyDisabled: MessageData = "<ec>Module <edc><module-name> <ec>is already disabled.".message,
-                    val failedDisable: MessageData = "<ec>Failed to disable module <edc><module-name><ec>.".message,
+                    val moduleDisabled: MessageData = "<sc><b>ESU </b><pdc>» <pc>Module <pdc><module-name> <pc>is disabled now.".message,
+                    val alreadyDisabled: MessageData = "<sc><b>ESU </b><pdc>» <ec>Module <edc><module-name> <ec>is already disabled.".message,
+                    val failedDisable: MessageData = "<sc><b>ESU </b><pdc>» <ec>Failed to disable module <edc><module-name><ec>.".message,
                 )
             }
 
             data class Reload(
-                val complete: MessageData = "<pc>Reloaded global & module configs.".message,
+                val complete: MessageData = "<sc><b>ESU </b><pdc>» <pc>Reloaded global & module configs.".message,
             )
         }
 
