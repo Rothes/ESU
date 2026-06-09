@@ -33,6 +33,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.command.EsuAdminCommand
 import io.github.rothes.esu.common.module.AutoBroadcastModule
+import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.config.EsuConfig
@@ -118,6 +119,7 @@ class EsuPluginVelocity(
         disabledHot = byServerUtils()
         ServerHotLoadSupport(disabledHot).onDisable()
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.removeModule(it) }
+        commandManager.shutdown()
 
         for (player in server.allPlayers) {
             VelocityUserManager.getCache(player.uniqueId)?.let {
