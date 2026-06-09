@@ -11,3 +11,9 @@ dependencies {
     api(project(":module:off-heap-memory"))
     compileOnly(libs.packetevents.api)
 }
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-java-parameters") // Fix cloud-annotations
+    }
+}

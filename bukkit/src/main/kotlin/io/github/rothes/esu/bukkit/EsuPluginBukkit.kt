@@ -31,13 +31,12 @@ import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
+import io.github.rothes.esu.common.command.EsuAdminCommand
 import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.User
@@ -49,7 +48,6 @@ import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.incendo.cloud.CommandManager
-import org.incendo.cloud.description.Description
 
 class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
@@ -139,48 +137,9 @@ class EsuPluginBukkit(
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
-        with(commandManager) {
-            val esu = commandBuilder("esu", Description.of("ESU commands")).permission("esu.command.admin")
-            command(
-                esu.literal("reload")
-                    .handler { context ->
-                        EsuConfig.reloadConfig()
-                        BukkitEsuLang.reloadConfig()
-                        ColorSchemes.reload()
-                        UpdateCheckerMan.reload()
-                        ModuleManager.reloadModules()
-                        context.sender().message("§aReloaded global & module configs.")
-                    }
-            )
-            val moduleCmd = esu.literal("module")
-            command(
-                moduleCmd.literal("forceEnable")
-                    .required("module", ModuleParser.parser(), ModuleParser())
-                    .handler { context ->
-                        val module = context.get<Module<*, *>>("module")
-                        if (module.enabled) {
-                            context.sender().message("§2Module ${module.name} is already enabled.")
-                        } else if (ModuleManager.forceEnableModule(module)) {
-                            context.sender().message("§aModule ${module.name} is enabled.")
-                        } else {
-                            context.sender().message("§cFailed to enable module ${module.name}.")
-                        }
-                    }
-            )
-            command(
-                moduleCmd.literal("forceDisable")
-                    .required("module", ModuleParser.parser(), ModuleParser())
-                    .handler { context ->
-                        val module = context.get<Module<*, *>>("module")
-                        if (!module.enabled) {
-                            context.sender().message("§4Module ${module.name} is already disabled.")
-                        } else if (ModuleManager.forceDisableModule(module)) {
-                            context.sender().message("§cModule ${module.name} is disabled.")
-                        } else {
-                            context.sender().message("§cFailed to disable module ${module.name}.")
-                        }
-                    }
-            )
+        EsuAdminCommand.register {
+            BukkitEsuLang.reloadConfig()
+            UpdateCheckerMan.reload()
         }
 
         Bukkit.getOnlinePlayers().forEach { it.updateCommands() }

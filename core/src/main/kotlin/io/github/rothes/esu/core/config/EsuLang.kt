@@ -21,6 +21,8 @@ package io.github.rothes.esu.core.config
 import io.github.rothes.esu.core.config.EsuLang.BaseEsuLangData
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
+import io.github.rothes.esu.core.configuration.data.MessageData
+import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.util.InitOnce
 import org.incendo.cloud.caption.Caption
 
@@ -37,11 +39,37 @@ abstract class EsuLang<T: BaseEsuLangData> {
     protected abstract fun load(): MultiLangConfiguration<T>
 
     open class BaseEsuLangData(
+        val commands: Commands = Commands(),
         val updater: Updater = Updater(),
         val booleans: Booleans = Booleans(),
         val format: Format = Format(),
         val commandCaptions: LinkedHashMap<Caption, String> = LinkedHashMap(),
     ): ConfigurationPart {
+
+        data class Commands(
+            val module: Module = Module(),
+            val reload: Reload = Reload(),
+        ) {
+            data class Module(
+                val forceEnable: ForceEnable = ForceEnable(),
+                val forceDisable: ForceDisable = ForceDisable(),
+            ) {
+                data class ForceEnable(
+                    val moduleEnabled: MessageData = "<pc>Module <pdc><module-name> <pc>is enabled now.".message,
+                    val alreadyEnabled: MessageData = "<ec>Module <edc><module-name> <ec>is already enabled.".message,
+                    val failedEnable: MessageData = "<ec>Failed to enable module <edc><module-name><ec>.".message,
+                )
+                data class ForceDisable(
+                    val moduleDisabled: MessageData = "<pc>Module <pdc><module-name> <pc>is disabled now.".message,
+                    val alreadyDisabled: MessageData = "<ec>Module <edc><module-name> <ec>is already disabled.".message,
+                    val failedDisable: MessageData = "<ec>Failed to disable module <edc><module-name><ec>.".message,
+                )
+            }
+
+            data class Reload(
+                val complete: MessageData = "<pc>Reloaded global & module configs.".message,
+            )
+        }
 
         data class Updater(
             val checker: Checker = Checker(),
@@ -79,7 +107,7 @@ abstract class EsuLang<T: BaseEsuLangData> {
     companion object {
         var instance: EsuLang<out BaseEsuLangData> by InitOnce()
 
-        fun get() = instance.data
+        fun get(): MultiLangConfiguration<out BaseEsuLangData> = instance.data
     }
 
 }

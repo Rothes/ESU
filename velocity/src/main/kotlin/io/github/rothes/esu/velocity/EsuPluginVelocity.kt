@@ -31,12 +31,11 @@ import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import io.github.rothes.esu.common.HotLoadSupport
+import io.github.rothes.esu.common.command.EsuAdminCommand
 import io.github.rothes.esu.common.module.AutoBroadcastModule
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.command.parser.ModuleParser
 import io.github.rothes.esu.core.config.EsuConfig
-import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.User
@@ -48,7 +47,6 @@ import io.github.rothes.esu.velocity.user.VelocityUserManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.CommandManager
-import org.incendo.cloud.description.Description
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -101,48 +99,9 @@ class EsuPluginVelocity(
         ModuleManager.addModule(AutoReloadExtensionPluginsModule)
 
         // Register commands
-        with(commandManager) {
-            val esu = commandBuilder("vesu", Description.of("ESU Velocity commands")).permission("vesu.command.admin")
-            command(
-                esu.literal("reload")
-                    .handler { context ->
-                        EsuConfig.reloadConfig()
-                        VelocityEsuLang.reloadConfig()
-                        ColorSchemes.reload()
-                        UpdateCheckerMan.reload()
-                        ModuleManager.reloadModules()
-                        context.sender().message("§aReloaded global & module configs.")
-                    }
-            )
-            val moduleCmd = esu.literal("module")
-            command(
-                moduleCmd.literal("forceEnable")
-                    .required("module", ModuleParser.parser(), ModuleParser())
-                    .handler { context ->
-                        val module = context.get<Module<*, *>>("module")
-                        if (module.enabled) {
-                            context.sender().message("§2Module ${module.name} is already enabled.")
-                        } else if (ModuleManager.forceEnableModule(module)) {
-                            context.sender().message("§aModule ${module.name} is enabled.")
-                        } else {
-                            context.sender().message("§cFailed to enable module ${module.name}.")
-                        }
-                    }
-            )
-            command(
-                moduleCmd.literal("forceDisable")
-                    .required("module", ModuleParser.parser(), ModuleParser())
-                    .handler { context ->
-                        val module = context.get<Module<*, *>>("module")
-                        if (!module.enabled) {
-                            context.sender().message("§4Module ${module.name} is already disabled.")
-                        } else if (ModuleManager.forceDisableModule(module)) {
-                            context.sender().message("§cModule ${module.name} is disabled.")
-                        } else {
-                            context.sender().message("§cFailed to disable module ${module.name}.")
-                        }
-                    }
-            )
+        EsuAdminCommand.register {
+            VelocityEsuLang.reloadConfig()
+            UpdateCheckerMan.reload()
         }
 
         server.allPlayers.forEach { it.user }
