@@ -47,6 +47,7 @@ abstract class EsuLang<T: BaseEsuLangData> {
     ): ConfigurationPart {
 
         data class Commands(
+            val prefix: String = "<sc><b>ESU </b><pdc>» ",
             val module: Module = Module(),
             val reload: Reload = Reload(),
         ) {
@@ -55,19 +56,19 @@ abstract class EsuLang<T: BaseEsuLangData> {
                 val forceDisable: ForceDisable = ForceDisable(),
             ) {
                 data class ForceEnable(
-                    val moduleEnabled: MessageData = "<sc><b>ESU </b><pdc>» <pc>Module <pdc><module-name> <pc>is enabled now.".message,
-                    val alreadyEnabled: MessageData = "<sc><b>ESU </b><pdc>» <ec>Module <edc><module-name> <ec>is already enabled.".message,
-                    val failedEnable: MessageData = "<sc><b>ESU </b><pdc>» <ec>Failed to enable module <edc><module-name><ec>.".message,
+                    val moduleEnabled: MessageData = "<prefix><pc>Module <pdc><module-name> <pc>is enabled now.".message,
+                    val alreadyEnabled: MessageData = "<prefix><ec>Module <edc><module-name> <ec>is already enabled.".message,
+                    val failedEnable: MessageData = "<prefix><ec>Failed to enable module <edc><module-name><ec>.".message,
                 )
                 data class ForceDisable(
-                    val moduleDisabled: MessageData = "<sc><b>ESU </b><pdc>» <pc>Module <pdc><module-name> <pc>is disabled now.".message,
-                    val alreadyDisabled: MessageData = "<sc><b>ESU </b><pdc>» <ec>Module <edc><module-name> <ec>is already disabled.".message,
-                    val failedDisable: MessageData = "<sc><b>ESU </b><pdc>» <ec>Failed to disable module <edc><module-name><ec>.".message,
+                    val moduleDisabled: MessageData = "<prefix><pc>Module <pdc><module-name> <pc>is disabled now.".message,
+                    val alreadyDisabled: MessageData = "<prefix><ec>Module <edc><module-name> <ec>is already disabled.".message,
+                    val failedDisable: MessageData = "<prefix><ec>Failed to disable module <edc><module-name><ec>.".message,
                 )
             }
 
             data class Reload(
-                val complete: MessageData = "<sc><b>ESU </b><pdc>» <pc>Reloaded global & module configs.".message,
+                val complete: MessageData = "<prefix><pc>Reloaded global & module configs.".message,
             )
         }
 

@@ -8,6 +8,7 @@ import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.module.Module
 import io.github.rothes.esu.core.module.ModuleManager
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.InitOnce
 import org.incendo.cloud.annotations.*
@@ -44,20 +45,22 @@ object EsuAdminCommand {
         ColorSchemes.reload()
         ModuleManager.reloadModules()
         reloadHook.run()
+        val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
         // Not sure why EsuLang.get() just don't compile here
-        sender.message(EsuLang.instance.get(), { commands.reload.complete })
+        sender.message(EsuLang.instance.get(), { commands.reload.complete }, prefix)
     }
 
     @Command("module forceEnable <module>")
     @Permission("esu.command.admin")
     fun forceEnable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
+        val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
         if (module.enabled) {
-            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.alreadyEnabled }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.alreadyEnabled }, tag, prefix)
         } else if (ModuleManager.forceEnableModule(module)) {
-            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.moduleEnabled }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.moduleEnabled }, tag, prefix)
         } else {
-            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.failedEnable }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceEnable.failedEnable }, tag, prefix)
         }
     }
 
@@ -65,12 +68,13 @@ object EsuAdminCommand {
     @Permission("esu.command.admin")
     fun forceDisable(sender: User, module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
+        val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
         if (!module.enabled) {
-            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.alreadyDisabled }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.alreadyDisabled }, tag, prefix)
         } else if (ModuleManager.forceDisableModule(module)) {
-            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.moduleDisabled }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.moduleDisabled }, tag, prefix)
         } else {
-            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.failedDisable }, tag)
+            sender.message(EsuLang.instance.get(), { commands.module.forceDisable.failedDisable }, tag, prefix)
         }
     }
 
