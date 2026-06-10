@@ -86,7 +86,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     listOf(
                         "net.neoforged:AutoRenamingTool:2.0.13",
                     ),
-                    extraRepo = if (MavenResolver.usingAliyun) listOf() else listOf(MavenResolver.MavenRepos.NEO_FORGED)
+                    extraRepo = listOf(MavenResolver.MavenRepos.NEO_FORGED)
                 )
                 if (ServerInfo.hasMojmap)
                     MappingsLoader

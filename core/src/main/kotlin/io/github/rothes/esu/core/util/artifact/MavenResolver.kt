@@ -89,7 +89,6 @@ object MavenResolver {
         setReadOnly()
     }
     private val repositories: List<RemoteRepository>
-    val usingAliyun: Boolean
 
     private var injector: URLInjector = UnsafeURLInjector
 
@@ -103,8 +102,6 @@ object MavenResolver {
                 RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build(), // Fallback to Maven Central
             )
         )
-        @Suppress("ReplaceCallWithBinaryOperator") // no-stdlib support
-        usingAliyun = repo.id.equals("aliyun")
     }
 
     fun loadKotlin() {
