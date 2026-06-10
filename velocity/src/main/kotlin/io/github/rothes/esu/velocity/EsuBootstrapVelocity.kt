@@ -56,7 +56,7 @@ import java.nio.file.Path
 class EsuBootstrapVelocity @Inject constructor(
     val server: ProxyServer,
     val logger: Logger,
-    @param:DataDirectory val dataDirectory: Path,
+    @param:DataDirectory override val baseConfigPath: Path,
     @param:Named("esu") val container: PluginContainer,
     val metricsFactory: Metrics.Factory
 ): EsuBootstrap {
@@ -93,11 +93,6 @@ class EsuBootstrapVelocity @Inject constructor(
     override fun err(message: String, throwable: Throwable?) {
         logger.error(message, throwable)
     }
-
-    override val baseConfigPath: Path
-        get() {
-            return dataDirectory
-        }
 
     private companion object {
 

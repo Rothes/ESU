@@ -49,7 +49,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.CommandManager
 import org.slf4j.Logger
-import java.nio.file.Path
 
 class EsuPluginVelocity(
     val bootstrap: EsuBootstrapVelocity,
@@ -69,8 +68,6 @@ class EsuPluginVelocity(
         get() = bootstrap.server
     val logger: Logger
         get() = bootstrap.logger
-    val dataDirectory: Path
-        get() = bootstrap.dataDirectory
     val container: PluginContainer
         get() = bootstrap.container
 
