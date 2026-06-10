@@ -25,7 +25,7 @@ object EsuAdminCommand {
     fun register(reloadHook: Runnable) {
         this.reloadHook = reloadHook
 
-        val rootCmd = EsuCore.instance.basePermissionNode
+        val rootCmd = EsuCore.instance.baseCommandNode
         val annotationParser = AnnotationParser(EsuCore.instance.commandManager, User::class.java).installCoroutineSupport()
 
         val sp = annotationParser.commandExtractor()

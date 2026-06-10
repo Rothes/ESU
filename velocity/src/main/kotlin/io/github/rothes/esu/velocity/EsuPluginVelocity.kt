@@ -57,7 +57,7 @@ class EsuPluginVelocity(
 
     override var initialized: Boolean = false
         private set
-    override val basePermissionNode: String = "vesu"
+    override val baseCommandNode: String = "vesu"
 
     var enabled: Boolean = false
         private set

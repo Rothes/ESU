@@ -88,7 +88,7 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
     final override val lang: MultiLangConfiguration<L>
         get() = _lang ?: error("Lang is not loaded for feature $name")
 
-    override val permissionNode: String by lazy { (parent?.permissionNode ?: EsuCore.instance.basePermissionNode) + "." + name.lowercase() }
+    override val permissionNode: String by lazy { (parent?.permissionNode ?: EsuCore.instance.baseCommandNode) + "." + name.lowercase() }
 
     override fun onDisable() {
         unregisterCommands()

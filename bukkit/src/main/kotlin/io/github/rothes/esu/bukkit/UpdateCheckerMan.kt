@@ -39,7 +39,7 @@ object UpdateCheckerMan {
                 put(VersionAction.PROHIBIT) { Bukkit.getPluginManager().disablePlugin(plugin) }
             },
             { Bukkit.getOnlinePlayers().map { it.user } },
-            EsuCore.instance.basePermissionNode
+            EsuCore.instance.baseCommandNode
         )
 
     fun reload() {

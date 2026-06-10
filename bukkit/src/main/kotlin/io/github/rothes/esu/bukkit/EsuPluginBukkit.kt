@@ -56,7 +56,7 @@ class EsuPluginBukkit(
     override var initialized: Boolean = false
         private set
 
-    override val basePermissionNode: String = "esu"
+    override val baseCommandNode: String = "esu"
 
     override var enabledHot: Boolean by InitOnce()
     override var disabledHot: Boolean by InitOnce()

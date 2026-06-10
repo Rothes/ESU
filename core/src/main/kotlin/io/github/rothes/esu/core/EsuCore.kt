@@ -27,7 +27,7 @@ interface EsuCore : EsuLogger {
 
     val initialized: Boolean
     val commandManager: CommandManager<User>
-    val basePermissionNode: String
+    val baseCommandNode: String
 
     override fun info(message: String) {
         EsuBootstrap.instance.info(message)
