@@ -33,7 +33,7 @@ object ColorSchemes {
 
     private fun load(): MultiColorSchemeConfiguration {
         return ConfigLoader.loadMulti<MultiColorSchemeConfiguration, ColorScheme>(
-            EsuCore.instance.baseConfigPath().resolve("color_schemes"),
+            EsuCore.instance.baseConfigPath.resolve("color_schemes"),
             ConfigLoader.LoaderSettingsMulti(
                 EsuConfig.get().defaultColorScheme,
                 yamlLoader = {

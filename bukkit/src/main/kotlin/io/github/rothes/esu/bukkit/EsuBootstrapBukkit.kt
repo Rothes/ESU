@@ -74,9 +74,8 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
         logger.log(Level.SEVERE, message, throwable)
     }
 
-    override fun baseConfigPath(): Path {
-        return dataFolder.toPath()
-    }
+    override val baseConfigPath: Path
+        get() = dataFolder.toPath()
 
     private companion object {
 

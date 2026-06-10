@@ -29,6 +29,9 @@ interface EsuCore : EsuLogger {
     val commandManager: CommandManager<User>
     val baseCommandNode: String
 
+    val baseConfigPath: Path
+        get() = EsuBootstrap.instance.baseConfigPath
+
     override fun info(message: String) {
         EsuBootstrap.instance.info(message)
     }
@@ -40,10 +43,6 @@ interface EsuCore : EsuLogger {
     }
     override fun err(message: String, throwable: Throwable?) {
         EsuBootstrap.instance.err(message, throwable)
-    }
-
-    fun baseConfigPath(): Path {
-        return EsuBootstrap.instance.baseConfigPath()
     }
 
     companion object {

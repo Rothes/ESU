@@ -162,7 +162,7 @@ object ConfigLoader {
             if (path.notExists()) {
                 path.parent.createDirectories()
                 EsuConfig.get().localeSoftLinkPath.getOrNull()?.let { linkTo ->
-                    val relativize = EsuCore.instance.baseConfigPath().relativize(path)
+                    val relativize = EsuCore.instance.baseConfigPath.relativize(path)
                     val source = linkTo.resolve(relativize)
                     if (!source.isDirectory()) {
                         source.createDirectories()
@@ -530,7 +530,7 @@ object ConfigLoader {
         val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
         val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
         val findResource: Boolean = true,
-        val basePath: Path = EsuCore.instance.baseConfigPath(),
+        val basePath: Path = EsuCore.instance.baseConfigPath,
     )
 
 
@@ -542,7 +542,7 @@ object ConfigLoader {
         yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
         nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
         findResource: Boolean = true,
-        basePath: Path = EsuCore.instance.baseConfigPath(),
+        basePath: Path = EsuCore.instance.baseConfigPath,
     ): LoaderSettings(yamlLoader, nodeMapper, findResource, basePath) {
 
         constructor(
@@ -553,7 +553,7 @@ object ConfigLoader {
             keyMapper: (Path) -> String = { it.nameWithoutExtension },
             nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
             findResource: Boolean = true,
-            basePath: Path = EsuCore.instance.baseConfigPath(),
+            basePath: Path = EsuCore.instance.baseConfigPath,
         ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, findResource, basePath)
 
     }

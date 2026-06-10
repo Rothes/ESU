@@ -200,7 +200,7 @@ object MavenResolver {
 
     fun loadRepoConfiguration(): MavenRepo {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val file = EsuBootstrap.instance.baseConfigPath().resolve("maven-repo.json")
+        val file = EsuBootstrap.instance.baseConfigPath.resolve("maven-repo.json")
         fun useBest(): MavenRepo {
             val best = findBestMavenRepo()
             saveRepoConfiguration(gson, file, best)

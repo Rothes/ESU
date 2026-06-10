@@ -41,7 +41,7 @@ object MappingsLoader {
     private val version = ServerInfo.mcVersion
     private val versionString = if (version <= 21) "1.${version.shortString()}" else version.shortString()
 
-    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/mappings/$versionString").toFile()
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath.resolve(".cache/mappings/$versionString").toFile()
     private val fileHashes = FileHashes(cacheFolder)
 
     private const val SERVER_CL = "serverCl.jar"

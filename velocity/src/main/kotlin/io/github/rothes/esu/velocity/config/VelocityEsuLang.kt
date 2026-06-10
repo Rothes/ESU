@@ -35,7 +35,7 @@ object VelocityEsuLang: EsuLang<VelocityLangData>() {
     }
 
     override fun load(): MultiLangConfiguration<VelocityLangData> = ConfigLoader.loadMulti(
-        EsuCore.instance.baseConfigPath().resolve("lang"), "en_us"
+        EsuCore.instance.baseConfigPath.resolve("lang"), "en_us"
     )
 
     class VelocityLangData: BaseEsuLangData() {

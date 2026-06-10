@@ -52,7 +52,7 @@ object EsuConfig {
         LogUser.onReload()
     }
 
-    private fun load(): ConfigData = ConfigLoader.load(EsuCore.instance.baseConfigPath().resolve("config.yml"))
+    private fun load(): ConfigData = ConfigLoader.load(EsuCore.instance.baseConfigPath.resolve("config.yml"))
 
     data class ConfigData(
         val locale: String = Locale.getDefault().language + '_' + Locale.getDefault().country.lowercase(),
@@ -109,7 +109,7 @@ object EsuConfig {
 
             val url: String
                 get() = when (databaseType.uppercase()) {
-                    "H2"      -> "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath().name}/h2;MODE=MYSQL"
+                    "H2"      -> "jdbc:h2:file:./plugins/${EsuCore.instance.baseConfigPath.name}/h2;MODE=MYSQL"
                     "MYSQL"   -> "jdbc:mysql://$host:$port/$database"
                     "MARIADB" -> "jdbc:mariadb://$host:$port/$database"
                     else      -> error("Unsupported database type: $databaseType")

@@ -25,7 +25,7 @@ import java.io.File
 
 object CachedRelocator {
 
-    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().toFile().resolve(".cache/relocated")
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath.toFile().resolve(".cache/relocated")
     private val cached = FileHashes(cacheFolder)
 
     fun relocate(

@@ -22,7 +22,7 @@ import java.nio.file.Path
 
 interface EsuBootstrap : EsuLogger {
 
-    fun baseConfigPath(): Path
+    val baseConfigPath: Path
 
     companion object {
         private var instanceInternal: EsuBootstrap? = null

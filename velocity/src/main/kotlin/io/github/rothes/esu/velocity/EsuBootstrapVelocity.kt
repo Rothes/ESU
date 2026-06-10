@@ -94,9 +94,10 @@ class EsuBootstrapVelocity @Inject constructor(
         logger.error(message, throwable)
     }
 
-    override fun baseConfigPath(): Path {
-        return dataDirectory
-    }
+    override val baseConfigPath: Path
+        get() {
+            return dataDirectory
+        }
 
     private companion object {
 

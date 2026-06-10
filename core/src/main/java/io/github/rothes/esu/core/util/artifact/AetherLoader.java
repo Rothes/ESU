@@ -41,7 +41,7 @@ public class AetherLoader {
 
     private static void resolveAetherLib() {
         try {
-            var resolve = EsuBootstrap.Companion.getInstance().baseConfigPath().resolve(".cache/aether-library.jar").toFile();
+            var resolve = EsuBootstrap.Companion.getInstance().getBaseConfigPath().resolve(".cache/aether-library.jar").toFile();
             if (!resolve.exists() || !HashUtils.calculateSha1(resolve).equals("f2bbafed1dd38ffdbaac1daf17ca706efbec74ef")) {
                 try {
                     downloadAetherLib("ghfast.top/https://github.com", resolve);

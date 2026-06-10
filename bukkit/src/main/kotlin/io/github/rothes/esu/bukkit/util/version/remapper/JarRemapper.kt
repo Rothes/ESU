@@ -35,7 +35,7 @@ object JarRemapper {
 
     private const val REMAPPER_VERSION = "5"
 
-    private val cacheFolder = EsuBootstrap.instance.baseConfigPath().resolve(".cache/remapped").toFile()
+    private val cacheFolder = EsuBootstrap.instance.baseConfigPath.resolve(".cache/remapped").toFile()
     private val cached = FileHashes(cacheFolder)
 
     fun reobf(file: File): File {
