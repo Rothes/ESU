@@ -61,7 +61,7 @@ abstract class BukkitUser: User {
     }
 
     fun <T: ConfigurationPart> item(locales: MultiLangConfiguration<T>, block: T.() -> ItemData?, vararg params: TagResolver): ItemStack {
-        val itemData = langOrNull(locales, block) ?: throw NullPointerException()
+        val itemData = lang(locales, block)
         return item(itemData, *params)
     }
 
