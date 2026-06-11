@@ -54,12 +54,12 @@ interface LogUser: User {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("infoMessage")
     fun <T: ConfigurationPart> info(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
-        val messageData = localed(locales, block)
+        val messageData = lang(locales, block)
         info(messageData, params = params)
     }
 
     fun <T: ConfigurationPart> info(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
-        val message = localed(locales, block)
+        val message = lang(locales, block)
         infoMiniMessage(message, params = params)
     }
 
@@ -92,12 +92,12 @@ interface LogUser: User {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("warnMessage")
     fun <T: ConfigurationPart> warn(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
-        val messageData = localed(locales, block)
+        val messageData = lang(locales, block)
         warn(messageData, params = params)
     }
 
     fun <T: ConfigurationPart> warn(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
-        val message = localed(locales, block)
+        val message = lang(locales, block)
         warnMiniMessage(message, params = params)
     }
 
@@ -130,12 +130,12 @@ interface LogUser: User {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("errorMessage")
     fun <T: ConfigurationPart> error(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
-        val messageData = localed(locales, block)
+        val messageData = lang(locales, block)
         error(messageData, params = params)
     }
 
     fun <T: ConfigurationPart> error(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
-        val message = localed(locales, block)
+        val message = lang(locales, block)
         errorMiniMessage(message, params = params)
     }
 

@@ -64,7 +64,7 @@ object AutoBroadcastModule: CommonModule<AutoBroadcastModule.ModuleConfig, AutoB
                     }
                     for (user in UserManager.instance.getUsers()) {
                         if (user.isOnline) // Safe for players just joined
-                            user.message(user.localedOrNull(lang) { broadcastMessage[key] } ?: key.message)
+                            user.message(user.langOrNull(lang) { broadcastMessage[key] } ?: key.message)
                     }
                 }
             }

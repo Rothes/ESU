@@ -28,6 +28,7 @@ import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
+import io.github.rothes.esu.core.util.lang.LangUtils.getLangOrNull
 import io.github.rothes.esu.lib.adventure.audience.Audience
 import io.github.rothes.esu.lib.adventure.inventory.Book
 import io.github.rothes.esu.lib.adventure.sound.Sound
@@ -69,48 +70,45 @@ interface User {
 
     fun hasPermission(permission: String): Boolean
 
-    fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? {
-        val lang = language
-        return langMap[lang]?.let(block)
-            // If this locale is not found, try the same language.
-            ?: lang?.substringBefore('_')?.let { language ->
-                val lang = language + '_'
-                langMap.entries.find { it.key.startsWith(lang) }?.let { block(it.value) }
-            }
-            // Still? Use the server default locale instead.
-            ?: langMap[EsuConfig.get().locale]?.let(block)
-            // Use the default value.
-            ?: langMap["en_us"]?.let(block)
-            // Maybe it doesn't provide en_us locale...?
-            ?: langMap.values.firstNotNullOfOrNull { block(it) }
+    fun <V, R> langOrNull(lang: Map<String, V>, transform: (V) -> R?): R? {
+        return lang.getLangOrNull(language, transform)
     }
 
-    fun <V> localedOrNull(langMap: Map<String, V>): V? {
-        return localedOrNull(langMap) { it }
+    fun <V> langOrNull(lang: Map<String, V>): V? {
+        return langOrNull(lang) { it }
     }
 
-    fun <T, R> localedOrNull(locales: MultiLangConfiguration<T>, block: T.() -> R?): R? {
-        return localedOrNull(locales.configs, block)
+    fun <T, R> langOrNull(lang: MultiLangConfiguration<T>, transform: T.() -> R?): R? {
+        return langOrNull(lang.configs, transform)
     }
 
-    fun <V, R> localed(langMap: Map<String, V>, block: (V) -> R?): R {
-        return localedOrNull(langMap, block) ?: throw NullPointerException()
+    fun <V, R> lang(lang: Map<String, V>, transform: (V) -> R?): R {
+        return langOrNull(lang, transform) ?: throw NullPointerException()
     }
 
-    fun <V> localed(langMap: Map<String, V>): V {
-        return localed(langMap) { it }
+    fun <V> lang(langMap: Map<String, V>): V {
+        return lang(langMap) { it }
     }
 
-    fun <T, R> localed(locales: MultiLangConfiguration<T>, block: T.() -> R?): R {
-        return localedOrNull(locales, block) ?: throw NullPointerException()
+    fun <T, R> lang(lang: MultiLangConfiguration<T>, transform: T.() -> R?): R {
+        return langOrNull(lang, transform) ?: throw NullPointerException()
     }
+
+    /*  Legacy language functions  */
+    @Deprecated("Use #lang") fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? = langOrNull(langMap, block)
+    @Deprecated("Use #lang") fun <V> localedOrNull(langMap: Map<String, V>): V? = langOrNull(langMap)
+    @Deprecated("Use #lang") fun <T, R> localedOrNull(locales: MultiLangConfiguration<T>, block: T.() -> R?): R? = langOrNull(locales, block)
+    @Deprecated("Use #lang") fun <V, R> localed(langMap: Map<String, V>, block: (V) -> R?): R = lang(langMap, block)
+    @Deprecated("Use #lang") fun <V> localed(langMap: Map<String, V>): V = lang(langMap)
+    @Deprecated("Use #lang") fun <T, R> localed(locales: MultiLangConfiguration<T>, block: T.() -> R?): R = lang(locales, block)
+    /*  Legacy language functions  */
 
     @OptIn(ExperimentalTypeInference::class)
     @OverloadResolutionByLambdaReturnType
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("sendMessage")
     fun <T> message(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver) {
-        val messageData = localed(locales, block)
+        val messageData = lang(locales, block)
         message(messageData, params = params)
     }
 
@@ -122,7 +120,7 @@ interface User {
     }
 
     fun <T> buildMiniMessage(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver): Component {
-        return buildMiniMessage(localed(locales, block), params = params)
+        return buildMiniMessage(lang(locales, block), params = params)
     }
     fun buildMiniMessage(message: String, vararg params: TagResolver): Component {
         return MiniMessage.miniMessage().deserialize(

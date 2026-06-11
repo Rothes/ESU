@@ -79,7 +79,7 @@ class UpdateChecker(
     fun onJoin(user: User) {
         if (EsuConfig.get().updateChecker && user.hasPermission(perm)) {
             for (msg in messages) {
-                user.message(user.localed(msg.langMap) { it.message }, *msg.args)
+                user.message(user.lang(msg.langMap) { it.message }, *msg.args)
             }
         }
     }
@@ -116,12 +116,12 @@ class UpdateChecker(
             val args = arrayOf(unparsed("latest_version", info.latestVersionName))
             val msg = RemoteMessage(notification.message, *args)
 
-            console.info(console.localed(msg.langMap) { it.message }, *msg.args, prefix = "Updater")
+            console.info(console.lang(msg.langMap) { it.message }, *msg.args, prefix = "Updater")
             if (notification.notifyInGame) {
                 allUsers()
                     .filter { it.hasPermission(perm) }
                     .forEach { user ->
-                        user.message(user.localed(msg.langMap) { it.message }, *msg.args)
+                        user.message(user.lang(msg.langMap) { it.message }, *msg.args)
                     }
             }
 

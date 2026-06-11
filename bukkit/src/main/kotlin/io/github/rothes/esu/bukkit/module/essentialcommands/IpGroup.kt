@@ -47,8 +47,8 @@ object IpGroup : BaseCommand<FeatureToggle.DefaultTrue, IpGroup.Lang>() {
                             lang, { entry },
                             unparsed("address", it.key),
                             parsed("players", it.value.joinToString(
-                                prefix = sender.localed(lang) { playerPrefix },
-                                separator = sender.localed(lang) { playerSeparator })
+                                prefix = sender.lang(lang) { playerPrefix },
+                                separator = sender.lang(lang) { playerSeparator })
                             ))
                     }
                 } else {

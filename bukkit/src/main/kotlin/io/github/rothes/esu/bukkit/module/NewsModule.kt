@@ -117,7 +117,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
         layout: ModuleLang.() -> String,
         tags: NewsDataManager.NewsItem.() -> List<TagResolver>,
     ): InterfaceContext {
-        val layout = localed(lang, layout)
+        val layout = lang(lang, layout)
         return InterfaceContext(layout, tags)
     }
 
@@ -126,7 +126,7 @@ object NewsModule: BukkitModule<NewsModule.ModuleConfig, NewsModule.ModuleLang>(
 
         val pages = buildList {
             val sb = StringBuilder()
-            for (page in user.localed(msg)) {
+            for (page in user.lang(msg)) {
                 if (page.isEmpty()) {
                     add(sb.toString())
                     sb.clear()

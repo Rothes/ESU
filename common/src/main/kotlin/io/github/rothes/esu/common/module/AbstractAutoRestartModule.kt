@@ -118,7 +118,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                 StringParser.greedyStringParser(),
                 SuggestionProvider.blockingStrings { context, _ ->
                     listOf(
-                        context.sender().localed(lang) { timeFormatter })
+                        context.sender().lang(lang) { timeFormatter })
                 }).handler { context ->
                 val raw = context.get<String>("dateTime")
                 val localDateTime = try {
@@ -126,8 +126,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
                         raw,
                         DateTimeFormatterBuilder().parseCaseInsensitive()
                             .parseDefaulting(ChronoField.YEAR, LocalDate.now().year.toLong()).appendPattern(
-                                context.sender()
-                                    .localed(lang) { timeFormatter })
+                                context.sender().lang(lang) { timeFormatter })
                             .toFormatter()
                     )
                 } catch (e: DateTimeParseException) {
@@ -221,7 +220,7 @@ abstract class AbstractAutoRestartModule: CommonModule<AbstractAutoRestartModule
 
     private fun User.messageTimeParsed(duration: KDuration, block: ModuleLocale.() -> MessageData?) {
         val instant = Instant.ofEpochMilli(restartOn!!).atZone(ZoneId.systemDefault())
-        val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(localed(
+        val time = if (duration < 1.days) instant.toLocalTime() else instant.toLocalDateTime().format(lang(
             lang
         ) { timeFormatterP })
         message(lang, block, duration(duration, this, "interval"), unparsed("time", time))

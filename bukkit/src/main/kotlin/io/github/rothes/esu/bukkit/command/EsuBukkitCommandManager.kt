@@ -63,7 +63,7 @@ class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
         }
         settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
         captionRegistry().registerProvider { caption, recipient ->
-            recipient.localedOrNull(BukkitEsuLang.get()) {
+            recipient.langOrNull(BukkitEsuLang.get()) {
                 commandCaptions[caption]
             }
         }

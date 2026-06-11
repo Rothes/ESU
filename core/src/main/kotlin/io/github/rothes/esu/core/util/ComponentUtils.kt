@@ -148,9 +148,9 @@ object ComponentUtils {
     fun duration(duration: Duration, user: User, key: String = "duration"): TagResolver.Single {
         return Placeholder.parsed(key, duration.toComponents { d, h, m, s, ns ->
             buildString {
-                val separator = user.localed(EsuLang.get()) { format.duration.separator }
+                val separator = user.lang(EsuLang.get()) { format.duration.separator }
                 val append = fun(block: EsuLang.BaseEsuLangData.() -> String?, v: Number) {
-                    append(user.localed(EsuLang.get(), block).replace("<value>", v.toString()))
+                    append(user.lang(EsuLang.get(), block).replace("<value>", v.toString()))
                     append(separator)
                 }
                 if (d > 0) append({ format.duration.day }, d)
@@ -209,7 +209,7 @@ object ComponentUtils {
     fun <T> pLang(viewer: User,
                                      locales: MultiLangConfiguration<T>, block: T.() -> Map<String, String>?,
                                      vararg params: TagResolver): TagResolver {
-        val langMap = viewer.localed(locales, block)
+        val langMap = viewer.lang(locales, block)
         return pLang(viewer, langMap, params = params)
     }
 

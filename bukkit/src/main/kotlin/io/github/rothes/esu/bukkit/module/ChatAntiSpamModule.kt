@@ -123,7 +123,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                             if (spamData.muteUntil > System.currentTimeMillis())
                                 (spamData.muteUntil - System.currentTimeMillis()).milliseconds
                             else
-                                sender.localed(lang) { command.data.notMuted }
+                                sender.lang(lang) { command.data.notMuted }
                         )
                     )
                 }
@@ -204,7 +204,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         get() = player.address!!.hostString
 
     val User.msgPrefix: TagResolver
-        get() = parsed("prefix", localed(lang) { this.prefix })
+        get() = parsed("prefix", lang(lang) { this.prefix })
 
     data class ModuleConfig(
         @Comment("Enable to notify console anti-spam messages")

@@ -113,7 +113,7 @@ object BlockedCommandsModule: BukkitModule<BlockedCommandsModule.ModuleConfig, B
         if (matched != null) {
             if (!checkHide) {
                 val key = matched.blockedMessage
-                user.message(user.localedOrNull(lang) { blockedMessage[key] } ?: key.message)
+                user.message(user.langOrNull(lang) { blockedMessage[key] } ?: key.message)
             }
             return true
         }

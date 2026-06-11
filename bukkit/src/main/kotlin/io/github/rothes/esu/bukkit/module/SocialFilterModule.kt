@@ -171,7 +171,7 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
 
         fun messageBlocked(user: User) {
             if (blockedMessageKey.isEmpty()) return
-            val message = user.localedOrNull(lang) { blockedMessage[blockedMessageKey] } ?: blockedMessageKey.message
+            val message = user.langOrNull(lang) { blockedMessage[blockedMessageKey] } ?: blockedMessageKey.message
             user.message(message)
         }
 

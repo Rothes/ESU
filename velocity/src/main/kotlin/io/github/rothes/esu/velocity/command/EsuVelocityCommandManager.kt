@@ -122,7 +122,7 @@ class EsuVelocityCommandManager : CommandManager<User>(
         registerCapability(CloudCapability.StandardCapabilities.ROOT_COMMAND_DELETION)
         settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true)
         captionRegistry().registerProvider { caption, recipient ->
-            recipient.localedOrNull(VelocityEsuLang.get()) {
+            recipient.langOrNull(VelocityEsuLang.get()) {
                 commandCaptions[caption]
             }
         }
