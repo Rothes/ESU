@@ -20,8 +20,17 @@ package io.github.rothes.esu.velocity.module
 
 import io.github.rothes.esu.core.module.CommonModule
 import io.github.rothes.esu.velocity.plugin
+import java.nio.file.Path
 
 abstract class VelocityModule<C, L> : CommonModule<C, L>() {
+
+    open val velocityPlugin: Any
+        get() = plugin.bootstrap
+
+    override val moduleFolder: Path
+        get() = Path.of("plugins")
+            .resolve(plugin.server.pluginManager.ensurePluginContainer(velocityPlugin).description.id)
+            .resolve("modules").resolve(name)
 
     protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
 

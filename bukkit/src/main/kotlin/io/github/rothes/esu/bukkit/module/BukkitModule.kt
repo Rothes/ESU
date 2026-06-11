@@ -24,8 +24,15 @@ import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
+import java.nio.file.Path
 
 abstract class BukkitModule<C, L> : CommonModule<C, L>() {
+
+    open val bukkitPlugin: Plugin
+        get() = io.github.rothes.esu.bukkit.plugin
+
+    override val moduleFolder: Path
+        get() = bukkitPlugin.dataFolder.toPath().resolve("modules").resolve(name)
 
     protected val registeredListeners = linkedSetOf<Listener>()
 

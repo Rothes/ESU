@@ -32,13 +32,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.frankheijden.serverutils.velocity.managers.VelocityPluginManager
+import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration.Companion.seconds
 
 object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfiguration>() {
 
     private lateinit var data: ModuleData
-    private val dataPath = moduleFolder.resolve("data.yml")
+    private val dataPath: Path
+        get() = moduleFolder.resolve("data.yml")
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {

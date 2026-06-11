@@ -44,7 +44,8 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
     }
 
     lateinit var data: ModuleData
-    private val dataPath = moduleFolder.resolve("data.yml")
+    private val dataPath
+        get() = moduleFolder.resolve("data.yml")
 
     override fun onEnable() {
         data = ConfigLoader.load(dataPath)

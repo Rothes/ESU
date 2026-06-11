@@ -34,15 +34,12 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
     override val name: String = javaClass.simpleName.removeSuffix("Module")
 
-    override val moduleFolder: Path by lazy {
-        EsuCore.instance.baseConfigPath.resolve("modules").resolve(name)
-    }
-    override val configPath: Path by lazy {
-        moduleFolder.resolve("config.yml")
-    }
-    override val langPath: Path by lazy {
-        moduleFolder.resolve("lang")
-    }
+    override val moduleFolder: Path
+        get() = EsuCore.instance.baseConfigPath.resolve("modules").resolve(name)
+    override val configPath: Path
+        get() = moduleFolder.resolve("config.yml")
+    override val langPath: Path
+        get() = moduleFolder.resolve("lang")
 
     override fun doReload() {
         ModuleConfigurationsLoader.load(this)
