@@ -45,6 +45,7 @@ import io.github.rothes.esu.velocity.command.EsuVelocityCommandManager
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.*
 import io.github.rothes.esu.velocity.user.VelocityUserManager
+import io.github.rothes.esu.velocity.util.extension.VelocityListener
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.CommandManager
@@ -52,7 +53,7 @@ import org.slf4j.Logger
 
 class EsuPluginVelocity(
     val bootstrap: EsuBootstrapVelocity,
-): EsuCore {
+): EsuCore, VelocityListener {
 
     override var initialized: Boolean = false
         private set

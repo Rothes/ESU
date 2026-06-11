@@ -34,6 +34,7 @@ import io.github.rothes.esu.core.util.artifact.relocator.CachedRelocator
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.data.BuildInfo
 import io.github.rothes.esu.data.DependencyVersion
+import io.github.rothes.esu.velocity.util.extension.register
 import org.bstats.velocity.Metrics
 import org.eclipse.aether.artifact.Artifact
 import org.slf4j.Logger
@@ -74,7 +75,7 @@ class EsuBootstrapVelocity @Inject constructor(
     fun onProxyInitialization(e: ProxyInitializeEvent) {
         // Need this Bootstrap, as velocity scan all methods,
         // including our dependencies which are loaded later.
-        server.eventManager.register(this, esu)
+        esu.register(this)
         esu.onProxyInitialization()
     }
 

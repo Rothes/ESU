@@ -5,8 +5,9 @@ import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
-import io.github.rothes.esu.velocity.core
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.util.extension.VelocityListener
+import io.github.rothes.esu.velocity.util.extension.register
+import io.github.rothes.esu.velocity.util.extension.unregister
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -18,12 +19,12 @@ object MotdFeature : CommonFeature<BaseFeatureConfiguration, Unit>() {
     }
 
     override fun onEnable() {
-        core.server.eventManager.register(plugin, Listeners)
+        Listeners.register()
     }
 
     override fun onDisable() {
         super.onDisable()
-        core.server.eventManager.unregisterListener(plugin, Listeners)
+        Listeners.unregister()
     }
 
     abstract class PingModifierFeature<T> : CommonFeature<T, Unit>() {
@@ -33,7 +34,7 @@ object MotdFeature : CommonFeature<BaseFeatureConfiguration, Unit>() {
 
     }
 
-    private object Listeners {
+    private object Listeners : VelocityListener {
 
         @Subscribe
         fun onPing(event: ProxyPingEvent) {
