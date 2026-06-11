@@ -19,6 +19,7 @@
 package io.github.rothes.esu.core.module
 
 import io.github.rothes.esu.core.EsuBootstrap
+import io.github.rothes.esu.core.configuration.LoadedConfiguration
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -99,6 +100,9 @@ interface Feature<C, L> {
     }
 
     fun perm(shortPerm: String): String = "$permissionNode.${shortPerm.lowercase()}"
+
+    fun preprocessConfig(configuration: LoadedConfiguration) {}
+    fun preprocessLang(configuration: LoadedConfiguration) {}
 
     class AvailableCheck(
         val value: Boolean,

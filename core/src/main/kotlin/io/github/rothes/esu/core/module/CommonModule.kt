@@ -59,8 +59,6 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
     open fun buildLangLoader(builder: YamlConfigurationLoader.Builder) { }
 
-    open fun preprocessConfig(loadedConfiguration: LoadedConfiguration) {}
-
     fun User.hasPerm(shortPerm: String): Boolean {
         return hasPermission(perm(shortPerm))
     }
@@ -85,7 +83,6 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                         yamlLoader = { buildLangLoader(it); it },
                     )
                 )
-                preprocessConfig(configNode)
                 loadConfig(root, configNode)
                 loadLang(root, langNodes)
                 configNode.saveIfNotEmpty()
@@ -95,6 +92,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
         fun <C, L> loadConfig(feature: Feature<C, L>, node: LoadedConfiguration) {
             try {
+                feature.preprocessConfig(node)
                 feature.setConfigInstance(node.getAs(feature.configClass))
             } catch (e: Exception) {
                 throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
@@ -107,6 +105,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
         fun <C, L> loadLang(feature: Feature<C, L>, nodes: MultiConfiguration<LoadedConfiguration>) {
             try {
+                nodes.forEachValue { feature.preprocessLang(it) }
                 feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
             } catch (e: Exception) {
                 throw IllegalStateException("Failed to read lang of feature ${feature.name}", e)

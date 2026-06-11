@@ -33,9 +33,9 @@ object OptimizationsModule: BukkitModule<OptimizationsModule.ModuleConfig, Empty
 
     override fun onEnable() { }
 
-    override fun preprocessConfig(loadedConfiguration: LoadedConfiguration) {
+    override fun preprocessConfig(configuration: LoadedConfiguration) {
         // v0.14.0
-        val node = loadedConfiguration.node
+        val node = configuration.node
         val list = listOf(
             "ticket-type" to "vanilla-tweaks",
             "waterlogged" to "anti-lag",

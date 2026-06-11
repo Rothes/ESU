@@ -66,9 +66,9 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
         }
     }
 
-    override fun preprocessConfig(loadedConfiguration: LoadedConfiguration) {
+    override fun preprocessConfig(configuration: LoadedConfiguration) {
         // v0.12.4
-        val node = loadedConfiguration.node
+        val node = configuration.node
         val from = node.node("chunk-data-throttle")
         val to = node.node("chunk-data-throttle", "chunk-handler")
         for ((key, value) in from.childrenMap()) {
