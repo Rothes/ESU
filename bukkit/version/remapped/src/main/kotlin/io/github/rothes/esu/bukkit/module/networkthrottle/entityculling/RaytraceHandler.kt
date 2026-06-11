@@ -290,6 +290,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
         override fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState {
             tickedEntities++
             if (!shouldCull
+                || isOwnerHook(entity)
                 || distSqr <= forceVisibleDistanceSquared
                 || entity.isCurrentlyGlowing
                 || config.visibleEntityTypes.contains(entity.type)

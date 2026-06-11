@@ -58,6 +58,11 @@ abstract class PlayerEntityVisibilityProcessor(
     open fun shouldHide(entity: net.minecraft.world.entity.Entity, distSqr: Double): HideState = shouldHide(entity.bukkitEntity, distSqr)
     abstract fun shouldHide(entity: Entity, distSqr: Double): HideState
 
+    @Suppress("NOTHING_TO_INLINE") // Performance important
+    protected inline fun isOwnerHook(entity: Entity): Boolean = player.fishHook === entity
+    @Suppress("NOTHING_TO_INLINE") // Performance important
+    protected inline fun isOwnerHook(entity: net.minecraft.world.entity.Entity): Boolean = player.fishHook?.entityId == entity.id
+
     fun start() {
         task = player.syncTick {
             for (chunk in player.sentChunks) {

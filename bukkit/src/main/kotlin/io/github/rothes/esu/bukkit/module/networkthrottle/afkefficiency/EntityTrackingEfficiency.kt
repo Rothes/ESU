@@ -71,7 +71,7 @@ object EntityTrackingEfficiency: AfkEfficiencyFeature<EntityTrackingEfficiency.F
             get() = config.updateIntervalTicks
 
         override fun shouldHide(entity: Entity, distSqr: Double): HideState {
-            return if (distSqr >= config.visibleEntityDistanceSquared) HideState.HIDE else HideState.SHOW
+            return if (!isOwnerHook(entity) && distSqr >= config.visibleEntityDistanceSquared) HideState.HIDE else HideState.SHOW
         }
 
     }
