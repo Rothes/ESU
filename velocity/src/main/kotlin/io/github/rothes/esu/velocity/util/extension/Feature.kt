@@ -21,9 +21,9 @@ package io.github.rothes.esu.velocity.util.extension
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 
 fun Feature<*, *>.checkPacketEvents(): Feature.AvailableCheck? {
-    if (plugin.server.pluginManager.getPlugin("packetevents").isPresent) return null
+    if (core.server.pluginManager.getPlugin("packetevents").isPresent) return null
     return errFail { "This feature requires packetevents plugin".message }
 }

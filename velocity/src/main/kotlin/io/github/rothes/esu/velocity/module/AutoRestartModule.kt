@@ -20,7 +20,7 @@ package io.github.rothes.esu.velocity.module
 
 import io.github.rothes.esu.common.module.AbstractAutoRestartModule
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.user.ConsoleUser
 
 object AutoRestartModule: AbstractAutoRestartModule() {
@@ -31,7 +31,7 @@ object AutoRestartModule: AbstractAutoRestartModule() {
 
     override fun runCommands() {
         config.commands.forEach {
-            plugin.server.commandManager.executeAsync(ConsoleUser.commandSender, it)
+            core.server.commandManager.executeAsync(ConsoleUser.commandSender, it)
         }
     }
 }

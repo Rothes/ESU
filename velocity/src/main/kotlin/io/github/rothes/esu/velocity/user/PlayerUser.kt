@@ -24,7 +24,7 @@ import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -43,7 +43,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
                     return cache
                 }
             }
-            val get = plugin.server.getPlayer(uuid).getOrNull()
+            val get = core.server.getPlayer(uuid).getOrNull()
             if (get != null) {
                 field = get
                 return get

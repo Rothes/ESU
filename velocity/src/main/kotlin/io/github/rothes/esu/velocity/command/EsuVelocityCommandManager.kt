@@ -30,6 +30,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.velocity.command.parser.UserParser
 import io.github.rothes.esu.velocity.config.VelocityEsuLang
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.plugin
 import io.github.rothes.esu.velocity.user
 import io.github.rothes.esu.velocity.user.ConsoleUser
@@ -83,7 +84,7 @@ class EsuVelocityCommandManager : CommandManager<User>(
 
         registerCommandPreProcessor { context ->
             context.commandContext().store<ProxyServer>(
-                VelocityContextKeys.PROXY_SERVER_KEY, plugin.server
+                VelocityContextKeys.PROXY_SERVER_KEY, core.server
             )
         }
 
@@ -99,7 +100,7 @@ class EsuVelocityCommandManager : CommandManager<User>(
                 .build()
             )
 
-        plugin.server.eventManager.register(plugin.bootstrap, ServerPreConnectEvent::class.java) {
+        core.server.eventManager.register(plugin, ServerPreConnectEvent::class.java) {
             lockRegistration()
         }
 
@@ -184,21 +185,21 @@ class EsuVelocityCommandManager : CommandManager<User>(
                     CloudBrigadierCommand(manager, brigadierManager)
                 )
             )
-            val commandMeta = plugin.server.commandManager.metaBuilder(brigadierCommand)
+            val commandMeta = core.server.commandManager.metaBuilder(brigadierCommand)
                 .aliases(*aliases.toTypedArray())
                 .build()
             for (alias in aliases) {
-                plugin.server.commandManager.unregister(alias)
+                core.server.commandManager.unregister(alias)
             }
-            plugin.server.commandManager.register(commandMeta, brigadierCommand)
+            core.server.commandManager.register(commandMeta, brigadierCommand)
             return true
         }
 
         override fun unregisterRootCommand(rootCommand: CommandComponent<User>) {
             for (alias in rootCommand.aliases()) {
-                plugin.server.commandManager.unregister(alias)
+                core.server.commandManager.unregister(alias)
             }
-            plugin.server.commandManager.unregister(rootCommand.name())
+            core.server.commandManager.unregister(rootCommand.name())
         }
 
     }

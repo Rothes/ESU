@@ -26,6 +26,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.amount
 import io.github.rothes.esu.core.util.ComponentUtils.bytes
 import io.github.rothes.esu.core.util.NetworkUtils
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.lang
@@ -62,7 +63,7 @@ object TrafficMonitor {
         private set
 
     fun enable() {
-        task = plugin.server.scheduler.buildTask(plugin.bootstrap) { _ ->
+        task = core.server.scheduler.buildTask(plugin) { _ ->
             val ppsO  = (outgoingPps.getAndSet(0) * config.trafficCalibration.outgoingPpsMultiplier).toInt()
             val bytesO = outgoingBytes.getAndSet(0).toLong()
             val ppsI  = (incomingPps.getAndSet(0) * config.trafficCalibration.incomingPpsMultiplier).toInt()

@@ -26,8 +26,8 @@ import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.module.AutoReloadExtensionPluginsModule.ModuleConfig
-import io.github.rothes.esu.velocity.plugin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -44,9 +44,9 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: let {
-            if (!enabled && plugin.initialized)
+            if (!enabled && core.initialized)
                 return errFail { "Esu is already initialized".message }
-            if (plugin.server.pluginManager.getPlugin("serverutils") == null)
+            if (core.server.pluginManager.getPlugin("serverutils") == null)
                 return errFail { "ServerUtils not found".message }
             null
         }
@@ -59,7 +59,7 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
         data.pluginsToLoad.clear()
         ConfigLoader.save(dataPath, data)
 
-        if (!plugin.enabledHot)
+        if (!core.enabledHot)
             return
 
         for (pl in toLoad) {
@@ -67,7 +67,7 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
             serverUtils.getPluginFile(pl).getOrNull()?.let {
                 val load = serverUtils.loadPlugin(it)
                 if (!load.isSuccess) {
-                    plugin.warn("[AutoReloadExtensionPlugins] Failed to load plugin $pl: ${load.result.name.lowercase()}")
+                    core.warn("[AutoReloadExtensionPlugins] Failed to load plugin $pl: ${load.result.name.lowercase()}")
                     continue
                 }
                 runBlocking {
@@ -76,11 +76,11 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
                     IOScope.launch {
                         val enable = serverUtils.enablePlugin(load.plugin)
                         if (!enable.isSuccess) {
-                            plugin.warn("[AutoReloadExtensionPlugins] Failed to enable plugin $pl: ${load.result.name.lowercase()}")
+                            core.warn("[AutoReloadExtensionPlugins] Failed to enable plugin $pl: ${load.result.name.lowercase()}")
                         }
                     }
                     delay(0.5.seconds)
-                    plugin.info("[AutoReloadExtensionPlugins] Load plugin $pl")
+                    core.info("[AutoReloadExtensionPlugins] Load plugin $pl")
                 }
             }
         }
@@ -88,10 +88,10 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
 
     override fun onDisable() {
         super.onDisable()
-        if (plugin.enabled || !plugin.disabledHot)
+        if (core.enabled || !core.disabledHot)
             return
-        val esuId = plugin.container.description.id
-        val plugins = plugin.server.pluginManager.plugins.filter {
+        val esuId = core.container.description.id
+        val plugins = core.server.pluginManager.plugins.filter {
             val description = it.description
             !config.pluginBlacklist.contains(description.id) && description.dependencies.any { p -> p.id == esuId }
         }.sortedWith { a, b ->
@@ -104,17 +104,17 @@ object AutoReloadExtensionPluginsModule: VelocityModule<ModuleConfig, EmptyConfi
             val serverUtils = VelocityPluginManager.get()
             val disable = serverUtils.disablePlugin(pl)
             if (!disable.isSuccess) {
-                plugin.warn("[AutoReloadExtensionPlugins] Failed to disable plugin ${pl.description.id}: ${disable.result.name.lowercase()}")
+                core.warn("[AutoReloadExtensionPlugins] Failed to disable plugin ${pl.description.id}: ${disable.result.name.lowercase()}")
                 continue
             }
             val unload = serverUtils.unloadPlugin(disable.plugin)
             if (!unload.isSuccess) {
-                plugin.warn("[AutoReloadExtensionPlugins] Failed to unload plugin ${pl.description.id}: ${disable.result.name.lowercase()}")
+                core.warn("[AutoReloadExtensionPlugins] Failed to unload plugin ${pl.description.id}: ${disable.result.name.lowercase()}")
                 continue
             }
 
             data.pluginsToLoad.add(pl.description.id)
-            plugin.info("[AutoReloadExtensionPlugins] Unloaded plugin ${pl.description.id}")
+            core.info("[AutoReloadExtensionPlugins] Unloaded plugin ${pl.description.id}")
         }
         data.pluginsToLoad.reverse()
         ConfigLoader.save(dataPath, data)

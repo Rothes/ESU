@@ -19,17 +19,17 @@
 package io.github.rothes.esu.velocity.module
 
 import io.github.rothes.esu.core.module.CommonModule
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 import java.nio.file.Path
 
 abstract class VelocityModule<C, L> : CommonModule<C, L>() {
 
     open val velocityPlugin: Any
-        get() = plugin.bootstrap
+        get() = io.github.rothes.esu.velocity.plugin
 
     override val moduleFolder: Path
         get() = Path.of("plugins")
-            .resolve(plugin.server.pluginManager.ensurePluginContainer(velocityPlugin).description.id)
+            .resolve(core.server.pluginManager.ensurePluginContainer(velocityPlugin).description.id)
             .resolve("modules").resolve(name)
 
     protected val registeredListeners = arrayListOf<Pair<Any, Any>>()
@@ -42,18 +42,18 @@ abstract class VelocityModule<C, L> : CommonModule<C, L>() {
         registeredListeners.clear()
     }
 
-    fun registerListener(listener: Any, pluginInstance: Any = plugin.bootstrap) {
-        plugin.server.eventManager.register(pluginInstance, listener)
+    fun registerListener(listener: Any, pluginInstance: Any = io.github.rothes.esu.velocity.plugin) {
+        core.server.eventManager.register(pluginInstance, listener)
         registeredListeners.add(listener to pluginInstance)
     }
 
-    fun unregisterListener(listener: Any, pluginInstance: Any = plugin.bootstrap) {
-        if (pluginInstance === plugin.bootstrap) {
-            if (plugin.enabled) {
-                plugin.server.eventManager.unregisterListener(pluginInstance, listener)
+    fun unregisterListener(listener: Any, pluginInstance: Any = io.github.rothes.esu.velocity.plugin) {
+        if (pluginInstance === io.github.rothes.esu.velocity.plugin) {
+            if (core.enabled) {
+                core.server.eventManager.unregisterListener(pluginInstance, listener)
             }
         } else {
-            plugin.server.eventManager.unregisterListener(pluginInstance, listener)
+            core.server.eventManager.unregisterListener(pluginInstance, listener)
         }
     }
 

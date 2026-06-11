@@ -24,6 +24,7 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import com.velocitypowered.api.scheduler.ScheduledTask
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule.config
 import io.github.rothes.esu.velocity.module.networkthrottle.channel.ChannelInjectionManager
@@ -47,7 +48,7 @@ object DynamicChunkSendRate {
     fun enable() {
         NetworkThrottleModule.registerListener(Listeners)
         if (config.dynamicChunkSendRate.enabled && !running) {
-            task = plugin.server.scheduler.buildTask(plugin.bootstrap) { task ->
+            task = core.server.scheduler.buildTask(plugin) { task ->
                 for ((_, atomicLong) in traffic) {
                     atomicLong.set(0)
                 }

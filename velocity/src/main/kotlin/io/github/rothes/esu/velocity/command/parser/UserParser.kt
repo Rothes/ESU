@@ -20,7 +20,7 @@ package io.github.rothes.esu.velocity.command.parser
 
 import com.velocitypowered.api.command.VelocityBrigadierMessage
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.user
 import net.kyori.adventure.text.Component
 import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion
@@ -44,14 +44,14 @@ class UserParser<C>: ArgumentParser<C, User>, BlockingSuggestionProvider<C> {
     ): ArgumentParseResult<User> {
         val input = commandInput.readString()
 
-        val player = plugin.server.getPlayer(input).getOrNull()
+        val player = core.server.getPlayer(input).getOrNull()
             ?: return ArgumentParseResult.failure(UserParseException(input, commandContext))
 
         return ArgumentParseResult.success(player.user)
     }
 
     override fun suggestions(context: CommandContext<C>, input: CommandInput): MutableIterable<Suggestion> {
-        return plugin.server.allPlayers.map {
+        return core.server.allPlayers.map {
             TooltipSuggestion.suggestion(
                 it!!.username,
                 VelocityBrigadierMessage.tooltip(Component.text(it.uniqueId.toString()))

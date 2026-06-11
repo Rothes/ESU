@@ -36,7 +36,7 @@ object UpdateCheckerMan {
             EnumMap<VersionAction, () -> Unit>(VersionAction::class.java).apply {
                 put(VersionAction.PROHIBIT) { /* TODO */ }
             },
-            { plugin.server.allPlayers.map { it.user } },
+            { core.server.allPlayers.map { it.user } },
             "vesu"
         )
 

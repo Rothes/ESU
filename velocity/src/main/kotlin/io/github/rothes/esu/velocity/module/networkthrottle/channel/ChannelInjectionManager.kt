@@ -32,9 +32,9 @@ import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import com.velocitypowered.proxy.network.ConnectionManager
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGetT
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
+import io.github.rothes.esu.velocity.core
 import io.github.rothes.esu.velocity.module.NetworkThrottleModule
 import io.github.rothes.esu.velocity.module.networkthrottle.UnknownPacketType
-import io.github.rothes.esu.velocity.plugin
 import io.netty.buffer.ByteBuf
 import io.netty.channel.*
 import com.github.retrooper.packetevents.protocol.player.User as PEUser
@@ -44,7 +44,7 @@ object ChannelInjectionManager {
     val connectionManager by lazy {
         VelocityServer::class.java.declaredFields
             .first { it.type == ConnectionManager::class.java }
-            .accessibleGetT<ConnectionManager>(plugin.server as VelocityServer)
+            .accessibleGetT<ConnectionManager>(core.server as VelocityServer)
     }
 
     private val allInjectors = linkedSetOf<ChannelInjector>()
@@ -77,9 +77,9 @@ object ChannelInjectionManager {
         val channelInitializer = connectionManager.serverChannelInitializer.get()
         connectionManager.serverChannelInitializer.set(EsuChannelInitializer(channelInitializer))
         // If velocity is already running, we need to rebind to apply the changes.
-        if (plugin.initialized || plugin.enabledHot) {
-            connectionManager.close(plugin.server.boundAddress)
-            connectionManager.bind(plugin.server.boundAddress)
+        if (core.initialized || core.enabledHot) {
+            connectionManager.close(core.server.boundAddress)
+            connectionManager.bind(core.server.boundAddress)
         }
         registerInjector(EsuChannelInjector)
     }
@@ -88,12 +88,12 @@ object ChannelInjectionManager {
         val channelInitializer = connectionManager.serverChannelInitializer.get()
         if (channelInitializer is EsuChannelInitializer) {
             connectionManager.serverChannelInitializer.set(channelInitializer.wrapped)
-            if (plugin.enabled || plugin.disabledHot) {
-                connectionManager.close(plugin.server.boundAddress)
-                connectionManager.bind(plugin.server.boundAddress)
+            if (core.enabled || core.disabledHot) {
+                connectionManager.close(core.server.boundAddress)
+                connectionManager.bind(core.server.boundAddress)
             }
         } else {
-            plugin.warn("Cannot restore ServerChannelInitializerHolder; Value is " + channelInitializer.javaClass.canonicalName)
+            core.warn("Cannot restore ServerChannelInitializerHolder; Value is " + channelInitializer.javaClass.canonicalName)
         }
         forEachInjectAcceptors { injector, channel, player ->
             injector.doUninject(channel, player)
@@ -117,7 +117,7 @@ object ChannelInjectionManager {
         try {
             inject(channel, player)
         } catch (e: Throwable) {
-            plugin.err("Failed to inject channel", e)
+            core.err("Failed to inject channel", e)
         }
     }
 
@@ -125,12 +125,12 @@ object ChannelInjectionManager {
         try {
             EsuChannelInjector.uninject(channel, player)
         } catch (e: Throwable) {
-            plugin.err("Failed to inject channel", e)
+            core.err("Failed to inject channel", e)
         }
     }
 
     private fun forEachInjectAcceptors(action: (ChannelInjector, Channel, Player) -> Unit) {
-        for (player in plugin.server.allPlayers) {
+        for (player in core.server.allPlayers) {
             val channel = (player as ConnectedPlayer).connection.channel
             for (injector in allInjectors) {
                 action(injector, channel, player)
@@ -213,7 +213,7 @@ object ChannelInjectionManager {
                         try {
                             handler.encode(packetData)
                         } catch (e: Throwable) {
-                            plugin.err("Unhandled exception while handling packet", e)
+                            core.err("Unhandled exception while handling packet", e)
                         }
                     }
                     data.bufferSize += size
@@ -229,7 +229,7 @@ object ChannelInjectionManager {
                         try {
                             handler.flush(totalSize)
                         } catch (e: Throwable) {
-                            plugin.err("Unhandled exception while handling packet", e)
+                            core.err("Unhandled exception while handling packet", e)
                         }
                     }
                 }
@@ -278,7 +278,7 @@ object ChannelInjectionManager {
 
         override fun initChannel(ch: Channel) {
             initWrapped(wrapped, ch)
-            if (plugin.enabled) {
+            if (core.enabled) {
                 for (injector in allInjectors) {
                     injector.doInject(ch, null)
                 }

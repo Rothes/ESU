@@ -25,13 +25,13 @@ import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
-import io.github.rothes.esu.velocity.plugin
+import io.github.rothes.esu.velocity.core
 import org.slf4j.Logger
 import java.util.*
 
 object ConsoleUser: VelocityUser(), LogUser {
 
-    override val commandSender: CommandSource = plugin.server.consoleCommandSource
+    override val commandSender: CommandSource = core.server.consoleCommandSource
     override val dbId: Int
     override val name: String = ConsoleConst.NAME
     override val nameUnsafe: String = name
@@ -44,7 +44,7 @@ object ConsoleUser: VelocityUser(), LogUser {
 
     override val isOnline: Boolean = true
 
-    override val logger: Logger = plugin.logger
+    override val logger: Logger = core.logger
 
     init {
         val userData = StorageManager.getConsoleUserData()
