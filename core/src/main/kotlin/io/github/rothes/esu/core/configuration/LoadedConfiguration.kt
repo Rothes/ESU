@@ -22,6 +22,7 @@ import io.github.rothes.esu.core.module.configuration.EmptyConfiguration
 import io.github.rothes.esu.lib.configurate.ConfigurationNode
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Path
+import kotlin.io.path.deleteIfExists
 
 data class LoadedConfiguration(
     val context: LoaderContext,
@@ -36,7 +37,11 @@ data class LoadedConfiguration(
             val parent = node.parent() ?: break
             root = parent
         }
-        context.loader.save(root)
+        if (!root.empty()) {
+            context.loader.save(root)
+        } else {
+            path.deleteIfExists()
+        }
     }
 
     fun saveIfNotEmpty() {
