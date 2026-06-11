@@ -59,10 +59,10 @@ interface User {
 
     val isOnline: Boolean
 
-    val colorSchemeTagInstance
+    val colorSchemeInstance
         get() = ColorSchemes.schemes.get(colorScheme) { this }!!
     val colorSchemeTagResolver
-        get() = colorSchemeTagInstance.tagResolver
+        get() = colorSchemeInstance.tagResolver
 
     fun getTagResolvers(): Iterable<TagResolver> {
         return DEFAULT_TAG_RESOLVERS
