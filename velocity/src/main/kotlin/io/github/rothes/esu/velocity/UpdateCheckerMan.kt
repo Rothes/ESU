@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.velocity
 
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.UpdateChecker
 import io.github.rothes.esu.core.util.UpdateChecker.VersionAction
@@ -34,7 +35,7 @@ object UpdateCheckerMan {
             BuildInfo.PLUGIN_PLATFORM,
             ConsoleUser,
             EnumMap<VersionAction, () -> Unit>(VersionAction::class.java).apply {
-                put(VersionAction.PROHIBIT) { /* TODO */ }
+                put(VersionAction.PROHIBIT) { core.onDisable(ProxyShutdownEvent()) }
             },
             { core.server.allPlayers.map { it.user } },
             "vesu"
