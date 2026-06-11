@@ -138,7 +138,6 @@ class EsuPluginBukkit(
 
         // Register commands
         EsuAdminCommand.register {
-            BukkitEsuLang.reloadConfig()
             UpdateCheckerMan.reload()
         }
 

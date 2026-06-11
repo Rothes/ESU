@@ -67,6 +67,7 @@ object EsuAdminCommand {
     @Command("reload")
     fun reload(sender: User) {
         EsuConfig.reloadConfig()
+        EsuLang.instance.reloadConfig()
         ColorSchemes.reload()
         ModuleManager.reloadModules()
         reloadHook.run()

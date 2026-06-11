@@ -99,7 +99,6 @@ class EsuPluginVelocity(
 
         // Register commands
         EsuAdminCommand.register {
-            VelocityEsuLang.reloadConfig()
             UpdateCheckerMan.reload()
         }
 
