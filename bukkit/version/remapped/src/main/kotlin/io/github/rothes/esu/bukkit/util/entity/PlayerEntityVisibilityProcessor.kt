@@ -25,12 +25,12 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
-import io.github.rothes.esu.bukkit.util.version.Versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
+import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
@@ -61,7 +61,7 @@ abstract class PlayerEntityVisibilityProcessor(
     @Suppress("NOTHING_TO_INLINE") // Performance important
     protected inline fun isOwnerHook(entity: Entity): Boolean = player.fishHook === entity
     @Suppress("NOTHING_TO_INLINE") // Performance important
-    protected inline fun isOwnerHook(entity: net.minecraft.world.entity.Entity): Boolean = player.fishHook?.entityId == entity.id
+    protected inline fun isOwnerHook(entity: net.minecraft.world.entity.Entity): Boolean = player.fishHook?.eid() == entity.id
 
     fun start() {
         task = player.syncTick {
@@ -302,10 +302,15 @@ abstract class PlayerEntityVisibilityProcessor(
     }
 
     companion object {
-        private val VISIBILITY_HANDLER by Versioned(PlayerEntityVisibilityHandler::class.java)
-        private val VALID_TESTER by Versioned(EntityValidTester::class.java)
-        private val HANDLE_GETTER by Versioned(EntityHandleGetter::class.java)
-        private val LEVEL_GETTER by Versioned(LevelHandler::class.java)
+        private val VISIBILITY_HANDLER = PlayerEntityVisibilityHandler::class.java.versioned()
+        private val VALID_TESTER = EntityValidTester::class.java.versioned()
+        @JvmField val HANDLE_GETTER = EntityHandleGetter::class.java.versioned()
+        private val LEVEL_GETTER = LevelHandler::class.java.versioned()
+
+        @Suppress("NOTHING_TO_INLINE") // Performance important
+        inline fun Entity.eid(): Int {
+            return HANDLE_GETTER.getHandle(this).id // Bypass folia thread check
+        }
     }
 
 }
