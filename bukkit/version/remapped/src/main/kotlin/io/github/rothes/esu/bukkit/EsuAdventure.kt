@@ -43,7 +43,7 @@ object EsuAdventure {
         val adventureAudience = Class.forName("io.github.rothes.esu.lib.adventure.platform.bukkit.BukkitAudience")
         val facetBook = adventureAudience.getDeclaredField("BOOK")
             .accessibleGetT<MutableList<Facet.Book<Player, *, *>>>(null)
-        val esuNativeBook = versioned(EsuNativeBook::class.java)
+        val esuNativeBook = versioned<EsuNativeBook<*>>()
         if (esuNativeBook.isSupported) {
             facetBook.add(0, esuNativeBook)
         }
