@@ -27,7 +27,7 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerInventoryViewGetter
 import io.github.rothes.esu.core.command.annotation.ShortPerm
@@ -306,7 +306,7 @@ object OpenInventory : BaseCommand<FeatureToggle.DefaultTrue, OpenInventory.Lang
         private data class PendingChange(val inventory: Inventory, val targetSlot: Int, val originalItem: ItemStack?)
 
         companion object {
-            val INVENTORY_VIEW_GETTER by Versioned(PlayerInventoryViewGetter::class.java)
+            val INVENTORY_VIEW_GETTER = versioned<PlayerInventoryViewGetter>()
         }
 
     }

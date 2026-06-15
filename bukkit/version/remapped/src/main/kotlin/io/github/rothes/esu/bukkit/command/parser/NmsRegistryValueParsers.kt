@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.command.parser
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.biome.Biome
 import org.incendo.cloud.parser.ParserDescriptor
@@ -32,7 +32,7 @@ interface NmsRegistryValueParsers {
     companion object {
 
         val isSupported = ServerInfo.mcVersion >= "17.1"
-        val instance: NmsRegistryValueParsers by lazy { NmsRegistryValueParsers::class.java.versioned() }
+        val instance: NmsRegistryValueParsers by lazy { versioned<NmsRegistryValueParsers>() }
 
         fun <C> all(): List<ParserDescriptor<C, *>> {
             return listOf(

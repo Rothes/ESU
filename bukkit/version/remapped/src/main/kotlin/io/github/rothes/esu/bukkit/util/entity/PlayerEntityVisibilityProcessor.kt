@@ -25,12 +25,12 @@ import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
@@ -302,10 +302,10 @@ abstract class PlayerEntityVisibilityProcessor(
     }
 
     companion object {
-        private val VISIBILITY_HANDLER = PlayerEntityVisibilityHandler::class.java.versioned()
-        private val VALID_TESTER = EntityValidTester::class.java.versioned()
-        @JvmField val HANDLE_GETTER = EntityHandleGetter::class.java.versioned()
-        private val LEVEL_GETTER = LevelHandler::class.java.versioned()
+        private val VISIBILITY_HANDLER = versioned<PlayerEntityVisibilityHandler>()
+        private val VALID_TESTER = versioned<EntityValidTester>()
+        @JvmField val HANDLE_GETTER = versioned<EntityHandleGetter>()
+        private val LEVEL_GETTER = versioned<LevelHandler>()
 
         @Suppress("NOTHING_TO_INLINE") // Performance important
         inline fun Entity.eid(): Int {

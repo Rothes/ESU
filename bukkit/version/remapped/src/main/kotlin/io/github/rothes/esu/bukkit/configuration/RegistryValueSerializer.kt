@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.configuration
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
@@ -35,7 +35,7 @@ class RegistryValueSerializer<T: Any>(
 ): ScalarSerializer<T>(type) {
 
     companion object {
-        private val KEY_HANDLER by Versioned(ResourceKeyHandler::class.java)
+        private val KEY_HANDLER = versioned<ResourceKeyHandler>()
     }
 
     constructor(accessHandler: NmsRegistryAccessHandler, registryKey: ResourceKey<out Registry<T>>, clazz: Class<T>): this(accessHandler, registryKey, TypeToken.get(clazz))

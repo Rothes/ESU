@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.moonrise
 
 import ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader
-import io.github.rothes.esu.bukkit.util.version.versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.util.ReflectionUtils.get
 import io.github.rothes.esu.core.util.ReflectionUtils.getter
 import io.github.rothes.esu.core.util.extension.ClassUtils
@@ -79,7 +79,7 @@ abstract class ChunkLimiterHandler {
         val isSupported
             get() = ClassUtils.existsClass($$"ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData")
 
-        val instance by lazy { ChunkLimiterHandler::class.java.versioned() }
+        val instance by lazy { versioned<ChunkLimiterHandler>() }
     }
 
 }

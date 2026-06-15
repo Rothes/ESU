@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
@@ -36,8 +36,8 @@ interface PlayerAdapter {
 
         val instance = if (ServerInfo.isPaper) Paper else CB
 
-        private val playerChunkSentHandler by Versioned(PlayerChunkSentHandler::class.java)
-        private val playerConnectedHandler by Versioned(PlayerConnectedHandler::class.java)
+        private val playerChunkSentHandler = versioned<PlayerChunkSentHandler>()
+        private val playerConnectedHandler = versioned<PlayerConnectedHandler>()
 
         fun Player.chunkSent(chunkKey: Long): Boolean {
             return playerChunkSentHandler.isChunkSentNms(this, chunkKey)

@@ -22,7 +22,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
@@ -50,7 +50,7 @@ object Speed : BaseCommand<Speed.Config, Speed.Lang>() {
         registerFeature(FlySpeed)
     }
 
-    private val speedHandler by Versioned(NmsPlayerSpeedHandler::class.java)
+    private val speedHandler = versioned<NmsPlayerSpeedHandler>()
 
     override fun onEnable() {
         registerSpeedCommands()

@@ -19,9 +19,8 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
@@ -36,7 +35,7 @@ import org.incendo.cloud.annotations.Command
 abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureConfig, Unit>() {
 
     companion object {
-        val INSTANCE by Versioned(EntityUpdateInterval::class.java)
+        val INSTANCE = versioned<EntityUpdateInterval>()
     }
 
     override val name: String = "EntityUpdateInterval"
@@ -66,7 +65,7 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
                     sender.message("§cNot supported on Spigot yet")
                     return
                 }
-                val handler by Versioned(TrackedEntityIntervalUpdater::class.java)
+                val handler = versioned<TrackedEntityIntervalUpdater>()
                 val updated = handler.updateTrackedEntities()
                 sender.message("Updated $updated entities")
             }
@@ -83,7 +82,7 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
                 this[type] = interval
             }
             // TODO: We could add Spigot support for this but it requires special source imported server
-            if (ServerInfo.isPaper) TrackedEntityIntervalUpdater::class.java.versioned().updateTrackedEntities()
+            if (ServerInfo.isPaper) versioned<TrackedEntityIntervalUpdater>().updateTrackedEntities()
         }
         previousConfig = config
     }
@@ -102,7 +101,7 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
     abstract class TrackedEntityIntervalUpdater {
 
         fun updateTrackedEntities(): Int {
-            val entitiesHandler by Versioned(LevelEntitiesHandler::class.java)
+            val entitiesHandler = versioned<LevelEntitiesHandler>()
 
             var updated = 0
             for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {

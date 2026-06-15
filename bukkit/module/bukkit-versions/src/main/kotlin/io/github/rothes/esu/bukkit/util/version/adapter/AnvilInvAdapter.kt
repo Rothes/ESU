@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import org.bukkit.event.inventory.PrepareAnvilEvent
 
 interface AnvilInvAdapter {
@@ -27,7 +27,7 @@ interface AnvilInvAdapter {
 
     companion object {
 
-        val instance by Versioned(AnvilInvAdapter::class.java)
+        val instance = versioned<AnvilInvAdapter>()
 
         val PrepareAnvilEvent.renameText: String?
             get() = instance.getRenameText(this)

@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import org.bukkit.attribute.Attribute
 
 interface AttributeAdapter {
@@ -61,7 +61,7 @@ interface AttributeAdapter {
 
     companion object {
 
-        val instance by Versioned(AttributeAdapter::class.java)
+        val instance = versioned<AttributeAdapter>()
 
         val MAX_HEALTH: Attribute = instance.maxHealth
         val FOLLOW_RANGE: Attribute = instance.followRange

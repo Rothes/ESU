@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import org.bukkit.block.data.type.Vault
 
 interface VaultDataAdapter {
@@ -28,7 +28,7 @@ interface VaultDataAdapter {
 
     companion object {
 
-        val instance by Versioned(VaultDataAdapter::class.java)
+        val instance = versioned<VaultDataAdapter>()
 
         var Vault.state
             get() = instance.getVaultState(this)

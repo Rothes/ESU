@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 
 import io.github.rothes.esu.bukkit.core
-import io.github.rothes.esu.bukkit.util.version.versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.module.CommonFeature
 
 abstract class BaseTicketTypeFeature<C, L> : CommonFeature<C, L>() {
@@ -27,7 +27,7 @@ abstract class BaseTicketTypeFeature<C, L> : CommonFeature<C, L>() {
     private var previousSettingHash: Int = 0
 
     val advancedHandler
-        get() = TicketTypeAdvancedHandler::class.java.versioned()
+        get() = versioned<TicketTypeAdvancedHandler>()
 
     override fun onEnable() {
         applySettings()

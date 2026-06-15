@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
@@ -116,7 +116,7 @@ object EntityTrackingRange : CommonFeature<EntityTrackingRange.FeatureConfig, En
     }
 
     private fun updateTrackedEntities() {
-        val lookup by Versioned(LevelEntitiesHandler::class.java)
+        val lookup = versioned<LevelEntitiesHandler>()
         val range = ChunkMap.TrackedEntity::class.java.getDeclaredField("range").usIntAccessor
         for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
             val entities = lookup.getEntitiesAll(level)

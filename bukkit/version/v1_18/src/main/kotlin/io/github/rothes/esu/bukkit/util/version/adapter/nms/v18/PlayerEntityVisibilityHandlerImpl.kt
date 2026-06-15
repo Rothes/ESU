@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.v18
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
@@ -34,7 +34,7 @@ object PlayerEntityVisibilityHandlerImpl : PlayerEntityVisibilityHandler {
 
     private val hiddenEntities = CraftPlayer::class.java.getDeclaredField("hiddenEntities").usNullableObjAccessor
     private val pluginWeakReferences = CraftPlayer::class.java.getDeclaredMethod("getPluginWeakReference", Plugin::class.java).handle
-    private val entityHandleGetter by Versioned(EntityHandleGetter::class.java)
+    private val entityHandleGetter = versioned<EntityHandleGetter>()
 
     override fun forceShowEntity(player: Player, bukkitEntity: Entity, plugin: Plugin) {
         @Suppress("UNCHECKED_CAST")

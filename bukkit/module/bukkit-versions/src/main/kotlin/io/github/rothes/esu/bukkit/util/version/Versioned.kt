@@ -19,89 +19,29 @@
 package io.github.rothes.esu.bukkit.util.version
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.core.util.artifact.MavenResolver
 import io.github.rothes.esu.core.util.version.Version
-import io.github.rothes.esu.core.util.version.toVersion
-import java.io.File
-import java.lang.reflect.Modifier
-import java.net.URL
-import java.util.jar.JarFile
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
+@Deprecated("> 0.15.0")
 class Versioned<T, V>(
     target: Class<V>,
     type: String? = null,
     version: Version = ServerInfo.mcVersion,
 ): ReadOnlyProperty<T, V> {
 
-    val handle =
-        try {
-            if (!target.isInterface && !Modifier.isAbstract(target.modifiers))
-                error("${target.canonicalName} is not an interface or abstract class.")
-
-            val prefix = target.packageName + ".v"
-            val find = classes
-                .filter {
-                    it.startsWith(prefix)
-                            && it.substringAfterLast('.').substringAfterLast('$').startsWith(target.simpleName)
-                            && (type == null || it.endsWith(type))
-                }
-                .mapNotNull {
-                    val str = it.substring(prefix.length).substringBefore('.')
-                    val split = str.split("__")
-
-                    if (split.size == 2) {
-                        when (split[1]) {
-                            "paper" -> if (!ServerInfo.isPaper) return@mapNotNull null
-                        }
-                    }
-                    it to split[0].replace('_', '.').toVersion()
-                }
-                .sortedWith(Comparator { a, b -> compareValuesBy(b, a, { it.second }, { it.first.length }) })
-                .firstOrNull { version >= it.second }
-
-            if (find == null)
-                error("${target.canonicalName} is not implemented for version $version, type $type")
-
-            val clazz = Class.forName(find.first)
-            if (!target.isAssignableFrom(clazz))
-                error("Found ${clazz.name}, but it is not an instance of ${target.canonicalName}")
-
-            @Suppress("UNCHECKED_CAST")
-            (clazz.kotlin.objectInstance ?: clazz.getConstructor().newInstance()) as V
-        } catch (e: Exception) {
-            throw IllegalStateException("Cannot get versioned instance of ${target.canonicalName} for version $version, type $type", e)
-        }
+    val handle = VersionedInstance.getVersioned(target, type, version)
 
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         return handle
     }
 
-    companion object {
-        private val versions = mutableListOf<URL>()
-        private var classes = mutableListOf<String>()
-
-        fun loadVersion(file: File) {
-            val url = file.toURI().toURL()
-            MavenResolver.loadUrl(url)
-            versions.add(url)
-
-            JarFile(file).use { jarFile ->
-                val entries = jarFile.entries()
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement()
-                    if (entry.name.endsWith(".class")) {
-                        classes.add(entry.name.dropLast(".class".length).replace('/', '.'))
-                    }
-                }
-            }
-        }
-
-    }
-
 }
 
-fun <T> Class<T>.versioned(): T {
-    return Versioned<Any, T>(this).handle
+@Deprecated("> 0.15.0")
+object VersionedKt {
+    @JvmStatic
+    fun <T> Class<T>.versioned(): T {
+        return VersionedInstance.getVersioned(this)
+    }
 }

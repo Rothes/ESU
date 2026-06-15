@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 
 import io.github.rothes.esu.bukkit.user.PlayerUser
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
@@ -31,7 +31,7 @@ import org.incendo.cloud.annotations.Command
 object TicketTypeCommandsFeature: CommonFeature<FeatureToggle.DefaultFalse, Unit>() {
 
     override fun onEnable() {
-        val handler by Versioned(ChunkTicketHandler::class.java)
+        val handler = versioned<ChunkTicketHandler>()
 
         registerCommands(object {
             @Command("esu optimizations ticketType getTickets [chunkX] [chunkZ] [world]")

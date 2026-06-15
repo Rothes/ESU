@@ -27,7 +27,7 @@ import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
@@ -91,7 +91,7 @@ class EsuPluginBukkit(
                     }
 
                     val toLoad = if (!ServerInfo.isMojmap && ServerInfo.hasMojmap) JarRemapper.reobf(file) else file
-                    Versioned.loadVersion(toLoad)
+                    VersionedInstance.loadVersionJar(toLoad)
                 }
             }
         }

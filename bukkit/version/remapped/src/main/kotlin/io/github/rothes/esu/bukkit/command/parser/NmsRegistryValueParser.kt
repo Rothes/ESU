@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.command.parser
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
 import net.minecraft.core.Registry
@@ -35,7 +35,7 @@ class NmsRegistryValueParser<C, T: Any>(
 ): ArgumentParser<C, T>, BlockingSuggestionProvider.Strings<C> {
 
     companion object {
-        private val KEY_HANDLER by Versioned(ResourceKeyHandler::class.java)
+        private val KEY_HANDLER = versioned<ResourceKeyHandler>()
     }
 
     val registry = accessHandler.getRegistryOrThrow(registryKey)

@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryView
 
@@ -28,7 +28,7 @@ interface InventoryAdapter {
 
     companion object {
 
-        val instance by Versioned(InventoryAdapter::class.java)
+        val instance = versioned<InventoryAdapter>()
 
         val InventoryView.topInv
             get() = instance.getTopInventory(this)

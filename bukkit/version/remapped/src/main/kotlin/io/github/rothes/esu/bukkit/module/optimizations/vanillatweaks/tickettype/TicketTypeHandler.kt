@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import net.minecraft.server.level.TicketType
 
 interface TicketTypeHandler {
@@ -32,6 +32,6 @@ interface TicketTypeHandler {
     }
 
     companion object {
-        val handler by Versioned(TicketTypeHandler::class.java)
+        val handler = versioned<TicketTypeHandler>()
     }
 }

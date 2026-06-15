@@ -34,7 +34,7 @@ import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.meta
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.metaGet
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
@@ -48,7 +48,7 @@ import org.bukkit.inventory.meta.BookMeta
 
 object EditorManager {
 
-    private val STATE_ID_GETTER by Versioned(ContainerStateIDGetter::class.java)
+    private val STATE_ID_GETTER = versioned<ContainerStateIDGetter>()
     private val editing = mutableMapOf<Player, EditData>()
     private val confirming = mutableMapOf<Player, ConfirmData>()
 

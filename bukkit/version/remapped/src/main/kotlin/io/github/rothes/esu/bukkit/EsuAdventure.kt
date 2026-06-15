@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit
 
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuNativeBook
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.core.util.ReflectionUtils.accessibleGetT
@@ -43,7 +43,7 @@ object EsuAdventure {
         val adventureAudience = Class.forName("io.github.rothes.esu.lib.adventure.platform.bukkit.BukkitAudience")
         val facetBook = adventureAudience.getDeclaredField("BOOK")
             .accessibleGetT<MutableList<Facet.Book<Player, *, *>>>(null)
-        val esuNativeBook by Versioned(EsuNativeBook::class.java)
+        val esuNativeBook = versioned(EsuNativeBook::class.java)
         if (esuNativeBook.isSupported) {
             facetBook.add(0, esuNativeBook)
         }

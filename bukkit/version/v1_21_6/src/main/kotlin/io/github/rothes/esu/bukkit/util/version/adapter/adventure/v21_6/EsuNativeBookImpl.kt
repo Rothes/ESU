@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.adventure.v21_6
 
 import com.mojang.serialization.JsonOps
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuNativeBook
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
 import io.github.rothes.esu.lib.adventure.text.Component
@@ -42,7 +42,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 @Suppress("UnstableApiUsage")
 object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
 
-    private val STATE_ID_GETTER by Versioned(ContainerStateIDGetter::class.java)
+    private val STATE_ID_GETTER = versioned<ContainerStateIDGetter>()
     private val OPS = JsonOps.INSTANCE
 
     override fun createBook(title: String, author: String, pages: Iterable<MinecraftComponent>): ItemStack {

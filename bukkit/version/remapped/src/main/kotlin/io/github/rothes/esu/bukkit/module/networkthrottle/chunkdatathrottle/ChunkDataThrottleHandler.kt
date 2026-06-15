@@ -46,14 +46,13 @@ import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.chunkSent
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
@@ -148,9 +147,9 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     private fun Boolean.toByte(): Byte = if (this) 1 else 0
 
-    private val containerReader by Versioned(PalettedContainerReader::class.java)
-    private val levelHandler by Versioned(LevelHandler::class.java)
-    private val chunkSender by Versioned(ChunkSender::class.java)
+    private val containerReader = versioned<PalettedContainerReader>()
+    private val levelHandler = versioned<LevelHandler>()
+    private val chunkSender = versioned<ChunkSender>()
     private val playerData = ConcurrentHashMap<Player, PlayerData>()
 
     private var previousNonInvisible: Set<Block>? = null
@@ -204,7 +203,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     private fun buildCache() {
         val nonInvisibleNew = config.nonInvisibleBlocksOverrides
         if (previousNonInvisible != nonInvisibleNew) {
-            val occludeTester = BlockOccludeTester::class.java.versioned()
+            val occludeTester = versioned<BlockOccludeTester>()
             val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
             val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
                 val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!

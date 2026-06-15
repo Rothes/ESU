@@ -21,12 +21,11 @@ package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 import com.google.common.collect.ImmutableMap
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.MultiConfiguration
@@ -77,8 +76,8 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
             @Command("esu optimizations biomeSpawners exportAll")
             @ShortPerm
             fun exportAll(sender: User) {
-                val registryAccess by Versioned(NmsRegistryAccessHandler::class.java)
-                val registry = registryAccess.getRegistryOrThrow(NmsRegistries::class.java.versioned().biome)
+                val registryAccess = versioned<NmsRegistryAccessHandler>()
+                val registry = registryAccess.getRegistryOrThrow(versioned<NmsRegistries>().biome)
                 for (biome in registryAccess.values(registry)) {
                     export(sender, biome)
                 }
@@ -91,7 +90,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
         val settings = loadSettings()
         if (settings.hashCode() == previousSettingHash) return
         val spawnersField = spawnersField
-        val converter by Versioned(WeightedSpawnerDataConverter::class.java)
+        val converter = versioned<WeightedSpawnerDataConverter>()
         for ((biome, settings) in settings) {
             spawnersField[biome.mobSettings] = ImmutableMap.copyOf(
                 buildMap {
@@ -111,9 +110,9 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
                 yamlLoader = yamlLoader
             )
         )
-        val registryAccess by Versioned(NmsRegistryAccessHandler::class.java)
-        val registry = registryAccess.getRegistryOrThrow(NmsRegistries::class.java.versioned().biome)
-        val keyHandler by Versioned(ResourceKeyHandler::class.java)
+        val registryAccess = versioned<NmsRegistryAccessHandler>()
+        val registry = registryAccess.getRegistryOrThrow(versioned<NmsRegistries>().biome)
+        val keyHandler = versioned<ResourceKeyHandler>()
         return settings.configs.entries.mapNotNull { (key, settings) ->
             val key = keyHandler.parseResourceKey(registry, key)
             registryAccess.getNullable(registry, key)?.to(settings) ?: let {
@@ -126,7 +125,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
     private fun dumpSettings(biome: Biome) {
         @Suppress("UNCHECKED_CAST")
         val map = spawnersField[biome.mobSettings] as Map<MobCategory, WeightedList<MobSpawnSettings.SpawnerData>>
-        val converter by Versioned(WeightedSpawnerDataConverter::class.java)
+        val converter = versioned<WeightedSpawnerDataConverter>()
         val data = BiomeSettings(map.mapValues { converter.fromWeightedList(it.value) })
         val key = getBiomeKey(biome)
         val path = module.moduleFolder.resolve(DIR_NAME).resolve("$key.yml")
@@ -136,9 +135,9 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
     }
 
     private fun getBiomeKey(biome: Biome): String {
-        val registryAccess by Versioned(NmsRegistryAccessHandler::class.java)
-        val registry = registryAccess.getRegistryOrThrow(NmsRegistries::class.java.versioned().biome)
-        val keyHandler by Versioned(ResourceKeyHandler::class.java)
+        val registryAccess = versioned<NmsRegistryAccessHandler>()
+        val registry = registryAccess.getRegistryOrThrow(versioned<NmsRegistries>().biome)
+        val keyHandler = versioned<ResourceKeyHandler>()
         return keyHandler.getResourceKeyString(registryAccess.getResourceKey(registry, biome))
     }
 

@@ -25,9 +25,8 @@ import io.github.rothes.esu.bukkit.util.extension.createChild
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
-import io.github.rothes.esu.bukkit.util.version.Versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.*
-import io.github.rothes.esu.bukkit.util.version.versioned
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.configuration.meta.Comment
@@ -74,8 +73,8 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
     private val ENTITY_TYPES: Int
 
     init {
-        val registryAccessHandler = NmsRegistryAccessHandler::class.java.versioned()
-        val registries = NmsRegistries::class.java.versioned()
+        val registryAccessHandler = versioned<NmsRegistryAccessHandler>()
+        val registries = versioned<NmsRegistries>()
         val registry = registryAccessHandler.getRegistryOrThrow(registries.entityType)
         ENTITY_TYPES = registryAccessHandler.size(registry)
     }
@@ -83,10 +82,10 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
     private val pl = plugin.createChild(name = "${plugin.name}-EntityCulling")
     private val players = ConcurrentHashMap<Player, VisibilityProcessor>()
 
-    private val VELOCITY_GETTER by Versioned(PlayerVelocityGetter::class.java)
-    private val LEVEL_GETTER by Versioned(LevelHandler::class.java)
-    private val HANDLE_GETTER by Versioned(EntityHandleGetter::class.java)
-    private val OCCLUDE_TESTER by Versioned(BlockOccludeTester::class.java)
+    private val VELOCITY_GETTER = versioned<PlayerVelocityGetter>()
+    private val LEVEL_GETTER = versioned<LevelHandler>()
+    private val HANDLE_GETTER = versioned<EntityHandleGetter>()
+    private val OCCLUDE_TESTER = versioned<BlockOccludeTester>()
 
     private var raytracer: RayTracer = StepRayTracer
     private var forceVisibleDistanceSquared = 0.0

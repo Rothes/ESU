@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.versioned
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 
 interface NmsRegistryValueSerializers {
@@ -31,7 +31,7 @@ interface NmsRegistryValueSerializers {
 
     companion object {
         val isSupported = ServerInfo.mcVersion >= "17.1"
-        val instance: NmsRegistryValueSerializers by lazy { NmsRegistryValueSerializers::class.java.versioned() }
+        val instance: NmsRegistryValueSerializers by lazy { versioned<NmsRegistryValueSerializers>() }
     }
 
 }
