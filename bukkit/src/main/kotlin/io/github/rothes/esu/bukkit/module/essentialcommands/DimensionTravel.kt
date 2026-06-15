@@ -70,7 +70,7 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
-                if (max(abs(target.chunk.x), abs(target.chunk.z)) > ChunkPos.MAX_COORDINATE_VALUE) {
+                if (max(abs(target.blockX shr 4), abs(target.blockZ shr 4)) > ChunkPos.MAX_COORDINATE_VALUE) {
                     return sender.message(module.lang, { teleportFailedUnknown })
                 }
                 val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
