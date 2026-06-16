@@ -76,7 +76,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         internal set
 
     init {
-        val userData = StorageManager.getUserData(uuid)
+        val userData = StorageManager.getUserData(uuid, initPlayer?.name)
         dbId = userData.dbId
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme

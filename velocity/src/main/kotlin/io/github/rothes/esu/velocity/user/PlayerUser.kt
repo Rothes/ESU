@@ -70,7 +70,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
         get() = playerCache?.isActive == true
 
     init {
-        val userData = StorageManager.getUserData(uuid)
+        val userData = StorageManager.getUserData(uuid, initPlayer?.username)
         dbId = userData.dbId
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme

@@ -133,12 +133,25 @@ object StorageManager {
         return userDataCache.asMap().computeIfAbsent(userId) { getUserData(userId) }
     }
 
-    fun getUserData(where: UUID): UserData {
+    fun getUserData(where: UUID, initName: String? = null): UserData {
         return with(UsersTable) {
             transaction(database) {
                 select(dbId, name, language, colorScheme).where(uuid eq where).singleOrNull()?.let {
                     UserData(it[dbId], where, it[name],  it[language], it[colorScheme])
-                } ?: UserData(insert { it[uuid] = where }[dbId], where, null, null, null)
+                } ?: let {
+                    val id = try {
+                        insert { it[uuid] = where; it[name] = initName }[dbId]
+                    } catch (e: ExposedSQLException) {
+                        if (e.cause is SQLIntegrityConstraintViolationException && initName != null) {
+                            EsuCore.instance.err("Failed to create user $initName ($where): " + e.message)
+                            if (!clearUserDataName(initName)) throw e
+                            insert { it[uuid] = where; it[name] = initName }[dbId]
+                        } else {
+                            throw e
+                        }
+                    }
+                    UserData(id, where, initName, null, null)
+                }
             }
         }
     }
@@ -196,18 +209,9 @@ object StorageManager {
                 if (e.cause is SQLIntegrityConstraintViolationException) {
                     EsuCore.instance.err("Failed to update user ${user.dbId} data ${user.nameUnsafe} (${user.uuid}): " + e.message)
                     user.nameUnsafe?.let { dbName ->
-                        val get = getUserDataByName(dbName)
-                        if (get != null) {
-                            EsuCore.instance.warn("Current in db user ${get.dbId}: ${user.nameUnsafe} (${get.uuid})")
-                            if (get.dbId != user.dbId) {
-                                with(UsersTable) {
-                                    update({ dbId eq get.dbId }) {
-                                        it[name] = null
-                                    }
-                                }
-                                doUpdateUser(user)
-                                EsuCore.instance.warn("Re-attached name ${user.nameUnsafe} to user ${user.dbId}")
-                            }
+                        if (clearUserDataName(dbName)) {
+                            doUpdateUser(user)
+                            EsuCore.instance.warn("Re-attached name ${user.nameUnsafe} to user ${user.dbId}")
                         }
                     }
                 } else {
@@ -231,6 +235,20 @@ object StorageManager {
                 it[colorScheme] = user.colorSchemeUnsafe
             }
         }
+    }
+
+    private fun clearUserDataName(where: String): Boolean {
+        val get = getUserDataByName(where)
+        if (get != null) {
+            EsuCore.instance.warn("Set null name to db user ${get.dbId}: ${get.name} (${get.uuid})")
+            with(UsersTable) {
+                update({ dbId eq get.dbId }) {
+                    it[name] = null
+                }
+            }
+            return true
+        }
+        return false
     }
 
     fun shutdown() {
