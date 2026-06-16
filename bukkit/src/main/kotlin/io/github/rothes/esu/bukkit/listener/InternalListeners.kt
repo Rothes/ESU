@@ -59,7 +59,7 @@ internal object InternalListeners : Listener {
             BukkitUserManager.unload(event.uniqueId)
     }
     @EventHandler(priority = EventPriority.LOWEST)
-    fun onLogin(event: PlayerJoinEvent) {
+    fun onJoin(event: PlayerJoinEvent) {
         val user = BukkitUserManager[event.player]
         UpdateCheckerMan.onJoin(user)
     }
@@ -87,7 +87,7 @@ internal object InternalListeners : Listener {
         }
     }
     @EventHandler(priority = EventPriority.LOWEST)
-    fun onClick(e: InventoryDragEvent) {
+    fun onDrag(e: InventoryDragEvent) {
         val holder = e.inventory.holder
         if (holder is EsuInvHolder<*>) {
             holder.handleDrag(e)
@@ -95,7 +95,7 @@ internal object InternalListeners : Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    fun onClick(e: InventoryCloseEvent) {
+    fun onClose(e: InventoryCloseEvent) {
         val holder = e.inventory.holder
         if (holder is EsuInvHolder<*>) {
             holder.onClose()
