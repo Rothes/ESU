@@ -237,11 +237,11 @@ object StorageManager {
                 it[colorScheme] = user.colorSchemeUnsafe
             }
         }
-        user.userDataDirty = false
+        user.dbDirty = false
     }
 
     private fun needsUpdate(user: User): Boolean {
-        return user.userDataDirty || user.nameUnsafe != null && user.nameUnsafe != user.dbName
+        return user.dbDirty || user.nameUnsafe != null && user.nameUnsafe != user.dbName
     }
 
     private fun clearUserDataName(where: String): Boolean {

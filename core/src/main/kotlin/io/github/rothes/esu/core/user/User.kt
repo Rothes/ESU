@@ -52,13 +52,13 @@ interface User {
     val dbId: Int
     val dbName: String?
 
+    var dbDirty: Boolean
+
     var language: String?
     var colorScheme: String?
 
     var languageUnsafe: String?
     var colorSchemeUnsafe: String?
-
-    var userDataDirty: Boolean
 
     val isOnline: Boolean
 

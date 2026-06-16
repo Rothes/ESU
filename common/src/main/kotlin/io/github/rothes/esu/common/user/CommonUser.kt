@@ -4,6 +4,8 @@ import io.github.rothes.esu.core.user.User
 
 abstract class CommonUser : User {
 
+    override var dbDirty: Boolean = false
+
     override var language: String?
         get() = languageUnsafe ?: clientLocale
         set(value) {
@@ -18,14 +20,12 @@ abstract class CommonUser : User {
     override var languageUnsafe: String? = null
         set(value) {
             field = value
-            userDataDirty = true
+            dbDirty = true
         }
     override var colorSchemeUnsafe: String? = null
         set(value) {
             field = value
-            userDataDirty = true
+            dbDirty = true
         }
-
-    override var userDataDirty: Boolean = false
 
 }
