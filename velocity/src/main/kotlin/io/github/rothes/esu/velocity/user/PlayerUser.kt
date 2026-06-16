@@ -56,6 +56,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
     override val commandSender: CommandSource
         get() = player
     override val dbId: Int
+    override val dbName: String?
     override val name: String
         get() = nameUnsafe!!
     override val nameUnsafe: String?
@@ -72,6 +73,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): VelocityU
     init {
         val userData = StorageManager.getUserData(uuid, initPlayer?.username)
         dbId = userData.dbId
+        dbName = userData.name
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
     }

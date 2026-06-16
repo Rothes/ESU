@@ -34,6 +34,7 @@ object ConsoleUser: BukkitUser(), LogUser {
 
     override val commandSender: CommandSender = Bukkit.getConsoleSender()
     override val dbId: Int
+    override val dbName: String?
     override val name: String = ConsoleConst.NAME
     override val nameUnsafe: String = name
     override val clientLocale: String
@@ -50,6 +51,7 @@ object ConsoleUser: BukkitUser(), LogUser {
     init {
         val userData = StorageManager.getConsoleUserData()
         dbId = userData.dbId
+        dbName = userData.name
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
 

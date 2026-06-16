@@ -202,6 +202,7 @@ object StorageManager {
     }
 
     fun updateUserNow(user: User) {
+        if (!needsUpdate(user)) return
         transaction(database) {
             try {
                 doUpdateUser(user)
@@ -222,6 +223,7 @@ object StorageManager {
     }
 
     fun updateUserAsync(user: User) {
+        if (!needsUpdate(user)) return
         IOScope.launch {
             updateUserNow(user)
         }
@@ -235,6 +237,11 @@ object StorageManager {
                 it[colorScheme] = user.colorSchemeUnsafe
             }
         }
+        user.userDataDirty = false
+    }
+
+    private fun needsUpdate(user: User): Boolean {
+        return user.userDataDirty || user.nameUnsafe != null && user.nameUnsafe != user.dbName
     }
 
     private fun clearUserDataName(where: String): Boolean {

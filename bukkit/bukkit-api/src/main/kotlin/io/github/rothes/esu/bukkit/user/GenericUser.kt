@@ -28,6 +28,8 @@ class GenericUser(override val commandSender: CommandSender): BukkitUser() {
 
     override val dbId: Int
         get() = throw UnsupportedOperationException()
+    override val dbName: String
+        get() = throw UnsupportedOperationException()
     override val uuid: UUID
         get() = throw UnsupportedOperationException()
     override val nameUnsafe: String

@@ -62,6 +62,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     override val commandSender: CommandSender
         get() = player
     override val dbId: Int
+    override val dbName: String?
     override val nameUnsafe: String?
         get() = playerCache?.name
     override val clientLocale: String
@@ -78,6 +79,7 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     init {
         val userData = StorageManager.getUserData(uuid, initPlayer?.name)
         dbId = userData.dbId
+        dbName = userData.name
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
     }

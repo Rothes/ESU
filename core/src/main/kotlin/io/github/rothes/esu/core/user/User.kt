@@ -50,12 +50,15 @@ interface User {
     val clientLocale: String?
     val uuid: UUID
     val dbId: Int
+    val dbName: String?
 
     var language: String?
     var colorScheme: String?
 
     var languageUnsafe: String?
     var colorSchemeUnsafe: String?
+
+    var userDataDirty: Boolean
 
     val isOnline: Boolean
 

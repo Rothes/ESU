@@ -21,6 +21,7 @@ package io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.configuration.data.ItemData
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
+import io.github.rothes.esu.common.user.CommonUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.User
@@ -29,7 +30,7 @@ import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResol
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
 
-abstract class BukkitUser: User {
+abstract class BukkitUser: CommonUser() {
 
     private var _audience: Audience? = null
     private var _tagResolvers: List<TagResolver>? = null
@@ -41,17 +42,6 @@ abstract class BukkitUser: User {
     override fun getTagResolvers(): Iterable<TagResolver> {
         return _tagResolvers ?: User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this)).also { _tagResolvers = it }
     }
-
-    override var language: String?
-        get() = languageUnsafe ?: clientLocale
-        set(value) {
-            languageUnsafe = value
-        }
-    override var colorScheme: String?
-        get() = colorSchemeUnsafe
-        set(value) {
-            colorSchemeUnsafe = value
-        }
 
     override val name: String
         get() = commandSender.name

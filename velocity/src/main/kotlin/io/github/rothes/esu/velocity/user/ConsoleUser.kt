@@ -34,6 +34,7 @@ object ConsoleUser: VelocityUser(), LogUser {
     override val commandSender: CommandSource = core.server.consoleCommandSource
     override val dbId: Int
     override val name: String = ConsoleConst.NAME
+    override val dbName: String?
     override val nameUnsafe: String = name
     override val clientLocale: String
         get() = EsuConfig.get().locale
@@ -49,6 +50,7 @@ object ConsoleUser: VelocityUser(), LogUser {
     init {
         val userData = StorageManager.getConsoleUserData()
         dbId = userData.dbId
+        dbName = userData.name
         languageUnsafe = userData.language
         colorSchemeUnsafe = userData.colorScheme
         LogUser.console = this
