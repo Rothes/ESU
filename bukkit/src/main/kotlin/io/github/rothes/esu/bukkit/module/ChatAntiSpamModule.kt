@@ -146,7 +146,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 "player", UserParser.parser(), DefaultValue.dynamic { it.sender() as PlayerUser }, UserParser()
             ).handler { context ->
                 val playerUser = context.get<PlayerUser>("player")
-                val duration = playerUser.spamData.mute()
+                val duration = playerUser.spamDataHolder().spamData.mute()
+                CasDataManager.markDirty(playerUser)
                 context.sender().message(lang, { command.mute.mutedPlayer },
                     context.sender().msgPrefix,
                     user(playerUser),
@@ -162,6 +163,7 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
                 val playerUser = context.get<PlayerUser>("player")
                 CasDataManager.deleteAsync(playerUser.dbId)
                 CasDataManager.getHolder(playerUser).spamData = SpamData()
+                CasDataManager.markDirty(playerUser)
                 context.sender().message(lang, { command.reset.resetPlayer },
                     context.sender().msgPrefix,
                     component("player", playerUser.player.displayName_)
@@ -197,8 +199,8 @@ object ChatAntiSpamModule: BukkitModule<ChatAntiSpamModule.ModuleConfig, ChatAnt
         }
     }
 
-    val PlayerUser.spamData
-        get() = CasDataManager[this].also { it.lastAccess = max(it.lastAccess, System.currentTimeMillis()) }
+    fun PlayerUser.spamDataHolder(now: Long = System.currentTimeMillis()) =
+        CasDataManager.getHolder(this).also { it.spamData.lastAccess = max(it.spamData.lastAccess, now) }
 
     val PlayerUser.addr: String
         get() = player.address!!.hostString

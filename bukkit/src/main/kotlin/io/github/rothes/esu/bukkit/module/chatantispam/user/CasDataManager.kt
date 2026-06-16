@@ -40,6 +40,7 @@ import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.json.json
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -54,11 +55,8 @@ object CasDataManager {
     }
     private val cacheById = hashMapOf<Int, SpamDataHolder>()
     private val cacheByIp = hashMapOf<String, SpamDataHolder>()
+    private val userDirty = ConcurrentHashMap.newKeySet<Int>() // userId
     private val lock = ReentrantReadWriteLock()
-
-    operator fun get(user: PlayerUser): SpamData {
-        return getHolder(user).spamData
-    }
 
     fun getHolder(user: PlayerUser): SpamDataHolder {
         lock.read {
@@ -98,6 +96,10 @@ object CasDataManager {
         if (toDel.isNotEmpty()) {
             deleteExpiredAsync(keys = toDel)
         }
+    }
+
+    fun markDirty(user: PlayerUser) {
+        userDirty.add(user.dbId)
     }
 
     init {
@@ -192,6 +194,7 @@ object CasDataManager {
     }
 
     fun saveSpamDataNow(where: PlayerUser) {
+        if (!userDirty.remove(where.dbId)) return
         val holder = lock.read { latest(cacheById[where.dbId], cacheByIp[where.addr]) } ?: return
         val spamData = holder.spamData
         val lastAccessValue = kotlin.math.max(spamData.lastAccess, spamData.muteUntil).localDateTime
@@ -214,6 +217,7 @@ object CasDataManager {
     }
 
     fun saveSpamDataAsync(where: PlayerUser) {
+        if (!userDirty.contains(where.dbId)) return
         IOScope.launch {
             saveSpamDataNow(where)
         }

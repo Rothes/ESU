@@ -26,7 +26,7 @@ import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.config
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.hasPerm
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.lang
 import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.msgPrefix
-import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamData
+import io.github.rothes.esu.bukkit.module.ChatAntiSpamModule.spamDataHolder
 import io.github.rothes.esu.bukkit.module.CoreModule
 import io.github.rothes.esu.bukkit.module.chatantispam.message.MessageRequest
 import io.github.rothes.esu.bukkit.module.chatantispam.message.meta.*
@@ -124,7 +124,8 @@ object CasListeners: Listener {
         }
         val now = System.currentTimeMillis()
         val afkTime = now - CoreModule.providers.genericActiveTime[player]
-        val spamData = user.spamData.purge(afkTime)
+        val holder = user.spamDataHolder(now)
+        val spamData = holder.spamData.purge(afkTime)
         spamData.requests.sizedAdd(config.expireSize.chatRequest, now)
 
         val spamCheck = config.spamCheck.getOrDefault(messageContext.type) ?: return false
@@ -221,6 +222,7 @@ object CasListeners: Listener {
         } else {
             spamData.consecutiveUnfiltered.store(0)
         }
+        CasDataManager.markDirty(user)
         if (muted)
             CasDataManager.saveSpamDataAsync(user)
         return blockValue
