@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.util.scheduler
 
 import io.github.rothes.esu.bukkit.util.ServerInfo.isFolia
 import io.github.rothes.esu.bukkit.util.extension.createChild
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.core.EsuBootstrap
 import kotlinx.coroutines.CompletableDeferred
@@ -32,100 +33,100 @@ import kotlin.time.Duration
 
 object Scheduler {
 
-    fun global(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    private val bukkitScheduler = versioned<AdvancedBukkitScheduler>()
+
+    fun global(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getGlobalRegionScheduler().run(plugin) { func.invoke() })
+            FoliaTask(Bukkit.getGlobalRegionScheduler().run(plugin) { func(FoliaTask(it)) })
         else
-            BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
+            BukkitTask(bukkitScheduler.run(plugin) { func(BukkitTask(it)) })
     }
-    fun global(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun global(delayTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getGlobalRegionScheduler().runDelayed(plugin, { func.invoke() }, delayTicks))
+            FoliaTask(Bukkit.getGlobalRegionScheduler().runDelayed(plugin, { func(FoliaTask(it)) }, delayTicks))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks) { func(BukkitTask(it)) })
     }
-    fun global(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun global(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, { func.invoke() }, delayTicks, periodTicks))
+            FoliaTask(Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, { func(FoliaTask(it)) }, delayTicks, periodTicks))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks, periodTicks) { func(BukkitTask(it)) })
     }
 
-    fun schedule(entity: Entity, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun schedule(entity: Entity, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.run(plugin, { func.invoke() }, null) ?: return null)
+            FoliaTask(entity.scheduler.run(plugin, { func(FoliaTask(it)) }, null) ?: return null)
         else
-            BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
+            BukkitTask(bukkitScheduler.run(plugin) { func(BukkitTask(it)) })
     }
-    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun schedule(entity: Entity, delayTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.runDelayed(plugin, { func.invoke() }, null, delayTicks) ?: return null)
+            FoliaTask(entity.scheduler.runDelayed(plugin, { func(FoliaTask(it)) }, null, delayTicks) ?: return null)
         else
-            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks) { func(BukkitTask(it)) })
     }
-    fun schedule(entity: Entity, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun schedule(entity: Entity, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return if (isFolia)
-            FoliaTask(entity.scheduler.runAtFixedRate(plugin, { func.invoke() }, null, delayTicks, periodTicks) ?: return null)
+            FoliaTask(entity.scheduler.runAtFixedRate(plugin, { func(FoliaTask(it)) }, null, delayTicks, periodTicks) ?: return null)
         else
-            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
-    }
-
-    fun schedule(location: Location, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
-        return if (isFolia)
-            FoliaTask(Bukkit.getRegionScheduler().run(plugin, location) { func.invoke() })
-        else
-            BukkitTask(Bukkit.getScheduler().runTask(plugin, func))
-    }
-    fun schedule(location: Location, delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
-        return if (isFolia)
-            FoliaTask(Bukkit.getRegionScheduler().runDelayed(plugin, location, { func.invoke() }, delayTicks))
-        else
-            BukkitTask(Bukkit.getScheduler().runTaskLater(plugin, func, delayTicks))
-    }
-    fun schedule(location: Location, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
-        return if (isFolia)
-            FoliaTask(Bukkit.getRegionScheduler().runAtFixedRate(plugin, location, { func.invoke() }, delayTicks, periodTicks))
-        else
-            BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin, func, delayTicks, periodTicks))
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks, periodTicks) { func(BukkitTask(it)) })
     }
 
-    fun async(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(location: Location, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getAsyncScheduler().runNow(plugin) { func.invoke() })
+            FoliaTask(Bukkit.getRegionScheduler().run(plugin, location) { func(FoliaTask(it)) })
         else
-            BukkitTask(Bukkit.getScheduler().runTaskAsynchronously(plugin, func))
+            BukkitTask(bukkitScheduler.run(plugin) { func(BukkitTask(it)) })
     }
-    fun async(delay: Duration, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun schedule(location: Location, delayTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
+            FoliaTask(Bukkit.getRegionScheduler().runDelayed(plugin, location, { func(FoliaTask(it)) }, delayTicks))
+        else
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks) { func(BukkitTask(it)) })
+    }
+    fun schedule(location: Location, delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
+        return if (isFolia)
+            FoliaTask(Bukkit.getRegionScheduler().runAtFixedRate(plugin, location, { func(FoliaTask(it)) }, delayTicks, periodTicks))
+        else
+            BukkitTask(bukkitScheduler.run(plugin, delayTicks, periodTicks) { func(BukkitTask(it)) })
+    }
+
+    fun async(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
+        return if (isFolia)
+            FoliaTask(Bukkit.getAsyncScheduler().runNow(plugin) { func(FoliaTask(it)) })
+        else
+            BukkitTask(bukkitScheduler.runAsync(plugin) { func(BukkitTask(it)) })
+    }
+    fun async(delay: Duration, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
+        return if (isFolia)
+            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func(FoliaTask(it)) },
                 delay.inWholeMilliseconds, TimeUnit.MILLISECONDS))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func,
-                delay.inWholeMilliseconds / 50))
+            BukkitTask(bukkitScheduler.runAsync(plugin, delay.inWholeMilliseconds / 50) { func(BukkitTask(it)) })
     }
-    fun async(delay: Duration, period: Duration, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun async(delay: Duration, period: Duration, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
+            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func(FoliaTask(it)) },
                 delay.inWholeMilliseconds, period.inWholeMilliseconds, TimeUnit.MILLISECONDS)
             )
         else
-            BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func,
-                delay.inWholeMilliseconds / 50, period.inWholeMilliseconds / 50))
+            BukkitTask(bukkitScheduler.runAsync(plugin, delay.inWholeMilliseconds / 50, period.inWholeMilliseconds / 50) { func(BukkitTask(it)) })
     }
-    fun asyncTicks(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun asyncTicks(delayTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func.invoke() },
+            FoliaTask(Bukkit.getAsyncScheduler().runDelayed(plugin, { func(FoliaTask(it)) },
                 delayTicks * 50, TimeUnit.MILLISECONDS))
         else
-            BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, func, delayTicks))
+            BukkitTask(bukkitScheduler.runAsync(plugin, delayTicks) { func(BukkitTask(it)) })
     }
-    fun asyncTicks(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask {
+    fun asyncTicks(delayTicks: Long, periodTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask {
         return if (isFolia)
-            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func.invoke() },
+            FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(plugin, { func(FoliaTask(it)) },
                 delayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS)
             )
         else
-            BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, func, delayTicks, periodTicks))
+            BukkitTask(bukkitScheduler.runAsync(plugin, delayTicks, periodTicks) { func(BukkitTask(it)) })
     }
 
     fun <T> Entity.onTickDeferred(plugin: Plugin = esuPlugin, func: () -> T): CompletableDeferred<T> {
@@ -152,33 +153,33 @@ object Scheduler {
         return deferred
     }
 
-    fun Entity.onTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun Entity.onTick(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return schedule(this, plugin.alwaysEnabled(), func)
     }
 
-    fun Entity.nextTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun Entity.nextTick(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return schedule(this, 1, plugin.alwaysEnabled(), func)
     }
 
-    fun Entity.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun Entity.syncTick(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         if (checkTickThread()) {
-            func()
+            func(RealTimeTask)
             return null
         }
         return schedule(this, plugin.alwaysEnabled(), func) ?: error("Failed to schedule task for entity $this")
     }
 
-    fun Entity.delayedTick(delayTicks: Long, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun Entity.delayedTick(delayTicks: Long, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return schedule(this, delayTicks, plugin, func)
     }
 
-    fun Entity.fixedTick(periodTicks: Long, delayTicks: Long = periodTicks, plugin: Plugin = esuPlugin, func: () -> Unit): ScheduledTask? {
+    fun Entity.fixedTick(periodTicks: Long, delayTicks: Long = periodTicks, plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit): ScheduledTask? {
         return schedule(this, delayTicks, periodTicks, plugin, func)
     }
 
-    fun Location.syncTick(plugin: Plugin = esuPlugin, func: () -> Unit) {
+    fun Location.syncTick(plugin: Plugin = esuPlugin, func: (ScheduledTask) -> Unit) {
         if (checkTickThread())
-            func()
+            func(RealTimeTask)
         else
             schedule(this, plugin.alwaysEnabled(), func)
     }
