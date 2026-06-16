@@ -22,6 +22,9 @@ class FoliaTask(
     private val foliaTask: io.papermc.paper.threadedregions.scheduler.ScheduledTask
 ): ScheduledTask {
 
+    override val taskId: Int
+        get() = foliaTask.hashCode()
+
     override fun cancel() {
         foliaTask.cancel()
     }

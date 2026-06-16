@@ -24,6 +24,9 @@ class BukkitTask(
     private val bukkitTask: BukkitTask
 ): ScheduledTask {
 
+    override val taskId: Int
+        get() = bukkitTask.taskId
+
     override fun cancel() {
         bukkitTask.cancel()
     }
