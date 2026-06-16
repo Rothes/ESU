@@ -25,6 +25,7 @@ import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerInfo
+import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils
 import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils.isEsuInventory
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
@@ -202,6 +203,17 @@ class EsuPluginBukkit(
         return found
     }
 
-    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot)
+    internal class ServerHotLoadSupport(isHot: Boolean) : HotLoadSupport(isHot) {
+
+        override fun onEnable() {
+            super.onEnable()
+            loadCriticalClassesBukkit()
+        }
+
+        private fun loadCriticalClassesBukkit() {
+            InventoryUtils // Plugin onDisable
+        }
+
+    }
 
 }

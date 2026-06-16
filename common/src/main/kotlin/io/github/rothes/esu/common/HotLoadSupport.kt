@@ -34,7 +34,7 @@ open class HotLoadSupport(
 ) {
 //    private val dataFile = EsuBootstrap.instance.baseConfigPath().resolve("hot-data.tmp")
 
-    fun onEnable() {
+    open fun onEnable() {
         loadCriticalClasses()
 //        if (isHot) {
 //            try {
@@ -49,7 +49,7 @@ open class HotLoadSupport(
 //        }
     }
 
-    fun onDisable() {
+    open fun onDisable() {
 //        if (isHot) {
 //            try {
 //                val buffer = Buffer()
