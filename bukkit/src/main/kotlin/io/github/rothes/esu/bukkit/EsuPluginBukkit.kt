@@ -20,17 +20,22 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.command.EsuBukkitCommandManager
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
+import io.github.rothes.esu.bukkit.listener.EsuInvBaseListeners
 import io.github.rothes.esu.bukkit.listener.InternalListeners
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerInfo
+import io.github.rothes.esu.bukkit.util.extension.createChild
+import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils
 import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils.isEsuInventory
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ServerShutdownHandler
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.command.EsuAdminCommand
@@ -159,6 +164,7 @@ class EsuPluginBukkit(
         ModuleManager.registeredModules().filter { it.enabled }.reversed().forEach { ModuleManager.removeModule(it) }
         commandManager.shutdown()
 
+        var existsEsuInv = false
         for (player in Bukkit.getOnlinePlayers()) {
             player.updateCommands() // We have removed all our commands, update it
 
@@ -170,6 +176,7 @@ class EsuPluginBukkit(
                     bootstrap.logger.log(Level.WARNING, "Failed to handle inventory", e)
                 }
             }
+            existsEsuInv = existsEsuInv || player.openInventory.topInv.isEsuInventory
 
             BukkitUserManager.getCache(player.uniqueId)?.let { user ->
                 try {
@@ -181,6 +188,23 @@ class EsuPluginBukkit(
             }
         }
         HandlerList.unregisterAll(bootstrap)
+        if (existsEsuInv && versioned<ServerShutdownHandler>().isRunning()) {
+            try {
+                val daemon = plugin.createChild(name = "EsuInv-Daemon", forceEnabled = true)
+                EsuInvBaseListeners.register(daemon)
+                val task = Scheduler.global(1, 1, daemon) { task ->
+                    val closed = Bukkit.getOnlinePlayers().none { it.openInventory.topInv.isEsuInventory }
+                    if (closed) {
+                        task.cancel()
+                        HandlerList.unregisterAll(daemon)
+                        info("EsuInv-Daemon(${task.taskId}) closed")
+                    }
+                }
+                warn("Started EsuInv-Daemon(${task.taskId}) due to remaining opened EsuInv")
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()

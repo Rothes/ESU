@@ -22,15 +22,11 @@ import io.github.rothes.esu.bukkit.UpdateCheckerMan
 import io.github.rothes.esu.bukkit.event.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.extension.register
-import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils.esuHolder
 import io.github.rothes.esu.core.storage.StorageManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -44,6 +40,7 @@ internal object InternalListeners : Listener {
 
     init {
         register()
+        EsuInvBaseListeners.register()
 
         // Init event listeners
         UserLoginEvent.Companion
@@ -75,25 +72,6 @@ internal object InternalListeners : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPlayerDeath(event: PlayerDeathEvent) {
         RichPlayerDeathEvent(event).callEvent()
-    }
-
-    /* EsuInvHolder processing */
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun onClick(e: InventoryClickEvent) {
-        val holder = e.inventory.esuHolder ?: return
-        holder.handleClick(e)
-    }
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun onDrag(e: InventoryDragEvent) {
-        val holder = e.inventory.esuHolder ?: return
-        holder.handleDrag(e)
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    fun onClose(e: InventoryCloseEvent) {
-        val holder = e.inventory.esuHolder ?: return
-        holder.onClose()
     }
 
     /* Esu nested events processing */
