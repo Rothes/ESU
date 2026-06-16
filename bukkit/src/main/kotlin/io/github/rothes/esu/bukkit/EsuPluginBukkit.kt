@@ -20,13 +20,14 @@ package io.github.rothes.esu.bukkit
 
 import io.github.rothes.esu.bukkit.command.EsuBukkitCommandManager
 import io.github.rothes.esu.bukkit.config.BukkitEsuLang
-import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.listener.InternalListeners
 import io.github.rothes.esu.bukkit.module.*
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.BukkitDataSerializer
 import io.github.rothes.esu.bukkit.util.ServerInfo
+import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils.isEsuInventory
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance
 import io.github.rothes.esu.bukkit.util.version.adapter.InventoryAdapter.Companion.topInv
 import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
@@ -48,6 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.incendo.cloud.CommandManager
+import java.util.logging.Level
 
 class EsuPluginBukkit(
     val bootstrap: EsuBootstrapBukkit
@@ -158,15 +160,14 @@ class EsuPluginBukkit(
 
         for (player in Bukkit.getOnlinePlayers()) {
             player.updateCommands() // We have removed all our commands, update it
-            try {
-                val inventoryHolder = player.openInventory.topInv.holder
-                if (inventoryHolder is EsuInvHolder<*>) {
-                    inventoryHolder.close()
+
+            player.syncTick {
+                try {
+                    if (player.openInventory.topInv.isEsuInventory)
+                        player.closeInventory()
+                } catch (e: Exception) {
+                    bootstrap.logger.log(Level.WARNING, "Failed to handle inventory", e)
                 }
-            } catch (_: IllegalStateException) {
-                // Cannot read world asynchronously on Folia, when player is opening a world inv
-            } catch (_: NullPointerException) {
-                // Shutting down on Folia
             }
 
             BukkitUserManager.getCache(player.uniqueId)?.let { user ->

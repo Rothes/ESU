@@ -20,9 +20,9 @@ package io.github.rothes.esu.bukkit.listener
 
 import io.github.rothes.esu.bukkit.UpdateCheckerMan
 import io.github.rothes.esu.bukkit.event.*
-import io.github.rothes.esu.bukkit.inventory.EsuInvHolder
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.extension.register
+import io.github.rothes.esu.bukkit.util.inventory.InventoryUtils.esuHolder
 import io.github.rothes.esu.core.storage.StorageManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -81,25 +81,19 @@ internal object InternalListeners : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun onClick(e: InventoryClickEvent) {
-        val holder = e.inventory.holder
-        if (holder is EsuInvHolder<*>) {
-            holder.handleClick(e)
-        }
+        val holder = e.inventory.esuHolder ?: return
+        holder.handleClick(e)
     }
     @EventHandler(priority = EventPriority.LOWEST)
     fun onDrag(e: InventoryDragEvent) {
-        val holder = e.inventory.holder
-        if (holder is EsuInvHolder<*>) {
-            holder.handleDrag(e)
-        }
+        val holder = e.inventory.esuHolder ?: return
+        holder.handleDrag(e)
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     fun onClose(e: InventoryCloseEvent) {
-        val holder = e.inventory.holder
-        if (holder is EsuInvHolder<*>) {
-            holder.onClose()
-        }
+        val holder = e.inventory.esuHolder ?: return
+        holder.onClose()
     }
 
     /* Esu nested events processing */
