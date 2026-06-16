@@ -23,7 +23,7 @@ import io.github.rothes.esu.bukkit.inventory.DynamicHolder
 import io.github.rothes.esu.bukkit.inventory.type.SimpleType
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
+import io.github.rothes.esu.bukkit.util.scheduler.PlatformTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
@@ -113,7 +113,7 @@ object OpenInventory : BaseCommand<FeatureToggle.DefaultTrue, OpenInventory.Lang
         private val modifiedSlots = Int2ReferenceOpenHashMap<PendingChange>()
 
         private val lock = ReentrantLock()
-        private var task: ScheduledTask?
+        private var task: PlatformTask?
 
         init {
             var craftSlot = 1 // Slot 0 is the result

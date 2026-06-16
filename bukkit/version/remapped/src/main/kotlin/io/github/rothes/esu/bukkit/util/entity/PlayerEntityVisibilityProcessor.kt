@@ -21,7 +21,7 @@ package io.github.rothes.esu.bukkit.util.entity
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.scheduler.ScheduledTask
+import io.github.rothes.esu.bukkit.util.scheduler.PlatformTask
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.delayedTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
@@ -49,7 +49,7 @@ abstract class PlayerEntityVisibilityProcessor(
     val plugin: Plugin,
 ) {
 
-    protected var task: ScheduledTask? = null
+    protected var task: PlatformTask? = null
     private val listener = TrackListener()
 
     protected val trackedEntities = Int2ReferenceOpenHashMap<TrackedEntity>(16, 0.9f)

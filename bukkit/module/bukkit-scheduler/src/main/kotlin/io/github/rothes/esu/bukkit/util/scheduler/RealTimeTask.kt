@@ -1,6 +1,6 @@
 package io.github.rothes.esu.bukkit.util.scheduler
 
-object RealTimeTask : ScheduledTask {
+object RealTimeTask : PlatformTask {
 
     override val taskId: Int
         get() = -1

@@ -22,7 +22,7 @@ import org.bukkit.scheduler.BukkitTask
 
 class BukkitTask(
     private val bukkitTask: BukkitTask
-): ScheduledTask {
+): PlatformTask {
 
     override val taskId: Int
         get() = bukkitTask.taskId

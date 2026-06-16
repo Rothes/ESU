@@ -18,9 +18,11 @@
 
 package io.github.rothes.esu.bukkit.util.scheduler
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask
+
 class FoliaTask(
-    private val foliaTask: io.papermc.paper.threadedregions.scheduler.ScheduledTask
-): ScheduledTask {
+    private val foliaTask: ScheduledTask
+): PlatformTask {
 
     override val taskId: Int
         get() = foliaTask.hashCode()
