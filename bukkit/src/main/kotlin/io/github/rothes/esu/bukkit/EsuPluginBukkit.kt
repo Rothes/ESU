@@ -212,7 +212,7 @@ class EsuPluginBukkit(
             @OptIn(DelicateCoroutinesApi::class) // Just release the resources
             Dispatchers.shutdown()
         } catch (t: Throwable) {
-            err("An exception occurred while shutting down coroutine: $t")
+            warn("An exception occurred while shutting down coroutine: $t")
         }
     }
 
