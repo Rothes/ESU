@@ -40,7 +40,10 @@ abstract class BukkitUser: CommonUser() {
         get() = _audience ?: commandSender.audience.also { _audience = it }
 
     override fun getTagResolvers(): Iterable<TagResolver> {
-        return _tagResolvers ?: User.DEFAULT_TAG_RESOLVERS.plus(ComponentBukkitUtils.papi(this)).also { _tagResolvers = it }
+        return _tagResolvers
+            ?: User.DEFAULT_TAG_RESOLVERS
+                .plus(ComponentBukkitUtils.papi(this))
+                .also { _tagResolvers = it }
     }
 
     override val name: String
