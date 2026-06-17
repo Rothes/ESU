@@ -187,11 +187,9 @@ class EsuPluginBukkit(
                 BukkitUserManager.unload(user)
             }
         }
-        HandlerList.unregisterAll(bootstrap)
         if (existsEsuInv && versioned<ServerShutdownHandler>().isRunning()) {
             try {
                 val daemon = plugin.createChild(name = "EsuInv-Daemon", forceEnabled = true)
-                EsuInvBaseListeners.register(daemon)
                 val task = Scheduler.global(1, 1, daemon) { task ->
                     val closed = Bukkit.getOnlinePlayers().none { it.openInventory.topInv.isEsuInventory }
                     if (closed) {
@@ -200,11 +198,13 @@ class EsuPluginBukkit(
                         info("EsuInv-Daemon(${task.taskId}) closed")
                     }
                 }
+                EsuInvBaseListeners.register(daemon)
                 warn("Started EsuInv-Daemon(${task.taskId}) due to remaining opened EsuInv")
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
         }
+        HandlerList.unregisterAll(bootstrap)
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
