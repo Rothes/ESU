@@ -18,10 +18,10 @@
 
 package io.github.rothes.esu.bukkit.util.scheduler
 
-import org.bukkit.scheduler.BukkitTask
+import org.bukkit.scheduler.BukkitTask as BktTask
 
 class BukkitTask(
-    private val bukkitTask: BukkitTask
+    private val bukkitTask: BktTask
 ): PlatformTask {
 
     override val taskId: Int
@@ -30,5 +30,8 @@ class BukkitTask(
     override fun cancel() {
         bukkitTask.cancel()
     }
+
+    override fun equals(other: Any?): Boolean = other is BukkitTask && bukkitTask === other.bukkitTask
+    override fun hashCode(): Int = bukkitTask.hashCode()
 
 }

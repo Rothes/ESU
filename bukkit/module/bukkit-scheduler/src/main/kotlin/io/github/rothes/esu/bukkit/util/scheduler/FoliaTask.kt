@@ -31,4 +31,7 @@ class FoliaTask(
         foliaTask.cancel()
     }
 
+    override fun equals(other: Any?): Boolean = other is FoliaTask && foliaTask === other.foliaTask
+    override fun hashCode(): Int = foliaTask.hashCode()
+
 }
