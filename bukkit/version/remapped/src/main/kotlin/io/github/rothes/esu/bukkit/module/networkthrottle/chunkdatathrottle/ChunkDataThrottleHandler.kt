@@ -741,8 +741,11 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     )
                 }
             pdData.updating = true
-            user.sendPacket(wrapper)
-            pdData.updating = false
+            try {
+                user.sendPacket(wrapper)
+            } finally {
+                pdData.updating = false
+            }
         }
 
         playerChunk.updatedBlocks += updates.size
