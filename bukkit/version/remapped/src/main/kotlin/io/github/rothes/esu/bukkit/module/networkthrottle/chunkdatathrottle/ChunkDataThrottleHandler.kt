@@ -722,6 +722,10 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         val groupBy = updates.groupBy {
             SectionPos.of(it)
         }
+        if (groupBy.isEmpty()) return
+
+        val pdData = playerData[player]!!
+        val user = PacketEvents.getAPI().playerManager.getUser(player)
         for ((section, blocks) in groupBy) {
             val wrapper = if (blocks.size > 1) WrapperPlayServerMultiBlockChange(
                 Vector3i(section.x, section.y, section.z), true, blocks.map {
@@ -736,7 +740,9 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                         Vector3i(it.x, it.y, it.z), chunk.getBlockState(it).id
                     )
                 }
-            PacketEvents.getAPI().playerManager.sendPacketSilently(player, wrapper)
+            pdData.updating = true
+            user.sendPacket(wrapper)
+            pdData.updating = false
         }
 
         playerChunk.updatedBlocks += updates.size
@@ -823,6 +829,9 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         override fun onPacketSend(event: PacketSendEvent) {
             if (event.isCancelled) return
             try {
+                fun shouldSkip(): Boolean {
+                    return playerData[event.getPlayer()]!!.updating
+                }
                 when (event.packetType) {
                     PacketType.Play.Server.UNLOAD_CHUNK       -> {
                         val wrapper = WrapperPlayServerUnloadChunk(event)
@@ -830,6 +839,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     }
 
                     PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
+                        if (shouldSkip()) return
                         val wrapper = WrapperPlayServerMultiBlockChange(event)
                         val player = event.getPlayer<Player>()
                         val world = player.world
@@ -844,6 +854,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     }
 
                     PacketType.Play.Server.BLOCK_CHANGE       -> {
+                        if (shouldSkip()) return
                         val wrapper = WrapperPlayServerBlockChange(event)
                         if (wrapper.blockId.blocksView == BV_INVISIBLE) {
                             // Only check update if blocks get broken or transformed to non-blocksView
@@ -921,6 +932,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         var bvArr: ByteArray = ByteArray(0),
         @JvmField
         var invisibleArr: ByteArray = ByteArray(0),
+        @JvmField
+        var updating: Boolean = false
     ) {
 
         fun prepareArray(height: Int) {
