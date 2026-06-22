@@ -155,7 +155,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
                     "org.incendo:cloud-kotlin-extensions:2.0.0",
 
-                    "org.incendo:cloud-paper:2.0.0-beta.15",
+                    "org.incendo:cloud-paper:2.0.0-beta.16",
 
                     "com.h2database:h2:${DependencyVersion.H2DATABASE}",
                     "org.mariadb.jdbc:mariadb-java-client:${DependencyVersion.MARIADB_CLIENT}",
