@@ -726,30 +726,31 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
         val pdData = playerData[player]!!
         val user = PacketEvents.getAPI().playerManager.getUser(player)
-        for ((section, blocks) in groupBy) {
-            val wrapper = if (blocks.size > 1) WrapperPlayServerMultiBlockChange(
-                Vector3i(section.x, section.y, section.z), true, blocks.map {
-                    WrapperPlayServerMultiBlockChange.EncodedBlock(
-                        chunk.getBlockState(it).id, it.x and 0xf, it.y and 0xf, it.z and 0xf
+        pdData.updating = true
+        try {
+            for ((section, blocks) in groupBy) {
+                val wrapper = if (blocks.size > 1)
+                    WrapperPlayServerMultiBlockChange(
+                        Vector3i(section.x, section.y, section.z), true, blocks.map {
+                            WrapperPlayServerMultiBlockChange.EncodedBlock(
+                                chunk.getBlockState(it).id, it.x and 0xf, it.y and 0xf, it.z and 0xf
+                            )
+                        }.toTypedArray()
                     )
-                }.toTypedArray()
-            )
-            else
-                blocks.first().let {
-                    WrapperPlayServerBlockChange(
-                        Vector3i(it.x, it.y, it.z), chunk.getBlockState(it).id
-                    )
-                }
-            pdData.updating = true
-            try {
+                else
+                    blocks.first().let {
+                        WrapperPlayServerBlockChange(
+                            Vector3i(it.x, it.y, it.z), chunk.getBlockState(it).id
+                        )
+                    }
                 user.sendPacket(wrapper)
-            } finally {
-                pdData.updating = false
             }
-        }
 
-        playerChunk.updatedBlocks += updates.size
-        counter.resentBlocks += updates.size
+            playerChunk.updatedBlocks += updates.size
+            counter.resentBlocks += updates.size
+        } finally {
+            pdData.updating = false
+        }
 
         // Check if it's necessary to send a full chunk after updating nearby blocks.
         // Sending a full chunk may make player falling down stuck for a short moment,
