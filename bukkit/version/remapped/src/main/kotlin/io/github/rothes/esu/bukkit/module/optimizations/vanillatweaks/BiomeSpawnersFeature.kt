@@ -146,7 +146,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
         get() = {
             it.defaultOptions { op ->
                 op.serializers { b ->
-                    b.register(NmsRegistryValueSerializers.Companion.instance.entityType)
+                    b.register(NmsRegistryValueSerializers.instance.entityType)
                 }
             }
         }
