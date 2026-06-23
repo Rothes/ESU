@@ -18,12 +18,14 @@
 
 package io.github.rothes.esu.bukkit.util.version.remapper
 
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.remapper.transformer.KotlinMetaTransformer
 import io.github.rothes.esu.bukkit.util.version.remapper.transformer.ReflectionTransformer
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.artifact.local.FileHashes
 import io.github.rothes.esu.core.util.artifact.relocator.PackageRelocator
 import io.github.rothes.esu.core.util.extension.ClassUtils.jarFilePath
+import io.github.rothes.esu.core.util.version.Version
 import net.neoforged.art.api.Renamer
 import net.neoforged.art.api.SignatureStripperConfig
 import net.neoforged.art.api.Transformer
@@ -33,21 +35,51 @@ import java.io.File
 
 object JarRemapper {
 
-    private const val REMAPPER_VERSION = "5"
+    private const val REMAPPER_VERSION = "6"
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath.resolve(".cache/remapped").toFile()
     private val cached = FileHashes(cacheFolder)
 
-    fun reobf(file: File): File {
+    private val processors = listOf<VersionProcessor>(
+        ClassRenamedProcessor(
+            Version.fromString("26.2"),
+            "net/minecraft/world/entity/EntityType",
+            "net/minecraft/world/entity/EntityTypes"
+        )
+    )
+
+    private val shouldDeobf
+        get() = !ServerInfo.isMojmap && ServerInfo.hasMojmap
+
+    fun handle(file: File): File {
         val output = cacheFolder.resolve(file.name)
 
         if (output.exists()
             && cached.verify(output)
-            && cached.verify(file, "mojmap")
+            && cached.verify(file, "original")
             && cached.verify(output, "remapper", REMAPPER_VERSION)
-            && cached.verify(output, "mappings", MappingsLoader.mappingsHash()))
+            && cached.verify(output, "mcVersion", ServerInfo.mcVersion.shortString())
+            && (!shouldDeobf || cached.verify(output, "mappings", MappingsLoader.mappingsHash())))
             return output
 
+        file.copyTo(output, true)
+
+        for (processor in processors) {
+            processor.handle(output)
+        }
+
+        if (shouldDeobf) reobf(file, output)
+
+        cached.store(output)
+        cached.store(file, "original")
+        cached.store(output, "remapper", REMAPPER_VERSION)
+        cached.store(output, "mcVersion", ServerInfo.mcVersion.shortString())
+        if (shouldDeobf) cached.store(output, "mappings", MappingsLoader.mappingsHash())
+        cached.save()
+        return output
+    }
+
+    fun reobf(input: File, output: File) {
         output.parentFile.mkdirs()
 
         fun remap(input: File, mappings: List<IMappingFile?>, libs: List<File?>) {
@@ -78,7 +110,7 @@ object JarRemapper {
             MethodNode().instructions
             renamer.run(input, output)
         }
-        remap(file, listOf(MappingsLoader.loadedFiles.mappings.mojmap), listOf(MappingsLoader.loadedFiles.servers.serverMojmap))
+        remap(input, listOf(MappingsLoader.loadedFiles.mappings.mojmap), listOf(MappingsLoader.loadedFiles.servers.serverMojmap))
         MappingsLoader.craftBukkitPackage?.let { cb ->
             PackageRelocator(
                 mapOf(
@@ -88,12 +120,25 @@ object JarRemapper {
         }
         // Do it twice, because some classes(MinecraftServer) is not obf, lib can be conflicting
         remap(output, listOf(MappingsLoader.loadedFiles.mappings.cbCl, MappingsLoader.loadedFiles.mappings.cbMembers), listOf(MappingsLoader.loadedFiles.servers.server, MappingsLoader.loadedFiles.servers.serverCl))
-        cached.store(output)
-        cached.store(file, "mojmap")
-        cached.store(output, "remapper", REMAPPER_VERSION)
-        cached.store(output, "mappings", MappingsLoader.mappingsHash())
-        cached.save()
-        return output
+    }
+
+    private abstract class VersionProcessor {
+
+        abstract fun handle(file: File)
+
+    }
+
+    private class ClassRenamedProcessor(
+        private val version: Version,
+        private val from: String,
+        private val to: String,
+    ) : VersionProcessor() {
+
+        override fun handle(file: File) {
+            val relocates = if (ServerInfo.mcVersion >= version) mapOf(from to to) else mapOf(to to from)
+            PackageRelocator(relocates).relocate(file, file)
+        }
+
     }
 
 }
