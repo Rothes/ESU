@@ -41,7 +41,7 @@ object JarRemapper {
     private val cached = FileHashes(cacheFolder)
 
     private val processors = listOf<VersionProcessor>(
-        ClassRenamedProcessor(
+        LegacyClassNameProcessor(
             Version.fromString("26.2"),
             "net/minecraft/world/entity/EntityType",
             "net/minecraft/world/entity/EntityTypes"
@@ -128,15 +128,15 @@ object JarRemapper {
 
     }
 
-    private class ClassRenamedProcessor(
-        private val version: Version,
-        private val from: String,
-        private val to: String,
+    private class LegacyClassNameProcessor(
+        private val beforeVersion: Version,
+        private val oldVersionName: String,
+        private val newVersionName: String,
     ) : VersionProcessor() {
 
         override fun handle(file: File) {
-            if (ServerInfo.mcVersion < version) {
-                PackageRelocator(mapOf(to to from)).relocate(file, file)
+            if (ServerInfo.mcVersion < beforeVersion) {
+                PackageRelocator(mapOf(newVersionName to oldVersionName)).relocate(file, file)
             }
         }
 
