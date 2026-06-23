@@ -28,6 +28,7 @@ import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.user.User
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftWorld
 import org.incendo.cloud.annotations.Command
@@ -93,8 +94,8 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
             Higher means less entity movement packets (more de-sync), but less network as deal.
         """)
         val entityTypeUpdateInterval: Map<EntityType<*>, Int> = mapOf(
-            EntityType.PIG to INSTANCE[EntityType.PIG],
-            EntityType.ZOMBIE to INSTANCE[EntityType.ZOMBIE],
+            EntityTypes.PIG to INSTANCE[EntityTypes.PIG],
+            EntityTypes.ZOMBIE to INSTANCE[EntityTypes.ZOMBIE],
         )
     ): BaseFeatureConfiguration()
 

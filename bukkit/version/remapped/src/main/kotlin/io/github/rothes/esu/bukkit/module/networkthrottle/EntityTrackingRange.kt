@@ -34,6 +34,7 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usNullableObjAccessor
 import net.minecraft.server.level.ChunkMap
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftWorld
 import org.incendo.cloud.annotations.Command
@@ -148,7 +149,7 @@ object EntityTrackingRange : CommonFeature<EntityTrackingRange.FeatureConfig, En
             Modify the client tracking range of an entity type.
             Unit in chunks.
         """)
-        val clientTrackingRangeOverride: Map<EntityType<*>, Int> = mapOf(EntityType.PIG to EntityType.PIG.clientTrackingRange()),
+        val clientTrackingRangeOverride: Map<EntityType<*>, Int> = mapOf(EntityTypes.PIG to EntityTypes.PIG.clientTrackingRange()),
     ): BaseFeatureConfiguration()
 
     data class FeatureLang(

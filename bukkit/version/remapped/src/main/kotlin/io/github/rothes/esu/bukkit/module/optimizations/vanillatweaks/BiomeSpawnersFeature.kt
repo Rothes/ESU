@@ -39,6 +39,7 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import net.minecraft.util.random.WeightedList
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.MobCategory
 import net.minecraft.world.level.biome.Biome
 import net.minecraft.world.level.biome.MobSpawnSettings
@@ -159,7 +160,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
         val spawners: Map<MobCategory, List<WeightedSpawnerData>> = mapOf(),
     ) {
         data class WeightedSpawnerData(
-            val entityType: EntityType<*> = EntityType.PIG,
+            val entityType: EntityType<*> = EntityTypes.PIG,
             val minCount: Int = 1,
             val maxCount: Int = 1,
             val weight: Int = 1,

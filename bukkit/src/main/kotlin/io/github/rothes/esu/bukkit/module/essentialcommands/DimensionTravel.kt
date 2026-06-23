@@ -28,7 +28,7 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.math.floorI
-import net.minecraft.world.level.ChunkPos
+import net.minecraft.world.level.chunk.status.ChunkPyramid
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.entity.Player
@@ -70,7 +70,7 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
-                if (max(abs(target.blockX shr 4), abs(target.blockZ shr 4)) > ChunkPos.MAX_COORDINATE_VALUE) {
+                if (max(abs(target.blockX shr 4), abs(target.blockZ shr 4)) > ChunkPyramid.MAX_CHUNK_COORDINATE_VALUE) {
                     return sender.message(module.lang, { teleportFailedUnknown })
                 }
                 val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })

@@ -43,6 +43,7 @@ import kotlinx.coroutines.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
@@ -561,7 +562,7 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
         """)
         val fastRaytrace: Boolean = true,
         @Comment("These entity types are always considered visible.")
-        val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityType.WITHER),
+        val visibleEntityTypes: ReferenceSet<EntityType<*>> = ReferenceSet.of(EntityTypes.WITHER),
         @Comment("Entities within this radius are considered always visible.")
         val forceVisibleDistance: Double = 8.0,
         @Comment("""
