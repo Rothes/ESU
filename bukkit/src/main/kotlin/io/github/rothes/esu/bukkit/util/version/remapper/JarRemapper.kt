@@ -135,8 +135,9 @@ object JarRemapper {
     ) : VersionProcessor() {
 
         override fun handle(file: File) {
-            val relocates = if (ServerInfo.mcVersion >= version) mapOf(from to to) else mapOf(to to from)
-            PackageRelocator(relocates).relocate(file, file)
+            if (ServerInfo.mcVersion < version) {
+                PackageRelocator(mapOf(to to from)).relocate(file, file)
+            }
         }
 
     }
