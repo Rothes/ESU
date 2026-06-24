@@ -33,10 +33,7 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
 import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
+import com.github.retrooper.packetevents.wrapper.play.server.*
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler.SectionGetter.Companion.container
@@ -670,6 +667,12 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         return arr
     }
 
+    private fun updatePlayerPos(player: Player) {
+        val loc = player.location
+        checkBlockUpdate(player, loc.blockX, loc.blockY, loc.blockZ, loc.world.minHeight)
+        checkBlockUpdate(player, loc.blockX, loc.blockY + 1, loc.blockZ, loc.world.minHeight)
+    }
+
     private fun checkBlockUpdate(player: Player, blockPos: BlockPos, minHeight: Int = player.world.minHeight) {
         return checkBlockUpdate(player, blockPos.x, blockPos.y, blockPos.z, minHeight)
     }
@@ -836,10 +839,27 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 fun shouldSkip(): Boolean {
                     return playerData[event.getPlayer()]!!.updating
                 }
+                fun checkPosUpdate(entityId: Int) {
+                    val player = event.getPlayer<Player>()
+                    if (entityId == player.entityId)
+                        updatePlayerPos(player)
+                }
+
                 when (event.packetType) {
                     PacketType.Play.Server.UNLOAD_CHUNK       -> {
                         val wrapper = WrapperPlayServerUnloadChunk(event)
                         event.getPlayer<Player>().throttledChunks?.remove(getChunkKey(wrapper.chunkX, wrapper.chunkZ))
+                    }
+
+                    PacketType.Play.Server.DAMAGE_EVENT -> {
+                        if (!config.updateOnDamage) return
+                        val wrapper = WrapperPlayServerDamageEvent(event)
+                        checkPosUpdate(wrapper.entityId)
+                    }
+
+                    PacketType.Play.Server.PLAYER_POSITION_AND_LOOK -> {
+                        if (!config.updateOnTeleport) return
+                        updatePlayerPos(event.getPlayer())
                     }
 
                     PacketType.Play.Server.MULTI_BLOCK_CHANGE -> {
@@ -1068,6 +1088,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         val updateOnLegalInteractOnly: Boolean = true,
         @Comment("How many distance of blocks to update from the center when necessary.")
         val updateDistance: Int = 2,
+        val updateOnDamage: Boolean = true,
+        val updateOnTeleport: Boolean = true,
         @Comment("""
                 The bedrock level(minimal height) is never visible unless you are in void.
                 We would skip the check, and if you don't like it you can enable it.
