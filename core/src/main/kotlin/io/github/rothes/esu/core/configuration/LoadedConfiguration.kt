@@ -44,17 +44,6 @@ data class LoadedConfiguration(
         }
     }
 
-    fun saveIfNotEmpty() {
-        var root = node
-        while (true) {
-            val parent = node.parent() ?: break
-            root = parent
-        }
-        if (!root.empty()) {
-            context.loader.save(root)
-        }
-    }
-
     fun <T> getAs(clazz: Class<T>): T {
         if (clazz.isInstance(EmptyConfiguration)) return clazz.cast(EmptyConfiguration)
         else if (clazz.isInstance(Unit)) return clazz.cast(Unit)
