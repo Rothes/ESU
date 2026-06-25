@@ -55,16 +55,16 @@ interface LogUser: User {
     @JvmName("infoMessage")
     fun <T: ConfigurationPart> info(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
         val messageData = lang(locales, block)
-        info(messageData, params = params)
+        info(messageData, params = params, prefix = prefix)
     }
 
     fun <T: ConfigurationPart> info(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
         val message = lang(locales, block)
-        infoMiniMessage(message, params = params)
+        infoMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun info(message: String, vararg params: TagResolver, prefix: String = "") {
-        infoMiniMessage(message, params = params)
+        infoMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun info(message: MessageData, vararg params: TagResolver, prefix: String = "") {
@@ -93,16 +93,16 @@ interface LogUser: User {
     @JvmName("warnMessage")
     fun <T: ConfigurationPart> warn(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
         val messageData = lang(locales, block)
-        warn(messageData, params = params)
+        warn(messageData, params = params, prefix = prefix)
     }
 
     fun <T: ConfigurationPart> warn(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
         val message = lang(locales, block)
-        warnMiniMessage(message, params = params)
+        warnMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun warn(message: String, vararg params: TagResolver, prefix: String = "") {
-        warnMiniMessage(message, params = params)
+        warnMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun warn(message: MessageData, vararg params: TagResolver, prefix: String = "") {
@@ -131,16 +131,16 @@ interface LogUser: User {
     @JvmName("errorMessage")
     fun <T: ConfigurationPart> error(locales: MultiLangConfiguration<T>, block: T.() -> MessageData?, vararg params: TagResolver, prefix: String = "") {
         val messageData = lang(locales, block)
-        error(messageData, params = params)
+        error(messageData, params = params, prefix = prefix)
     }
 
     fun <T: ConfigurationPart> error(locales: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver, prefix: String = "") {
         val message = lang(locales, block)
-        errorMiniMessage(message, params = params)
+        errorMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun error(message: String, vararg params: TagResolver, prefix: String = "") {
-        errorMiniMessage(message, params = params)
+        errorMiniMessage(message, params = params, prefix = prefix)
     }
 
     fun error(message: MessageData, vararg params: TagResolver, prefix: String = "") {
