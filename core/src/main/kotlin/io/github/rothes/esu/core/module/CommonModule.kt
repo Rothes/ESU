@@ -89,15 +89,14 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
         fun <C, L> loadConfig(feature: Feature<C, L>, node: LoadedConfiguration) {
             try {
-                val copy = node.copy()
-                feature.preprocessConfig(copy)
-                feature.setConfigInstance(copy.getAs(feature.configClass))
+                feature.preprocessConfig(node)
+                feature.setConfigInstance(node.getAs(feature.configClass))
             } catch (e: Exception) {
                 throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
             }
 
-            feature.forEachChild { child, configPath ->
-                loadConfig(child, node.node(configPath))
+            for (child in feature.getFeatures()) {
+                loadConfig(child, child.configNode(node))
             }
         }
 
@@ -109,30 +108,11 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to read lang of feature ${feature.name}", e)
             }
 
-            feature.forEachChild { child, configPath ->
-                loadLang(child, nodes.map { node -> node.node(configPath) })
+            for (child in feature.getFeatures()) {
+                loadLang(child, nodes.map { node -> child.langNode(node) })
             }
         }
 
-        private fun Feature<*, *>.forEachChild(scope: (child: Feature<*, *>, configPath: String) -> Unit) {
-            for (child in getFeatures()) {
-                val name = child.name
-                val path = buildString(name.length + 4) {
-                    append(name.firstOrNull()?.lowercaseChar() ?: return@buildString)
-                    var i = 1
-                    while (i < name.length) {
-                        if (name[i].isUpperCase()) {
-                            append('-')
-                            append(name[i].lowercaseChar())
-                        } else {
-                            append(name[i])
-                        }
-                        i++
-                    }
-                }
-                scope(child, path)
-            }
-        }
     }
 
 }

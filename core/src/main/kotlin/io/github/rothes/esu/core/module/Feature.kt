@@ -101,6 +101,32 @@ interface Feature<C, L> {
 
     fun perm(shortPerm: String): String = "$permissionNode.${shortPerm.lowercase()}"
 
+    fun configNode(configuration: LoadedConfiguration): LoadedConfiguration {
+        return configuration.node(defaultNodePath())
+    }
+
+    fun langNode(configuration: LoadedConfiguration): LoadedConfiguration {
+        return configuration.node(defaultNodePath())
+    }
+
+    private fun defaultNodePath(): String {
+        val name = this.name
+        val path = buildString(name.length + 4) {
+            append(name.firstOrNull()?.lowercaseChar() ?: return@buildString)
+            var i = 1
+            while (i < name.length) {
+                if (name[i].isUpperCase()) {
+                    append('-')
+                    append(name[i].lowercaseChar())
+                } else {
+                    append(name[i])
+                }
+                i++
+            }
+        }
+        return path
+    }
+
     fun preprocessConfig(configuration: LoadedConfiguration) {}
     fun preprocessLang(configuration: LoadedConfiguration) {}
 
