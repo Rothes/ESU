@@ -89,8 +89,9 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
 
         fun <C, L> loadConfig(feature: Feature<C, L>, node: LoadedConfiguration) {
             try {
-                feature.preprocessConfig(node)
-                feature.setConfigInstance(node.getAs(feature.configClass))
+                val copy = node.copy()
+                feature.preprocessConfig(copy)
+                feature.setConfigInstance(copy.getAs(feature.configClass))
             } catch (e: Exception) {
                 throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
             }
