@@ -76,6 +76,14 @@ data class LoadedConfiguration(
         )
     }
 
+    fun parent(): LoadedConfiguration? {
+        val parent = this.node.parent() ?: return null
+        return copy(
+            node = parent,
+            resourceNode = this.resourceNode?.parent(),
+        )
+    }
+
     private fun mergeLang(def: ConfigurationNode, from: ConfigurationNode, to: ConfigurationNode) {
         if (def.isMap) {
             for (path in def.childrenMap().keys) {
