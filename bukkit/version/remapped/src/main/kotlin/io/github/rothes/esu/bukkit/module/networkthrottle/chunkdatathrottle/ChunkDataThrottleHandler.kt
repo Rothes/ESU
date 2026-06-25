@@ -854,7 +854,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     PacketType.Play.Server.DAMAGE_EVENT -> {
                         if (!config.updateOnDamage) return
                         val wrapper = WrapperPlayServerDamageEvent(event)
-                        if (wrapper.sourceCauseId != 0) return // Skip packets due to player
+                        if (wrapper.sourceCauseId != 0) return // Skip packets due to entities
                         checkPosUpdate(wrapper.entityId)
                     }
 
