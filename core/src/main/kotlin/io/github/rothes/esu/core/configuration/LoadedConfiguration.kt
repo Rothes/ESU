@@ -34,7 +34,7 @@ data class LoadedConfiguration(
     fun save() {
         var root = node
         while (true) {
-            val parent = node.parent() ?: break
+            val parent = root.parent() ?: break
             root = parent
         }
         if (!root.empty()) {
