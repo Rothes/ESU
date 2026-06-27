@@ -87,7 +87,12 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
             }
         }
 
-        fun <C, L> loadConfig(feature: Feature<C, L>, node: LoadedConfiguration) {
+        fun <C, L> loadConfig(feature: Feature<C, L>, base: LoadedConfiguration) {
+            val node = try {
+                feature.configNode(base)
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
+            }
             try {
                 feature.preprocessConfig(node)
                 feature.setConfigInstance(node.getAs(feature.configClass))
@@ -95,12 +100,15 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
             }
 
-            for (child in feature.getFeatures()) {
-                loadConfig(child, child.configNode(node))
-            }
+            for (child in feature.getFeatures()) loadConfig(child, node)
         }
 
-        fun <C, L> loadLang(feature: Feature<C, L>, nodes: MultiConfiguration<LoadedConfiguration>) {
+        fun <C, L> loadLang(feature: Feature<C, L>, base: MultiConfiguration<LoadedConfiguration>) {
+            val nodes = try {
+                base.map { node -> feature.langNode(node) }
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
+            }
             try {
                 nodes.forEachValue { feature.preprocessLang(it) }
                 feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
@@ -108,9 +116,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to read lang of feature ${feature.name}", e)
             }
 
-            for (child in feature.getFeatures()) {
-                loadLang(child, nodes.map { node -> child.langNode(node) })
-            }
+            for (child in feature.getFeatures()) loadLang(child, nodes)
         }
 
     }
