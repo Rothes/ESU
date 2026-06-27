@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.core.module
 
+import io.github.rothes.esu.core.configuration.LoadedConfiguration
 import java.nio.file.Path
 
 interface Module<C, L>: Feature<C, L> {
@@ -29,5 +30,8 @@ interface Module<C, L>: Feature<C, L> {
     fun doReload() {
         onReload()
     }
+
+    override fun configNode(base: LoadedConfiguration): LoadedConfiguration = base // root
+    override fun langNode(base: LoadedConfiguration): LoadedConfiguration = base // root
 
 }

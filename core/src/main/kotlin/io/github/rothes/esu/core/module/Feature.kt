@@ -101,13 +101,11 @@ interface Feature<C, L> {
 
     fun perm(shortPerm: String): String = "$permissionNode.${shortPerm.lowercase()}"
 
-    fun configNode(configuration: LoadedConfiguration): LoadedConfiguration {
-        return configuration.node(defaultNodePath())
-    }
+    fun configNode(base: LoadedConfiguration): LoadedConfiguration = base.node(defaultNodePath())
+    fun langNode(base: LoadedConfiguration): LoadedConfiguration = base.node(defaultNodePath())
 
-    fun langNode(configuration: LoadedConfiguration): LoadedConfiguration {
-        return configuration.node(defaultNodePath())
-    }
+    fun preprocessConfig(configuration: LoadedConfiguration) {}
+    fun preprocessLang(configuration: LoadedConfiguration) {}
 
     private fun defaultNodePath(): String {
         val name = this.name
@@ -126,9 +124,6 @@ interface Feature<C, L> {
         }
         return path
     }
-
-    fun preprocessConfig(configuration: LoadedConfiguration) {}
-    fun preprocessLang(configuration: LoadedConfiguration) {}
 
     class AvailableCheck(
         val value: Boolean,
