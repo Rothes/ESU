@@ -37,6 +37,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler.SectionGetter.Companion.container
+import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.chunkPos
 import io.github.rothes.esu.bukkit.util.CoordinateUtils.getChunkKey
@@ -51,6 +52,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.command.annotation.ShortPerm
+import io.github.rothes.esu.core.configuration.LoadedConfiguration
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.configuration.serializer.MapSerializer.DefaultedLinkedHashMap
 import io.github.rothes.esu.core.module.CommonFeature
@@ -59,6 +61,7 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import io.github.rothes.esu.core.util.extension.forEachInt
 import io.github.rothes.esu.core.util.extension.readUuid
 import io.github.rothes.esu.core.util.extension.writeUuid
+import io.github.rothes.esu.lib.configurate.ConfigurationNode
 import io.github.rothes.esu.lib.configurate.objectmapping.meta.PostProcess
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
@@ -97,7 +100,9 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.inc
+import kotlin.io.path.copyTo
 import kotlin.io.path.fileSize
+import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.outputStream
 import kotlin.math.abs
 import kotlin.math.pow
@@ -197,6 +202,57 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         playerData.clear()
     }
 
+    override fun configNode(base: LoadedConfiguration): LoadedConfiguration = base
+
+    override fun preprocessConfig(configuration: LoadedConfiguration) {
+        val node = configuration.node
+        if (node.hasChild("threshold-to-resent-whole-chunk")
+            && !node.hasChild("block-update") && !node.hasChild("chunk-handler") // Avoid modifying new schema
+            ) {
+            /* ESU 0.12.4 schema */
+            ConsoleUser.info("Updating config schema from 0.12.4", prefix = "ChunkDataThrottleHandler")
+            val to = node.node("chunk-handler")
+            for ((key, value) in node.childrenMap()) {
+                if (key != "enabled") {
+                    to.node(value.key()).from(value)
+                    node.removeChild(key)
+                }
+            }
+        }
+        if (node.hasChild("chunk-handler")) {
+            /* ESU 0.15.0 schema */
+            val handler = node.node("chunk-handler")
+            ConsoleUser.info("Updating config schema from 0.15.0, creating old backup", prefix = "ChunkDataThrottleHandler")
+            // Create backup
+            val pth = configuration.path
+            pth.copyTo(pth.parent.resolve("${pth.nameWithoutExtension}-old.yml"), true)
+            // Migrate schema
+            val bu = node.node("block-update")
+            val ck = node.node("checks")
+            with(handler) {
+                fun ConfigurationNode.moveTo(node: ConfigurationNode) {
+                    node.mergeFrom(this)
+                    parent()!!.removeChild(key())
+                }
+                fun ConfigurationNode.moveTo(node: ConfigurationNode, key: String) {
+                    node.node(key).set(raw())
+                    parent()!!.removeChild(key())
+                }
+                node("threshold-to-resent-whole-chunk").moveTo(bu, "updates-to-resent-whole-chunk")
+                node("update-distance").moveTo(bu)
+                node("update-on-legal-interact-only").moveTo(bu)
+                node("update-on-damage").moveTo(bu, "update-pos-on-non-entity-damage") // 0.15.1-dev
+                node("update-on-teleport").moveTo(bu) // 0.15.1-dev
+
+                node("minimal-height-invisible-check").moveTo(ck, "minimal-height")
+                node("nether-roof-invisible-check").moveTo(ck, "nether-roof")
+                node("detect-invisible-single-block").moveTo(ck, "invisible-single-block")
+                node("detect-lava-pool").moveTo(ck, "lava-pool")
+                moveTo(node)
+            }
+        }
+    }
+
     private fun buildCache() {
         val nonInvisibleNew = config.nonInvisibleBlocksOverrides
         if (previousNonInvisible != nonInvisibleNew) {
@@ -233,7 +289,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onMove(e: PlayerMoveEvent) {
-        if (!config.detectLavaPool)
+        if (!config.checks.lavaPool)
             return
         val player = e.player.nms
         val level = levelHandler.level(player)
@@ -264,7 +320,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         val config = config
         val nms = player.nms
         val level = levelHandler.level(nms)
-        val minimalHeightInvisibleCheck = config.minimalHeightInvisibleCheck
+        val minimalHeightInvisibleCheck = config.checks.minimalHeight
         val world = level.bukkit
         val randomBlockIds = config.antiXrayRandomBlockIds.getOrDefault(world.name)!!
 
@@ -354,7 +410,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             }
         }
         var pending: IntArrayList? = null
-        if (config.detectInvisibleSingleBlock) {
+        if (config.checks.invisibleSingleBlock) {
             pending = IntArrayList()
             id = invisible.size - (16 * 16 - 1)
             while (--id >= 16 * 16) {
@@ -385,7 +441,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 }
             }
         }
-        if (config.detectLavaPool) {
+        if (config.checks.lavaPool) {
             if (pending == null) {
                 pending = IntArrayList()
             } else {
@@ -421,7 +477,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 }
             }
         }
-        if (!config.netherRoofInvisibleCheck && world.environment == Environment.NETHER) {
+        if (!config.checks.netherRoof && world.environment == Environment.NETHER) {
             // We could do the same thing to the top section,
             // but it never happens in vanilla generated chunks,
             // so, no.
@@ -687,8 +743,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             return
         }
 
-        val fullUpdateThreshold = config.thresholdToResentWholeChunk
-        val updateDistance = config.updateDistance
+        val fullUpdateThreshold = config.blockUpdate.updatesToResentWholeChunk
+        val updateDistance = config.blockUpdate.updateDistance
 
         val groups = buildList {
             for (i in -updateDistance..updateDistance)
@@ -820,7 +876,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     if (wrapper.action == DiggingAction.START_DIGGING) {
                         val player = event.getPlayer<Player>()
                         val pos = wrapper.blockPosition
-                        if (config.updateOnLegalInteractOnly) {
+                        if (config.blockUpdate.updateOnLegalInteractOnly) {
                             val eye = player.eyeLocation
                             val dist = (eye.x - pos.x).pow(2) + (eye.y - pos.y).pow(2) + (eye.z - pos.z).pow(2)
                             if (dist > 6.0 * 6.0) {
@@ -852,14 +908,14 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                     }
 
                     PacketType.Play.Server.DAMAGE_EVENT -> {
-                        if (!config.updateOnDamage) return
+                        if (!config.blockUpdate.updatePosOnNonEntityDamage) return
                         val wrapper = WrapperPlayServerDamageEvent(event)
                         if (wrapper.sourceCauseId != 0) return // Skip packets due to entities
                         checkPosUpdate(wrapper.entityId)
                     }
 
                     PacketType.Play.Server.PLAYER_POSITION_AND_LOOK -> {
-                        if (!config.updateOnTeleport) return
+                        if (!config.blockUpdate.updatePosOnTeleport) return
                         updatePlayerPos(event.getPlayer())
                     }
 
@@ -1073,50 +1129,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     data class HandlerConfig(
-        @Comment("""
-                Plugin will resent complete original chunk data if resent block amount exceeds this value.
-                Set it to -1 will never resent chunk but keep updating nearby blocks, 
-                 0 to always resent original chunks.
-                Set this to a large value can prevent constantly sending block update packets.
-                Original chunk is not with anti-xray functionality. It is recommended to leave this value -1 .
-                """)
-        val thresholdToResentWholeChunk: Int = -1,
-        @Comment("""
-                We updates the nearby blocks when a player digs a block immediately.
-                If this is enabled, we will check if the block is in the interaction range
-                 of the player with a rough calculation.
-                """)
-        val updateOnLegalInteractOnly: Boolean = true,
-        @Comment("How many distance of blocks to update from the center when necessary.")
-        val updateDistance: Int = 2,
-        val updateOnDamage: Boolean = true,
-        val updateOnTeleport: Boolean = true,
-        @Comment("""
-                The bedrock level(minimal height) is never visible unless you are in void.
-                We would skip the check, and if you don't like it you can enable it.
-                """)
-        val minimalHeightInvisibleCheck: Boolean = false,
-        @Comment("""
-                Same with minimal-height but it's for nether roof. For out-of-the-box, it's true by default.
-                It's highly recommend to set it to FALSE if you don't allow players to get above there.
-                """)
-        val netherRoofInvisibleCheck: Boolean = true,
-        @Comment("""
-                If a non-occluding block is surrounded by occluding blocks, the center block is invisible.
-                But should we consider all surrounded blocks invisible to this block face?
-                Unless the player joins the game with their eye in the non-occluding block,
-                 they will never naturally see those surrounded blocks.
-                This step takes extra ~0.02ms, so it's not enabled by default.
-                Enable this could help with saving bandwidth in nether, as there's many single-block lava.
-            """)
-        val detectInvisibleSingleBlock: Boolean = false,
-        @Comment("""
-                Detect lava pool, and consider lava blocks which being covered invisible.
-                This step takes extra ~0.03ms, so it's not enabled by default.
-                It also makes the plugin detect nearby blocks everytime player moves.
-                Enable this could help with saving bandwidth, especially in nether.
-            """)
-        val detectLavaPool: Boolean = false,
+        val blockUpdate: BlockUpdate = BlockUpdate(),
+        val checks: Checks = Checks(),
         @Comment("""
                 This feature doesn't support running along with any other anti-xray plugins.
                 You must use the anti-xray here we provide.
@@ -1150,6 +1164,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         @Comment("""
                 If enabled, we add a extra block type to chunk section palettes for the random block.
                 This will greatly enhance anti-xray capabilities while giving only few bytes of additional bandwidth.
+                If disabled, the block counts most in the section will be chosen to display as hidden block.
             """)
         val enhancedAntiXray: Boolean = true,
         @Comment("""
@@ -1159,6 +1174,60 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             """)
         val nonInvisibleBlocksOverrides: Set<Block> = setOf(),
     ) {
+
+        data class BlockUpdate(
+            @Comment("""
+                Plugin will resent complete original chunk data if resent block amount exceeds this value.
+                Set it to -1 will never resent chunk but keep updating nearby blocks, 
+                 0 to always resent original chunks.
+                Set this to a large value can prevent constantly sending block update packets.
+                Original chunk is not with anti-xray functionality. It is recommended to leave this value -1 .
+                """)
+            val updatesToResentWholeChunk: Int = -1,
+            @Comment("How many Manhattan distance of blocks to update from the center when necessary.")
+            val updateDistance: Int = 2,
+            @Comment("""
+                We updates the clicked nearby blocks when a player digs a block immediately.
+                If this is enabled, we will check if the block is in the interaction range
+                 of the player with a rough calculation.
+                """)
+            val updateOnLegalInteractOnly: Boolean = true,
+            @Comment("""
+                Update player position when received non entity damage.
+                In case of suffocation, etc. in hidden blocks.
+            """)
+            val updatePosOnNonEntityDamage: Boolean = true,
+            val updatePosOnTeleport: Boolean = true,
+        )
+
+        data class Checks(
+            @Comment("""
+                The bedrock level(minimal height) is never visible unless you are in void.
+                We would skip the check, and if you don't like it you can enable it.
+            """)
+            val minimalHeight: Boolean = false,
+            @Comment("""
+                Same with minimal-height but it's for nether roof. For out-of-the-box, it's true by default.
+                It's highly recommend to set it to FALSE if you don't allow players to get above there.
+            """)
+            val netherRoof: Boolean = true,
+            @Comment("""
+                If a non-occluding block is surrounded by occluding blocks, the center block is invisible.
+                But should we consider all surrounded blocks invisible to this block face?
+                Unless the player joins the game with their eye in the non-occluding block,
+                 they will never naturally see those surrounded blocks.
+                This step takes extra ~0.02ms, so it's not enabled by default.
+                Enable this could help with saving bandwidth in nether, as there's many single-block lava.
+            """)
+            val invisibleSingleBlock: Boolean = false,
+            @Comment("""
+                Detect lava pool, consider lava blocks which being covered invisible.
+                This step takes extra ~0.03ms, so it's not enabled by default.
+                It also requires ESU to detect nearby blocks everytime player moves.
+                Enable this could help with saving bandwidth, especially in nether.
+            """)
+            val lavaPool: Boolean = false,
+        )
 
         val antiXrayRandomBlockIds by lazy {
             with(antiXrayRandomBlockList) {

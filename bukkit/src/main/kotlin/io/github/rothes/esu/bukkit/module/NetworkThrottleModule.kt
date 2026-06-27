@@ -23,7 +23,6 @@ import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.LoadedConfiguration
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.lib.configurate.yaml.YamlConfigurationLoader
 import java.util.*
@@ -63,19 +62,6 @@ object NetworkThrottleModule: BukkitModule<BaseModuleConfiguration, NetworkThrot
                     builder.register(NmsRegistryValueSerializers.instance.block)
                         .register(NmsRegistryValueSerializers.instance.entityType)
                 }
-            }
-        }
-    }
-
-    override fun preprocessConfig(configuration: LoadedConfiguration) {
-        // v0.12.4
-        val node = configuration.node
-        val from = node.node("chunk-data-throttle")
-        val to = node.node("chunk-data-throttle", "chunk-handler")
-        for ((key, value) in from.childrenMap()) {
-            if (key != "enabled" && key != "chunk-handler") {
-                to.node(value.key()).from(value)
-                from.removeChild(key)
             }
         }
     }
