@@ -101,9 +101,10 @@ interface Feature<C, L> {
 
     fun perm(shortPerm: String): String = "$permissionNode.${shortPerm.lowercase()}"
 
+    fun preprocessBaseConfig(configuration: LoadedConfiguration) {}
+    fun preprocessBaseLang(configuration: LoadedConfiguration) {}
     fun configNode(base: LoadedConfiguration): LoadedConfiguration = base.node(defaultNodePath())
     fun langNode(base: LoadedConfiguration): LoadedConfiguration = base.node(defaultNodePath())
-
     fun preprocessConfig(configuration: LoadedConfiguration) {}
     fun preprocessLang(configuration: LoadedConfiguration) {}
 

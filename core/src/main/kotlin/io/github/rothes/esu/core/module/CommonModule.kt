@@ -94,6 +94,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
             }
             try {
+                feature.preprocessBaseConfig(base)
                 feature.preprocessConfig(node)
                 feature.setConfigInstance(node.getAs(feature.configClass))
             } catch (e: Exception) {
@@ -110,6 +111,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
             }
             try {
+                base.forEachValue { feature.preprocessBaseLang(it) }
                 nodes.forEachValue { feature.preprocessLang(it) }
                 feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
             } catch (e: Exception) {
