@@ -159,13 +159,13 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     override fun onReload() {
         super.onReload()
-        if (enabled) buildCache()
+        if (enabled) handleConfig()
     }
 
     override fun onEnable() {
         val firstEnable = !wasEnabled
         wasEnabled = true
-        buildCache()
+        handleConfig()
         for (player in Bukkit.getOnlinePlayers()) {
             playerData.putIfAbsent(player, PlayerData())
         }
@@ -253,7 +253,11 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         }
     }
 
-    private fun buildCache() {
+    private fun handleConfig() {
+        // Verify configuration
+        if (config.blockUpdate.updateDistance < 2)
+            ConsoleUser.warn("Config update-distance is under 2, this will lead to problems!", prefix = "ChunkDataThrottle")
+        // Build Cache
         val nonInvisibleNew = config.nonInvisibleBlocksOverrides
         if (previousNonInvisible != nonInvisibleNew) {
             val occludeTester = versioned<BlockOccludeTester>()
