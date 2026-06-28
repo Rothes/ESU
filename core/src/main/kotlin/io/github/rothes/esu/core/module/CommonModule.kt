@@ -94,7 +94,6 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
             }
             try {
-                feature.preprocessBaseConfig(base)
                 feature.preprocessConfig(node)
                 feature.setConfigInstance(node.getAs(feature.configClass))
             } catch (e: Exception) {
@@ -102,6 +101,12 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
             }
 
             for (child in feature.getFeatures()) loadConfig(child, node)
+
+            try {
+                feature.postprocessConfig(node)
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
+            }
         }
 
         fun <C, L> loadLang(feature: Feature<C, L>, base: MultiConfiguration<LoadedConfiguration>) {
@@ -111,7 +116,6 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 throw IllegalStateException("Failed to handle node path of feature ${feature.name}", e)
             }
             try {
-                base.forEachValue { feature.preprocessBaseLang(it) }
                 nodes.forEachValue { feature.preprocessLang(it) }
                 feature.setLangInstance(nodes.map { node -> node.getAs(feature.langClass) })
             } catch (e: Exception) {
@@ -119,6 +123,12 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
             }
 
             for (child in feature.getFeatures()) loadLang(child, nodes)
+
+            try {
+                nodes.forEachValue { feature.postprocessLang(it) }
+            } catch (e: Exception) {
+                throw IllegalStateException("Failed to read config of feature ${feature.name}", e)
+            }
         }
 
     }
