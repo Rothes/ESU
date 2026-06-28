@@ -67,7 +67,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                 val configNode = ConfigLoader.loadConfiguration(
                     configPath,
                     ConfigLoader.LoaderSettings(
-                        yamlLoader = { buildConfigLoader(it); it },
+                        yamlLoader = { buildConfigLoader(it) },
                     ),
                     configClass,
                 )
@@ -77,7 +77,7 @@ abstract class CommonModule<C, L> : CommonFeature<C, L>(), Module<C, L> {
                     langClass,
                     ConfigLoader.LoaderSettingsMulti(
                         "en_us",
-                        yamlLoader = { buildLangLoader(it); it },
+                        yamlLoader = { buildLangLoader(it) },
                     )
                 )
                 loadConfig(root, configNode)

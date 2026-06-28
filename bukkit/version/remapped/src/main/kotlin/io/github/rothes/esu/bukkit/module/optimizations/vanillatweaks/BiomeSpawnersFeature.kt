@@ -142,7 +142,7 @@ object BiomeSpawnersFeature: CommonFeature<BiomeSpawnersFeature.FeatureConfig, U
         return keyHandler.getResourceKeyString(registryAccess.getResourceKey(registry, biome))
     }
 
-    private val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder
+    private val yamlLoader: (YamlConfigurationLoader.Builder) -> Unit
         get() = {
             it.defaultOptions { op ->
                 op.serializers { b ->

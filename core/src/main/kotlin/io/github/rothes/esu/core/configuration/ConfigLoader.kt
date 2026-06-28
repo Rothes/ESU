@@ -217,7 +217,7 @@ object ConfigLoader {
     }
 
     fun createLoadedConfiguration(settings: LoaderSettings, path: Path, resourceNode: ConfigurationNode?, mergeResources: Boolean): LoadedConfiguration {
-        val loader = createBuilder(resourceNode).let(settings.yamlLoader).path(path).build()
+        val loader = createBuilder(resourceNode).apply(settings.yamlLoader).path(path).build()
         return LoadedConfiguration(
             LoadedConfiguration.LoaderContext(loader, mergeResources),
             path,
@@ -509,8 +509,7 @@ object ConfigLoader {
         }
 
         fun readConfig(clazz: Class<*>, settings: LoaderSettings): ConfigurationNode {
-            val raw = readConfig(clazz.classLoader, createBuilder(null).let(settings.yamlLoader))
-            return settings.nodeMapper(raw)
+            return readConfig(clazz.classLoader, createBuilder(null).apply(settings.yamlLoader))
         }
 
         fun readConfig(classLoader: ClassLoader, yamlBuilder: YamlConfigurationLoader.Builder): ConfigurationNode {
@@ -527,8 +526,7 @@ object ConfigLoader {
     }
 
     open class LoaderSettings(
-        val yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        val nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
+        val yamlLoader: (YamlConfigurationLoader.Builder) -> Unit = { },
         val findResource: Boolean = true,
         val basePath: Path = EsuCore.instance.baseConfigPath,
     )
@@ -539,22 +537,20 @@ object ConfigLoader {
         val initializeConfigs: List<String>? = null,
         val loadSubDirectories: Boolean = false,
         val configKeyMapper: (Path) -> String = { it.nameWithoutExtension },
-        yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
-        nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
+        yamlLoader: (YamlConfigurationLoader.Builder) -> Unit = { },
         findResource: Boolean = true,
         basePath: Path = EsuCore.instance.baseConfigPath,
-    ): LoaderSettings(yamlLoader, nodeMapper, findResource, basePath) {
+    ): LoaderSettings(yamlLoader, findResource, basePath) {
 
         constructor(
             vararg forceLoadConfigs: String,
             initializeConfigs: List<String>? = null,
             loadSubDirectories: Boolean = false,
-            yamlLoader: (YamlConfigurationLoader.Builder) -> YamlConfigurationLoader.Builder = { it },
+            yamlLoader: (YamlConfigurationLoader.Builder) -> Unit = { },
             keyMapper: (Path) -> String = { it.nameWithoutExtension },
-            nodeMapper: (ConfigurationNode) -> ConfigurationNode = { node -> node },
             findResource: Boolean = true,
             basePath: Path = EsuCore.instance.baseConfigPath,
-        ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, nodeMapper, findResource, basePath)
+        ): this(forceLoadConfigs.toList(), initializeConfigs, loadSubDirectories, keyMapper, yamlLoader, findResource, basePath)
 
     }
 
