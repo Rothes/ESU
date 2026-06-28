@@ -9,14 +9,3 @@ vanilla-tweaks:
   # 修改生物群系的生物自然生成表。使用指令 /esu optimizations biomeSpawners export <biome>
   # 可导出服务器中当前的设置，然后可在 biome_spawners 目录中修改它。
   biome-spawners:
-  # 更改服务器标签类型设置。
-  # 标签用于控制区块的加载。详情请参阅 https://zh.minecraft.wiki/w/区块#标签
-  ticket-type:
-    # 调整标签类型的过期/超时游戏刻设置。
-    # 设置 expiry-ticks 为 0 或负数将使得区块永久加载，直到标签被手动移除。
-    expiry-ticks:
-    # 调整标签类型的区块加载设置。
-    # 由于 Moonrise 区块系统优化，在 Paper 服务端上修改 loads-chunk 或 ticks-chunk 不会产生作用。
-    chunk-loads:
-    # 引入在 Minecraft 1.21.9 加入的更多设置.
-    chunk-unloads:

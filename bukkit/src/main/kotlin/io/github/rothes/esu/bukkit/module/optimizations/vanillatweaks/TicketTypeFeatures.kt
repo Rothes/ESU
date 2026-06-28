@@ -18,16 +18,21 @@
 
 package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks
 
+import io.github.rothes.esu.bukkit.module.OptimizationsModule
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.ChunkLoadsFeature
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.ChunkUnloadsFeature
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.ExpiryTicksFeature
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeCommandsFeature
+import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.ServerInfo
+import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
-import io.github.rothes.esu.core.configuration.meta.Comment
+import io.github.rothes.esu.core.configuration.LoadedConfiguration
 import io.github.rothes.esu.core.configuration.meta.NoDeserializeNull
 import io.github.rothes.esu.core.configuration.meta.RemovedNode
 import io.github.rothes.esu.core.module.CommonFeature
+import io.github.rothes.esu.core.util.extension.headerIfNotNull
+import io.github.rothes.esu.lib.configurate.CommentedConfigurationNode
 
 object TicketTypeFeatures: CommonFeature<TicketTypeFeatures.FeatureConfig, Unit>() {
 
@@ -42,10 +47,38 @@ object TicketTypeFeatures: CommonFeature<TicketTypeFeatures.FeatureConfig, Unit>
 
     override fun onEnable() { }
 
-    @Comment("""
-        Change server ticket type settings.
-        Tickets control chunk loading. For details, check https://minecraft.wiki/w/Chunk#Tickets
-    """)
+    override fun configNode(base: LoadedConfiguration): LoadedConfiguration {
+        val conf = ConfigLoader.loadConfiguration(
+            module.configPath.parent.resolve("ticket-type.yml"),
+            ConfigLoader.LoaderSettings(
+                yamlLoader = {
+                    (module as OptimizationsModule).buildConfigLoader(it)
+                    it.defaultOptions { o ->
+                        o.headerIfNotNull("""
+                            Change server ticket type settings.
+                            Tickets control chunk loading. For details, check https://minecraft.wiki/w/Chunk#Tickets
+                            Must enable OptimizationsModule for below options to work.
+                        """.trimIndent())
+                    }
+                },
+            )
+        )
+        val node = base.node
+        if (node.hasChild("ticket-type")) {
+            /* ESU 0.15.0 schema */
+            ConsoleUser.info("Migrating ticket-type configs to dedicated file", prefix = "OptimizationsModule")
+            val from = node.node("ticket-type") as CommentedConfigurationNode
+//            from.comment(null) // Remove comment, this appears after header // To keep user comments, we don't do it
+            conf.node.mergeFrom(from)
+            node.removeChild("ticket-type")
+        }
+        return conf
+    }
+
+    override fun postprocessConfig(configuration: LoadedConfiguration) {
+        configuration.save()
+    }
+
     class FeatureConfig: ConfigurationPart {
         @RemovedNode("0.14.1") val enabled: Boolean? = null
         @NoDeserializeNull
