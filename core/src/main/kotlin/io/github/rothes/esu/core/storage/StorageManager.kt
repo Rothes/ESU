@@ -130,7 +130,15 @@ object StorageManager {
     }
 
     fun getUserData(userId: Int): UserData {
-        return userDataCache.asMap().computeIfAbsent(userId) { getUserData(userId) }
+        return userDataCache.asMap().computeIfAbsent(userId) {
+            with(UsersTable) {
+                transaction(database) {
+                    select(uuid, name, language, colorScheme).where(dbId eq userId).singleOrNull()?.let {
+                        UserData(userId, it[uuid], it[name], it[language], it[colorScheme])
+                    }
+                }
+            }
+        }
     }
 
     fun getUserData(where: UUID, initName: String? = null): UserData {
