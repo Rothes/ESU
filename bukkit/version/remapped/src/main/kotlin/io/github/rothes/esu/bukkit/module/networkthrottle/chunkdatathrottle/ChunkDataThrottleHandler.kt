@@ -278,7 +278,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         previousNonInvisible = nonInvisibleNew
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     fun onJoin(e: PlayerJoinEvent) {
         playerData[e.player] = PlayerData()
     }
