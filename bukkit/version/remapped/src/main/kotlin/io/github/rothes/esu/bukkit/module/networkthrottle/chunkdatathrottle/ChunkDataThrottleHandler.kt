@@ -93,6 +93,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
+import org.spigotmc.event.player.PlayerSpawnLocationEvent
 import java.io.ByteArrayInputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -279,8 +280,13 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
+    fun onSpawnLocation(e: PlayerSpawnLocationEvent) {
+        playerData.putIfAbsent(e.player, PlayerData())
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
     fun onJoin(e: PlayerJoinEvent) {
-        playerData[e.player] = PlayerData()
+        playerData.putIfAbsent(e.player, PlayerData())
     }
 
     @EventHandler
@@ -1102,10 +1108,10 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 val filter = playerData.entries.filter { it.value.throttledChunks.isNotEmpty() }
                 val buf = Buffer().apply {
                     writeInt(filter.size)
-                    for ((user, data) in filter) {
+                    for ((player, data) in filter) {
                         val map = data.throttledChunks.long2ObjectEntrySet().filter { it.value !== FULL_CHUNK }
                         writeInt(map.size)
-                        writeUuid(user.uniqueId)
+                        writeUuid(player.uniqueId)
                         if (map.isEmpty()) {
                             continue
                         }
