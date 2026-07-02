@@ -32,8 +32,12 @@ import net.jpountz.lz4.LZ4Factory
 import org.bukkit.plugin.java.JavaPlugin
 import org.eclipse.aether.artifact.Artifact
 import java.io.File
+import java.lang.Thread.sleep
+import java.lang.management.ManagementFactory
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
+import kotlin.concurrent.thread
 
 class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
 
@@ -55,7 +59,48 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
     }
 
     override fun onDisable() {
-        esu.onDisable()
+        withDisableWatchdog {
+            esu.onDisable()
+        }
+    }
+
+    private inline fun withDisableWatchdog(action: () -> Unit) {
+        val completed = AtomicBoolean(false)
+        try {
+            @Suppress("DEPRECATION")
+            val watchThread = Thread.currentThread().id
+            thread(name = "ESU-Disable Watchdog", isDaemon = true) {
+                while (!completed.get()) {
+                    sleep(5000)
+                    if (completed.get()) break
+                    val threadInfo = ManagementFactory.getThreadMXBean().getThreadInfo(watchThread, Int.MAX_VALUE)
+                    with(threadInfo) {
+                        warn("------------------------------")
+                        warn("ESU disable watchdog: taking long time disabling!")
+                        warn("Thread $threadId: $threadName")
+                        warn("\tSuspended: $isSuspended | Native: $isInNative | State: $threadState")
+                        if (lockedMonitors.size != 0) {
+                            warn("\tThread is waiting on monitors:")
+                            for (monitor in lockedMonitors) {
+                                warn("\t\tLocked on: ${monitor.lockedStackFrame}")
+                            }
+                        }
+
+                        warn("\tStack:")
+                        for (stack in stackTrace) {
+                            warn("\t\t$stack")
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            err("Failed to start watchdog thread", e)
+        }
+        try {
+            action()
+        } finally {
+            completed.set(true)
+        }
     }
 
     override fun info(message: String) {
