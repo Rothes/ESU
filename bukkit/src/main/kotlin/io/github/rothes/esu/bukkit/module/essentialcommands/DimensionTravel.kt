@@ -21,14 +21,15 @@ package io.github.rothes.esu.bukkit.module.essentialcommands
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.WorldUtils
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TeleportAdapter.Companion.tp
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkCoordinate
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.extension.math.floorI
-import net.minecraft.world.level.chunk.status.ChunkPyramid
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.entity.Player
@@ -41,6 +42,9 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
 
     override fun onEnable() {
         registerCommands(object {
+
+            val CHUNK_COORD = versioned<ChunkCoordinate>()
+
             @Command("dimensionTravel")
             @ShortPerm
             suspend fun dimensionTravel(sender: User) {
@@ -70,7 +74,7 @@ object DimensionTravel : BaseCommand<FeatureToggle.DefaultTrue, DimensionTravel.
                     }
                     else -> error("Unsupported world environment ${world.environment}")
                 }
-                if (max(abs(target.blockX shr 4), abs(target.blockZ shr 4)) > ChunkPyramid.MAX_CHUNK_COORDINATE_VALUE) {
+                if (max(abs(target.blockX shr 4), abs(target.blockZ shr 4)) > CHUNK_COORD.maxChunkCoordinate()) {
                     return sender.message(module.lang, { teleportFailedUnknown })
                 }
                 val spot = WorldUtils.findStandableSpot(target, unsafe) ?: return sender.message(module.lang, { unsafeTeleportSpot })
