@@ -198,8 +198,8 @@ object ComponentUtils {
     }
 
     fun Component.capitalize(): Component {
-        return this.replaceText {
-            it.match(".+").once()
+        return this.replaceText { builder ->
+            builder.match(".+").once()
                 .replacement { component ->
                     component.content(component.content().replaceFirstChar { it.titlecase() })
                 }

@@ -20,11 +20,9 @@ package io.github.rothes.esu.core.util
 
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.audience.Audience
-import io.github.rothes.esu.lib.adventure.audience.MessageType
 import io.github.rothes.esu.lib.adventure.bossbar.BossBar
 import io.github.rothes.esu.lib.adventure.chat.SignedMessage
 import io.github.rothes.esu.lib.adventure.dialog.DialogLike
-import io.github.rothes.esu.lib.adventure.identity.Identity
 import io.github.rothes.esu.lib.adventure.inventory.Book
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackRequest
 import io.github.rothes.esu.lib.adventure.sound.Sound
@@ -45,10 +43,6 @@ class MappedAudience(
         audience.sendMessage(message.server)
     }
 
-    override fun sendMessage(source: Identity, message: Component, type: MessageType) {
-        TODO()
-    }
-
     override fun deleteMessage(signature: SignedMessage.Signature) {
         TODO()
     }
@@ -65,7 +59,7 @@ class MappedAudience(
         audience.showTitle(title.server)
     }
 
-    override fun <T : Any?> sendTitlePart(part: TitlePart<T>, value: T & Any) {
+    override fun <T : Any> sendTitlePart(part: TitlePart<T>, value: T) {
         when (part) {
             TitlePart.TITLE, TitlePart.SUBTITLE -> {
                 @Suppress("UNCHECKED_CAST")

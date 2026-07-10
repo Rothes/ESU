@@ -56,6 +56,7 @@ object EsuAdventure {
         fun init() {
             val flattener = ComponentFlattener.basic().toBuilder()
                 .complexMapper(TranslatableComponent::class.java) { translatable, consumer ->
+                    // Refer to io.papermc.paper.adventure.PaperAdventure.FLATTENER
                     val language = Language.getInstance()
                     val fallback = translatable.fallback()
                     if (!language.has(translatable.key()) && (fallback == null || !language.has(fallback))) {

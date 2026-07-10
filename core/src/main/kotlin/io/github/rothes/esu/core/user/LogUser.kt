@@ -31,7 +31,6 @@ import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.lib.adventure.text.serializer.ansi.ANSIComponentSerializer
 import io.github.rothes.esu.lib.adventure.translation.GlobalTranslator
-import io.github.rothes.esu.lib.adventure.translation.TranslationRegistry
 import io.github.rothes.esu.lib.net.kyori.ansi.ColorLevel
 import org.slf4j.Logger
 import java.util.*
@@ -170,16 +169,17 @@ interface LogUser: User {
         var console: LogUser by InitOnce()
 
         private var flattener = ComponentFlattener.basic().toBuilder().complexMapper(TranslatableComponent::class.java) { translatable, consumer ->
+            val locale = Locale.getDefault()
             for (source in GlobalTranslator.translator().sources()) {
-                if (source is TranslationRegistry && source.contains(translatable.key())) {
-                    consumer.accept(GlobalTranslator.render(translatable, Locale.getDefault()))
+                if (source.canTranslate(translatable.key(), locale)) {
+                    consumer.accept(GlobalTranslator.render(translatable, locale))
                     return@complexMapper
                 }
             }
             val fallback = translatable.fallback() ?: return@complexMapper
             for (source in GlobalTranslator.translator().sources()) {
-                if (source is TranslationRegistry && source.contains(fallback)) {
-                    consumer.accept(GlobalTranslator.render(Component.translatable(fallback), Locale.getDefault()))
+                if (source.canTranslate(translatable.key(), locale)) {
+                    consumer.accept(GlobalTranslator.render(Component.translatable(fallback), locale))
                     return@complexMapper
                 }
             }

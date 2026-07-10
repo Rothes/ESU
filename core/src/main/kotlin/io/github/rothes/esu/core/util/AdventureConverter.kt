@@ -67,7 +67,7 @@ object AdventureConverter {
         }
 
     val Title.Times.server
-        get() = net.kyori.adventure.title.Title.Times.of(fadeIn(), stay(), fadeOut())
+        get() = net.kyori.adventure.title.Title.Times.times(fadeIn(), stay(), fadeOut())
 
     val Title.server
         get() = net.kyori.adventure.title.Title.title(title().server, subtitle().server, times()?.server)
