@@ -292,7 +292,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         get() = playerData[this]
 
     private val Player.featureData
-        get() = playerData[this] ?: throw PlayerDataNotFoundException(this)
+        get() = playerData[this] ?: throw if (connected) PlayerDataNotFoundException(this) else SilentException()
 
     private val Player.throttledChunks
         get() = featureData.throttledChunks
@@ -966,6 +966,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 //                        event.isCancelled = true
                     }
                 }
+            } catch (_: SilentException) {
+                // Silent
             } catch (t: Throwable) {
                 core.err("[ChunkDataThrottle] An exception occurred while processing packet", t)
             }
@@ -1139,6 +1141,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     private class PlayerDataNotFoundException(player: Player) : NullPointerException("[ChunkDataThrottle] Failed to get player data ${player.name}.")
+    private class SilentException : Exception()
 
     data class HandlerConfig(
         val blockUpdate: BlockUpdate = BlockUpdate(),
