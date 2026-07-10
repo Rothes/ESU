@@ -33,6 +33,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.command.EsuAdminCommand
 import io.github.rothes.esu.common.module.AutoBroadcastModule
+import io.github.rothes.esu.common.util.coroutine.CoroutineLife
 import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -46,8 +47,6 @@ import io.github.rothes.esu.velocity.config.VelocityEsuLang
 import io.github.rothes.esu.velocity.module.*
 import io.github.rothes.esu.velocity.user.VelocityUserManager
 import io.github.rothes.esu.velocity.util.extension.VelocityListener
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import org.incendo.cloud.CommandManager
 import org.slf4j.Logger
 
@@ -127,12 +126,7 @@ class EsuPluginVelocity(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         server.eventManager.unregisterListeners(container)
-        try {
-            @OptIn(DelicateCoroutinesApi::class) // Just release the resources
-            Dispatchers.shutdown()
-        } catch (t: Throwable) {
-            err("An exception occurred while shutting down coroutine: $t")
-        }
+        CoroutineLife.shutdown()
     }
 
     @Subscribe(order = PostOrder.LAST)

@@ -39,6 +39,7 @@ import io.github.rothes.esu.bukkit.util.version.remapper.JarRemapper
 import io.github.rothes.esu.common.HotLoadSupport
 import io.github.rothes.esu.common.command.EsuAdminCommand
 import io.github.rothes.esu.common.module.AutoBroadcastModule
+import io.github.rothes.esu.common.util.coroutine.CoroutineLife
 import io.github.rothes.esu.common.util.extension.shutdown
 import io.github.rothes.esu.core.EsuCore
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
@@ -49,8 +50,6 @@ import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.InitOnce
 import io.github.rothes.esu.core.util.extension.ClassUtils.jarFile
 import io.github.rothes.esu.lib.bstats.bukkit.Metrics
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.incendo.cloud.CommandManager
@@ -207,12 +206,7 @@ class EsuPluginBukkit(
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
         adventure.close()
-        try {
-            @OptIn(DelicateCoroutinesApi::class) // Just release the resources
-            Dispatchers.shutdown()
-        } catch (t: Throwable) {
-            warn("An exception occurred while shutting down coroutine: $t")
-        }
+        CoroutineLife.shutdown()
     }
 
     private fun byPlugMan(): Boolean {
