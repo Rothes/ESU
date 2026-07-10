@@ -60,7 +60,7 @@ object WaterloggedFeature: CommonFeature<WaterloggedFeature.FeatureConfig, Unit>
             handleWaterloggedPush(e.blocks, e)
         }
 
-        private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
+        private fun handleWaterloggedPush(blocks: List<Block>, e: BlockPistonEvent) {
             val config = config
             if (config.disableWaterloggedBlockPush) {
                 if (blocks.any { (it.blockData as? Waterlogged)?.isWaterlogged == true }) {

@@ -149,7 +149,7 @@ object SpawnProtectModule: BukkitModule<SpawnProtectModule.ModuleConfig, EmptyCo
             handleWaterloggedPush(e.blocks, e)
         }
 
-        private fun handleWaterloggedPush(blocks: MutableList<Block>, e: BlockPistonEvent) {
+        private fun handleWaterloggedPush(blocks: List<Block>, e: BlockPistonEvent) {
             val config = config.waterlogged
             if (config.disableSpawnPushRadius > 0) {
                 val dist = abs(e.block.x) + abs(e.block.z)
