@@ -93,7 +93,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.incendo.cloud.annotations.Command
-import org.spigotmc.event.player.PlayerSpawnLocationEvent
 import java.io.ByteArrayInputStream
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -280,11 +279,6 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    fun onSpawnLocation(e: PlayerSpawnLocationEvent) {
-        playerData.putIfAbsent(e.player, PlayerData())
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
     fun onJoin(e: PlayerJoinEvent) {
         playerData.putIfAbsent(e.player, PlayerData())
     }
@@ -294,8 +288,14 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         playerData.remove(e.player)?.throttledChunks?.clear()
     }
 
+    private val Player.featureDataNullable
+        get() = playerData[this]
+
+    private val Player.featureData
+        get() = playerData[this] ?: throw PlayerDataNotFoundException(this)
+
     private val Player.throttledChunks
-        get() = playerData[this]?.throttledChunks
+        get() = featureData.throttledChunks
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onMove(e: PlayerMoveEvent) {
@@ -734,24 +734,24 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     private fun updatePlayerPos(player: Player) {
+        // PLAYER_POSITION_AND_LOOK may send by other plugin before PlayerJoinEvent,
+        // In this case, a null PlayerData is returned
+        val data = player.featureDataNullable ?: return
         val loc = player.location
-        checkBlockUpdate(player, loc.blockX, loc.blockY, loc.blockZ, loc.world.minHeight)
-        checkBlockUpdate(player, loc.blockX, loc.blockY + 1, loc.blockZ, loc.world.minHeight)
+        checkBlockUpdate(player, loc.blockX, loc.blockY, loc.blockZ, data, loc.world.minHeight)
+        checkBlockUpdate(player, loc.blockX, loc.blockY + 1, loc.blockZ, data, loc.world.minHeight)
     }
 
-    private fun checkBlockUpdate(player: Player, blockPos: BlockPos, minHeight: Int = player.world.minHeight) {
-        return checkBlockUpdate(player, blockPos.x, blockPos.y, blockPos.z, minHeight)
+    private fun checkBlockUpdate(player: Player, blockPos: BlockPos, data: PlayerData = player.featureData, minHeight: Int = player.world.minHeight) {
+        return checkBlockUpdate(player, blockPos.x, blockPos.y, blockPos.z, data, minHeight)
     }
 
-    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, minHeight: Int = player.world.minHeight) {
-        return checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, minHeight)
+    private fun checkBlockUpdate(player: Player, blockLocation: Vector3i, data: PlayerData = player.featureData, minHeight: Int = player.world.minHeight) {
+        return checkBlockUpdate(player, blockLocation.x, blockLocation.y, blockLocation.z, data, minHeight)
     }
 
-    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, minHeight: Int = player.world.minHeight) {
-        val throttledChunks = player.throttledChunks ?: let {
-            if (player.connected) core.warn("[ChunkDataThrottle] Failed to get player data ${player.name}.")
-            return
-        }
+    private fun checkBlockUpdate(player: Player, x: Int, y: Int, z: Int, data: PlayerData = player.featureData, minHeight: Int = player.world.minHeight) {
+        val throttledChunks = data.throttledChunks
 
         val fullUpdateThreshold = config.blockUpdate.updatesToResentWholeChunk
         val updateDistance = config.blockUpdate.updateDistance
@@ -914,7 +914,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 when (event.packetType) {
                     PacketType.Play.Server.UNLOAD_CHUNK       -> {
                         val wrapper = WrapperPlayServerUnloadChunk(event)
-                        event.getPlayer<Player>().throttledChunks?.remove(getChunkKey(wrapper.chunkX, wrapper.chunkZ))
+                        event.getPlayer<Player>().throttledChunks.remove(getChunkKey(wrapper.chunkX, wrapper.chunkZ))
                     }
 
                     PacketType.Play.Server.DAMAGE_EVENT -> {
@@ -940,7 +940,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                                 // Only check update if blocks get broken or transformed to non-blocksView
                                 continue
                             }
-                            checkBlockUpdate(player, block.x, block.y, block.z, minHeight)
+                            checkBlockUpdate(player, block.x, block.y, block.z, minHeight = minHeight)
                         }
                     }
 
@@ -1081,7 +1081,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                                 return@repeat
                             }
 
-                            val throttledChunks = player.throttledChunks!!
+                            val throttledChunks = player.throttledChunks
                             for (j in 0 until mapSize) {
                                 val chunkKey = readLong()
                                 val longArraySize = readInt()
@@ -1137,6 +1137,8 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             }
         }
     }
+
+    private class PlayerDataNotFoundException(player: Player) : NullPointerException("[ChunkDataThrottle] Failed to get player data ${player.name}.")
 
     data class HandlerConfig(
         val blockUpdate: BlockUpdate = BlockUpdate(),
