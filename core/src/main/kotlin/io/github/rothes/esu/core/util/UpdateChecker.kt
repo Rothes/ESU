@@ -33,6 +33,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.net.HttpURLConnection
 import java.net.URI
 import java.util.*
 import kotlin.time.Duration.Companion.hours
@@ -165,14 +166,18 @@ class UpdateChecker(
     }
 
     private fun getResponse(domain: String, tryTimes: Int = 0): FetchedResponse {
+        var conn: HttpURLConnection? = null
         try {
-            URI("https://$domain/$GITHUB_REPO/master/Updater_Data.json").toURL().openStream().bufferedReader()
-                .use { reader ->
-                    val json = reader.readText()
-                    return FetchedResponse(Gson().fromJson(json, Response::class.java)).also {
-                        errorCount = 0
-                    }
+            val url = URI("https://$domain/$GITHUB_REPO/master/Updater_Data.json").toURL()
+            conn = url.openConnection() as HttpURLConnection
+            conn.connectTimeout = 5000
+            conn.readTimeout = 10000
+            conn.getInputStream().bufferedReader().use { reader ->
+                val json = reader.readText()
+                return FetchedResponse(Gson().fromJson(json, Response::class.java)).also {
+                    errorCount = 0
                 }
+            }
         } catch (e: Throwable) {
             if (tryTimes == 0) {
                 return getResponse("raw.githubusercontent.com", 1)
@@ -184,6 +189,8 @@ class UpdateChecker(
                 })
             }
             return FetchedResponse()
+        } finally {
+            conn?.disconnect()
         }
     }
 
