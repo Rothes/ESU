@@ -31,13 +31,11 @@ import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import me.clip.placeholderapi.PlaceholderAPIPlugin
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 object ComponentBukkitUtils {
 
     private val PAPI_TAG_NAMES = setOf("placeholderapi", "papi")
-    private val HAS_PLACEHOLDER_API = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
 
     fun player(player: Player, key: String = "player"): TagResolver.Single {
         return Placeholder.component(key, player.displayName_)
@@ -59,7 +57,7 @@ object ComponentBukkitUtils {
     fun papi(player: Player?): TagResolver {
         return TagResolver.resolver(PAPI_TAG_NAMES) { arg, context ->
             val papi = arg.popOr("One argument expected for papi tag").value()
-            if (HAS_PLACEHOLDER_API) {
+            if (ServerInfo.PluginDependency.hasPlaceholderApi) {
                 val split = papi.split('_', limit = 2)
                 val expansion = PlaceholderAPIPlugin.getInstance().localExpansionManager.getExpansion(split[0].lowercase())
                     ?: return@resolver Tag.inserting(Component.text(papi))
