@@ -109,7 +109,6 @@ class EsuPluginBukkit(
     }
 
     fun onEnable() {
-        adventure           // Init adventure
         EsuConfig           // Load global config
         BukkitEsuLang       // Load global lang
         StorageManager      // Load database
@@ -205,7 +204,6 @@ class EsuPluginBukkit(
         HandlerList.unregisterAll(bootstrap)
         UpdateCheckerMan.shutdown()
         StorageManager.shutdown()
-        adventure.close()
         CoroutineLife.shutdown()
     }
 

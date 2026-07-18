@@ -18,26 +18,21 @@
 
 package io.github.rothes.esu.bukkit.user
 
-import io.github.rothes.esu.bukkit.audience
 import io.github.rothes.esu.bukkit.configuration.data.ItemData
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.common.user.CommonUser
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.User
-import io.github.rothes.esu.lib.adventure.audience.Audience
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
 
 abstract class BukkitUser: CommonUser() {
 
-    private var _audience: Audience? = null
     private var _tagResolvers: List<TagResolver>? = null
 
     abstract override val commandSender: CommandSender
-    override val audience: Audience
-        get() = _audience ?: commandSender.audience.also { _audience = it }
 
     override fun getTagResolvers(): Iterable<TagResolver> {
         return _tagResolvers

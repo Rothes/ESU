@@ -168,7 +168,7 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "net.kyori:adventure-text-serializer-gson:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-legacy:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${DependencyVersion.ADVENTURE}",
-                    "net.kyori:adventure-platform-bukkit:4.4.1",
+                    //"net.kyori:adventure-platform-bukkit:4.4.1",
 
                     "io.github.rothes:configurate-yaml:4.3.0-b1",
                 ),

@@ -24,6 +24,7 @@ import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.user.ConsoleConst
 import io.github.rothes.esu.core.user.LogUser
+import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -64,6 +65,17 @@ object ConsoleUser: BukkitUser(), LogUser {
 
     override fun print(message: String) {
         commandSender.sendMessage(message)
+    }
+
+    /************************
+     #  Adventure Audience  #
+     ************************/
+    override fun sendMessage(message: Component) {
+        super<LogUser>.message(message)
+    }
+
+    override fun sendActionBar(message: Component) {
+        super<LogUser>.actionBar(message)
     }
 
 }

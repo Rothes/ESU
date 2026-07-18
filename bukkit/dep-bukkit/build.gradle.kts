@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.kyori:adventure-platform-bukkit:4.4.1")
+    // implementation("net.kyori:adventure-platform-bukkit:4.4.1")
     implementation(libs.nbt.api)
     implementation(libs.bstats.bukkit)
 }

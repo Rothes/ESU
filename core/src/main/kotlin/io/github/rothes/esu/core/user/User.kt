@@ -30,7 +30,6 @@ import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import io.github.rothes.esu.core.util.lang.LangUtils.getLangOrNull
 import io.github.rothes.esu.lib.adventure.audience.Audience
-import io.github.rothes.esu.lib.adventure.inventory.Book
 import io.github.rothes.esu.lib.adventure.sound.Sound
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
@@ -40,10 +39,9 @@ import io.github.rothes.esu.lib.adventure.title.TitlePart
 import java.util.*
 import kotlin.experimental.ExperimentalTypeInference
 
-interface User {
+interface User: Audience {
 
     val commandSender: Any
-    val audience: Audience
 
     val name: String
     val nameUnsafe: String?
@@ -158,13 +156,13 @@ interface User {
         message(message.legacy)
     }
     fun message(message: Component) {
-        audience.sendMessage(message)
+        sendMessage(message)
     }
 
     fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver)
 
     fun actionBar(message: Component) {
-        audience.sendActionBar(message)
+        sendActionBar(message)
     }
     fun title(title: ParsedMessageData.ParsedTitleData) {
         val mainTitle = title.title
@@ -172,36 +170,25 @@ interface User {
         val times = title.times
 
         if (mainTitle != null && subTitle != null) {
-            audience.showTitle(Title.title(mainTitle, subTitle, times?.adventure))
+            showTitle(Title.title(mainTitle, subTitle, times?.adventure))
         } else {
             if (times != null) {
-                audience.sendTitlePart(TitlePart.TIMES, times.adventure)
+                sendTitlePart(TitlePart.TIMES, times.adventure)
             }
             if (mainTitle != null) {
-                audience.sendTitlePart(TitlePart.TITLE, mainTitle)
+                sendTitlePart(TitlePart.TITLE, mainTitle)
             }
             if (subTitle != null) {
-                audience.sendTitlePart(TitlePart.SUBTITLE, subTitle)
+                sendTitlePart(TitlePart.SUBTITLE, subTitle)
             }
         }
     }
     fun playSound(sound: SoundData) {
-        audience.playSound(sound.adventure, Sound.Emitter.self())
+        playSound(sound.adventure, Sound.Emitter.self())
     }
 
-    fun clearTitle() {
-        audience.clearTitle()
-    }
     fun clearActionBar() {
         actionBar(Component.empty())
-    }
-
-    fun openBook(book: Book.Builder) {
-        openBook(book.build())
-    }
-
-    fun openBook(book: Book) {
-        audience.openBook(book)
     }
 
     // Server Adventure functions

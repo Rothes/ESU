@@ -484,15 +484,15 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     }
 
     fun Component.drop(n: Int): Component {
-        return replaceText {
-            it.match(".".toPattern()).replacement("").times(n)
+        return replaceText { builder ->
+            builder.match(".".toPattern()).replacement("").times(n)
         }
     }
 
     fun Component.setItem(sender: User): Component {
         return if (sender is PlayerUser)
-            replaceText {
-                it.matchLiteral("[i]")
+            replaceText { builder ->
+                builder.matchLiteral("[i]")
                     .replacement { _ -> sender.player.inventory.itemInMainHand.displayName().esu }
             }
         else this

@@ -96,9 +96,9 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
             val arguments = msg.arguments().toMutableList()
             for ((i, arg) in arguments.map { it.value() }.withIndex()) {
                 fun Component.limitCharSize(size: Int): Component {
-                    return replaceText {
+                    return replaceText { builder ->
                         var remain = size
-                        it.match(".+").replacement { c ->
+                        builder.match(".+").replacement { c ->
                             val sz = c.content().charSize()
                             if (sz <= remain) // Accepts all chars
                                 c.also { remain -= sz }
