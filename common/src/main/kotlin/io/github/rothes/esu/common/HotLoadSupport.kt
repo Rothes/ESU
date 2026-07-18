@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.common
 
+import io.github.rothes.esu.common.util.coroutine.CoroutineLife
 import io.github.rothes.esu.core.EsuBootstrap
 import io.github.rothes.esu.core.util.extension.writeAscii
 import io.github.rothes.esu.lib.configurate.yaml.internal.snakeyaml.emitter.Emitter
@@ -85,6 +86,7 @@ open class HotLoadSupport(
             copyTo(ByteArrayOutputStream())
         }
         // For Dispatchers.shutdown()
+        CoroutineLife::class.java.toString()
         loadClasses(
             "kotlinx/coroutines/ThreadLocalEventLoop", "kotlinx/coroutines/EventLoop_commonKt",
             "kotlinx/coroutines/AbstractTimeSourceKt", $$"kotlinx/coroutines/scheduling/CoroutineScheduler$Worker"
