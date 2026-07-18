@@ -23,7 +23,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 
 interface ComponentSerializer {
 
-    fun toNms(component: AdventureComponent): MinecraftComponent
+    fun toMinecraft(component: AdventureComponent): MinecraftComponent
     fun toAdventure(component: MinecraftComponent): AdventureComponent
 
 }

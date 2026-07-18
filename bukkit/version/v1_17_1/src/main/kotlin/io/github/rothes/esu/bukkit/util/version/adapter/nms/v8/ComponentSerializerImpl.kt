@@ -25,7 +25,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 
 object ComponentSerializerImpl: ComponentSerializer {
 
-    override fun toNms(component: AdventureComponent): MinecraftComponent {
+    override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
         return MinecraftComponent.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component)) ?: error("Failed to deserialize")
     }
 

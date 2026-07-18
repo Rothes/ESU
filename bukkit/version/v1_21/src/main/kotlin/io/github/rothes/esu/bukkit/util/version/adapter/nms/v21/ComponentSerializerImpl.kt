@@ -27,10 +27,10 @@ import net.minecraft.server.MinecraftServer
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
-// net.minecraft.network.chat.Component.Serializer exists in this version
+// net.minecraft.network.chat.Component.Serializer exists in this version till 21.6, but we don't use
 object ComponentSerializerImpl: ComponentSerializer {
 
-    override fun toNms(component: AdventureComponent): MinecraftComponent {
+    override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
         return ComponentSerialization.CODEC.parse(
             // CraftRegistry.getMinecraftRegistry() can also work
             MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),

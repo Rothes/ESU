@@ -72,7 +72,7 @@ object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
     }
 
     override fun createMessage(viewer: Player, message: Component): MinecraftComponent {
-        return SERIALIZER.toNms(message)
+        return SERIALIZER.toMinecraft(message)
     }
 
     private fun <T: Any> T.toFilterable() = Filterable.passThrough(this)

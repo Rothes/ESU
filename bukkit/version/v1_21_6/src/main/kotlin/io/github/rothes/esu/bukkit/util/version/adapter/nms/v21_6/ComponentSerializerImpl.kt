@@ -29,7 +29,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 
 object ComponentSerializerImpl: ComponentSerializer {
 
-    override fun toNms(component: AdventureComponent): MinecraftComponent {
+    override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
         return ComponentSerialization.CODEC.decode(
             MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),
             GsonComponentSerializer.gson().serializeToTree(component),
