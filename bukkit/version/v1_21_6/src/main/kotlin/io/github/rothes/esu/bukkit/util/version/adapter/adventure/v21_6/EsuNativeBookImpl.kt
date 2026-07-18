@@ -18,14 +18,12 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter.adventure.v21_6
 
-import com.mojang.serialization.JsonOps
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuNativeBook
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
 import io.github.rothes.esu.lib.adventure.text.Component
-import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
 import net.minecraft.core.component.DataComponents
-import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket
 import net.minecraft.server.network.Filterable
@@ -43,7 +41,7 @@ import net.minecraft.network.chat.Component as MinecraftComponent
 object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
 
     private val STATE_ID_GETTER = versioned<ContainerStateIDGetter>()
-    private val OPS = JsonOps.INSTANCE
+    private val SERIALIZER = versioned<ComponentSerializer>()
 
     override fun createBook(title: String, author: String, pages: Iterable<MinecraftComponent>): ItemStack {
         val item = ItemStack(Items.WRITTEN_BOOK)
@@ -74,9 +72,7 @@ object EsuNativeBookImpl: EsuNativeBook<MinecraftComponent> {
     }
 
     override fun createMessage(viewer: Player, message: Component): MinecraftComponent {
-        val decode = ComponentSerialization.CODEC.decode(OPS, GsonComponentSerializer.gson().serializeToTree(message))
-        val pair = decode.getOrThrow { RuntimeException(it) }
-        return pair.first
+        return SERIALIZER.toNms(message)
     }
 
     private fun <T: Any> T.toFilterable() = Filterable.passThrough(this)
