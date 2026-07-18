@@ -18,12 +18,35 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
+import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.entity.Entity as BukkitEntity
+import org.bukkit.entity.Player as BukkitPlayer
+
 interface EntityHandleGetter {
 
     /**
      * Get Nms handle without folia region thread check
      *
      * */
-    fun getHandle(entity: org.bukkit.entity.Entity): net.minecraft.world.entity.Entity
+    fun getHandle(entity: BukkitEntity): Entity
+
+    fun getHandle(player: BukkitPlayer): ServerPlayer {
+        player as CraftPlayer
+        return player.handle
+    }
+
+    companion object {
+
+        val INSTANCE = versioned<EntityHandleGetter>()
+
+        val BukkitEntity.handle: Entity
+            get() = INSTANCE.getHandle(this)
+        val BukkitPlayer.handle: ServerPlayer
+            get() = INSTANCE.getHandle(this)
+
+    }
 
 }
