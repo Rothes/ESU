@@ -63,6 +63,11 @@ class EsuBootstrapVelocity @Inject constructor(
 ): EsuBootstrap {
 
     init {
+        if (Runtime.version().feature() > 25) {
+            val msg = "ESU supports up to Java 25, you are running on Java ${Runtime.version().feature()}"
+            logger.error(msg)
+            throw IllegalStateException(msg)
+        }
         EsuBootstrap.setInstance(this)
         AetherLoader.loadAether()
         MavenResolver.loadKotlin()
