@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
@@ -25,5 +26,11 @@ interface ComponentSerializer {
 
     fun toMinecraft(component: AdventureComponent): MinecraftComponent
     fun toAdventure(component: MinecraftComponent): AdventureComponent
+
+    companion object {
+
+        val INSTANCE = versioned<ComponentSerializer>()
+
+    }
 
 }
