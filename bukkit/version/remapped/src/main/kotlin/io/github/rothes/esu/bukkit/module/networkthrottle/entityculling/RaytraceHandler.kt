@@ -85,7 +85,6 @@ object RaytraceHandler: CommonFeature<RaytraceHandler.RaytraceConfig, EmptyConfi
 
     private val VELOCITY_GETTER = versioned<PlayerVelocityGetter>()
     private val LEVEL_GETTER = versioned<LevelHandler>()
-    private val HANDLE_GETTER = versioned<EntityHandleGetter>()
     private val OCCLUDE_TESTER = versioned<BlockOccludeTester>()
 
     private var raytracer: RayTracer = StepRayTracer
