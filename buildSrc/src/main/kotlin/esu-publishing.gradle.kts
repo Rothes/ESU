@@ -69,7 +69,7 @@ project.afterEvaluate {
                         classifier = "sources"
                     }
                 } else {
-                    from(components["java"])
+                    from(components["kotlin"])
                 }
 
                 artifactId = extension.artifactIdOverride.orNull ?: project.defaultArtifactId()
