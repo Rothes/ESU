@@ -8,7 +8,7 @@ plugins {
 subprojects {
     apply(plugin = "io.papermc.paperweight.userdev")
 
-    val isRemapped = name == "remapped"
+    val isRemapped = name.startsWith("remapped")
 
     val serverVer = if (isRemapped)
         rootProject.property("targetMinecraftVersion").toString()
@@ -20,8 +20,11 @@ subprojects {
         val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
         paperweight.paperDevBundle(devBundle)
         compileOnly(project(":common"))
-        compileOnly(project(":bukkit:bukkit-api"))
         compileOnly(project(":bukkit:module:bukkit-bom"))
+        compileOnly(project(":bukkit:dep-bukkit", configuration = "shadow"))
+        if (name != "remapped-api") {
+            compileOnly(project(":bukkit:bukkit-api"))
+        }
         if (!isRemapped) {
             compileOnly(project(":bukkit"))
             compileOnly(project(":bukkit:version:remapped"))

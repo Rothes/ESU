@@ -33,11 +33,6 @@ interface EntityHandleGetter {
      * */
     fun getHandle(entity: BukkitEntity): Entity
 
-    fun getHandle(player: BukkitPlayer): ServerPlayer {
-        player as CraftPlayer
-        return player.handle
-    }
-
     companion object {
 
         val INSTANCE = versioned<EntityHandleGetter>()
@@ -45,7 +40,11 @@ interface EntityHandleGetter {
         val BukkitEntity.handle: Entity
             get() = INSTANCE.getHandle(this)
         val BukkitPlayer.handle: ServerPlayer
-            get() = INSTANCE.getHandle(this)
+            get() {
+                // Cannot add this function to interface, KClassImpl.getObjectInstance will fail
+                this as CraftPlayer
+                return this.handle
+            }
 
     }
 

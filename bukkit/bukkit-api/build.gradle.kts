@@ -10,6 +10,7 @@ dependencies {
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
     api(project(":bukkit:module:bukkit-bom"))
     api(project(":common"))
+    compileOnly(project(":bukkit:version:remapped-api"))
 
     // Item libraries
     compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.1")
