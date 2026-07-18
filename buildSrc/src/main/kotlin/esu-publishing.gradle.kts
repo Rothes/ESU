@@ -70,6 +70,9 @@ project.afterEvaluate {
                     }
                 } else {
                     from(components["kotlin"])
+                    artifact(tasks.getByName("sourcesJar")) {
+                        classifier = "sources"
+                    }
                 }
 
                 artifactId = extension.artifactIdOverride.orNull ?: project.defaultArtifactId()
