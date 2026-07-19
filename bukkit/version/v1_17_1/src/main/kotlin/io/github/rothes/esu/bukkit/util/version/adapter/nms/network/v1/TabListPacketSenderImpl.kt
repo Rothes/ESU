@@ -20,9 +20,9 @@ package io.github.rothes.esu.bukkit.util.version.adapter.nms.network.v1
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.AdventureConverter.toMinecraft
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.TabListPacketSender
 import io.github.rothes.esu.core.util.AdventureConverter.server
+import io.github.rothes.esu.core.util.ReflectionUtils.setter
 import io.github.rothes.esu.lib.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundTabListPacket
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer
@@ -30,18 +30,19 @@ import org.bukkit.entity.Player
 
 object TabListPacketSenderImpl: TabListPacketSender {
 
-    private val HEADER_ACCESSOR = CraftPlayer::class.java.getDeclaredField("playerListHeader")
-    private val FOOTER_ACCESSOR = CraftPlayer::class.java.getDeclaredField("playerListFooter")
+    private val HEADER_ACCESSOR = CraftPlayer::class.java.getDeclaredField("playerListHeader").setter
+    private val FOOTER_ACCESSOR = CraftPlayer::class.java.getDeclaredField("playerListFooter").setter
 
     override fun sendPlayerListHeaderAndFooter(player: Player, header: Component, footer: Component) {
+        player as CraftPlayer
         if (ServerInfo.isPaper) {
             // On Paper, it's paper adventure Component
-            HEADER_ACCESSOR[player] = header.server
-            FOOTER_ACCESSOR[player] = footer.server
+            HEADER_ACCESSOR.invokeExact(player, header.server)
+            FOOTER_ACCESSOR.invokeExact(player, footer.server)
         } else {
             // On Spigot, it's minecraft Component
-            HEADER_ACCESSOR[player] = header.toMinecraft()
-            FOOTER_ACCESSOR[player] = footer.toMinecraft()
+            HEADER_ACCESSOR.invokeExact(player, header.toMinecraft())
+            FOOTER_ACCESSOR.invokeExact(player, footer.toMinecraft())
         }
         player.handle.connection.send(ClientboundTabListPacket(header.toMinecraft(), footer.toMinecraft()))
     }
