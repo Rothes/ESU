@@ -63,8 +63,10 @@ class EsuBootstrapVelocity @Inject constructor(
 ): EsuBootstrap {
 
     init {
-        if (Runtime.version().feature() > 25) {
-            val msg = "ESU supports up to Java 25, you are running on Java ${Runtime.version().feature()}"
+        if (Runtime.version().feature() !in (21..25)) {
+            // Adventure 5 requires Java 21
+            // We're heavily using Unsafe, so Java 26 is not okey
+            val msg = "ESU requires Java 21 to Java 25, you are running on Java ${Runtime.version().feature()}"
             logger.error(msg)
             throw IllegalStateException(msg)
         }
