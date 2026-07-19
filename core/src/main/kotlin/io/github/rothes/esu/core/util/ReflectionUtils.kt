@@ -36,6 +36,11 @@ object ReflectionUtils {
         return LOOKUP.unreflectGetter(field)
     }
 
+    fun setter(field: Field): MethodHandle {
+        field.setAccessible(true)
+        return LOOKUP.unreflectSetter(field)
+    }
+
     fun method(method: Method, rType: Class<*>, pType: Class<*>, argTypes: Array<Class<*>>): MethodHandle {
         try {
             method.setAccessible(true)
@@ -53,12 +58,22 @@ object ReflectionUtils {
         return getter(field).asType(MethodType.methodType(rType, pType))
     }
 
+    fun setter(field: Field, pType: Class<*> = field.declaringClass, fieldType: Class<*> = field.type): MethodHandle {
+        return setter(field).asType(MethodType.methodType(Void.TYPE, pType, fieldType))
+    }
+
     val Field.getter
         get() = getter()
+    val Field.setter
+        get() = setter()
 
     @JvmName("getterKt")
     fun Field.getter(rType: Class<*> = type, pType: Class<*> = declaringClass): MethodHandle {
         return ReflectionUtils.getter(this, rType, pType)
+    }
+    @JvmName("setterKt")
+    fun Field.setter(pType: Class<*> = declaringClass, fieldType: Class<*> = type): MethodHandle {
+        return ReflectionUtils.setter(this, pType, fieldType)
     }
 
     val Method.handle
