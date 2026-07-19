@@ -35,7 +35,7 @@ import java.io.File
 
 object JarRemapper {
 
-    private const val REMAPPER_VERSION = "6"
+    private const val REMAPPER_VERSION = "7"
 
     private val cacheFolder = EsuBootstrap.instance.baseConfigPath.resolve(".cache/remapped").toFile()
     private val cached = FileHashes(cacheFolder)
@@ -68,7 +68,7 @@ object JarRemapper {
             processor.handle(output)
         }
 
-        if (shouldDeobf) reobf(file, output)
+        if (shouldDeobf) reobf(output, output)
 
         cached.store(output)
         cached.store(file, "original")
