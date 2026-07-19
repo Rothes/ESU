@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.util.version.adapter.nms.v17_1
 
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
 import net.minecraft.core.Registry
+import net.minecraft.network.chat.ChatType
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.biome.Biome
@@ -31,6 +32,8 @@ object NmsRegistriesImpl: NmsRegistries {
     override val biome: ResourceKey<Registry<Biome>> = Registry.BIOME_REGISTRY
     override val block: ResourceKey<Registry<Block>> = Registry.BLOCK_REGISTRY
     override val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>> = Registry.BLOCK_ENTITY_TYPE_REGISTRY
+    override val chatType: ResourceKey<Registry<ChatType>>
+        get() = throw IllegalStateException("Not supported server version") // TODO: Confirm which version added
     override val entityType: ResourceKey<Registry<EntityType<*>>> = Registry.ENTITY_TYPE_REGISTRY
 
 }

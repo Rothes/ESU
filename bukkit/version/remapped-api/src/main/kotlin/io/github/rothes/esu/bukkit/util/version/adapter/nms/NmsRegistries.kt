@@ -19,6 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms
 
 import net.minecraft.core.Registry
+import net.minecraft.network.chat.ChatType
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.biome.Biome
@@ -30,6 +31,7 @@ interface NmsRegistries {
     val biome: ResourceKey<Registry<Biome>>
     val block: ResourceKey<Registry<Block>>
     val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>>
+    val chatType: ResourceKey<Registry<ChatType>>
     val entityType: ResourceKey<Registry<EntityType<*>>>
 
 }
