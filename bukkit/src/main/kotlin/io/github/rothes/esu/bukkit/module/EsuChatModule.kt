@@ -32,6 +32,7 @@ import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.papi
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
@@ -53,6 +54,8 @@ import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.`object`.ObjectContents
+import io.github.rothes.esu.lib.adventure.text.`object`.PlayerHeadObjectContents
 import it.unimi.dsi.fastutil.ints.IntSet
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -457,23 +460,27 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     fun parseMessage(sender: User, raw: String, modifiers: List<PrefixedMessageModifier>): Component {
         val modifier = matchModifier(sender, raw, modifiers) ?: return Component.text(raw)
 
-        return MiniMessage.miniMessage().deserialize(modifier.format,
-            component("message", Component.text(
-                if (modifier.removePrefix) {
-                    raw.drop(modifier.messagePrefix.length)
-                } else {
-                    raw
-                }
-            )),
+        return MiniMessage.miniMessage().deserialize(
+            modifier.format,
+            component(
+                "message", Component.text(
+                    if (modifier.removePrefix) {
+                        raw.drop(modifier.messagePrefix.length)
+                    } else {
+                        raw
+                    }
+                )
+            ),
         )
     }
 
     fun parseMessage(sender: User, raw: Component, modifiers: List<PrefixedMessageModifier>): Component {
         val modifier = matchModifier(sender, raw.plainText, modifiers) ?: return raw
 
-        return MiniMessage.miniMessage().deserialize(modifier.format,
-            component("message",
-                if (modifier.removePrefix) {
+        return MiniMessage.miniMessage().deserialize(
+            modifier.format,
+            component(
+                "message", if (modifier.removePrefix) {
                     val times = modifier.messagePrefix.length
                     raw.drop(times)
                 } else {
@@ -511,6 +518,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         return playerDisplay(viewer, mapOf(key to user))
     }
 
+    private val CONSOLE_HEAD = ObjectContents.playerHead().profileProperty(PlayerHeadObjectContents.property("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBkNWE0ZWJhMTQwY2JiMzRkNDVlNDBkNjJkZDNmN2U2NTg0YjJhYjBiNDE1NWEwYmNjNjAzZDVkNzUwZjc5MyJ9fX0=")).build()
+
     fun playerDisplay(viewer: User, map: Map<String, User>): TagResolver {
         return TagResolver.resolver(setOf("pd", "player_display")) { arg, context ->
             val pop = arg.popOr("One argument required for player_display")
@@ -524,7 +533,19 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                             component("player_key", user.player.displayName_)
                         else
                             parsed("player_key", MiniMessage.miniMessage().escapeTags(user.name)),
-                        parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)))
+                        parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)),
+                        component(
+                            "player_head",
+                            if (ServerInfo.mcVersion > "21.9" && viewer is PlayerUser)
+                                Component.`object`()
+                                    .contents(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD)
+                                    .append(Component.text(" "))
+                            else
+                                // Object component will display "[unknown player head]" on console
+                                // Object component throws exception before Minecraft 1.21.9 (before it's added)
+                                Component.empty()
+                        ),
+                    )
                 )
             else {
                 throw context.newException("Unknown player_display argument: $id")
@@ -635,7 +656,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
     data class ModuleLang(
         @Comment("This is being used with <pd:player_key>.")
         val playerDisplay: String = "<hover:show_text:'<pc>Click to whisper <pdc><player_key>'>" +
-                "<click:suggest_command:/m <player_key_name> ><player_key></hover>",
+                "<click:suggest_command:/m <player_key_name> ><player_head><player_key></hover>",
         val chat: Chat = Chat(),
         val emote: Emote = Emote(),
         val whisper: Whisper = Whisper(),

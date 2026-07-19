@@ -1,5 +1,5 @@
 # 用于 <pd:player_key>.
-player-display: <hover:show_text:'<pc>点击私聊 <pdc><player_key>'><click:suggest_command:/m <player_key_name> ><player_key></hover>
+player-display: <hover:show_text:'<pc>点击私聊 <pdc><player_key>'><click:suggest_command:/m <player_key_name> ><player_head><player_key></hover>
 chat:
   placeholders:
     shout: <pc><hover:show_text:'<pc>公屏喊话消息'>📣 </hover>
