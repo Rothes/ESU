@@ -35,10 +35,10 @@ object AdventureConverter {
         get() = net.kyori.adventure.key.Key.key(namespace(), value())
 
     val net.kyori.adventure.text.Component.esu
-        get() = ComponentUtils.gsonSerializer().deserialize(net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serialize(this))
+        get() = ComponentUtils.gsonSerializer().deserializeFromTree(net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serializeToTree(this))
 
     val Component.server
-        get() = net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().deserialize(ComponentUtils.gsonSerializer().serialize(this))
+        get() = net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().deserializeFromTree(ComponentUtils.gsonSerializer().serializeToTree(this))
 
     val Book.server
         get() = net.kyori.adventure.inventory.Book.book(title().server, author().server, pages().map { it.server })
