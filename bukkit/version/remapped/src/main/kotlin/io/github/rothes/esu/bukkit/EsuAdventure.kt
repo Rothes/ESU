@@ -40,7 +40,8 @@ object EsuAdventure {
         ComponentUtils.setSerializer(
             gson = if (ServerInfo.mcVersion >= 13) {
                 @Suppress("DEPRECATION")
-                GsonComponentSerializer.builder().options(JSONOptions.byDataVersion().at(Bukkit.getUnsafe().dataVersion))
+                val dataVersion = Bukkit.getUnsafe().dataVersion
+                GsonComponentSerializer.builder().options(JSONOptions.byDataVersion().at(dataVersion))
             } else {
                 GsonComponentSerializer.builder().legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get()).options(JSONOptions.byDataVersion().at(0))
             }
