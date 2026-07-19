@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.util.version.adapter.nms.network.v1
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.AdventureConverter.toMinecraft
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.TabListPacketSender
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.lib.adventure.text.Component
@@ -33,7 +34,6 @@ object TabListPacketSenderImpl: TabListPacketSender {
     private val FOOTER_ACCESSOR = CraftPlayer::class.java.getDeclaredField("playerListFooter")
 
     override fun sendPlayerListHeaderAndFooter(player: Player, header: Component, footer: Component) {
-        player as CraftPlayer
         if (ServerInfo.isPaper) {
             HEADER_ACCESSOR[player] = header.server
             FOOTER_ACCESSOR[player] = footer.server
