@@ -25,6 +25,10 @@ import net.minecraft.resources.ResourceKey
 
 object ResourceKeyHandlerImpl: ResourceKeyHandler {
 
+    override fun <T : Any> createResourceKey(registry: Registry<T>, namespace: String, path: String): ResourceKey<T> {
+        return ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(namespace, path))
+    }
+
     override fun <T: Any> parseResourceKey(registry: Registry<T>, id: String): ResourceKey<T> {
         val location = Identifier.tryParse(id) ?: throw ResourceKeyHandler.BadIdentifierException(id)
         return ResourceKey.create(registry.key(), location)

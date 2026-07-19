@@ -23,6 +23,7 @@ import net.minecraft.resources.ResourceKey
 
 interface ResourceKeyHandler {
 
+    fun <T: Any> createResourceKey(registry: Registry<T>, namespace: String, path: String): ResourceKey<T>
     fun <T: Any> parseResourceKey(registry: Registry<T>, id: String): ResourceKey<T>
     fun getResourceKeyString(resourceKey: ResourceKey<*>): String
 
