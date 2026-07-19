@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.0"
+kotlin = "2.3.10"
 adventure = "5.2.0"
 bstats = "3.1.0"
 configurate = "4.3.0-b1"
