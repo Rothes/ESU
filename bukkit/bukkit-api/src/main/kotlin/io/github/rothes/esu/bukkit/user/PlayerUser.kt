@@ -21,6 +21,7 @@ package io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BossBarImplementationImpl
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BukkitEmitter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
@@ -34,7 +35,9 @@ import io.github.rothes.esu.lib.adventure.bossbar.BossBarImplementation
 import io.github.rothes.esu.lib.adventure.chat.ChatType
 import io.github.rothes.esu.lib.adventure.chat.SignedMessage
 import io.github.rothes.esu.lib.adventure.dialog.DialogLike
+import io.github.rothes.esu.lib.adventure.identity.Identity
 import io.github.rothes.esu.lib.adventure.inventory.Book
+import io.github.rothes.esu.lib.adventure.permission.PermissionChecker
 import io.github.rothes.esu.lib.adventure.pointer.Pointers
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackCallback
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackRequest
@@ -44,6 +47,8 @@ import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.lib.adventure.title.Title
 import io.github.rothes.esu.lib.adventure.title.TitlePart
+import io.github.rothes.esu.lib.adventure.translation.Translator
+import io.github.rothes.esu.lib.adventure.util.TriState
 import net.minecraft.network.protocol.common.ClientboundClearDialogPacket
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -287,8 +292,24 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         OpenBookPacketSender.INSTANCE.openBook(player, book)
     }
 
+    private val pointers by lazy {
+        Pointers.builder()
+            .withDynamic(Identity.NAME) { player.name }
+            .withDynamic(Identity.DISPLAY_NAME) { player.displayName_ }
+            .withDynamic(Identity.LOCALE) { languageUnsafe?.let { Translator.parseLocale(it) } ?: Locale.US }
+            .withDynamic(Identity.UUID) { uuid }
+            .withStatic(PermissionChecker.POINTER, PermissionChecker { permission ->
+                if (player.isPermissionSet(permission)) {
+                    TriState.byBoolean(player.isPermissionSet(permission))
+                } else {
+                    TriState.NOT_SET
+                }
+            })
+            .build()
+    }
+
     override fun pointers(): Pointers {
-        return super.pointers()
+        return pointers
     }
 
 }
