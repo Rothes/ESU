@@ -28,12 +28,42 @@ This project uses the following core dependencies to facilitate development. Tha
 4. Locate the artifacts under `bukkit/build/libs` and `velocity/build/libs`.
 
 
+## ⚙️ Development
+
+We publish ESU artifacts to maven central since 1.0.0.
+
+```kotlin
+dependencies {
+    compileOnly("io.github.rothes:esu-bukkit:1.0.0")
+    compileOnly("io.github.rothes:esu-velocity:1.0.0")
+}
+```
+
+You can also add the artifact for mojmap plugins:
+```kotlin
+dependencies {
+    // NMS utilities. Only use for mojmap plugins.
+    compileOnly("io.github.rothes:esu-bukkit-remapped:1.0.0")
+}
+```
+
+
 ## 🤝 Contributing
 
 ESU is licensed under [GNU Lesser General Public License v3](https://www.gnu.org/licenses/lgpl-3.0.en.html).
 
 Pull requests are welcome! If you would like to contribute to this project, please feel free to do that. \
 We would communicate with you proactively to ensure your pull request meets the project standards!
+
+### 🤖 About AI Usage
+
+Using AI-generated code in PR is feasible, but the generated code should be 
+human-reviewed and confirmed to be free of copyright risks.
+
+Pull requests that are clearly not human-reviewed will be closed.
+
+Note that this does not mean we support AI development.
+AI has limited understanding of Minecraft development and cannot create optimal solutions.
 
 ### 🔧 New Features & Bug Fixes
 
