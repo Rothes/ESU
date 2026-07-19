@@ -62,9 +62,11 @@ object ServerInfo {
     val hasMojmap: Boolean
         get() = mcVersion >= "14.4" && mcVersion < "26"
 
-    object PluginDependency {
+    object PluginEnabled {
 
-        val hasPlaceholderApi = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
+        val PlaceholderApi = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
+        val ViaVersion = Bukkit.getPluginManager().isPluginEnabled("ViaVersion")
+
     }
 
 }

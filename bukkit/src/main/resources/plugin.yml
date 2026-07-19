@@ -12,6 +12,7 @@ softdepend:
   - PlaceholderAPI
   - PlugMan
   - PlugManX
+  - ViaVersion
 
 permissions:
   'esu.essentialCommands.player':

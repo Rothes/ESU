@@ -57,7 +57,7 @@ object ComponentBukkitUtils {
     fun papi(player: Player?): TagResolver {
         return TagResolver.resolver(PAPI_TAG_NAMES) { arg, context ->
             val papi = arg.popOr("One argument expected for papi tag").value()
-            if (ServerInfo.PluginDependency.hasPlaceholderApi) {
+            if (ServerInfo.PluginEnabled.PlaceholderApi) {
                 val split = papi.split('_', limit = 2)
                 val expansion = PlaceholderAPIPlugin.getInstance().localExpansionManager.getExpansion(split[0].lowercase())
                     ?: return@resolver Tag.inserting(Component.text(papi))

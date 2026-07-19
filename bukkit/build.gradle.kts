@@ -37,6 +37,11 @@ allprojects {
             url = uri("https://maven.neoforged.net/releases/")
         }
 
+        maven {
+            name = "viaversion-repo"
+            url = uri("https://repo.viaversion.com")
+        }
+
         maven { // Geyser
             name = "Opencollab"
             url = uri("https://repo.opencollab.dev/main/")
@@ -46,6 +51,7 @@ allprojects {
 
     dependencies {
         compileOnly(rootProject.libs.packetevents.spigot)
+        compileOnly("com.viaversion:viaversion-api:5.11.0")
     }
 
     kotlin {
