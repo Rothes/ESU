@@ -31,8 +31,10 @@ import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Formatter
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
 import io.github.rothes.esu.lib.adventure.text.serializer.legacy.LegacyComponentSerializer
 import io.github.rothes.esu.lib.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.jetbrains.annotations.ApiStatus
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -42,16 +44,31 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object ComponentUtils {
 
-    private var legacySerializer = LegacyComponentSerializer.legacySection()
-    private var plainTextSerializer = PlainTextComponentSerializer.plainText()
+    private var _gsonSerializer = GsonComponentSerializer.gson()
+    private var _legacySerializer = LegacyComponentSerializer.legacySection()
+    private var _plainTextSerializer = PlainTextComponentSerializer.plainText()
+    private var _flattener = ComponentFlattener.basic()
 
-    var flattener = ComponentFlattener.basic()
-        set(value) {
-            field = value
-            legacySerializer = LegacyComponentSerializer.builder().flattener(value).build()
-            plainTextSerializer = PlainTextComponentSerializer.builder().flattener(value).build()
-            LogUser.setFlattener(value)
-        }
+    fun gsonSerializer() = _gsonSerializer
+    fun legacySerializer() = _legacySerializer
+    fun plainTextSerializer() = _plainTextSerializer
+    fun flattener() = _flattener
+
+    @ApiStatus.Internal
+    fun setFlattener(flattener: ComponentFlattener) {
+        _flattener = flattener
+        _legacySerializer = LegacyComponentSerializer.builder().flattener(flattener).build()
+        _plainTextSerializer = PlainTextComponentSerializer.builder().flattener(flattener).build()
+        LogUser.setFlattener(flattener)
+    }
+    @ApiStatus.Internal
+    fun setSerializer(gson: GsonComponentSerializer.Builder) {
+        _gsonSerializer = gson.build()
+    }
+    @ApiStatus.Internal
+    fun setSerializer(legacy: LegacyComponentSerializer.Builder) {
+        _legacySerializer = legacy.flattener(_flattener).build()
+    }
 
     val capitalize = TagResolver.resolver("capitalize") { arg, context ->
         val deserialize = context.deserialize(arg.popOr("One argument expected for capitalize").value())
@@ -71,7 +88,7 @@ object ComponentUtils {
         get() = fromMiniMessage(this)
 
     val String.legacy: Component
-        get() = LegacyComponentSerializer.legacySection().deserialize(this)
+        get() = _legacySerializer.deserialize(this)
 
     val String.legacyColorCharParsed
         get() = if (isEmpty()) this else buildString(this.length) {
@@ -117,11 +134,16 @@ object ComponentUtils {
             append(last)
         }
 
+    val Component.json
+        get() = _gsonSerializer.serialize(this)
+    val Component.jsonTree
+        get() = _gsonSerializer.serializeToTree(this)
+
     val Component.legacy
-        get() = legacySerializer.serialize(this)
+        get() = _legacySerializer.serialize(this)
 
     val Component.plainText
-        get() = plainTextSerializer.serialize(this)
+        get() = _plainTextSerializer.serialize(this)
 
     val Component.nonItalic
         get() = decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)

@@ -21,11 +21,10 @@ package io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
-import io.github.rothes.esu.bukkit.util.version.adapter.adventure.AdventureConverter.toMinecraft
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BossBarImplementationImpl
-import io.github.rothes.esu.bukkit.util.version.adapter.adventure.EsuBukkitEmitter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
+import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BukkitEmitter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.*
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager
 import io.github.rothes.esu.core.util.AdventureConverter.server
@@ -36,37 +35,19 @@ import io.github.rothes.esu.lib.adventure.chat.ChatType
 import io.github.rothes.esu.lib.adventure.chat.SignedMessage
 import io.github.rothes.esu.lib.adventure.dialog.DialogLike
 import io.github.rothes.esu.lib.adventure.inventory.Book
+import io.github.rothes.esu.lib.adventure.pointer.Pointers
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackCallback
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackRequest
 import io.github.rothes.esu.lib.adventure.resource.ResourcePackStatus
 import io.github.rothes.esu.lib.adventure.sound.Sound
 import io.github.rothes.esu.lib.adventure.text.Component
-import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.lib.adventure.title.Title
 import io.github.rothes.esu.lib.adventure.title.TitlePart
-import net.minecraft.core.Holder
-import net.minecraft.core.component.DataComponents
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.network.chat.MessageSignature
-import net.minecraft.network.chat.OutgoingChatMessage
-import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.common.ClientCommonPacketListener
 import net.minecraft.network.protocol.common.ClientboundClearDialogPacket
-import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
-import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
-import net.minecraft.network.protocol.game.*
-import net.minecraft.resources.Identifier
-import net.minecraft.server.network.Filterable
-import net.minecraft.sounds.SoundEvent
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.item.Items
-import net.minecraft.world.item.component.WrittenBookContent
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
 import org.bukkit.event.player.PlayerResourcePackStatusEvent
 import java.time.Duration
 import java.util.*
@@ -154,46 +135,25 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
      ************************/
     private val packCallbacks = ConcurrentHashMap<UUID, ResourcePackCallback>()
 
-    fun sendBundle(packet: List<Packet<ClientCommonPacketListener>>) {
-        player.handle.connection.send(ClientboundBundlePacket(packet))
-    }
-
     override fun sendResourcePacks(request: ResourcePackRequest) {
-        player.handle.connection ?: return
-        if (request.replace()) {
-            clearResourcePacks()
-        }
-        val prompt = request.prompt()?.let { ComponentSerializer.INSTANCE.toMinecraft(it) }
-        val packs = buildList(request.packs().size) {
-            for (pack in request.packs()) {
-                add(ClientboundResourcePackPushPacket(
-                    pack.id(), pack.uri().toASCIIString(), pack.hash(), request.required(),
-                    if (size < request.packs().size) Optional.ofNullable(prompt) else Optional.empty()
-                ))
-                if (request.callback() != ResourcePackCallback.noOp()) {
-                    packCallbacks[pack.id()] = request.callback()
-                }
+        if (request.replace()) clearResourcePacks()
+        for (pack in request.packs()) {
+            if (request.callback() != ResourcePackCallback.noOp()) {
+                packCallbacks[pack.id()] = request.callback()
             }
         }
-        sendBundle(packs)
+        ResourcePackPacketSender.INSTANCE.sendResourcePacks(player, request)
     }
 
     override fun removeResourcePacks(id: UUID, vararg others: UUID) {
-        player.handle.connection ?: return
-        sendBundle(
-            buildList(others.size + 1) {
-                add(ClientboundResourcePackPopPacket(Optional.of(id)))
-                addAll(others.map { ClientboundResourcePackPopPacket(Optional.of(it)) })
-            }
-        )
+        ResourcePackPacketSender.INSTANCE.removeResourcePacks(player, id, others = others)
     }
 
     override fun clearResourcePacks() {
-        player.handle.connection?.send(ClientboundResourcePackPopPacket(Optional.empty()))
+        ResourcePackPacketSender.INSTANCE.clearResourcePacks(player)
     }
 
-    @EventHandler // TODO: Life scope
-    private fun onResourcePack(e: PlayerResourcePackStatusEvent) {
+    fun handleResourcePackStatus(e: PlayerResourcePackStatusEvent) {
         val callback = when (e.status) {
             PlayerResourcePackStatusEvent.Status.ACCEPTED,
             PlayerResourcePackStatusEvent.Status.DOWNLOADED -> packCallbacks[e.id]
@@ -209,39 +169,36 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     }
 
     override fun closeDialog() {
-        player.handle.connection?.send(ClientboundClearDialogPacket.INSTANCE)
+        // TODO
+        player.handle.connection.send(ClientboundClearDialogPacket.INSTANCE)
     }
 
     override fun deleteMessage(signature: SignedMessage.Signature) {
-        player.handle.connection ?: return
-        val m = MessageSignature(signature.bytes())
-        player.handle.connection.send(ClientboundDeleteChatPacket(MessageSignature.Packed(m)))
+        ChatMessagePacketSender.INSTANCE.deleteMessage(player, signature)
     }
 
     override fun sendMessage(message: Component, boundChatType: ChatType.Bound) {
-        player.handle?.sendChatMessage(OutgoingChatMessage.Disguised(message.toMinecraft()), player.handle.isTextFilteringEnabled, boundChatType.toMinecraft())
+        ChatMessagePacketSender.INSTANCE.sendMessage(player, message, boundChatType)
     }
 
     override fun sendMessage(signedMessage: SignedMessage, boundChatType: ChatType.Bound) {
-        player.handle.connection ?: return
         val msg = signedMessage.unsignedContent() ?: Component.text(signedMessage.message())
         if (signedMessage.isSystem) {
-            sendMessage(msg, boundChatType)
+            ChatMessagePacketSender.INSTANCE.sendMessage(player, msg, boundChatType)
         } else {
             super.sendMessage(signedMessage, boundChatType)
         }
     }
 
     override fun sendMessage(message: Component) {
-        player.handle.connection?.send(ClientboundSystemChatPacket(message.toMinecraft(), false))
+        ChatMessagePacketSender.INSTANCE.sendSystemMessage(player, message)
     }
 
     override fun sendActionBar(message: Component) {
-        player.handle.connection?.send(ClientboundSetActionBarTextPacket(message.toMinecraft()))
+        TitlePacketSender.INSTANCE.sendActionBar(player, message)
     }
 
     override fun sendPlayerListHeader(header: Component) {
-        // TODO: Confirm if should set playerListHeader field in CraftPlayer, both for Footer
         sendPlayerListHeaderAndFooter(header, Component.empty())
     }
 
@@ -250,26 +207,24 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     }
 
     override fun sendPlayerListHeaderAndFooter(header: Component, footer: Component) {
-        player.handle.connection ?: return
-        player.handle.connection.send(ClientboundTabListPacket(header.toMinecraft(), footer.toMinecraft()))
+        TabListPacketSender.INSTANCE.sendPlayerListHeaderAndFooter(player, header, footer)
     }
 
     override fun showTitle(title: Title) {
-        val connection = player.handle.connection ?: return
         title.times()?.let { times ->
-            connection.send(ClientboundSetTitlesAnimationPacket(times.fadeIn().toTicks(), times.stay().toTicks(), times.fadeOut().toTicks()))
+            TitlePacketSender.INSTANCE.sendTitlesAnimation(player, times.fadeIn().toTicks(), times.stay().toTicks(), times.fadeOut().toTicks())
         }
-        connection.send(ClientboundSetSubtitleTextPacket(title.subtitle().toMinecraft()))
-        connection.send(ClientboundSetTitleTextPacket(title.title().toMinecraft()))
+        TitlePacketSender.INSTANCE.sendSubtitle(player, title.subtitle())
+        TitlePacketSender.INSTANCE.sendTitle(player, title.title())
     }
 
     override fun <T : Any> sendTitlePart(part: TitlePart<T>, value: T) {
         when (part) {
-            TitlePart.TITLE -> player.handle.connection.send(ClientboundSetTitleTextPacket((value as Component).toMinecraft()))
-            TitlePart.SUBTITLE -> player.handle.connection.send(ClientboundSetSubtitleTextPacket((value as Component).toMinecraft()))
+            TitlePart.TITLE -> TitlePacketSender.INSTANCE.sendTitle(player, value as Component)
+            TitlePart.SUBTITLE -> TitlePacketSender.INSTANCE.sendSubtitle(player, value as Component)
             TitlePart.TIMES -> {
                 val times = value as Title.Times
-                player.handle.connection.send(ClientboundSetTitlesAnimationPacket(times.fadeIn().toTicks(), times.stay().toTicks(), times.fadeOut().toTicks()))
+                TitlePacketSender.INSTANCE.sendTitlesAnimation(player, times.fadeIn().toTicks(), times.stay().toTicks(), times.fadeOut().toTicks())
             }
             else -> throw IllegalArgumentException("Unknown titlePart: $part")
         }
@@ -280,14 +235,13 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
     }
 
     override fun clearTitle() {
-        player.handle.connection?.send(ClientboundClearTitlesPacket(false))
+        TitlePacketSender.INSTANCE.clearTitle(player)
     }
 
     override fun resetTitle() {
-        player.handle.connection?.send(ClientboundClearTitlesPacket(true))
+        TitlePacketSender.INSTANCE.resetTitle(player)
     }
 
-    // TODO: clear the set on player quit?
     private val activeBossBars by lazy { mutableSetOf<BossBar>() }
 
     override fun showBossBar(bar: BossBar) {
@@ -300,80 +254,41 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         activeBossBars.remove(bar)
     }
 
+    fun clearBossBars() {
+        for (bar in activeBossBars) {
+            BossBarImplementation.get(bar, BossBarImplementationImpl::class.java).hide(player)
+        }
+        activeBossBars.clear()
+    }
+
     override fun playSound(sound: Sound) {
         val pos = player.handle.position()
         playSound(sound, pos.x, pos.y, pos.z)
     }
 
     override fun playSound(sound: Sound, x: Double, y: Double, z: Double) {
-        playSound(sound, x, y, z, sound.seed().orElseGet { player.handle.random.nextLong() })
+        SoundPacketSender.INSTANCE.playSound(player, sound, x, y, z)
     }
 
     override fun playSound(sound: Sound, emitter: Sound.Emitter) {
         val entity = when (emitter) {
             Sound.Emitter.self() -> player
-            is EsuBukkitEmitter  -> emitter.entity
+            is BukkitEmitter     -> emitter.entity
             else                 -> throw IllegalArgumentException("Unknown emitter: $emitter")
         }
-        playSound(sound, entity, sound.seed().orElseGet { player.handle.random.nextLong() })
+        SoundPacketSender.INSTANCE.playSound(player, sound, entity)
     }
 
     override fun stopSound(sound: Sound) {
-        player.handle.connection.send(ClientboundStopSoundPacket(
-            Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value()),
-            sound.source().toMinecraft(),
-        ))
-    }
-
-    private fun playSound(sound: Sound, x: Double, y: Double, z: Double, seed: Long) {
-        val name = Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())
-        val soundEvent = BuiltInRegistries.SOUND_EVENT.getOptional(name)
-        val source = sound.source().toMinecraft()
-
-        val hoilder = soundEvent.map { BuiltInRegistries.SOUND_EVENT.wrapAsHolder(it) }.orElseGet { Holder.direct(
-            SoundEvent.createVariableRangeEvent(name)) }
-        player.handle.connection?.send(ClientboundSoundPacket(hoilder, source, x, y, z, sound.volume(), sound.pitch(), seed))
-    }
-
-    private fun playSound(sound: Sound, emitter: Entity, seed: Long) {
-        val name = Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())
-        val soundEvent = BuiltInRegistries.SOUND_EVENT.getOptional(name)
-        val source = sound.source().toMinecraft()
-
-        val hoilder = soundEvent.map { BuiltInRegistries.SOUND_EVENT.wrapAsHolder(it) }.orElseGet { Holder.direct(
-            SoundEvent.createVariableRangeEvent(name)) }
-        player.handle.connection?.send(ClientboundSoundEntityPacket(hoilder, source, emitter.handle, sound.volume(), sound.pitch(), seed))
+        SoundPacketSender.INSTANCE.stopSound(player, sound)
     }
 
     override fun openBook(book: Book) {
-        val item = net.minecraft.world.item.ItemStack(Items.WRITTEN_BOOK)
-        item.set(
-            DataComponents.WRITTEN_BOOK_CONTENT,
-            WrittenBookContent(
-                book.title().toPlain().toFilterable(),
-                book.author().toPlain(),
-                0,
-                book.pages().map { it.toMinecraft().toFilterable() },
-                true
-            )
-        )
-        val handle = player.handle
-        handle.connection?.send(ClientboundBundlePacket(
-            listOf(
-                ClientboundSetPlayerInventoryPacket(handle.inventory.selectedSlot, item),
-                ClientboundOpenBookPacket(InteractionHand.MAIN_HAND),
-                ClientboundSetPlayerInventoryPacket(handle.inventory.selectedSlot, handle.inventory.selectedItem),
-            )
-        ))
+        OpenBookPacketSender.INSTANCE.openBook(player, book)
     }
 
-    private fun Component.toPlain(): String {
-        val builder = StringBuilder()
-        // TODO: render input component?
-        ComponentFlattener.basic().flatten(this) { builder.append(it) }
-        return builder.toString()
+    override fun pointers(): Pointers {
+        return super.pointers()
     }
-
-    private fun <T: Any> T.toFilterable() = Filterable.passThrough(this)
 
 }

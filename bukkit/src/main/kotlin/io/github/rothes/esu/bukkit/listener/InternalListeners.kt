@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.listener
 
 import io.github.rothes.esu.bukkit.UpdateCheckerMan
 import io.github.rothes.esu.bukkit.event.*
+import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.BukkitUserManager
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.core.storage.StorageManager
@@ -27,10 +28,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import org.bukkit.event.player.PlayerCommandPreprocessEvent
-import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.*
 
 internal object InternalListeners : Listener {
 
@@ -63,9 +61,15 @@ internal object InternalListeners : Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     fun onQuit(event: PlayerQuitEvent) {
         BukkitUserManager.getCache(event.player.uniqueId)?.let {
+            it.clearBossBars()
             StorageManager.updateUserAsync(it)
             BukkitUserManager.unload(it)
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onResourcePack(event: PlayerResourcePackStatusEvent) {
+        event.player.user.handleResourcePackStatus(event)
     }
 
     /* Rich message events */

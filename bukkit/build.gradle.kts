@@ -65,7 +65,6 @@ dependencies {
 
     compileOnly("info.debatty:java-string-similarity:2.0.0")
 
-    // compileOnly("net.kyori:adventure-platform-bukkit:4.4.1")
     compileOnly("net.neoforged:AutoRenamingTool:2.0.13")
 
     compileOnly("com.rylinaux:PlugManX:2.4.1")

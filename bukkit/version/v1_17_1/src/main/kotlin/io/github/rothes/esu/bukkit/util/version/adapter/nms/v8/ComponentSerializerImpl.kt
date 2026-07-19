@@ -19,18 +19,18 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.v8
 
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
-import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
+import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
 object ComponentSerializerImpl: ComponentSerializer {
 
     override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
-        return MinecraftComponent.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component)) ?: error("Failed to deserialize")
+        return MinecraftComponent.Serializer.fromJson(ComponentUtils.gsonSerializer().serializeToTree(component)) ?: error("Failed to deserialize")
     }
 
     override fun toAdventure(component: MinecraftComponent): AdventureComponent {
-        return GsonComponentSerializer.gson().deserializeFromTree(MinecraftComponent.Serializer.toJsonTree(component))
+        return ComponentUtils.gsonSerializer().deserializeFromTree(MinecraftComponent.Serializer.toJsonTree(component))
     }
 
 }

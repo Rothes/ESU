@@ -12,11 +12,13 @@ repositories {
 
 dependencies {
     implementation(libs.adventure.api)
+    implementation(libs.adventure.nbt)
     implementation(libs.adventure.text.minimessage)
     implementation(libs.adventure.text.serializer.ansi)
     implementation(libs.adventure.text.serializer.gson) {
         exclude("com.google.code.gson")
     }
+    implementation(libs.adventure.text.serializer.json.legacy.impl)
     implementation(libs.adventure.text.serializer.legacy)
     implementation(libs.adventure.text.serializer.plain)
 

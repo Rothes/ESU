@@ -21,7 +21,7 @@ package io.github.rothes.esu.bukkit.util.version.adapter.nms.v21_6
 import com.google.gson.JsonParseException
 import com.mojang.serialization.JsonOps
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
-import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
+import io.github.rothes.esu.core.util.ComponentUtils
 import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.server.MinecraftServer
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
@@ -32,12 +32,12 @@ object ComponentSerializerImpl: ComponentSerializer {
     override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
         return ComponentSerialization.CODEC.decode(
             MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),
-            GsonComponentSerializer.gson().serializeToTree(component),
+            ComponentUtils.gsonSerializer().serializeToTree(component),
         ).getOrThrow { JsonParseException(it) }.first
     }
 
     override fun toAdventure(component: MinecraftComponent): AdventureComponent {
-        return GsonComponentSerializer.gson().deserializeFromTree(
+        return ComponentUtils.gsonSerializer().deserializeFromTree(
             ComponentSerialization.CODEC.encodeStart(
                 MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),
                 component,

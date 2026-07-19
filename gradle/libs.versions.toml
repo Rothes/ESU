@@ -13,9 +13,11 @@ packetevents = "2.11.2"
 
 [libraries]
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
+adventure-nbt = { group = "net.kyori", name = "adventure-nbt", version.ref = "adventure" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-ansi = { group = "net.kyori", name = "adventure-text-serializer-ansi", version.ref = "adventure" }
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-serializer-json-legacy-impl = { group = "net.kyori", name = "adventure-text-serializer-json-legacy-impl", version.ref = "adventure" }
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 bstats-bukkit = { group = "org.bstats", name = "bstats-bukkit", version.ref = "bstats" }

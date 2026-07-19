@@ -23,7 +23,6 @@ import io.github.rothes.esu.lib.adventure.inventory.Book
 import io.github.rothes.esu.lib.adventure.key.Key
 import io.github.rothes.esu.lib.adventure.sound.Sound
 import io.github.rothes.esu.lib.adventure.text.Component
-import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
 import io.github.rothes.esu.lib.adventure.title.Title
 import io.github.rothes.esu.lib.adventure.title.TitlePart
 import java.util.*
@@ -36,10 +35,10 @@ object AdventureConverter {
         get() = net.kyori.adventure.key.Key.key(namespace(), value())
 
     val net.kyori.adventure.text.Component.esu
-        get() = GsonComponentSerializer.gson().deserialize(net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serialize(this))
+        get() = ComponentUtils.gsonSerializer().deserialize(net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serialize(this))
 
     val Component.server
-        get() = net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().deserialize(GsonComponentSerializer.gson().serialize(this))
+        get() = net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().deserialize(ComponentUtils.gsonSerializer().serialize(this))
 
     val Book.server
         get() = net.kyori.adventure.inventory.Book.book(title().server, author().server, pages().map { it.server })

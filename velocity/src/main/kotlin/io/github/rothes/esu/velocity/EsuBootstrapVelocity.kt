@@ -132,6 +132,7 @@ class EsuBootstrapVelocity @Inject constructor(
                     "net.kyori:adventure-text-minimessage:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-ansi:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-gson:${DependencyVersion.ADVENTURE}",
+                    "net.kyori:adventure-text-serializer-json-legacy-impl:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-legacy:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-text-serializer-plain:${DependencyVersion.ADVENTURE}",
                     "net.kyori:adventure-nbt:${DependencyVersion.ADVENTURE}",

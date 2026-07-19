@@ -18,12 +18,18 @@
 
 package io.github.rothes.esu.bukkit
 
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
+import io.github.rothes.esu.lib.adventure.text.serializer.gson.GsonComponentSerializer
+import io.github.rothes.esu.lib.adventure.text.serializer.json.JSONOptions
+import io.github.rothes.esu.lib.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer
+import io.github.rothes.esu.lib.adventure.text.serializer.legacy.LegacyComponentSerializer
 import io.github.rothes.esu.lib.adventure.translation.GlobalTranslator
 import net.minecraft.locale.Language
+import org.bukkit.Bukkit
 import java.util.*
 
 @Suppress("UnstableApiUsage")
@@ -31,6 +37,21 @@ object EsuAdventure {
 
     fun inject() {
         AnsiFlattener.init()
+        ComponentUtils.setSerializer(
+            gson = if (ServerInfo.mcVersion >= 13) {
+                @Suppress("DEPRECATION")
+                GsonComponentSerializer.builder().options(JSONOptions.byDataVersion().at(Bukkit.getUnsafe().dataVersion))
+            } else {
+                GsonComponentSerializer.builder().legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get()).options(JSONOptions.byDataVersion().at(0))
+            }
+        )
+        ComponentUtils.setSerializer(
+            legacy = if (ServerInfo.mcVersion >= 16) {
+                LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat()
+            } else {
+                LegacyComponentSerializer.builder()
+            }
+        )
     }
 
     private object AnsiFlattener {
@@ -84,7 +105,7 @@ object EsuAdventure {
                         consumer.accept(Component.text(translated.substring(right)))
                     }
                 }.build()
-            ComponentUtils.flattener = flattener
+            ComponentUtils.setFlattener(flattener)
         }
     }
 
