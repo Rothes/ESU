@@ -35,10 +35,13 @@ object TabListPacketSenderImpl: TabListPacketSender {
 
     override fun sendPlayerListHeaderAndFooter(player: Player, header: Component, footer: Component) {
         if (ServerInfo.isPaper) {
+            // On Paper, it's paper adventure Component
             HEADER_ACCESSOR[player] = header.server
             FOOTER_ACCESSOR[player] = footer.server
         } else {
-            // TODO: Confirm fields on Spigot/CB
+            // On Spigot, it's minecraft Component
+            HEADER_ACCESSOR[player] = header.toMinecraft()
+            FOOTER_ACCESSOR[player] = footer.toMinecraft()
         }
         player.handle.connection.send(ClientboundTabListPacket(header.toMinecraft(), footer.toMinecraft()))
     }
