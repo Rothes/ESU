@@ -29,6 +29,10 @@ import kotlin.jvm.optionals.getOrNull
 
 object ResourcePackPacketSenderImpl: ResourcePackPacketSender {
 
+    override fun removeResourcePacks(player: Player, id: UUID, vararg others: UUID) {
+        // Not supported on Minecraft version
+    }
+
     override fun clearResourcePacks(player: Player) {
         // Not supported on Minecraft version
     }
