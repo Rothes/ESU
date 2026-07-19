@@ -35,6 +35,7 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.clientVersionCode
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MINECRAFT
@@ -536,7 +537,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                         parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)),
                         component(
                             "player_head",
-                            if (ServerInfo.mcVersion > "21.9" && viewer is PlayerUser)
+                            if (ServerInfo.mcVersion >= "21.9" && viewer is PlayerUser && viewer.player.clientVersionCode >= 773) // Client >= 1.21.9 (773)
                                 Component.`object`()
                                     .contents(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD)
                                     .append(Component.text(" "))

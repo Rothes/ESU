@@ -18,12 +18,17 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
+import com.viaversion.viaversion.api.Via
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
+import io.github.rothes.esu.core.util.version.Version
+import io.github.rothes.esu.core.util.version.toVersion
 import io.github.rothes.esu.lib.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -53,6 +58,25 @@ interface PlayerAdapter {
 
         val OfflinePlayer.connected: Boolean
             get() = playerConnectedHandler.isPlayerConnected(this)
+
+        val Player.clientVersionCode: Int
+            get() {
+                return if (ServerInfo.PluginEnabled.ViaVersion)
+                    viaProtocolVersion()?.version ?: @Suppress("DEPRECATION") Bukkit.getUnsafe().protocolVersion
+                else
+                    @Suppress("DEPRECATION") Bukkit.getUnsafe().protocolVersion
+            }
+        val Player.clientVersion: Version
+            get() {
+                return if (ServerInfo.PluginEnabled.ViaVersion)
+                    viaProtocolVersion()?.name?.toVersion() ?: ServerInfo.mcVersion
+                else
+                    ServerInfo.mcVersion
+            }
+
+        private fun Player.viaProtocolVersion(): ProtocolVersion? {
+            return Via.getManager().connectionManager.getServerConnection(uniqueId)?.protocolInfo?.protocolVersion()
+        }
 
         interface PlayerChunkSentHandler {
 
