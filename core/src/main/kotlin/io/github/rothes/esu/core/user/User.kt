@@ -95,15 +95,6 @@ interface User: Audience {
         return langOrNull(lang, transform) ?: throw NullPointerException()
     }
 
-    /*  Legacy language functions  */
-    @Deprecated("Use #lang") fun <V, R> localedOrNull(langMap: Map<String, V>, block: (V) -> R?): R? = langOrNull(langMap, block)
-    @Deprecated("Use #lang") fun <V> localedOrNull(langMap: Map<String, V>): V? = langOrNull(langMap)
-    @Deprecated("Use #lang") fun <T, R> localedOrNull(locales: MultiLangConfiguration<T>, block: T.() -> R?): R? = langOrNull(locales, block)
-    @Deprecated("Use #lang") fun <V, R> localed(langMap: Map<String, V>, block: (V) -> R?): R = lang(langMap, block)
-    @Deprecated("Use #lang") fun <V> localed(langMap: Map<String, V>): V = lang(langMap)
-    @Deprecated("Use #lang") fun <T, R> localed(locales: MultiLangConfiguration<T>, block: T.() -> R?): R = lang(locales, block)
-    /*  Legacy language functions  */
-
     @OptIn(ExperimentalTypeInference::class)
     @OverloadResolutionByLambdaReturnType
     @Suppress("INAPPLICABLE_JVM_NAME")

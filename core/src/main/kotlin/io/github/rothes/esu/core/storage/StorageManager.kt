@@ -60,8 +60,6 @@ object StorageManager {
     } catch (e: Exception) {
         throw RuntimeException("Failed to connect to database", e)
     }
-    @Deprecated("0.12.4")
-    val coroutineScope = IOScope
 
     private val userDataCache = CacheBuilder.newBuilder().expireAfterAccess(4, TimeUnit.HOURS).build<Int, UserData>()
 

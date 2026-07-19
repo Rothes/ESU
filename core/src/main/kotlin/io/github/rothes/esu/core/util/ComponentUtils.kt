@@ -75,10 +75,6 @@ object ComponentUtils {
         Tag.inserting(deserialize.capitalize())
     }
 
-    @Deprecated("0.13.1")
-    fun fromLegacy(legacyText: String): Component {
-        return LegacyComponentSerializer.legacySection().deserialize(legacyText)
-    }
 
     fun fromMiniMessage(miniMessage: String): Component {
         return MiniMessage.miniMessage().deserialize(miniMessage)
