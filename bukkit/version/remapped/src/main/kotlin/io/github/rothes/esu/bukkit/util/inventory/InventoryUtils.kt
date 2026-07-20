@@ -30,9 +30,6 @@ object InventoryUtils {
 
     @JvmStatic
     val Inventory.esuHolder: EsuInvHolder<*>?
-        get() {
-            if (this !is CraftInventoryCustom) return null
-            return holder as? EsuInvHolder<*>
-        }
+        get() = if (this is CraftInventoryCustom) holder as? EsuInvHolder<*> else null
 
 }
