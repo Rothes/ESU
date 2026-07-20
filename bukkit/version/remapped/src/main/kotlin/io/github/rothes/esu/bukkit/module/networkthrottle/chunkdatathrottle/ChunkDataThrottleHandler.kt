@@ -903,7 +903,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             if (event.isCancelled) return
             try {
                 fun shouldSkip(): Boolean {
-                    return playerData[event.getPlayer()]!!.updating
+                    return playerData[event.getPlayer()]?.updating ?: true // If no data means we haven't proceeded any chunk
                 }
                 fun checkPosUpdate(entityId: Int) {
                     val player = event.getPlayer<Player>()
