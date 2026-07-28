@@ -53,11 +53,13 @@ object DynamicChunkSendRate: CommonFeature<DynamicChunkSendRate.FeatureConfig, E
                 Scheduler.schedule(player, 1) {
                     if (--times > 0) {
                         val handler = ChunkLimiterHandler.instance
-                        for (type in ChunkLimiterHandler.Type.entries) {
-                            val allocationUnused = handler.previewAllocation(player, type, Long.MAX_VALUE)
-                            val toTake = allocationUnused - 24
-                            if (toTake < 0) continue
-                            handler.takeAllocation(player, type, toTake)
+                        if (handler.isMoonriseChunkLoaderSet(player)) {
+                            for (type in ChunkLimiterHandler.Type.entries) {
+                                val allocationUnused = handler.previewAllocation(player, type, Long.MAX_VALUE)
+                                val toTake = allocationUnused - 24
+                                if (toTake < 0) continue
+                                handler.takeAllocation(player, type, toTake)
+                            }
                         }
                         func()
                     }
