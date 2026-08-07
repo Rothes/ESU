@@ -139,6 +139,24 @@ abstract class CommonFeature<C, L> : Feature<C, L> {
         }
     }
 
+    override fun unregisterFeature(child: Feature<*, *>): Boolean {
+        synchronized(children) {
+            if (child.parent !== this) return false
+
+            children.remove(child.name.lowercase()) ?: return false
+            if (child.enabled) {
+                try {
+                    child.setEnabled(false)
+                    child.onDisable()
+                } catch (e: Throwable) {
+                    EsuCore.instance.err("Failed to disable module ${module.name} on unregister", e)
+                }
+            }
+            child.setParent(null)
+            return true
+        }
+    }
+
     protected val registeredCommands = LinkedHashSet<Command<out User>>()
 
     protected fun unregisterCommands() {

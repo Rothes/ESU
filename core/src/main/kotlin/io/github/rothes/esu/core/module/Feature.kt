@@ -68,6 +68,7 @@ interface Feature<C, L> {
     fun getFeatures(): List<Feature<*, *>>
     fun getFeature(name: String): Feature<*, *>?
     fun registerFeature(child: Feature<*, *>)
+    fun unregisterFeature(child: Feature<*, *>): Boolean
 
     fun isAvailable(): AvailableCheck {
         return checkUnavailable() ?: AvailableCheck.OK
