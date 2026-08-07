@@ -52,6 +52,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
@@ -540,7 +541,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                             if (ServerInfo.mcVersion >= "21.9" && viewer is PlayerUser && viewer.player.clientVersionCode >= 773) // Client >= 1.21.9 (773)
                                 Component.`object`()
                                     .contents(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD)
-                                    .append(Component.text(" "))
+                                    .decorate(TextDecoration.BOLD) // Expand right text offset
                             else
                                 // Object component will display "[unknown player head]" on console
                                 // Object component throws exception before Minecraft 1.21.9 (before it's added)
