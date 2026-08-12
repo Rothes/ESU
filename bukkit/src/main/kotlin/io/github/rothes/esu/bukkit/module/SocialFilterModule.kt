@@ -39,6 +39,7 @@ import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.core.util.extension.ifLet
+import it.unimi.dsi.fastutil.chars.Char2ReferenceOpenHashMap
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -152,6 +153,11 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         @Comment("Normalize text to fix bypassing by characters like blank.")
         val normalizeText: Boolean = true,
         @Comment("""
+            The maximum number of allowed skipped intermediate characters between keywords.
+            0 to disable this, and can improve performance.
+        """)
+        val maxCharGap: Int = 0,
+        @Comment("""
             The message to send when blocked by this file.
             This is the key in the 'blocked-message' map in lang files.
         """)
@@ -159,14 +165,10 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         val keywords: List<String> = listOf("A keyword to block", "Another keyword to block"),
     ) : ConfigurationPart {
 
-        val searcher by lazy {
-            AhoCorasickDoubleArrayTrie<Filter>().also { trie ->
-                trie.build(keywords.map { preprocessText(it) }.associateWith { this })
-            }
-        }
+        private val searcher by lazy { if (maxCharGap > 0) GappedSearcher() else TrieSearcher() }
 
         fun contains(text: String): Boolean {
-            return searcher.findFirst(preprocessText(text)) != null
+            return searcher.contains(preprocessText(text))
         }
 
         fun messageBlocked(user: User) {
@@ -180,6 +182,70 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
                 .ifLet(convertPinyin) { PinyinHelper.convertToPinyinString(this, " ", PinyinFormat.WITHOUT_TONE) }
                 .ifLet(ignoreCase) { lowercase() }
                 .ifLet(normalizeText) { filterNot { it == ' ' } }
+        }
+
+        private interface Searcher {
+            fun contains(text: String): Boolean
+        }
+
+        private inner class TrieSearcher : Searcher {
+
+            private val trie = AhoCorasickDoubleArrayTrie<Filter>().also { trie ->
+                trie.build(keywords.map { preprocessText(it) }.associateWith { this@Filter })
+            }
+
+            override fun contains(text: String): Boolean {
+                return trie.findFirst(text) != null
+            }
+
+        }
+
+        private inner class GappedSearcher : Searcher {
+
+            private val root = TrieNode(keywords.map { preprocessText(it) })
+
+            override fun contains(text: String): Boolean {
+                for (i in text.indices) {
+                    if (dfs(root, text, i, 0)) {
+                        return true
+                    }
+                }
+                return false
+            }
+
+            private fun dfs(node: TrieNode, text: String, i: Int, gapCount: Int): Boolean {
+                if (node.isEnd) return true
+                if (i >= text.length) return false
+
+                val nextNode = node.children?.get(text[i])
+                if (nextNode != null) {
+                    if (dfs(nextNode, text, i + 1, 0)) return true
+                }
+
+                if (gapCount < maxCharGap) {
+                    if (dfs(node, text, i + 1, gapCount + 1)) return true
+                }
+
+                return false
+            }
+
+        }
+
+        private class TrieNode(patterns: List<String>) {
+
+            @JvmField val isEnd: Boolean = patterns.any { it.isEmpty() }
+            @JvmField val children: Char2ReferenceOpenHashMap<TrieNode>? =
+                if (patterns.isNotEmpty()) {
+                    val notEmpty = patterns.filterNot { it.isEmpty() }
+                    if (notEmpty.isNotEmpty())
+                        Char2ReferenceOpenHashMap(
+                            notEmpty
+                                .groupBy { it.first() }
+                                .mapValues { TrieNode(it.value.map { s -> s.substring(1) }) }
+                        )
+                    else null
+                } else null
+
         }
 
     }
