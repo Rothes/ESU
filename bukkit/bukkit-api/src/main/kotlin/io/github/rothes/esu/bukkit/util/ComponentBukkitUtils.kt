@@ -57,24 +57,33 @@ object ComponentBukkitUtils {
         }
     }
 
+    fun supportsPlayerHead(viewer: User): Boolean {
+        return ServerInfo.mcVersion >= "21.9" // Object component throws exception before Minecraft 1.21.9 (before it's added)
+                && viewer is PlayerUser // Object component will display "[unknown player head]" on console
+                && viewer.player.clientVersionCode >= 773 // Client >= 1.21.9 (773)
+    }
+
     fun playerHead(viewer: User, user: User, key: String = "player_head"): TagResolver.Single {
         playerHeadFallback(viewer, key)?.let { return it }
-        return component(key, buildPlayerHead(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD))
+        return component(key, playerHead(user))
     }
 
     fun playerHead(viewer: User, player: UUID, key: String = "player_head"): TagResolver.Single {
         playerHeadFallback(viewer, key)?.let { return it }
 
-        return component(key, buildPlayerHead(ObjectContents.playerHead().id(player).build()))
+        return component(key, playerHead(player))
     }
 
     private fun playerHeadFallback(viewer: User, key: String): TagResolver.Single? {
-        if (ServerInfo.mcVersion < "21.9" // Object component throws exception before Minecraft 1.21.9 (before it's added)
-            || viewer !is PlayerUser // Object component will display "[unknown player head]" on console
-            || viewer.player.clientVersionCode < 773 // Client >= 1.21.9 (773)
-        ) return component(key, Component.empty())
+        return if (!supportsPlayerHead(viewer)) component(key, Component.empty()) else null
+    }
 
-        return null
+    fun playerHead(user: User): ObjectComponent.Builder {
+        return buildPlayerHead(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD)
+    }
+
+    fun playerHead(player: UUID): ObjectComponent.Builder {
+        return buildPlayerHead(ObjectContents.playerHead().id(player).build())
     }
 
     private fun buildPlayerHead(contents: PlayerHeadObjectContents): ObjectComponent.Builder {

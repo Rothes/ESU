@@ -21,6 +21,7 @@ package io.github.rothes.esu.bukkit.module
 import io.github.rothes.esu.bukkit.event.RichPlayerDeathEvent
 import io.github.rothes.esu.bukkit.user
 import io.github.rothes.esu.bukkit.user.ConsoleUser
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
@@ -174,11 +175,29 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
 
         private fun processComponent(user: User, message: Component, modifier: ModuleConfig.Message.MessageModifier): Component? {
             if (modifier.format.isEmpty()) return null
+
+            val builder = message.toBuilder()
+            modifier.messageColor.applyTo(builder) { builder.color(it) }
+            if (modifier.displayPlayerHead && ComponentBukkitUtils.supportsPlayerHead(user)) {
+                builder.applyDeep {
+                    if (it is TranslatableComponent.Builder) {
+                        it.arguments(it.build().arguments().map { arg ->
+                            val argument = arg.value() as? TextComponent ?: return@map arg
+
+                            // Check entity type
+                            val hoverEvent = argument.hoverEvent() ?: return@map arg
+                            val showEntity = hoverEvent.value() as? HoverEvent.ShowEntity ?: return@map arg
+                            if (showEntity.type().value() != "player") return@map arg
+
+                            Component.text().append(ComponentBukkitUtils.playerHead(showEntity.id())).append(argument)
+                        })
+                    }
+                }
+            }
+
             return user.buildMiniMessage(
                 modifier.format,
-                component("message",
-                    modifier.messageColor.applyTo(message) { message.color(it) }
-                )
+                component("message", builder)
             )
         }
 
@@ -233,6 +252,7 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                 val messageColor: Optional<TextColor> = Optional.empty(),
                 val format: String = "<message>",
                 val showInConsole: Boolean = true,
+                val displayPlayerHead: Boolean = true,
             ): ConfigurationPart {
                 @RemovedNode
                 val color: Optional<TextColor>? = null
