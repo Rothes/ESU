@@ -74,6 +74,9 @@ project.afterEvaluate {
                         classifier = "sources"
                     }
                 }
+                artifact(tasks.findByName("javadocJar")) {
+                    classifier = "javadoc"
+                }
 
                 artifactId = extension.artifactIdOverride.orNull ?: project.defaultArtifactId()
                 groupId = project.group as String?
