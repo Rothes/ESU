@@ -189,7 +189,11 @@ object BetterEventMessagesModule: BukkitModule<BetterEventMessagesModule.ModuleC
                             val showEntity = hoverEvent.value() as? HoverEvent.ShowEntity ?: return@map arg
                             if (showEntity.type().value() != "player") return@map arg
 
-                            Component.text().append(ComponentBukkitUtils.playerHead(showEntity.id())).append(argument)
+                            Component.text()
+                                .hoverEvent(argument.hoverEvent())
+                                .clickEvent(argument.clickEvent())
+                                .append(ComponentBukkitUtils.playerHead(showEntity.id()))
+                                .append(argument.hoverEvent(null).clickEvent(null))
                         })
                     }
                 }
