@@ -25,6 +25,7 @@ import io.github.rothes.esu.bukkit.event.RawUserChatEvent
 import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
 import io.github.rothes.esu.bukkit.user
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.adapter.ItemStackAdapter.Companion.displayName_
@@ -37,14 +38,20 @@ import io.github.rothes.esu.core.configuration.data.MessageData.Companion.messag
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.core.util.extension.ifLet
+import io.github.rothes.esu.lib.adventure.text.TextComponent
+import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
+import io.github.rothes.esu.lib.adventure.text.event.HoverEvent
+import io.github.rothes.esu.lib.adventure.text.format.TextDecoration
 import it.unimi.dsi.fastutil.chars.Char2ReferenceOpenHashMap
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.SignChangeEvent
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.AnvilInventory
 
@@ -135,6 +142,34 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
             find.messageBlocked(e.player.user)
         }
 
+        @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+        fun onDeath(e: PlayerDeathEvent) {
+            if (!ServerInfo.isPaper) return
+            val values = filters.configs.values
+            if (!values.any { it.enabled && it.blockItemName }) return
+
+            val server = e.deathMessage() ?: return
+            if (server !is net.kyori.adventure.text.TranslatableComponent) return // Only support vanilla messages
+
+            val msg = server.esu as TranslatableComponent
+            for (argument in msg.arguments()) {
+                val arg = argument.value()
+                if (arg is TranslatableComponent && arg.key() == "chat.square_brackets") {
+                    val argument = arg.arguments()[0]
+                    val item = argument.value() as? TextComponent ?: continue
+                    if (arg.hoverEvent()?.value() !is HoverEvent.ShowItem) continue // Ensure it's item
+                    if (!item.hasDecoration(TextDecoration.ITALIC)) continue // Not a custom name
+
+                    val component = item.children().firstOrNull() as? TextComponent ?: continue
+                    val content = component.content()
+                    if (values.any { it.enabled && it.blockItemName && it.contains(content) }) {
+                        e.deathMessage(null)
+                        return
+                    }
+                }
+            }
+        }
+
     }
 
     data class Filter(
@@ -146,6 +181,8 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         val blockChat: Boolean = true,
         @Comment("Block writing texts on sign blocks.")
         val blockSign: Boolean = true,
+        @Comment("Block custom item names that shows in chat. For example, by death message.")
+        val blockItemName: Boolean = false,
         @Comment("Convert Chinese characters to Pinyin.")
         val convertPinyin: Boolean = false,
         @Comment("Ignore case on matching texts.")
