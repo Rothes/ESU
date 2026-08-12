@@ -31,11 +31,10 @@ import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.papi
+import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.playerHead
 import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.user
-import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.clientVersionCode
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.configuration.data.MINECRAFT
@@ -52,12 +51,9 @@ import io.github.rothes.esu.core.util.ComponentUtils.pLang
 import io.github.rothes.esu.core.util.ComponentUtils.parsed
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.lib.adventure.text.Component
-import io.github.rothes.esu.lib.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
-import io.github.rothes.esu.lib.adventure.text.`object`.ObjectContents
-import io.github.rothes.esu.lib.adventure.text.`object`.PlayerHeadObjectContents
 import it.unimi.dsi.fastutil.ints.IntSet
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -520,8 +516,6 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
         return playerDisplay(viewer, mapOf(key to user))
     }
 
-    private val CONSOLE_HEAD = ObjectContents.playerHead().profileProperty(PlayerHeadObjectContents.property("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBkNWE0ZWJhMTQwY2JiMzRkNDVlNDBkNjJkZDNmN2U2NTg0YjJhYjBiNDE1NWEwYmNjNjAzZDVkNzUwZjc5MyJ9fX0=")).build()
-
     fun playerDisplay(viewer: User, map: Map<String, User>): TagResolver {
         return TagResolver.resolver(setOf("pd", "player_display")) { arg, context ->
             val pop = arg.popOr("One argument required for player_display")
@@ -536,17 +530,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
                         else
                             parsed("player_key", MiniMessage.miniMessage().escapeTags(user.name)),
                         parsed("player_key_name", MiniMessage.miniMessage().escapeTags(user.name)),
-                        component(
-                            "player_head",
-                            if (ServerInfo.mcVersion >= "21.9" && viewer is PlayerUser && viewer.player.clientVersionCode >= 773) // Client >= 1.21.9 (773)
-                                Component.`object`()
-                                    .contents(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD)
-                                    .decorate(TextDecoration.BOLD) // Expand right text offset
-                            else
-                                // Object component will display "[unknown player head]" on console
-                                // Object component throws exception before Minecraft 1.21.9 (before it's added)
-                                Component.empty()
-                        ),
+                        playerHead(viewer, user),
                     )
                 )
             else {

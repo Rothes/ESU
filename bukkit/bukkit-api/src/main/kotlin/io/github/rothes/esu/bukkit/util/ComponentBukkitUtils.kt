@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.util
 
 import io.github.rothes.esu.bukkit.user.GenericUser
 import io.github.rothes.esu.bukkit.user.PlayerUser
+import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.clientVersionCode
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
@@ -27,15 +28,22 @@ import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.lib.adventure.text.Component
+import io.github.rothes.esu.lib.adventure.text.ObjectComponent
+import io.github.rothes.esu.lib.adventure.text.format.NamedTextColor
+import io.github.rothes.esu.lib.adventure.text.format.TextDecoration
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.Tag
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.Placeholder
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.rothes.esu.lib.adventure.text.`object`.ObjectContents
+import io.github.rothes.esu.lib.adventure.text.`object`.PlayerHeadObjectContents
 import me.clip.placeholderapi.PlaceholderAPIPlugin
 import org.bukkit.entity.Player
+import java.util.*
 
 object ComponentBukkitUtils {
 
     private val PAPI_TAG_NAMES = setOf("placeholderapi", "papi")
+    private val CONSOLE_HEAD = ObjectContents.playerHead().profileProperty(PlayerHeadObjectContents.property("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBkNWE0ZWJhMTQwY2JiMzRkNDVlNDBkNjJkZDNmN2U2NTg0YjJhYjBiNDE1NWEwYmNjNjAzZDVkNzUwZjc5MyJ9fX0=")).build()
 
     fun player(player: Player, key: String = "player"): TagResolver.Single {
         return Placeholder.component(key, player.displayName_)
@@ -47,6 +55,33 @@ object ComponentBukkitUtils {
             is GenericUser -> component(key, user.commandSender.name().esu)
             else -> unparsed(key, user.name)
         }
+    }
+
+    fun playerHead(viewer: User, user: User, key: String = "player_head"): TagResolver.Single {
+        playerHeadFallback(viewer, key)?.let { return it }
+        return component(key, buildPlayerHead(if (user is PlayerUser) ObjectContents.playerHead().id(user.uuid).build() else CONSOLE_HEAD))
+    }
+
+    fun playerHead(viewer: User, player: UUID, key: String = "player_head"): TagResolver.Single {
+        playerHeadFallback(viewer, key)?.let { return it }
+
+        return component(key, buildPlayerHead(ObjectContents.playerHead().id(player).build()))
+    }
+
+    private fun playerHeadFallback(viewer: User, key: String): TagResolver.Single? {
+        if (ServerInfo.mcVersion < "21.9" // Object component throws exception before Minecraft 1.21.9 (before it's added)
+            || viewer !is PlayerUser // Object component will display "[unknown player head]" on console
+            || viewer.player.clientVersionCode < 773 // Client >= 1.21.9 (773)
+        ) return component(key, Component.empty())
+
+        return null
+    }
+
+    private fun buildPlayerHead(contents: PlayerHeadObjectContents): ObjectComponent.Builder {
+        return Component.`object`()
+            .contents(contents)
+            .decorate(TextDecoration.BOLD) // Expand right text offset
+            .color(NamedTextColor.WHITE) // Clear color
     }
 
     fun papi(user: User): TagResolver {
