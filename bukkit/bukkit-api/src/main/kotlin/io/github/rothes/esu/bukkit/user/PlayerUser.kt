@@ -106,6 +106,9 @@ class PlayerUser(override val uuid: UUID, initPlayer: Player? = null): BukkitUse
         colorSchemeUnsafe = userData.colorScheme
     }
 
+    override val name: String
+        get() = if (isOnline) super.name else dbName ?: Bukkit.getOfflinePlayer(uuid).name ?: uuid.toString()
+
     override fun <T> kick(lang: MultiLangConfiguration<T>, block: T.() -> String?, vararg params: TagResolver) {
         player.syncTick {
             val msg = buildMiniMessage(lang, block, params = params)
