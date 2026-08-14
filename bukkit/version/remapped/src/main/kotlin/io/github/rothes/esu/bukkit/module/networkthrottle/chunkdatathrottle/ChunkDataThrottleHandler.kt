@@ -25,7 +25,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.DiggingAction
-import com.github.retrooper.packetevents.protocol.stream.NetStreamInput
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.GlobalPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette
@@ -99,7 +98,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.experimental.and
 import kotlin.experimental.or
-import kotlin.inc
 import kotlin.io.path.copyTo
 import kotlin.io.path.fileSize
 import kotlin.io.path.nameWithoutExtension
@@ -594,7 +592,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                         IntArray(frequency.size - empty) { i -> sectionData.states[remappedStateIndex.indexOf(i)] }
                     }
 
-                section.chunkData.palette = CustomListPalette(bits, remapped)
+                section.chunkData.palette = ListPalette(bits, remapped)
             } else {
                 // It's a GlobalPalette.
                 bits = GlobalPalette.BITS_PER_ENTRY
@@ -794,7 +792,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         if (groupBy.isEmpty()) return
 
         val pdData = playerData[player]!!
-        val user = PacketEvents.getAPI().playerManager.getUser(player)
+        val user = PacketEvents.getAPI().playerManager.getUser(player)!!
         pdData.updating = true
         try {
             for ((section, blocks) in groupBy) {
@@ -973,16 +971,6 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             }
         }
 //        private val nanoTimes = it.unimi.dsi.fastutil.longs.LongArrayList(1_000_000)
-    }
-
-    private class CustomListPalette(bits: Int, array: IntArray): ListPalette(bits, CustomNetStreamInput(array)) {
-
-        private class CustomNetStreamInput(val array: IntArray) : NetStreamInput(null) {
-            private var read = -2
-            override fun readVarInt(): Int {
-                return if (++read == -1) array.size else array[read]
-            }
-        }
     }
 
     interface SectionGetter {

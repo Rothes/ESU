@@ -154,11 +154,13 @@ object ChannelInjectionManager {
             with(channel.pipeline()) {
                 if (get(ENCODER_NAME_PRE) != null)
                     error("ESU channel handlers are already injected")
-                val outgoing = EsuOutboundPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel), player)
+
+                val peUser = PacketEvents.getAPI().protocolManager.getUser(channel)!!
+                val outgoing = EsuOutboundPipelineData(peUser, player)
                 addBefore("minecraft-encoder", ENCODER_NAME_PRE, EsuPreEncoder(outgoing))
                 addFirst(ENCODER_NAME_FIN, EsuFinEncoder(outgoing))
 
-                val incoming = EsuPipelineData(PacketEvents.getAPI().protocolManager.getUser(channel), player)
+                val incoming = EsuPipelineData(peUser, player)
                 addFirst(DECODER_NAME_PRE, EsuPreDecoder(incoming))
                 addBefore("minecraft-decoder", DECODER_NAME_FIN, EsuFinDecoder(incoming))
             }
