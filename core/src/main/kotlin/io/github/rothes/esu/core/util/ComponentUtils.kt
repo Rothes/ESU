@@ -18,10 +18,13 @@
 
 package io.github.rothes.esu.core.util
 
+import io.github.rothes.esu.core.colorscheme.ColorScheme
+import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.user.LogUser
 import io.github.rothes.esu.core.user.User
+import io.github.rothes.esu.core.util.extension.ifLet
 import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.ComponentLike
 import io.github.rothes.esu.lib.adventure.text.flattener.ComponentFlattener
@@ -75,9 +78,13 @@ object ComponentUtils {
         Tag.inserting(deserialize.capitalize())
     }
 
+    fun fromMiniMessage(miniMessage: String, vararg params: TagResolver): Component {
+        val msg = miniMessage.ifLet(EsuConfig.get().legacyColorChar) { legacyColorCharParsed }
+        return MiniMessage.miniMessage().deserialize( msg, *params)
+    }
 
-    fun fromMiniMessage(miniMessage: String): Component {
-        return MiniMessage.miniMessage().deserialize(miniMessage)
+    fun fromMiniMessage(miniMessage: String, colorScheme: ColorScheme, vararg params: TagResolver): Component {
+        return fromMiniMessage(miniMessage, TagResolver.resolver(colorScheme.tagResolver, *params))
     }
 
     val String.miniMessage

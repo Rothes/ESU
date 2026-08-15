@@ -19,20 +19,18 @@
 package io.github.rothes.esu.core.user
 
 import io.github.rothes.esu.core.colorscheme.ColorSchemes
-import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.ParsedMessageData
 import io.github.rothes.esu.core.configuration.data.SoundData
 import io.github.rothes.esu.core.util.AdventureConverter.esu
+import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.core.util.ComponentUtils.capitalize
 import io.github.rothes.esu.core.util.ComponentUtils.legacy
-import io.github.rothes.esu.core.util.ComponentUtils.legacyColorCharParsed
 import io.github.rothes.esu.core.util.lang.LangUtils.getLangOrNull
 import io.github.rothes.esu.lib.adventure.audience.Audience
 import io.github.rothes.esu.lib.adventure.sound.Sound
 import io.github.rothes.esu.lib.adventure.text.Component
-import io.github.rothes.esu.lib.adventure.text.minimessage.MiniMessage
 import io.github.rothes.esu.lib.adventure.text.minimessage.tag.resolver.TagResolver
 import io.github.rothes.esu.lib.adventure.title.Title
 import io.github.rothes.esu.lib.adventure.title.TitlePart
@@ -115,13 +113,8 @@ interface User: Audience {
         return buildMiniMessage(lang(locales, block), params = params)
     }
     fun buildMiniMessage(message: String, vararg params: TagResolver): Component {
-        return MiniMessage.miniMessage().deserialize(
-            message.let {
-                if (EsuConfig.get().legacyColorChar)
-                    it.legacyColorCharParsed
-                else
-                    it
-            },
+        return ComponentUtils.fromMiniMessage(
+            message,
             TagResolver.builder()
                 .resolvers(getTagResolvers())
                 .resolvers(colorSchemeTagResolver)
