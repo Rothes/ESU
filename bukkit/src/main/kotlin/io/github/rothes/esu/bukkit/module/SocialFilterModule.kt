@@ -21,6 +21,7 @@ package io.github.rothes.esu.bukkit.module
 import com.hankcs.algorithm.AhoCorasickDoubleArrayTrie
 import io.github.ranlee1.jpinyin.PinyinFormat
 import io.github.ranlee1.jpinyin.PinyinHelper
+import io.github.rothes.esu.bukkit.event.ConnectionConfigurationFinishedEvent
 import io.github.rothes.esu.bukkit.event.RawUserChatEvent
 import io.github.rothes.esu.bukkit.event.RawUserEmoteEvent
 import io.github.rothes.esu.bukkit.event.RawUserWhisperEvent
@@ -39,8 +40,10 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 import io.github.rothes.esu.core.user.User
 import io.github.rothes.esu.core.util.AdventureConverter.esu
+import io.github.rothes.esu.core.util.ComponentUtils.miniMessage
 import io.github.rothes.esu.core.util.ComponentUtils.plainText
 import io.github.rothes.esu.core.util.extension.ifLet
+import io.github.rothes.esu.lib.adventure.text.Component
 import io.github.rothes.esu.lib.adventure.text.TextComponent
 import io.github.rothes.esu.lib.adventure.text.TranslatableComponent
 import io.github.rothes.esu.lib.adventure.text.event.HoverEvent
@@ -170,6 +173,16 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
             }
         }
 
+        @EventHandler(priority = EventPriority.LOW)
+        fun onLogin(e: ConnectionConfigurationFinishedEvent) {
+            val playerName = e.playerInformation.name
+            val find = filters.configs.values.find {
+                it.enabled && it.blockUserName && it.contains(playerName)
+            } ?: return
+            val kickMessage = if (find.blockedMessageKey.isEmpty()) Component.empty() else ((lang.get(e.playerInformation.locale) { it.blockedMessage[find.blockedMessageKey] } ?: find.blockedMessageKey.message).chat?.getOrNull(0) ?: "").miniMessage
+            e.kickMessage = kickMessage
+        }
+
     }
 
     data class Filter(
@@ -183,6 +196,8 @@ object SocialFilterModule: BukkitModule<BaseModuleConfiguration, SocialFilterMod
         val blockSign: Boolean = true,
         @Comment("Block custom item names that shows in chat. For example, by death message.")
         val blockItemName: Boolean = false,
+        @Comment("Block player user name")
+        val blockUserName: Boolean = false,
         @Comment("Convert Chinese characters to Pinyin.")
         val convertPinyin: Boolean = false,
         @Comment("Ignore case on matching texts.")
