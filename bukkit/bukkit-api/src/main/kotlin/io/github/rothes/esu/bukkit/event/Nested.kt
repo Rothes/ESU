@@ -22,6 +22,8 @@ import org.bukkit.Bukkit
 import org.bukkit.event.Event
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
+import org.bukkit.plugin.Plugin
 import java.util.logging.Level
 
 interface Nested {
@@ -30,7 +32,7 @@ interface Nested {
 
     fun callNested() {
         val event = this as Event
-        val handlers: HandlerList = event.handlers
+        val handlers = event.handlers
         val listeners = handlers.getRegisteredListeners()
 
         for (registration in listeners) {
@@ -46,6 +48,39 @@ interface Nested {
                 }
             }
         }
+    }
+
+    companion object {
+
+        fun HandlerList.hasListener(priority: EventPriority): Boolean {
+            // Can optimize by using handlerslots field, if necessary
+            for (listener in registeredListeners) {
+                if (listener.priority == priority) return true
+            }
+            return false
+        }
+
+        fun <T: Event> registerNested(event: Class<T>, plugin: Plugin = io.github.rothes.esu.bukkit.plugin, executor: NestedEventExecutor<T>) {
+            for (priority in EventPriority.entries) {
+                Bukkit.getPluginManager().registerEvent(
+                    event,
+                    EmptyListener,
+                    priority,
+                    { listener, event ->
+                        @Suppress("UNCHECKED_CAST")
+                        event as T
+                        executor.execute(event, priority)
+                    },
+                    plugin
+                )
+            }
+        }
+
+        fun interface NestedEventExecutor<T> {
+            fun execute(event: T, priority: EventPriority)
+        }
+
+        private object EmptyListener : Listener
     }
 
 }
