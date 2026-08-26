@@ -19,6 +19,7 @@
 package io.github.rothes.esu.core.util
 
 import io.github.rothes.esu.core.colorscheme.ColorScheme
+import io.github.rothes.esu.core.colorscheme.ColorSchemes
 import io.github.rothes.esu.core.config.EsuConfig
 import io.github.rothes.esu.core.config.EsuLang
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
@@ -88,7 +89,7 @@ object ComponentUtils {
     }
 
     val String.miniMessage
-        get() = fromMiniMessage(this)
+        get() = fromMiniMessage(this, ColorSchemes.schemes.get(EsuConfig.get().defaultColorScheme) { this }!!)
 
     val String.legacy: Component
         get() = _legacySerializer.deserialize(this)
