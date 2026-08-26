@@ -3,6 +3,7 @@
 package io.github.rothes.esu.bukkit.event
 
 import io.github.rothes.esu.bukkit.event.Nested.Companion.hasListener
+import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.util.AdventureConverter.esu
 import io.github.rothes.esu.core.util.AdventureConverter.server
@@ -13,7 +14,7 @@ import io.papermc.paper.event.connection.PlayerConnectionValidateLoginEvent
 import org.bukkit.event.Event
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
-import org.bukkit.event.player.PlayerLoginEvent
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.jetbrains.annotations.ApiStatus
 import java.util.*
 
@@ -42,19 +43,21 @@ class ConnectionConfigurationFinishedEvent(
             if (ServerInfo.isPaper && ServerInfo.mcVersion > "21.7") {
                 PaperConnectionHook.register() // Avoid NoClassDefFoundError on unsupported servers
             } else {
-                Nested.registerNested(PlayerLoginEvent::class.java) { event, priority ->
+                // Use AsyncPlayerPreLoginEvent on Spigot to avoid unnecessary processes.
+                // Not possible to get player locale before player spawning to world.
+                Nested.registerNested(AsyncPlayerPreLoginEvent::class.java) { event, priority ->
                     if (handlers.hasListener(priority)) {
-                        val kickMessage = if (event.result == PlayerLoginEvent.Result.ALLOWED) null else {
+                        val kickMessage = if (event.loginResult == AsyncPlayerPreLoginEvent.Result.ALLOWED) null else {
                             if (ServerInfo.isPaper) event.kickMessage().esu else event.kickMessage.legacy
                         }
-                        val profile = PlayerInformation(event.player.name, event.player.uniqueId, event.player.locale)
+                        val profile = PlayerInformation(event.name, event.uniqueId, ConsoleUser.clientLocale)
                         val e = ConnectionConfigurationFinishedEvent(profile, kickMessage, priority)
                         e.callNested()
                         val newKick = e.kickMessage
                         if (newKick !== kickMessage) {
                             if (newKick != null) {
-                                if (ServerInfo.isPaper) event.disallow(PlayerLoginEvent.Result.KICK_OTHER, newKick.server)
-                                else event.disallow(PlayerLoginEvent.Result.KICK_OTHER, newKick.legacy)
+                                if (ServerInfo.isPaper) event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, newKick.server)
+                                else event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, newKick.legacy)
                             } else event.allow()
                         }
                     }
