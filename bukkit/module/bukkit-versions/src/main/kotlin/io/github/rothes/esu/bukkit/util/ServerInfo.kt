@@ -64,6 +64,7 @@ object ServerInfo {
 
     object PluginEnabled {
 
+        val CraftEngine = Bukkit.getPluginManager().isPluginEnabled("CraftEngine")
         val PlaceholderApi = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
         val ViaVersion = Bukkit.getPluginManager().isPluginEnabled("ViaVersion")
 

@@ -35,6 +35,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.*
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.core
+import io.github.rothes.esu.bukkit.event.BlockStateRegistryChangedEvent
 import io.github.rothes.esu.bukkit.module.networkthrottle.chunkdatathrottle.ChunkDataThrottleHandler.SectionGetter.Companion.container
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.CoordinateUtils
@@ -258,22 +259,27 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         // Build Cache
         val nonInvisibleNew = config.nonInvisibleBlocksOverrides
         if (previousNonInvisible != nonInvisibleNew) {
-            val occludeTester = versioned<BlockOccludeTester>()
-            val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
-            val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
-                val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!
-                val block = blockState.block
-                val value =
-                    if (block == Blocks.LAVA) BV_LAVA_COVERED
-                    else if (nonInvisibleNew.contains(block)) false.toByte()
-                    else occludeTester.isFullOcclude(blockState).toByte()
-                bs.put(blockState, value)
-                value
-            }
-            BLOCKS_VIEW_BS = bs
-            BLOCKS_VIEW = id
+            buildBlocksViewCache()
         }
         previousNonInvisible = nonInvisibleNew
+    }
+
+    private fun buildBlocksViewCache() {
+        val nonInvisibleNew = config.nonInvisibleBlocksOverrides
+        val occludeTester = versioned<BlockOccludeTester>()
+        val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
+        val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+            val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!
+            val block = blockState.block
+            val value =
+                if (block == Blocks.LAVA) BV_LAVA_COVERED
+                else if (nonInvisibleNew.contains(block)) false.toByte()
+                else occludeTester.isFullOcclude(blockState).toByte()
+            bs.put(blockState, value)
+            value
+        }
+        BLOCKS_VIEW_BS = bs
+        BLOCKS_VIEW = id
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -284,6 +290,11 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
         playerData.remove(e.player)?.throttledChunks?.clear()
+    }
+
+    @EventHandler
+    fun onRegistryChange(e: BlockStateRegistryChangedEvent) {
+        buildBlocksViewCache()
     }
 
     private val Player.featureDataNullable
