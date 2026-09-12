@@ -108,7 +108,7 @@ import kotlin.math.pow
 import kotlin.time.Duration.Companion.nanoseconds
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage as PEBitStorage
 
-object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerConfig, Unit>(), Listener {
+object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerConfig, Unit>() {
 
     override val name: String = "ChunkHandler"
 
@@ -172,7 +172,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
         if (firstEnable) {
             PacketEvents.getAPI().eventManager.registerListener(PacketListener)
-            register()
+            BukkitListener.register()
         }
         registerCommands(object {
             @Command("esu networkThrottle chunkDataThrottle stats")
@@ -193,7 +193,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         super.onTerminate()
         if (!wasEnabled) return
         PacketEvents.getAPI().eventManager.unregisterListener(PacketListener)
-        unregister()
+        BukkitListener.unregister()
 
         HotDataHandler.onTerminate()
         // Clear these so we can save our memory
@@ -265,7 +265,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     private fun buildBlocksViewCache() {
-        val nonInvisibleNew = config.nonInvisibleBlocksOverrides
+        val nonInvisible = config.nonInvisibleBlocksOverrides
         val occludeTester = versioned<BlockOccludeTester>()
         val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
         val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
@@ -273,28 +273,13 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             val block = blockState.block
             val value =
                 if (block == Blocks.LAVA) BV_LAVA_COVERED
-                else if (nonInvisibleNew.contains(block)) false.toByte()
+                else if (nonInvisible.contains(block)) false.toByte()
                 else occludeTester.isFullOcclude(blockState).toByte()
             bs.put(blockState, value)
             value
         }
         BLOCKS_VIEW_BS = bs
         BLOCKS_VIEW = id
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun onJoin(e: PlayerJoinEvent) {
-        playerData.putIfAbsent(e.player, PlayerData())
-    }
-
-    @EventHandler
-    fun onQuit(e: PlayerQuitEvent) {
-        playerData.remove(e.player)?.throttledChunks?.clear()
-    }
-
-    @EventHandler
-    fun onRegistryChange(e: BlockStateRegistryChangedEvent) {
-        buildBlocksViewCache()
     }
 
     private val Player.featureDataNullable
@@ -305,20 +290,6 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     private val Player.throttledChunks
         get() = featureData.throttledChunks
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun onMove(e: PlayerMoveEvent) {
-        if (!config.checks.lavaPool)
-            return
-        val player = e.player.nms
-        val level = levelHandler.level(player)
-        // Need to use chunk.getBlockState on Folia
-        val chunk = level.getChunkIfLoaded(player.blockPosition()) ?: return
-        val pos = listOf(player.blockPosition(), player.blockPosition().offset(0, 1, 0), player.blockPosition().offset(0, -1, 0))
-        if (pos.any { chunk.getBlockState(it).bukkitMaterial == Material.LAVA }) {
-            checkBlockUpdate(player.bukkitEntity, player.blockPosition())
-        }
-    }
 
     private fun handleChunkPacket(event: PacketSendEvent) {
         val wrapper = WrapperPlayServerChunkData(event)
@@ -883,6 +854,39 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             l = l shr bits
         }
         return array
+    }
+
+    private object BukkitListener : Listener {
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        fun onJoin(e: PlayerJoinEvent) {
+            playerData.putIfAbsent(e.player, PlayerData())
+        }
+
+        @EventHandler
+        fun onQuit(e: PlayerQuitEvent) {
+            playerData.remove(e.player)?.throttledChunks?.clear()
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun onMove(e: PlayerMoveEvent) {
+            if (!config.checks.lavaPool)
+                return
+            val player = e.player.nms
+            val level = levelHandler.level(player)
+            // Need to use chunk.getBlockState on Folia
+            val chunk = level.getChunkIfLoaded(player.blockPosition()) ?: return
+            val pos = listOf(player.blockPosition(), player.blockPosition().offset(0, 1, 0), player.blockPosition().offset(0, -1, 0))
+            if (pos.any { chunk.getBlockState(it).bukkitMaterial == Material.LAVA }) {
+                checkBlockUpdate(player.bukkitEntity, player.blockPosition())
+            }
+        }
+
+        @EventHandler
+        fun onRegistryChange(e: BlockStateRegistryChangedEvent) {
+            buildBlocksViewCache()
+        }
+
     }
 
     private object PacketListener: PacketListenerAbstract(PacketListenerPriority.HIGHEST) {
