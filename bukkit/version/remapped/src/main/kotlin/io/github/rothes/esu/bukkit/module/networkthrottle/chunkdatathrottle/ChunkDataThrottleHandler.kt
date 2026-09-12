@@ -1144,7 +1144,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     }
 
     private class PlayerDataNotFoundException(player: Player) : NullPointerException("[ChunkDataThrottle] Failed to get player data ${player.name}.")
-    private class SilentException : Exception()
+    private class SilentException : RuntimeException()
 
     data class HandlerConfig(
         val blockUpdate: BlockUpdate = BlockUpdate(),
