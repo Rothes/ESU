@@ -5,7 +5,7 @@ import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
@@ -84,7 +84,7 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
         val TICK_COUNT = ServerGamePacketListenerImpl::class.java.getDeclaredField("tickCount").getter
 
         val HANDLE_GETTER = versioned<EntityHandleGetter>()
-        val LEVEL_GETTER = versioned<LevelHandler>()
+        val LEVEL_GETTER = versioned<EntityLevelGetter>()
 
         val ServerGamePacketListenerImpl.awaitingPositionFromClient
             get() = AWAITING_POSITION_FROM_CLIENT.invokeExact(this) as Vec3?

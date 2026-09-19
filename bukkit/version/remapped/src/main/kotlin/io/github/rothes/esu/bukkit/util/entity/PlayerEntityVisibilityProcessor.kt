@@ -28,8 +28,8 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
@@ -305,7 +305,7 @@ abstract class PlayerEntityVisibilityProcessor(
         private val VISIBILITY_HANDLER = versioned<PlayerEntityVisibilityHandler>()
         private val VALID_TESTER = versioned<EntityValidTester>()
         @JvmField val HANDLE_GETTER = versioned<EntityHandleGetter>()
-        private val LEVEL_GETTER = versioned<LevelHandler>()
+        private val LEVEL_GETTER = versioned<EntityLevelGetter>()
 
         @Suppress("NOTHING_TO_INLINE") // Performance important
         inline fun Entity.eid(): Int {

@@ -49,7 +49,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.LoadedConfiguration
@@ -149,7 +149,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     private fun Boolean.toByte(): Byte = if (this) 1 else 0
 
     private val containerReader = versioned<PalettedContainerReader>()
-    private val levelHandler = versioned<LevelHandler>()
+    private val levelGetter = versioned<EntityLevelGetter>()
     private val chunkSender = versioned<ChunkSender>()
     private val playerData = ConcurrentHashMap<Player, PlayerData>()
 
@@ -312,7 +312,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
         val config = config
         val nms = player.nms
-        val level = levelHandler.level(nms)
+        val level = levelGetter.level(nms)
         val minimalHeightInvisibleCheck = config.checks.minimalHeight
         val world = level.bukkit
         val randomBlockIds = config.antiXrayRandomBlockIds.getOrDefault(world.name)!!
@@ -749,7 +749,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         }
 
         val nms = player.nms
-        val level = levelHandler.level(nms)
+        val level = levelGetter.level(nms)
 
         for ((chunkKey, blocks) in groups) {
             checkChunkBlockUpdate(player, nms, level, fullUpdateThreshold, throttledChunks, chunkKey, blocks, minHeight)
@@ -876,7 +876,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
             if (!config.checks.lavaPool)
                 return
             val player = e.player.nms
-            val level = levelHandler.level(player)
+            val level = levelGetter.level(player)
             // Need to use chunk.getBlockState on Folia
             val chunk = level.getChunkIfLoaded(player.blockPosition()) ?: return
             val pos = listOf(player.blockPosition(), player.blockPosition().offset(0, 1, 0), player.blockPosition().offset(0, -1, 0))

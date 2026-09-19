@@ -23,7 +23,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 
-interface LevelHandler {
+interface EntityLevelGetter {
 
     fun level(player: ServerPlayer): ServerLevel
     fun level(entity: Entity): Level
