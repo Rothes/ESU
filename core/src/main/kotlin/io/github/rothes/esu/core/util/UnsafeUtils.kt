@@ -104,37 +104,44 @@ object UnsafeUtils {
         get() = unsafe.staticFieldBase(this)
 
     class UnsafeObjAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type.isPrimitive) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         // No Kotlin Intrinsics.checkNotNull, should be faster
         operator fun get(obj: Any?): Any = unsafe.getObject(obj, offset)
         operator fun set(obj: Any?, value: Any?) = unsafe.putObject(obj, offset, value)
     }
 
     class UnsafeNullableObjAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type.isPrimitive) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Any? = unsafe.getObject(obj, offset)
         operator fun set(obj: Any?, value: Any?) = unsafe.putObject(obj, offset, value)
     }
 
     class UnsafeBooleanAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type != Boolean::class.java) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Boolean = unsafe.getBoolean(obj, offset)
         operator fun set(obj: Any?, value: Boolean) = unsafe.putBoolean(obj, offset, value)
     }
 
     class UnsafeIntAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type != Int::class.java) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Int = unsafe.getInt(obj, offset)
         operator fun set(obj: Any?, value: Int) = unsafe.putInt(obj, offset, value)
     }
 
     class UnsafeLongAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type != Long::class.java) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Long = unsafe.getLong(obj, offset)
         operator fun set(obj: Any?, value: Long) = unsafe.putLong(obj, offset, value)
     }
 
     class UnsafeFloatAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type != Float::class.java) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Float = unsafe.getFloat(obj, offset)
         operator fun set(obj: Any?, value: Float) = unsafe.putFloat(obj, offset, value)
     }
 
     class UnsafeDoubleAccessor(field: Field): UnsafeFieldAccessor(field) {
+        init { if (field.type != Double::class.java) throw IllegalStateException("Field type does not match, got ${field.type.name}") }
         operator fun get(obj: Any?): Double = unsafe.getDouble(obj, offset)
         operator fun set(obj: Any?, value: Double) = unsafe.putDouble(obj, offset, value)
     }
