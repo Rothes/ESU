@@ -122,6 +122,7 @@ class EsuPluginBukkit(
 
         ModuleManager.addModule(CoreModule)
         ModuleManager.addModule(AutoBroadcastModule)
+        ModuleManager.addModule(AntiCheatModule)
         ModuleManager.addModule(AutoRestartModule)
         ModuleManager.addModule(BetterEventMessagesModule)
         ModuleManager.addModule(BlockedCommandsModule)
