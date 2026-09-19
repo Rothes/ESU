@@ -24,7 +24,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.chunk.LevelChunk
 
-class ChunkSenderImpl: ChunkSender {
+object ChunkSenderImpl: ChunkSender {
 
     override fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
         level.chunkSource.chunkMap.updateChunkTracking(player, chunk.pos, Array<Packet<*>?>(2) { null }, false, true)
