@@ -143,7 +143,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
 
     private var BLOCKS_VIEW_BS = Reference2ByteOpenHashMap<BlockState>(1)
     private var BLOCKS_VIEW = ByteArray(Block.BLOCK_STATE_REGISTRY.size())
-    private val ITSELF = IntArray(BLOCKS_VIEW.size) { it }
+    private var ITSELF = IntArray(BLOCKS_VIEW.size) { it }
     private val FULL_CHUNK = PlayerData.PlayerChunk(BitSet(0))
 
     private fun Boolean.toByte(): Byte = if (this) 1 else 0
@@ -267,8 +267,10 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
     private fun buildBlocksViewCache() {
         val nonInvisible = config.nonInvisibleBlocksOverrides
         val occludeTester = versioned<BlockOccludeTester>()
-        val bs = Reference2ByteOpenHashMap<BlockState>(Block.BLOCK_STATE_REGISTRY.size())
-        val id = ByteArray(Block.BLOCK_STATE_REGISTRY.size()) { id ->
+
+        val size = Block.BLOCK_STATE_REGISTRY.size()
+        val bs = Reference2ByteOpenHashMap<BlockState>(size)
+        val id = ByteArray(size) { id ->
             val blockState = Block.BLOCK_STATE_REGISTRY.byId(id)!!
             val block = blockState.block
             val value =
@@ -280,6 +282,7 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
         }
         BLOCKS_VIEW_BS = bs
         BLOCKS_VIEW = id
+        if (ITSELF.size != size) ITSELF = IntArray(size) { it }
     }
 
     private val Player.featureDataNullable
