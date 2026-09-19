@@ -97,14 +97,20 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
     }
 
     @Comment("""
-        Client can cancel or delay ServerboundAcceptTeleportationPacket packet sending to server,
-        this can lead to a inconsistent player position state on server,
+        Client can cancel or delay ServerboundAcceptTeleportationPacket sending to server,
+        this can lead to a inconsistent chunkMap player position state on server,
         or make the player entity invulnerable after a dimension change,
         but the player can still attack other entities.
     """)
     data class FeatureConfig(
 //        val confirmTimeout: Duration = Duration.ofSeconds(30),
         val cancelEntityInteractOnAwait: Boolean = true,
+        @Comment("""
+            If the entity the player interacted is on the same world with the player,
+            then consider the player has changed dimension,
+            no matter what is happening on the client.
+            This removes the invulnerable state of the player.
+        """)
         val detectActualDimensionChanged: Boolean = true,
     ) : BaseFeatureConfiguration(true)
 
