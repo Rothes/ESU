@@ -56,14 +56,14 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
 
         private fun checkInteractEvent(event: Cancellable, player: Player, other: Entity?) {
             val config = config
-            if (!config.cancelEntityInteractOnAwait && (other == null || !config.detectActualDimensionChanged)) return
+            if (!config.cancelEntityInteractOnAwait && (other == null || !config.assumeDimensionChanged)) return
 
             val bukkit = player as CraftPlayer
             val handle = bukkit.handle
             val connection = handle.connection
             if (connection.awaitingPositionFromClient != null) {
                 if (config.cancelEntityInteractOnAwait) event.isCancelled = true
-                if (config.detectActualDimensionChanged && other != null) handle.hasChangedDimension()
+                if (config.assumeDimensionChanged && other != null) handle.hasChangedDimension()
             }
         }
 
@@ -100,7 +100,7 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
             no matter what is happening on the client.
             This removes the invulnerable state of the player.
         """)
-        val detectActualDimensionChanged: Boolean = true,
+        val assumeDimensionChanged: Boolean = true,
     ) : BaseFeatureConfiguration(true)
 
 }
