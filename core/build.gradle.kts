@@ -17,13 +17,13 @@ dependencies {
     compileOnlyApi(libs.exposed.json)
     compileOnlyApi(libs.hikariCP)
 
-    compileOnlyApi("org.incendo:cloud-core:2.0.0")
-    compileOnlyApi("org.incendo:cloud-annotations:2.0.0")
-    compileOnlyApi("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") {
+    compileOnlyApi(libs.cloud.core)
+    compileOnlyApi(libs.cloud.annotations)
+    compileOnlyApi(libs.cloud.kotlin.coroutines.annotations) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
-    compileOnlyApi("org.incendo:cloud-kotlin-extensions:2.0.0") {
+    compileOnlyApi(libs.cloud.kotlin.extensions) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
