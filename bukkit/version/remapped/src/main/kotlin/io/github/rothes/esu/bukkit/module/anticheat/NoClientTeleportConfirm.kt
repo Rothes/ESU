@@ -56,7 +56,7 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
         }
 
         private fun checkInteractEvent(event: Cancellable, player: Player, isEntity: Boolean) {
-            val config = config.entityInteractTicks
+            val config = config.entityInteractExemptionTicks
             if (config.cancelInteract < 0 && (!isEntity || config.assumeDimensionChanged < 0)) return
 
             val bukkit = player as CraftPlayer
@@ -106,7 +106,7 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
             Set to a negative value to disable specific check.
             Set to a low value may screw clients with high network RTT.
         """)
-        val entityInteractTicks: EntityInteractTicks = EntityInteractTicks(),
+        val entityInteractExemptionTicks: EntityInteractTicks = EntityInteractTicks(),
     ) : BaseFeatureConfiguration(true) {
 
         data class EntityInteractTicks(
