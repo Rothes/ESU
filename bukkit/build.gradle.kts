@@ -67,7 +67,7 @@ dependencies {
     api(project(":bukkit:bukkit-api"))
     compileOnlyApi(project(":bukkit:version:remapped"))
 
-    compileOnlyApi("org.incendo:cloud-paper:2.0.0-beta.16")
+    compileOnlyApi("org.incendo:cloud-paper:2.0.1")
 
     compileOnly("info.debatty:java-string-similarity:2.0.0")
 

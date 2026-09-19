@@ -203,12 +203,12 @@ class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
                     "org.jetbrains.exposed:exposed-json:${DependencyVersion.EXPOSED}",
 
                     "com.zaxxer:HikariCP:${DependencyVersion.HIKARICP}",
-                    "org.incendo:cloud-core:2.0.0",
-                    "org.incendo:cloud-annotations:2.0.0",
-                    "org.incendo:cloud-kotlin-coroutines-annotations:2.0.0",
-                    "org.incendo:cloud-kotlin-extensions:2.0.0",
 
-                    "org.incendo:cloud-paper:2.0.0-beta.16",
+                    "org.incendo:cloud-core:${DependencyVersion.CLOUD}",
+                    "org.incendo:cloud-annotations:${DependencyVersion.CLOUD}",
+                    "org.incendo:cloud-kotlin-coroutines-annotations:${DependencyVersion.CLOUD}",
+                    "org.incendo:cloud-kotlin-extensions:${DependencyVersion.CLOUD}",
+                    "org.incendo:cloud-paper:2.0.1",
 
                     "com.h2database:h2:${DependencyVersion.H2DATABASE}",
                     "org.mariadb.jdbc:mariadb-java-client:${DependencyVersion.MARIADB_CLIENT}",

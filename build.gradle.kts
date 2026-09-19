@@ -126,6 +126,7 @@ subprojects {
                     }
                     forClass(packageName, "DependencyVersion") {
                         buildConfigField("ADVENTURE", rootProject.libs.versions.adventure)
+                        buildConfigField("CLOUD", rootProject.libs.versions.cloud)
                         buildConfigField("EXPOSED", rootProject.libs.versions.exposed)
                         buildConfigField("H2DATABASE", rootProject.libs.versions.h2database)
                         buildConfigField("HIKARICP", rootProject.libs.versions.hikariCP)
