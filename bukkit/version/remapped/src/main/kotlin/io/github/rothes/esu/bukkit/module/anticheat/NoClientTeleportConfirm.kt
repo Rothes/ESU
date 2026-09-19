@@ -3,9 +3,6 @@ package io.github.rothes.esu.bukkit.module.anticheat
 import io.github.rothes.esu.bukkit.module.anticheat.NoClientTeleportConfirm.Accessors.awaitingPositionFromClient
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
@@ -66,12 +63,7 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
             val connection = handle.connection
             if (connection.awaitingPositionFromClient != null) {
                 if (config.cancelEntityInteractOnAwait) event.isCancelled = true
-                if (config.detectActualDimensionChanged && other != null) {
-                    val otherHandle = Accessors.HANDLE_GETTER.getHandle(other)
-                    if (Accessors.LEVEL_GETTER.level(otherHandle) === Accessors.LEVEL_GETTER.level(handle)) {
-                        handle.hasChangedDimension()
-                    }
-                }
+                if (config.detectActualDimensionChanged && other != null) handle.hasChangedDimension()
             }
         }
 
@@ -82,9 +74,6 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
         val AWAITING_POSITION_FROM_CLIENT = ServerGamePacketListenerImpl::class.java.getDeclaredField("awaitingPositionFromClient").getter
         val AWAITING_TELEPORT_TIME = ServerGamePacketListenerImpl::class.java.getDeclaredField("awaitingTeleportTime").getter
         val TICK_COUNT = ServerGamePacketListenerImpl::class.java.getDeclaredField("tickCount").getter
-
-        val HANDLE_GETTER = versioned<EntityHandleGetter>()
-        val LEVEL_GETTER = versioned<EntityLevelGetter>()
 
         val ServerGamePacketListenerImpl.awaitingPositionFromClient
             get() = AWAITING_POSITION_FROM_CLIENT.invokeExact(this) as Vec3?
