@@ -42,7 +42,7 @@ project.modrinth {
 
         val commits = System.getenv("PREVIOUS_COMMIT")
             ?.takeUnless { it.isBlank() || it.all { char -> char == '0' } }
-            ?.let { baseCommit -> rootProject.logSinceCommit(baseCommit) }
+            ?.let { baseCommit -> rootProject.logSinceCommit(baseCommit).asReversed() }
             ?.ifEmpty { null }
             ?: listOf(rootProject.lastCommit)
 
