@@ -19,9 +19,12 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle.v17_1
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.EntityUpdateInterval
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
 import io.github.rothes.esu.core.util.UnsafeUtils.usIntAccessor
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import net.minecraft.server.level.ChunkMap
+import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerEntity
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -50,10 +53,15 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
 
     }
 
-    object TrackedEntityGetterImpl : TrackedEntityGetter {
+    object TrackedEntityGetterImplSpigot : TrackedEntityGetter {
+
+        val LEVEL_GETTER = versioned<EntityLevelGetter>()
 
         override fun getTrackedEntity(entity: Entity): ChunkMap.TrackedEntity? {
-            return entity.tracker
+            val level = LEVEL_GETTER.level(entity)
+            val cache = level.chunkSource as ServerChunkCache
+            val chunkMap = cache.chunkMap
+            return chunkMap.entityMap.get(entity.id)
         }
 
     }
