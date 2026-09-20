@@ -67,10 +67,13 @@ object NoClientTeleportConfirm : CommonFeature<NoClientTeleportConfirm.FeatureCo
                     TODO:
                     ServerGamePacketListenerImpl#updateAwaitingTeleport teleports player again when the
                     player still attempts to move after awaitTicks > 20, this resets awaitTicks to zero.
-                    Try tracking the first awaitingTeleportTime, release it after receiving a legal ServerboundAcceptTeleportationPacket
+                    Try tracking the first awaitingTeleportTime, release it after receiving a legal ServerboundAcceptTeleportationPacket.
+                    * This is not necessary on Paper, they have disabled updateAwaitingTeleport.
                 */
                 val awaitTicks = connection.tickCount - connection.awaitingTeleportTime
                 if (config.cancelInteract in 0..awaitTicks) event.isCancelled = true
+                // Vanilla only pass entity interact on the same level, so we can safely assume the client has actually
+                // completed the teleport. Check ServerGamePacketListenerImpl#handleInteract(ServerboundInteractPacket)
                 if (config.assumeDimensionChanged in (0..awaitTicks)) handle.hasChangedDimension()
             }
         }
