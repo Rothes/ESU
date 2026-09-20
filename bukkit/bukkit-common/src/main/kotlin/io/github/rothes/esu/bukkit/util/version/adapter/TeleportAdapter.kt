@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter
 
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 
@@ -53,9 +54,11 @@ interface TeleportAdapter {
     private object Sync : TeleportAdapter {
 
         override fun teleport(entity: Entity, location: Location, then: ((Boolean) -> Unit)?) {
-            val success = entity.teleport(location)
-            if (then != null) {
-                then(success)
+            entity.syncTick {
+                val success = entity.teleport(location)
+                if (then != null) {
+                    then(success)
+                }
             }
         }
     }
