@@ -84,6 +84,7 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
                 this[type] = interval
             }
             // TODO: We could add Spigot support for this but it requires special source imported server
+            // TODO: On Spigot, get TrackedEntity from ChunkMap.entityMap field
             if (ServerInfo.isPaper) versioned<TrackedEntityIntervalUpdater>().updateTrackedEntities()
         }
         previousConfig = config
