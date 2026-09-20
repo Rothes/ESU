@@ -31,7 +31,7 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
     private val ENTITY_TYPE_UPDATE_INTERVAL = EntityType::class.java.getDeclaredField("updateInterval").usIntAccessor
 
     override operator fun get(entityType: EntityType<*>): Int {
-        return ENTITY_TYPE_UPDATE_INTERVAL[entityType]
+        return entityType.updateInterval()
     }
 
     override operator fun set(entityType: EntityType<*>, interval: Int) {
@@ -45,7 +45,7 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
 
         override fun handleEntity(entity: Entity, tracker: ChunkMap.TrackedEntity) {
             val se = TRACKED_ENTITY_SERVER_ENTITY[tracker] as ServerEntity
-            SERVER_ENTITY_UPDATE_INTERVAL[se] = this@EntityUpdateIntervalImpl[entity.type]
+            SERVER_ENTITY_UPDATE_INTERVAL[se] = entity.type.updateInterval()
         }
 
     }
