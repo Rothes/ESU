@@ -68,7 +68,6 @@ object PrePacketEventManager {
         } else {
             pipeline.addBefore(PE_DECODER_NAME, PRE_ESU_AC_DECODER_NAME, esuPreDecoder)
         }
-        println(pipeline.names())
     }
 
     private fun ejectChannel(channel: Channel) {
@@ -148,7 +147,7 @@ object PrePacketEventManager {
 
     }
 
-    private class VersionUser(private val parent: User) : User(parent.channel, parent.connectionState, parent.clientVersion, parent.profile) {
+    private class VersionUser(private val parent: User) : User(parent.channel, parent.decoderState, parent.clientVersion, parent.profile) {
 
         override fun getConnectionState(): ConnectionState? = parent.connectionState
         override fun getDecoderState(): ConnectionState? = parent.decoderState
