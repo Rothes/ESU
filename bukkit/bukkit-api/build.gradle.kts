@@ -8,7 +8,7 @@ val serverVer = rootProject.property("targetMinecraftVersion").toString()
 dependencies {
     paperweight.paperDevBundle("$serverVer.build.+")
     compileOnlyApi(project(":bukkit:dep-bukkit", configuration = "shadow"))
-    api(project(":bukkit:module:bukkit-bom"))
+    api(project(":bukkit:bukkit-common"))
     api(project(":common"))
     compileOnly(project(":bukkit:version:remapped-api"))
 
