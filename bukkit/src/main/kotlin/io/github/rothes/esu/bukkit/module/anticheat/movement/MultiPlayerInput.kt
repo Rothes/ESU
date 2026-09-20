@@ -3,7 +3,6 @@ package io.github.rothes.esu.bukkit.module.anticheat.movement
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
-import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import io.github.rothes.esu.bukkit.module.anticheat.PrePacketEventManager
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
@@ -70,7 +69,7 @@ object MultiPlayerInput : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
                 }
                 PacketType.Play.Client.PLAYER_INPUT -> {
                     val data = playerMap[event.getPlayer()] ?: return
-                    val flags = ByteBufHelper.readByte(event.byteBuf)
+//                    val flags = ByteBufHelper.readByte(event.byteBuf)
                     if (data.sentInputThisTick) {
                         event.isCancelled = true
                     }
