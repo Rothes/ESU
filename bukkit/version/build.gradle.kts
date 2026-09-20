@@ -21,7 +21,7 @@ subprojects {
         paperweight.paperDevBundle(devBundle)
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:bukkit-common"))
-        compileOnly(project(":bukkit:dep-bukkit", configuration = "shadow"))
+        compileOnly(project(":bukkit:bukkit-lib", configuration = "shadow"))
         if (name != "remapped-api") {
             compileOnly(project(":bukkit:bukkit-api"))
         }
