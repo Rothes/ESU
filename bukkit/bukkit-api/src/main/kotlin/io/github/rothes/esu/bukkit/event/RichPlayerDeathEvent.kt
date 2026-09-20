@@ -28,7 +28,10 @@ import org.bukkit.event.entity.PlayerDeathEvent
 
 class RichPlayerDeathEvent(
     private val parent: PlayerDeathEvent
-): EsuUserEvent(parent.player, parent.isAsynchronous), CancellableKt {
+): EsuUserEvent(
+    parent.entity, // PlayerDeathEvent#getPlayer() does not exist on Spigot (Confirmed on 1.21.11)
+    parent.isAsynchronous
+), CancellableKt {
 
     override var cancelledKt: Boolean
         get() = parent.isCancelled
