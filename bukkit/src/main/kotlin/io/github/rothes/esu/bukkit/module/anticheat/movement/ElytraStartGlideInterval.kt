@@ -9,6 +9,7 @@ import io.github.rothes.esu.bukkit.module.anticheat.PrePacketEventManager
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
+import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
@@ -48,7 +49,13 @@ object ElytraStartGlideInterval : CommonFeature<ElytraStartGlideInterval.Feature
 
     }
 
+    interface StopFlyingHandler {
+        fun stopFallFlying(player: Player)
+    }
+
     private object PacketListener : PacketListenerAbstract(PacketListenerPriority.LOW) {
+
+        private val STOP_FLYING_HANDLER = versioned<StopFlyingHandler>()
 
         override fun onPacketReceive(event: PacketReceiveEvent) {
             if (event.packetType == PacketType.Play.Client.ENTITY_ACTION) {
@@ -56,10 +63,10 @@ object ElytraStartGlideInterval : CommonFeature<ElytraStartGlideInterval.Feature
                 if (wrapper.action == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
                     val player = event.getPlayer<Player>()
                     val now = System.currentTimeMillis()
-                    val previous = playerMap.put(player, System.currentTimeMillis()) ?: return
+                    val previous = playerMap.put(player, now) ?: return
                     if (now - previous < config.minInterval.toMillis()) {
                         event.isCancelled = true
-                        player.isSneaking = !player.isSneaking // Resync client
+                        STOP_FLYING_HANDLER.stopFallFlying(player) // Resync client
                     }
                 }
             }
