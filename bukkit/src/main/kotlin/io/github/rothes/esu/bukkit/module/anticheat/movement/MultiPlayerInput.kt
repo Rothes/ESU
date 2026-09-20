@@ -72,8 +72,9 @@ object MultiPlayerInput : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 //                    val flags = ByteBufHelper.readByte(event.byteBuf)
                     if (data.sentInputThisTick) {
                         event.isCancelled = true
+                    } else {
+                        data.sentInputThisTick = true
                     }
-                    data.sentInputThisTick = true
                 }
             }
         }
