@@ -1,5 +1,6 @@
 package io.github.rothes.esu.bukkit.module.anticheat.movement
 
+import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
@@ -11,16 +12,14 @@ import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.concurrent.ConcurrentHashMap
 
 object MultiPlayerInput : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 
-    private val playerMap = ConcurrentHashMap<Player, PlayerData>()
+    private val playerMap = ConcurrentHashMap<Player, Boolean>()
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents()
@@ -28,30 +27,19 @@ object MultiPlayerInput : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 
     override fun onEnable() {
         BukkitListener.register()
-        for (player in Bukkit.getOnlinePlayers()) {
-            playerMap[player] = PlayerData()
-        }
-        PrePacketEventManager.eventManager.registerListener(Listener)
+        PrePacketEventManager.eventManager.registerListener(PreListener)
+        PacketEvents.getAPI().eventManager.registerListener(PostListener)
     }
 
     override fun onDisable() {
         super.onDisable()
-        PrePacketEventManager.eventManager.unregisterListener(Listener)
+        PrePacketEventManager.eventManager.unregisterListener(PreListener)
+        PacketEvents.getAPI().eventManager.unregisterListener(PostListener)
         BukkitListener.unregister()
         playerMap.clear()
     }
 
-
-    private data class PlayerData(
-        var sentInputThisTick: Boolean = false,
-    )
-
     private object BukkitListener : org.bukkit.event.Listener {
-
-        @EventHandler
-        fun onJoin(event: PlayerJoinEvent) {
-            playerMap[event.player] = PlayerData()
-        }
 
         @EventHandler
         fun onQuit(event: PlayerQuitEvent) {
@@ -59,23 +47,22 @@ object MultiPlayerInput : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
         }
     }
 
-    private object Listener : PacketListenerAbstract(PacketListenerPriority.LOW) {
+    private object PreListener : PacketListenerAbstract(PacketListenerPriority.LOW) {
 
         override fun onPacketReceive(event: PacketReceiveEvent) {
-            when (event.packetType) {
-                PacketType.Play.Client.CLIENT_TICK_END -> {
-                    val data = playerMap[event.getPlayer()] ?: return
-                    data.sentInputThisTick = false
+            if (event.packetType == PacketType.Play.Client.PLAYER_INPUT) {
+                if (playerMap.put(event.getPlayer(), true) != null) {
+                    event.isCancelled = true
                 }
-                PacketType.Play.Client.PLAYER_INPUT -> {
-                    val data = playerMap[event.getPlayer()] ?: return
-//                    val flags = ByteBufHelper.readByte(event.byteBuf)
-                    if (data.sentInputThisTick) {
-                        event.isCancelled = true
-                    } else {
-                        data.sentInputThisTick = true
-                    }
-                }
+            }
+        }
+    }
+
+    private object PostListener : PacketListenerAbstract(PacketListenerPriority.LOW) {
+
+        override fun onPacketReceive(event: PacketReceiveEvent) {
+            if (event.packetType == PacketType.Play.Client.CLIENT_TICK_END) {
+                playerMap.remove(event.getPlayer())
             }
         }
     }
