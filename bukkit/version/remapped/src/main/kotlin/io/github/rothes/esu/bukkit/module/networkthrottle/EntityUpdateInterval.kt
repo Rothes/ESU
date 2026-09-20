@@ -26,6 +26,7 @@ import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
 import io.github.rothes.esu.core.user.User
+import net.minecraft.server.level.ChunkMap
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EntityTypes
@@ -99,21 +100,28 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
         )
     ): BaseFeatureConfiguration()
 
+    interface TrackedEntityGetter {
+        fun getTrackedEntity(entity: Entity): ChunkMap.TrackedEntity?
+    }
+
     abstract class TrackedEntityIntervalUpdater {
 
         fun updateTrackedEntities(): Int {
             val entitiesHandler = versioned<LevelEntitiesHandler>()
+            val trackerGetter = versioned<TrackedEntityGetter>()
 
             var updated = 0
             for (level in Bukkit.getWorlds().map { it as CraftWorld }.map { it.handle }) {
                 for (entity in entitiesHandler.getEntitiesAll(level)) {
-                    if (handleEntity(entity)) updated++
+                    val tracker = trackerGetter.getTrackedEntity(entity) ?: continue
+                    handleEntity(entity, tracker)
+                    updated++
                 }
             }
             return updated
         }
 
-        abstract fun handleEntity(entity: Entity): Boolean
+        abstract fun handleEntity(entity: Entity, tracker: ChunkMap.TrackedEntity)
 
     }
 

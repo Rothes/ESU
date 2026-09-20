@@ -43,11 +43,17 @@ object EntityUpdateIntervalImpl: EntityUpdateInterval() {
         val TRACKED_ENTITY_SERVER_ENTITY = ChunkMap.TrackedEntity::class.java.getDeclaredField("serverEntity").usObjAccessor
         val SERVER_ENTITY_UPDATE_INTERVAL = ServerEntity::class.java.getDeclaredField("updateInterval").usIntAccessor
 
-        override fun handleEntity(entity: Entity): Boolean {
-            val tracker = entity.tracker ?: return false
+        override fun handleEntity(entity: Entity, tracker: ChunkMap.TrackedEntity) {
             val se = TRACKED_ENTITY_SERVER_ENTITY[tracker] as ServerEntity
             SERVER_ENTITY_UPDATE_INTERVAL[se] = this@EntityUpdateIntervalImpl[entity.type]
-            return true
+        }
+
+    }
+
+    object TrackedEntityGetterImpl : TrackedEntityGetter {
+
+        override fun getTrackedEntity(entity: Entity): ChunkMap.TrackedEntity? {
+            return entity.tracker
         }
 
     }
