@@ -19,14 +19,27 @@
 package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.anticheat.ExploitCheats
+import io.github.rothes.esu.bukkit.module.anticheat.MovementCheats
+import io.github.rothes.esu.bukkit.module.anticheat.PrePacketEventManager
+import io.github.rothes.esu.bukkit.module.anticheat.TransactionCheats
+import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration
 
 object AntiCheatModule : BukkitModule<BaseModuleConfiguration, Unit>() {
 
     init {
         registerFeature(ExploitCheats)
+        registerFeature(MovementCheats)
+        registerFeature(TransactionCheats)
     }
 
-    override fun onEnable() {}
+    override fun onEnable() {
+        if (ServerInfo.PluginEnabled.PacketEvents) PrePacketEventManager.inject()
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        if (ServerInfo.PluginEnabled.PacketEvents) PrePacketEventManager.eject()
+    }
 
 }
