@@ -9,10 +9,10 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPong
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing
 import io.github.rothes.esu.bukkit.module.anticheat.PrePacketEventManager
+import io.github.rothes.esu.bukkit.util.collection.fastutil.ints.IntArrayQueue
 import io.github.rothes.esu.bukkit.util.extension.checkPacketEvents
 import io.github.rothes.esu.bukkit.util.extension.register
 import io.github.rothes.esu.bukkit.util.extension.unregister
-import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.configuration.FeatureToggle
@@ -22,14 +22,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 
 object PingPong : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
 
     private val playerMap = ConcurrentHashMap<Player, PlayerData>()
-    private val pongRegistered = AtomicBoolean(false)
 
     override fun checkUnavailable(): Feature.AvailableCheck? {
         return super.checkUnavailable() ?: checkPacketEvents()
@@ -42,39 +39,27 @@ object PingPong : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
         for (player in players) {
             playerMap[player] = PlayerData(true)
         }
-        if (players.isNotEmpty()) {
-            // We have players, wait 30s for a buffer, delay check
-            Scheduler.global(30 * 20) {
-                if (enabled) {
-                    PrePacketEventManager.eventManager.registerListener(PongListener)
-                    pongRegistered.set(true)
-                }
-            }
-        } else {
-            PrePacketEventManager.eventManager.registerListener(PongListener)
-            pongRegistered.set(true)
-        }
+        PrePacketEventManager.eventManager.registerListener(PongListener)
     }
 
     override fun onDisable() {
         super.onDisable()
         BukkitListener.unregister()
-        pongRegistered.set(false)
         PrePacketEventManager.eventManager.unregisterListeners(PongListener)
         PacketEvents.getAPI().eventManager.unregisterListener(PingListener)
         playerMap.clear()
     }
 
     private data class PlayerData(
-        var firstCheck: Boolean = false,
-        val pendingRequests: Queue<Int> = ArrayDeque(),
+        var waitingForSync: Boolean = false,
+        val pendingRequests: IntArrayQueue = IntArrayQueue(),
     )
 
     private object BukkitListener : Listener {
 
         @EventHandler
         fun onJoin(event: PlayerJoinEvent) {
-            playerMap[event.player] = PlayerData(!pongRegistered.get())
+            playerMap[event.player] = PlayerData()
         }
 
         @EventHandler
@@ -88,7 +73,11 @@ object PingPong : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
         override fun onPacketSend(event: PacketSendEvent) {
             if (event.packetType == PacketType.Play.Server.PING) {
                 val data = playerMap[event.getPlayer()] ?: return
-                data.pendingRequests.add(WrapperPlayServerPing(event).id)
+                val pending = data.pendingRequests
+                if (pending.size() >= 30 * 20) { // Hold 600 ticks for GrimAC
+                    pending.dequeueInt()
+                }
+                pending.enqueue(WrapperPlayServerPing(event).id)
             }
         }
     }
@@ -98,16 +87,30 @@ object PingPong : CommonFeature<FeatureToggle.DefaultTrue, Unit>() {
         override fun onPacketReceive(event: PacketReceiveEvent) {
             if (event.packetType == PacketType.Play.Client.PONG) {
                 val data = playerMap[event.getPlayer()] ?: return
-                val id = WrapperPlayClientPong(event).id
-                if (data.firstCheck) {
-                    while (true) {
-                        val first = data.pendingRequests.peek()
-                        if (first == null || first == id) break
-                        data.pendingRequests.remove()
-                    }
-                    data.firstCheck = false
+
+                val pending = data.pendingRequests
+                if (pending.isEmpty) {
+                    event.isCancelled = true
+                    return
                 }
-                if (data.pendingRequests.isEmpty() || data.pendingRequests.poll() != id) {
+
+                val id = WrapperPlayClientPong(event).id
+                if (pending.firstInt() == id) {
+                    pending.dequeueInt()
+                    return
+                }
+
+                val first = pending.indexOf(id)
+                if (first != -1) {
+                    // Sync to this state
+                    pending.dropFirst(first + 1)
+                    if (data.waitingForSync) {
+                        data.waitingForSync = false
+                        return
+                    }
+                }
+
+                if (!data.waitingForSync) {
                     event.isCancelled = true
                 }
             }
