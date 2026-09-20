@@ -17,7 +17,7 @@ class IntArrayQueue : IntArrayFIFOQueue() {
 
     fun dropFirst(v: Int) {
         start += v
-        if (start > length) start -= length
+        if (start >= length) start -= length
     }
 
 }
