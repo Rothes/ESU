@@ -37,7 +37,6 @@ import io.github.rothes.esu.core.module.CommonFeature
 import io.github.rothes.esu.core.module.Feature
 import io.github.rothes.esu.core.module.Feature.AvailableCheck.Companion.errFail
 import io.github.rothes.esu.core.module.configuration.BaseFeatureConfiguration
-import io.github.rothes.esu.core.util.extension.DurationExt.valuePositive
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -49,7 +48,6 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.min
 
 object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.FeatureLang>() {
 
@@ -115,14 +113,11 @@ object AfkEfficiency: CommonFeature<AfkEfficiency.FeatureConfig, AfkEfficiency.F
         private var afkTask: Job? = null
 
         init {
-            val delay = config.minimumActivateDelay
-            if (delay.valuePositive) {
-                val now = System.currentTimeMillis()
-                val lastAction = CoreModule.providers.posMoveTime[player]
-                reschedule(min(lastAction, now - delay.toMillis()))
-            } else {
-                reschedule()
-            }
+            val config = config
+            val delay = config.afkDuration - config.minimumActivateDelay
+            val now = System.currentTimeMillis()
+            val lastAction = CoreModule.providers.posMoveTime[player]
+            reschedule(lastAction.coerceAtLeast(now - delay.toMillis()))
         }
 
         @Synchronized
