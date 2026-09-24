@@ -84,4 +84,10 @@ class BossBarImplementationImpl(private val bar: BossBar): BossBar.Listener, Bos
         minecraft?.broadcast(fn)
     }
 
+    class Provider : BossBarImplementation.Provider {
+        override fun create(bar: BossBar): BossBarImplementation {
+            return BossBarImplementationImpl(bar)
+        }
+    }
+
 }
