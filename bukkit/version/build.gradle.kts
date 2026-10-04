@@ -13,12 +13,15 @@ subprojects {
     val serverVer = if (isRemapped)
         rootProject.property("targetMinecraftVersion").toString()
     else
-        project.name.substring(1).replace('_', '.')
+        project.name.substring(1).substringBefore("__").replace('_', '.')
     val devBundle = if (serverVer.startsWith('1')) "$serverVer-R0.1-SNAPSHOT" else "$serverVer.build.+"
 
     dependencies {
         val paperweight = extensions.getByName<PaperweightUserDependenciesExtension>("paperweight")
-        paperweight.paperDevBundle(devBundle)
+        when (project.name.substringAfter("__", "")) {
+            "folia" -> paperweight.foliaDevBundle(devBundle)
+            "paper", "" -> paperweight.paperDevBundle(devBundle)
+        }
         compileOnly(project(":common"))
         compileOnly(project(":bukkit:bukkit-common"))
         compileOnly(project(":bukkit:bukkit-lib", configuration = "shadow"))
