@@ -19,7 +19,6 @@
 package io.github.rothes.esu.bukkit.module.anticheat
 
 import io.github.rothes.esu.bukkit.module.anticheat.movement.ElytraStartGlideInterval
-import io.github.rothes.esu.bukkit.module.anticheat.movement.MultiPlayerInput
 import io.github.rothes.esu.core.module.CommonFeature
 
 object MovementCheats : CommonFeature<Unit, Unit>() {
@@ -28,7 +27,6 @@ object MovementCheats : CommonFeature<Unit, Unit>() {
 
     init {
         registerFeature(ElytraStartGlideInterval)
-        registerFeature(MultiPlayerInput)
     }
 
     override fun onEnable() {}
