@@ -32,7 +32,11 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.MapPalette
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.SingletonPalette
 import com.github.retrooper.packetevents.util.Vector3i
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging
-import com.github.retrooper.packetevents.wrapper.play.server.*
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDamageEvent
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk
 import com.google.common.primitives.Ints
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.event.BlockStateRegistryChangedEvent
@@ -80,7 +84,9 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.chunk.*
+import net.minecraft.world.level.chunk.LevelChunkSection
+import net.minecraft.world.level.chunk.PalettedContainer
+import net.minecraft.world.level.chunk.SingleValuePalette
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World.Environment
@@ -652,18 +658,15 @@ object ChunkDataThrottleHandler: CommonFeature<ChunkDataThrottleHandler.HandlerC
                 }
             } else {
                 val storage = containerReader.getStorage(states)
-                val blockingArr = when (palette) {
-                    is LinearPalette<BlockState>, is HashMapPalette<BlockState> ->
-                        ByteArray(palette.size + 1).apply {
-                            // We add one size for safe, cuz this is not thread-safe,
-                            // Players might place extra blocks to the chunk during the process below (storage.get())
-                            for (i in 0 until palette.size)
-                                this[i] = palette.valueFor(i).blocksView
-                        }
-                    is net.minecraft.world.level.chunk.GlobalPalette<BlockState> ->
-                        BLOCKS_VIEW
-                    else ->
-                        error("Unsupported minecraft palette type: ${palette::class.simpleName}")
+                val blockingArr = if (palette !is net.minecraft.world.level.chunk.GlobalPalette<BlockState>) {
+                    ByteArray(palette.size + 1).apply {
+                        // We add one size for safe, cuz this is not thread-safe,
+                        // Players might place extra blocks to the chunk during the process below (storage.get())
+                        for (i in 0 until palette.size)
+                            this[i] = palette.valueFor(i).blocksView
+                    }
+                } else {
+                    BLOCKS_VIEW
                 }
 
                 for (y in 0 until 16) {
