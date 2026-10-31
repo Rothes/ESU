@@ -144,7 +144,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             private val last = CacheBuilder.newBuilder()
                 .expireAfterAccess(8, TimeUnit.HOURS)
-                .build<User, LastTarget>()
+                .build<Int, LastTarget>()
             private val spying = hashSetOf<User>(ConsoleUser)
 
             @Command("$WHISPER_COMMANDS <receiver> <message>")
@@ -180,7 +180,7 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
 
             @Command("$REPLY_COMMANDS <message>")
             fun reply(sender: User, @Argument(parserName = "greedyString") message: String) {
-                val last = last.getIfPresent(sender)
+                val last = last.getIfPresent(sender.dbId)
                 if (last == null) {
                     sender.message(
                         lang, { whisper.replyNoLastTarget },
@@ -273,11 +273,11 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             }
 
             fun updateLast(sender: User, receiver: User): Boolean {
-                val previous = last.getIfPresent(receiver)
+                val previous = last.getIfPresent(receiver.dbId)
                 val initiative = previous == null || previous.userGetter() != sender || !previous.initiative
 
-                last.put(sender, LastTarget(receiver, initiative))
-                last.put(receiver, LastTarget(sender, !initiative))
+                last.put(sender.dbId, LastTarget(receiver, initiative))
+                last.put(receiver.dbId, LastTarget(sender, !initiative))
                 return initiative
             }
 
