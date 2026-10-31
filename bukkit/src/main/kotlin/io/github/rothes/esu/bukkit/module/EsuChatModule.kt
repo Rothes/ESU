@@ -273,6 +273,8 @@ object EsuChatModule: BukkitModule<EsuChatModule.ModuleConfig, EsuChatModule.Mod
             }
 
             fun updateLast(sender: User, receiver: User): Boolean {
+                if (sender is GenericUser) return true
+
                 val previous = last.getIfPresent(receiver.dbId)
                 val initiative = previous == null || previous.userGetter() != sender || !previous.initiative
 
