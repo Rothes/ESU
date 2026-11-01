@@ -32,16 +32,28 @@ object AutoRestartModule: AbstractAutoRestartModule() {
     override val rootCommandAlias: String = "ar"
 
     override fun runCommands() {
-        Scheduler.global(2) { // Make sure all players are disconnected on their region thread
-            config.commands.forEach {
+        val commands = config.commands
+        var i = 0
+        fun run() {
+            while (i < commands.size) {
+                val cmd = commands[i++]
                 try {
-                    if (!Bukkit.dispatchCommand(ConsoleUser.commandSender, it)) {
-                        core.warn("[AutoRestart] Command '$it' is not found")
+                    if (cmd.startsWith($$"$delay:")) {
+                        Scheduler.global(cmd.substringAfter($$"$delay:").toLong()) {
+                            run()
+                        }
+                        return
+                    }
+                    if (!Bukkit.dispatchCommand(ConsoleUser.commandSender, cmd)) {
+                        core.warn("[AutoRestart] Command '$cmd' is not found")
                     }
                 } catch (t: Throwable) {
-                    core.err("[AutoRestart] An error occurred while executing command '$it'", t)
+                    core.err("[AutoRestart] An error occurred while executing command '$cmd'", t)
                 }
             }
+        }
+        Scheduler.global(2) { // Make sure all players are disconnected on their region thread
+            run()
         }
     }
 
