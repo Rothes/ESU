@@ -34,7 +34,7 @@ abstract class UserManager<T, R: User> {
     protected fun set(uuid: UUID, value: R) = lock.write { byUuid.put(uuid, value) }
 
     abstract operator fun get(native: T): R
-    operator fun get(uuid: UUID): R = lock.read { byUuid[uuid] } ?: lock.write { create(uuid).also { byUuid[uuid] = it } }
+    operator fun get(uuid: UUID): R = lock.read { byUuid[uuid] } ?: lock.write { byUuid[uuid] ?: create(uuid).also { byUuid[uuid] = it } }
 
     fun getCache(uuid: UUID): R? = lock.read { byUuid[uuid] }
     fun getWithoutCaching(uuid: UUID): R = getCache(uuid) ?: create(uuid)
