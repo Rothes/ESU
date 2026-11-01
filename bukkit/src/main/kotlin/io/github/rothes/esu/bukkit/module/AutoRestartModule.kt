@@ -18,6 +18,7 @@
 
 package io.github.rothes.esu.bukkit.module
 
+import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.user.ConsoleUser
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler
 import io.github.rothes.esu.common.module.AbstractAutoRestartModule
@@ -33,7 +34,13 @@ object AutoRestartModule: AbstractAutoRestartModule() {
     override fun runCommands() {
         Scheduler.global(2) { // Make sure all players are disconnected on their region thread
             config.commands.forEach {
-                Bukkit.dispatchCommand(ConsoleUser.commandSender, it)
+                try {
+                    if (!Bukkit.dispatchCommand(ConsoleUser.commandSender, it)) {
+                        core.warn("[AutoRestart] Command '$it' is not found")
+                    }
+                } catch (t: Throwable) {
+                    core.err("[AutoRestart] An error occurred while executing command '$it'", t)
+                }
             }
         }
     }
