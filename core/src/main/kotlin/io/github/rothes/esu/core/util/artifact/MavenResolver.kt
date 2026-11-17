@@ -25,7 +25,8 @@ import io.github.rothes.esu.core.util.JvmUtils
 import io.github.rothes.esu.core.util.NetworkUtils.uriLatency
 import io.github.rothes.esu.core.util.artifact.injector.ReflectURLInjector
 import io.github.rothes.esu.core.util.artifact.injector.URLInjector
-import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector
+import io.github.rothes.esu.core.util.artifact.injector.UnsafeFieldURLInjector
+import io.github.rothes.esu.core.util.artifact.injector.UnsafeMethodURLInjector
 import io.github.rothes.esu.core.util.extension.listOfJvm
 import io.github.rothes.esu.core.util.extension.mapJvm
 import io.github.rothes.esu.data.KotlinVersion
@@ -90,7 +91,7 @@ object MavenResolver {
     }
     private val repositories: List<RemoteRepository>
 
-    private var injector: URLInjector = UnsafeURLInjector
+    private var injector: URLInjector = UnsafeMethodURLInjector
 
 
     init {
@@ -107,19 +108,6 @@ object MavenResolver {
     fun loadKotlin() {
         loadDependency("org.jetbrains.kotlin:kotlin-reflect:${KotlinVersion.KOTLIN}", listOfJvm())
         loadDependency("org.jetbrains.kotlinx:kotlinx-io-core-jvm:${KotlinVersion.KOTLINX_IO_CORE}", listOfJvm())
-    }
-
-    fun loadUrl(url: URL) {
-        try {
-            injector.addURL(url)
-        } catch (e: InaccessibleObjectException) {
-            if (injector == UnsafeURLInjector) {
-                injector = ReflectURLInjector
-                injector.addURL(url)
-            } else {
-                throw e
-            }
-        }
     }
 
     fun loadDependencies(libraries: List<String>, extraRepo: List<RemoteRepository> = listOf()) {
@@ -143,7 +131,7 @@ object MavenResolver {
             val artifact = it.artifact
             val file = artifact.file
             val url = file.toURI().toURL()
-            loadUrl(url)
+            URLInjector.loadUrl(url)
 
             val str = "${artifact.groupId}:${artifact.artifactId}::"
             filter.add(str)
@@ -158,7 +146,7 @@ object MavenResolver {
             val file = artifact.file
             val toLoad = loader(file, artifact)
             val url = toLoad.toURI().toURL()
-            loadUrl(url)
+            URLInjector.loadUrl(url)
 
             val str = "${artifact.groupId}:${artifact.artifactId}::"
             filter.add(str)

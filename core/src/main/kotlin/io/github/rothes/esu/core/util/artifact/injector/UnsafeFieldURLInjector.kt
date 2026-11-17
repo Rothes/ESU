@@ -23,7 +23,7 @@ import io.github.rothes.esu.core.util.UnsafeUtils.usGet
 import java.net.URL
 import java.net.URLClassLoader
 
-object UnsafeURLInjector: URLInjector {
+object UnsafeFieldURLInjector: URLInjector {
 
     private val ucp: Any = URLClassLoader::class.java.getDeclaredField("ucp").usGet(EsuBootstrap.instance.javaClass.classLoader)
     private val path: MutableCollection<URL> = ucp.javaClass.getDeclaredField("path").usGet(ucp)

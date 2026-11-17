@@ -20,6 +20,7 @@ package io.github.rothes.esu.bukkit.util.version
 
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.core.util.artifact.MavenResolver
+import io.github.rothes.esu.core.util.artifact.injector.URLInjector
 import io.github.rothes.esu.core.util.version.Version
 import io.github.rothes.esu.core.util.version.toVersion
 import java.io.File
@@ -87,7 +88,7 @@ object VersionedInstance {
 
     fun loadVersionJar(file: File) {
         val url = file.toURI().toURL()
-        MavenResolver.loadUrl(url)
+        URLInjector.loadUrl(url)
         versions.add(url)
 
         JarFile(file).use { jarFile ->

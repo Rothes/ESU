@@ -18,10 +18,36 @@
 
 package io.github.rothes.esu.core.util.artifact.injector
 
+import java.lang.reflect.InaccessibleObjectException
 import java.net.URL
 
 interface URLInjector {
 
     fun addURL(url: URL)
+
+    companion object {
+
+        private var _instance: URLInjector = UnsafeMethodURLInjector
+
+        @JvmStatic
+        fun loadUrl(url: URL) {
+            try {
+                _instance.addURL(url)
+            } catch (e: InaccessibleObjectException) {
+                _instance = when (_instance) {
+                    UnsafeMethodURLInjector -> try {
+                        UnsafeFieldURLInjector
+                    } catch (_: Throwable) {
+                        // On java 27: java.lang.NoSuchFieldException: path
+                        ReflectURLInjector
+                    }
+                    UnsafeFieldURLInjector  -> ReflectURLInjector
+                    else                    -> throw e
+                }
+                loadUrl(url)
+            }
+        }
+
+    }
 
 }

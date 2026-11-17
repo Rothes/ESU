@@ -19,7 +19,8 @@
 package io.github.rothes.esu.core.util.artifact;
 
 import io.github.rothes.esu.core.EsuBootstrap;
-import io.github.rothes.esu.core.util.artifact.injector.UnsafeURLInjector;
+import io.github.rothes.esu.core.util.artifact.injector.URLInjector;
+import io.github.rothes.esu.core.util.artifact.injector.UnsafeMethodURLInjector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,7 +51,7 @@ public class AetherLoader {
                     downloadAetherLib("github.com", resolve);
                 }
             }
-            UnsafeURLInjector.INSTANCE.addURL(resolve.toURI().toURL());
+            URLInjector.loadUrl(resolve.toURI().toURL());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
