@@ -31,6 +31,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EntityTypes
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftWorld
+import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 
 abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureConfig, Unit>() {
@@ -54,7 +55,7 @@ abstract class EntityUpdateInterval: CommonFeature<EntityUpdateInterval.FeatureC
         registerCommands(object {
             @Command("esu networkThrottle entityUpdateInterval entityType <entityType>")
             @ShortPerm
-            fun getUpdateInterval(sender: User, entityType: EntityType<*>) {
+            fun getUpdateInterval(sender: User, @Argument(parserName = "mc-reg-entity-type") entityType: EntityType<*>) {
                 val interval = this@EntityUpdateInterval[entityType]
                 sender.miniMessage("<pc>Current update interval of entity type <pdc>${entityType.toShortString()}</pdc> is <pdc>$interval")
             }

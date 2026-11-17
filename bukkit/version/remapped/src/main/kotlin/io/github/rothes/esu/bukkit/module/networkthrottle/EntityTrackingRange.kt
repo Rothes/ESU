@@ -37,6 +37,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EntityTypes
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftWorld
+import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.suggestion.Suggestions
 import org.spigotmc.SpigotWorldConfig
@@ -93,7 +94,7 @@ object EntityTrackingRange : CommonFeature<EntityTrackingRange.FeatureConfig, En
 
             @Command("esu networkThrottle entityTrackingRange clientTrackingRange <entityType>")
             @ShortPerm
-            fun clientTrackingRangeGet(sender: User, entityType: EntityType<*>) {
+            fun clientTrackingRangeGet(sender: User, @Argument(parserName = "mc-reg-entity-type") entityType: EntityType<*>) {
                 sender.message(lang, { clientTrackingRange.get },
                     unparsed("type", entityType.descriptionId),
                     unparsed("value", ctrAccessor[entityType])

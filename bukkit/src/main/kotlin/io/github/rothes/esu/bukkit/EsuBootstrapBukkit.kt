@@ -42,10 +42,9 @@ import kotlin.concurrent.thread
 class EsuBootstrapBukkit: JavaPlugin(), EsuBootstrap {
 
     init {
-        if (Runtime.version().feature() !in (21..25)) {
+        if (Runtime.version().feature() < 21) {
             // Adventure 5 requires Java 21
-            // We're heavily using Unsafe, so Java 26 is not okey
-            val msg = "ESU requires Java 21 to Java 25, you are running on Java ${Runtime.version().feature()}"
+            val msg = "ESU requires at least Java 21, you are running on Java ${Runtime.version().feature()}"
             logger.severe(msg)
             throw IllegalStateException(msg)
         }

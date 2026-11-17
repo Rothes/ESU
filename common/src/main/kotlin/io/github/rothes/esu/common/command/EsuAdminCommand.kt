@@ -30,6 +30,7 @@ import io.github.rothes.esu.core.util.ComponentUtils.component
 import io.github.rothes.esu.core.util.ComponentUtils.unparsed
 import io.github.rothes.esu.core.util.InitOnce
 import org.incendo.cloud.annotations.AnnotationParser
+import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.ArgumentMode
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.SyntaxFragment
@@ -60,7 +61,7 @@ object EsuAdminCommand {
             it.permission("$rootCmd.command.admin")
         }
 
-        annotationParser.manager().parserRegistry().registerParser(ModuleParser.parser())
+        annotationParser.manager().parserRegistry().registerNamedParser("esu-module", ModuleParser.parser())
         annotationParser.parse(EsuAdminCommand)
     }
 
@@ -77,7 +78,7 @@ object EsuAdminCommand {
     }
 
     @Command("module forceEnable <module>")
-    fun forceEnable(sender: User, module: Module<*, *>) {
+    fun forceEnable(sender: User, @Argument(parserName = "esu-module") module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
         val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
         if (module.enabled) {
@@ -90,7 +91,7 @@ object EsuAdminCommand {
     }
 
     @Command("module forceDisable <module>")
-    fun forceDisable(sender: User, module: Module<*, *>) {
+    fun forceDisable(sender: User, @Argument(parserName = "esu-module") module: Module<*, *>) {
         val tag = unparsed("module-name", module.name)
         val prefix = component("prefix", sender.buildMiniMessage(EsuLang.get(), { commands.prefix }))
         if (!module.enabled) {

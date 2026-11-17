@@ -74,7 +74,8 @@ class EsuBukkitCommandManager: LegacyPaperCommandManager<User>(
 
         if (NmsRegistryValueParsers.isSupported) {
             for (parser in NmsRegistryValueParsers.all<User>()) {
-                parserRegistry().registerParser(parser)
+                parserRegistry().registerParser(parser.parser)
+                parserRegistry().registerNamedParser(parser.name, parser.parser)
             }
         }
     }

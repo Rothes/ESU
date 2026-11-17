@@ -34,12 +34,14 @@ interface NmsRegistryValueParsers {
         val isSupported = ServerInfo.mcVersion >= "17.1"
         val instance: NmsRegistryValueParsers by lazy { versioned<NmsRegistryValueParsers>() }
 
-        fun <C> all(): List<ParserDescriptor<C, *>> {
+        fun <C> all(): List<RegistryParser<C>> {
             return listOf(
-                instance.biome(),
-                instance.entityType(),
+                RegistryParser("mc-reg-biome", instance.biome()),
+                RegistryParser("mc-reg-entity-type", instance.entityType()),
             )
         }
+
+        class RegistryParser<C>(val name: String, val parser: ParserDescriptor<C, *>)
     }
 
 }
