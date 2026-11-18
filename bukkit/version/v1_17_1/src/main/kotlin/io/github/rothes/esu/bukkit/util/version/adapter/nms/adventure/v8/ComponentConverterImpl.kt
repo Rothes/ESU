@@ -16,14 +16,14 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v8
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure.v8
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure.ComponentConverter
 import io.github.rothes.esu.core.util.ComponentUtils
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
-object ComponentSerializerImpl: ComponentSerializer {
+object ComponentConverterImpl: ComponentConverter {
 
     override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
         return MinecraftComponent.Serializer.fromJson(ComponentUtils.gsonSerializer().serializeToTree(component)) ?: error("Failed to deserialize")

@@ -16,20 +16,20 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
-interface ComponentSerializer {
+interface ComponentConverter {
 
     fun toMinecraft(component: AdventureComponent): MinecraftComponent
     fun toAdventure(component: MinecraftComponent): AdventureComponent
 
     companion object {
 
-        val INSTANCE = versioned<ComponentSerializer>()
+        @JvmField val INSTANCE = versioned<ComponentConverter>()
 
     }
 

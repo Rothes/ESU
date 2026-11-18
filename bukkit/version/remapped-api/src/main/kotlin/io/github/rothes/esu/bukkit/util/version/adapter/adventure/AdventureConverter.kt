@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.adventure
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure.ComponentConverter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.ResourceKeyHandler
@@ -42,13 +42,13 @@ object AdventureConverter {
         val key = type().key()!!
         return MinecraftChatType.Bound(
             CHAT_TYPE_REGISTRY.getOrThrow(RESOURCE_KEY_HANDLER.createResourceKey(CHAT_TYPE_REGISTRY, key.namespace(), key.value())),
-            ComponentSerializer.INSTANCE.toMinecraft(name()),
-            Optional.ofNullable(target()?.let { ComponentSerializer.INSTANCE.toMinecraft(it) })
+            ComponentConverter.INSTANCE.toMinecraft(name()),
+            Optional.ofNullable(target()?.let { ComponentConverter.INSTANCE.toMinecraft(it) })
         )
     }
 
     fun AdventureComponent.toMinecraft(): MinecraftComponent {
-        return ComponentSerializer.INSTANCE.toMinecraft(this)
+        return ComponentConverter.INSTANCE.toMinecraft(this)
     }
 
     fun AdventureBossBar.Color.toMinecraft(): BossEvent.BossBarColor {

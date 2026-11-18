@@ -16,33 +16,31 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v21
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure.v21_6
 
 import com.google.gson.JsonParseException
 import com.mojang.serialization.JsonOps
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.adventure.ComponentConverter
 import io.github.rothes.esu.core.util.ComponentUtils
 import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.server.MinecraftServer
 import io.github.rothes.esu.lib.adventure.text.Component as AdventureComponent
 import net.minecraft.network.chat.Component as MinecraftComponent
 
-// net.minecraft.network.chat.Component.Serializer exists in this version till 21.6, but we don't use
-object ComponentSerializerImpl: ComponentSerializer {
+object ComponentConverterImpl: ComponentConverter {
 
     override fun toMinecraft(component: AdventureComponent): MinecraftComponent {
-        return ComponentSerialization.CODEC.parse(
-            // CraftRegistry.getMinecraftRegistry() can also work
+        return ComponentSerialization.CODEC.decode(
             MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),
             ComponentUtils.gsonSerializer().serializeToTree(component),
-        ).getOrThrow { JsonParseException(it) }
+        ).getOrThrow { JsonParseException(it) }.first
     }
 
     override fun toAdventure(component: MinecraftComponent): AdventureComponent {
         return ComponentUtils.gsonSerializer().deserializeFromTree(
             ComponentSerialization.CODEC.encodeStart(
                 MinecraftServer.getServer().registryAccess().createSerializationContext(JsonOps.INSTANCE),
-                component
+                component,
             ).getOrThrow { JsonParseException(it) }
         )
     }
