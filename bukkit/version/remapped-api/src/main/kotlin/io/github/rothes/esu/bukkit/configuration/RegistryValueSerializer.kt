@@ -19,8 +19,8 @@
 package io.github.rothes.esu.bukkit.configuration
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.ResourceKeyHandler
 import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
 import io.leangen.geantyref.TypeToken
 import net.minecraft.core.Registry

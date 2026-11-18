@@ -20,7 +20,7 @@ package io.github.rothes.esu.bukkit.module
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.*
 import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryValueSerializers
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.ConfigurationPart
 import io.github.rothes.esu.core.module.configuration.BaseModuleConfiguration

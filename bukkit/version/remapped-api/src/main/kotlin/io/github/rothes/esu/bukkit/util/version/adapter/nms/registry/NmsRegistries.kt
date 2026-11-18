@@ -16,17 +16,22 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry
 
 import net.minecraft.core.Registry
+import net.minecraft.network.chat.ChatType
 import net.minecraft.resources.ResourceKey
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.level.biome.Biome
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.entity.BlockEntityType
 
-interface ResourceKeyHandler {
+interface NmsRegistries {
 
-    fun <T: Any> createResourceKey(registry: Registry<T>, namespace: String, path: String): ResourceKey<T>
-    fun <T: Any> parseResourceKey(registry: Registry<T>, id: String): ResourceKey<T>
-    fun getResourceKeyString(resourceKey: ResourceKey<*>): String
-
-    class BadIdentifierException(val id: String): RuntimeException("Failed to parse identifier: $id")
+    val biome: ResourceKey<Registry<Biome>>
+    val block: ResourceKey<Registry<Block>>
+    val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>>
+    val chatType: ResourceKey<Registry<ChatType>>
+    val entityType: ResourceKey<Registry<EntityType<*>>>
 
 }

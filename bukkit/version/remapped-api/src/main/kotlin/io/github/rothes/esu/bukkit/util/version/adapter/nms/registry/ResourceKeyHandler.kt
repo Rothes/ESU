@@ -16,22 +16,17 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry
 
-import io.github.rothes.esu.bukkit.util.ServerInfo
-import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.lib.configurate.serialize.ScalarSerializer
+import net.minecraft.core.Registry
+import net.minecraft.resources.ResourceKey
 
-interface NmsRegistryValueSerializers {
+interface ResourceKeyHandler {
 
-    val biome: ScalarSerializer<*>
-    val block: ScalarSerializer<*>
-    val blockEntityType: ScalarSerializer<*>
-    val entityType: ScalarSerializer<*>
+    fun <T: Any> createResourceKey(registry: Registry<T>, namespace: String, path: String): ResourceKey<T>
+    fun <T: Any> parseResourceKey(registry: Registry<T>, id: String): ResourceKey<T>
+    fun getResourceKeyString(resourceKey: ResourceKey<*>): String
 
-    companion object {
-        val isSupported = ServerInfo.mcVersion >= "17.1"
-        val instance: NmsRegistryValueSerializers by lazy { versioned<NmsRegistryValueSerializers>() }
-    }
+    class BadIdentifierException(val id: String): RuntimeException("Failed to parse identifier: $id")
 
 }

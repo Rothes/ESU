@@ -21,7 +21,7 @@ package io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettyp
 import io.github.rothes.esu.bukkit.module.optimizations.vanillatweaks.tickettype.TicketTypeHandler
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.ResourceKeyHandler
 import io.github.rothes.esu.core.util.UnsafeUtils.usLongAccessor
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.level.TicketType

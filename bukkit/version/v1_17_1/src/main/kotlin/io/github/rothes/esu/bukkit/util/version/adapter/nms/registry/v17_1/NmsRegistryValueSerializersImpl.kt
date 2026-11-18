@@ -16,13 +16,13 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v17_1
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.v17_1
 
 import io.github.rothes.esu.bukkit.configuration.RegistryValueSerializer
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryValueSerializers
 import io.leangen.geantyref.TypeToken
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.biome.Biome

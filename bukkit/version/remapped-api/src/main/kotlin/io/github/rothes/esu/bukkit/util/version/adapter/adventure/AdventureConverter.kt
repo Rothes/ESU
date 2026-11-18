@@ -20,9 +20,9 @@ package io.github.rothes.esu.bukkit.util.version.adapter.adventure
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ComponentSerializer
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.ResourceKeyHandler
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.BossEvent
 import java.util.*

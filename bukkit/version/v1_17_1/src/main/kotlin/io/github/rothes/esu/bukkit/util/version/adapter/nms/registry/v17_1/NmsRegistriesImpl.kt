@@ -16,11 +16,10 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v19_3
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.v17_1
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
 import net.minecraft.core.Registry
-import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.ChatType
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.entity.EntityType
@@ -30,10 +29,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 
 object NmsRegistriesImpl: NmsRegistries {
 
-    override val biome: ResourceKey<Registry<Biome>> = Registries.BIOME
-    override val block: ResourceKey<Registry<Block>> = Registries.BLOCK
-    override val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>> = Registries.BLOCK_ENTITY_TYPE
-    override val chatType: ResourceKey<Registry<ChatType>> = Registries.CHAT_TYPE
-    override val entityType: ResourceKey<Registry<EntityType<*>>> = Registries.ENTITY_TYPE
+    override val biome: ResourceKey<Registry<Biome>> = Registry.BIOME_REGISTRY
+    override val block: ResourceKey<Registry<Block>> = Registry.BLOCK_REGISTRY
+    override val blockEntityType: ResourceKey<Registry<BlockEntityType<*>>> = Registry.BLOCK_ENTITY_TYPE_REGISTRY
+    override val chatType: ResourceKey<Registry<ChatType>>
+        get() = throw IllegalStateException("Not supported server version") // TODO: Confirm which version added
+    override val entityType: ResourceKey<Registry<EntityType<*>>> = Registry.ENTITY_TYPE_REGISTRY
 
 }

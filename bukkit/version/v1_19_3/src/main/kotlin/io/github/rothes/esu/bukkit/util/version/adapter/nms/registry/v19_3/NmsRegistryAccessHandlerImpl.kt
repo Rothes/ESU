@@ -16,9 +16,9 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v19_3
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.v19_3
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
 import net.minecraft.core.Registry
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey

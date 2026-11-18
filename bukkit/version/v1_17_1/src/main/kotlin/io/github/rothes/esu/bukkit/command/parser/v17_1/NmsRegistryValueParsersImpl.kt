@@ -21,8 +21,8 @@ package io.github.rothes.esu.bukkit.command.parser.v17_1
 import io.github.rothes.esu.bukkit.command.parser.NmsRegistryValueParser
 import io.github.rothes.esu.bukkit.command.parser.NmsRegistryValueParsers
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
 import io.leangen.geantyref.TypeToken
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.biome.Biome

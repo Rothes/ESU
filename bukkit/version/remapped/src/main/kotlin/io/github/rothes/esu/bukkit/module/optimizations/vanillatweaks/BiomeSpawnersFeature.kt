@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableMap
 import io.github.rothes.esu.bukkit.core
 import io.github.rothes.esu.bukkit.util.ServerInfo
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistries
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryValueSerializers
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ResourceKeyHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryValueSerializers
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.ResourceKeyHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.ConfigLoader
 import io.github.rothes.esu.core.configuration.MultiConfiguration

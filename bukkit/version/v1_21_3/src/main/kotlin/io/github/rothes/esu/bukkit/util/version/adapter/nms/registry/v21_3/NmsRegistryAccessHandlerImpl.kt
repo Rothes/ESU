@@ -16,9 +16,9 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v18_2
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.v21_3
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.NmsRegistryAccessHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
 import net.minecraft.core.Registry
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceKey
@@ -27,11 +27,11 @@ import net.minecraft.server.MinecraftServer
 object NmsRegistryAccessHandlerImpl: NmsRegistryAccessHandler {
 
     override fun getServerRegistryAccess(): RegistryAccess {
-        return MinecraftServer.getServer().registryAccess() // Change: return type is RegistryAccess.Frozen
+        return MinecraftServer.getServer().registryAccess()
     }
 
     override fun <T: Any> getRegistryOrThrow(registryKey: ResourceKey<out Registry<T>>, registryAccess: RegistryAccess): Registry<T> {
-        return registryAccess.registryOrThrow(registryKey)
+        return registryAccess.lookupOrThrow(registryKey) // Change: method name
     }
 
     override fun <T: Any> getNullable(registry: Registry<T>, key: ResourceKey<T>): T? {
@@ -43,12 +43,11 @@ object NmsRegistryAccessHandlerImpl: NmsRegistryAccessHandler {
     }
 
     override fun <T: Any> getId(registry: Registry<T>, item: T): Int {
-        // Change: No need to cast, IdMap interface
         return registry.getId(item)
     }
 
     override fun <T: Any> entrySet(registry: Registry<T>): Set<Map.Entry<ResourceKey<T>, T>> = registry.entrySet()
-    override fun <T: Any> keySet(registry: Registry<T>): Set<ResourceKey<T>> = registry.entrySet().map { it.key }.toSet()
+    override fun <T: Any> keySet(registry: Registry<T>): Set<ResourceKey<T>> = registry.registryKeySet()
     override fun <T: Any> values(registry: Registry<T>): Set<T> = registry.toSet()
     override fun <T: Any> size(registry: Registry<T>): Int = registry.size()
 
