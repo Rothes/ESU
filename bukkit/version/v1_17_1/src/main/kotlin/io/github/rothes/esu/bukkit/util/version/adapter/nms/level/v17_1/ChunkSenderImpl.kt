@@ -16,10 +16,10 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v20_2
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level.v17_1
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
-import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.ChunkSender
+import net.minecraft.network.protocol.Packet
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.chunk.LevelChunk
@@ -27,15 +27,11 @@ import net.minecraft.world.level.chunk.LevelChunk
 object ChunkSenderImpl: ChunkSender {
 
     override fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
-        player.connection.send(
-            @Suppress("DEPRECATION") // Spigot support
-            ClientboundLevelChunkWithLightPacket(
-                chunk,
-                level.lightEngine,
-                null,
-                null,
-            )
-        )
+        level.chunkSource.chunkMap.updateChunkTracking(player, chunk.pos, Array<Packet<*>?>(2) { null }, false, true)
+//        player.trackChunk(chunk.pos,
+//            ClientboundLevelChunkPacket(chunk, chunk.level.chunkPacketBlockController.shouldModify(player, chunk)),
+//            ClientboundLightUpdatePacket(chunk.pos, level.chunkSource.lightEngine, null, null, true)
+//        )
     }
 
 }

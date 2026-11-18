@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.module.networkthrottle
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.LevelEntitiesHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.meta.Comment
 import io.github.rothes.esu.core.module.CommonFeature

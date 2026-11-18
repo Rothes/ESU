@@ -23,7 +23,7 @@ import io.github.rothes.esu.bukkit.util.ComponentBukkitUtils.player
 import io.github.rothes.esu.bukkit.util.WorldUtils
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TeleportAdapter.Companion.tp
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkCoordinate
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.ChunkCoordinate
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.data.MessageData
 import io.github.rothes.esu.core.configuration.data.MessageData.Companion.message

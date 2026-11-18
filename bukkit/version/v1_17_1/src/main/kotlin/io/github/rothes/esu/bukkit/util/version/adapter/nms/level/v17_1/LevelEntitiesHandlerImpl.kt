@@ -16,10 +16,16 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level.v17_1
 
-interface ChunkCoordinate {
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.LevelEntitiesHandler
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.Entity
 
-    fun maxChunkCoordinate(): Int
+object LevelEntitiesHandlerImpl: LevelEntitiesHandler {
+
+    override fun getEntitiesAll(level: ServerLevel): Iterable<Entity> {
+        return level.entityManager.entityGetter.all
+    }
 
 }

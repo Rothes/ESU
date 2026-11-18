@@ -16,16 +16,17 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v21__paper
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level.v19_3__paper
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.LevelEntitiesHandler
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.LevelEntitiesHandler
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.level.entity.LevelEntityGetter
 
-class LevelEntitiesHandler: LevelEntitiesHandler {
+object LevelEntitiesHandlerImpl: LevelEntitiesHandler {
 
     override fun getEntitiesAll(level: ServerLevel): Iterable<Entity> {
-        return level.`moonrise$getEntityLookup`().all
+        return (level.entityLookup as LevelEntityGetter<Entity>).all // Convert to LevelEntityGetter to fix art re-obf
     }
 
 }

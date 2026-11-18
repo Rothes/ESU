@@ -16,22 +16,26 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v17_1
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
-import net.minecraft.network.protocol.Packet
+import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.chunk.LevelChunk
 
-object ChunkSenderImpl: ChunkSender {
+interface ChunkSender {
 
-    override fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
-        level.chunkSource.chunkMap.updateChunkTracking(player, chunk.pos, Array<Packet<*>?>(2) { null }, false, true)
-//        player.trackChunk(chunk.pos,
-//            ClientboundLevelChunkPacket(chunk, chunk.level.chunkPacketBlockController.shouldModify(player, chunk)),
-//            ClientboundLightUpdatePacket(chunk.pos, level.chunkSource.lightEngine, null, null, true)
-//        )
+    fun sendChunkSafely(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
+        try {
+            sendChunk(player, level, chunk)
+        } catch (_: Exception) {
+            // If block entities in chunk is being modified, this throws error.
+            player.bukkitEntity.onTick {
+                sendChunk(player, level, chunk)
+            }
+        }
     }
+
+    fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk)
 
 }

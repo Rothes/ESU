@@ -16,13 +16,26 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level.v20_2__paper
 
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.ChunkSender
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.entity.Entity
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.chunk.LevelChunk
 
-interface LevelEntitiesHandler {
+object ChunkSenderImplPaper: ChunkSender {
 
-    fun getEntitiesAll(level: ServerLevel): Iterable<Entity>
+    override fun sendChunk(player: ServerPlayer, level: ServerLevel, chunk: LevelChunk) {
+        player.connection.send(
+            ClientboundLevelChunkWithLightPacket(
+                chunk,
+                level.lightEngine,
+                null,
+                null,
+                false,
+            )
+        )
+    }
 
 }

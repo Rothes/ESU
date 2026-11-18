@@ -16,14 +16,15 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v1
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.level.v26_2
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkCoordinate
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.level.ChunkCoordinate
+import net.minecraft.world.level.chunk.status.ChunkPyramid
 
 object ChunkCoordinateImpl: ChunkCoordinate {
 
     override fun maxChunkCoordinate(): Int {
-        return Int.MAX_VALUE // TODO: Max value limit unsure. Use Int_MAX_VALUE for now.
+        return ChunkPyramid.MAX_CHUNK_COORDINATE_VALUE
     }
 
 }
