@@ -18,7 +18,7 @@
 
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.network.v21
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.ResourcePackPacketSender
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.Packet

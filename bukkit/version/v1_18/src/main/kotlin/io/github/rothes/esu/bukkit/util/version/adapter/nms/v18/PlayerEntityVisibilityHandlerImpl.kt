@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.v18
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.ReflectionUtils.handle
 import io.github.rothes.esu.core.util.UnsafeUtils.usNullableObjAccessor

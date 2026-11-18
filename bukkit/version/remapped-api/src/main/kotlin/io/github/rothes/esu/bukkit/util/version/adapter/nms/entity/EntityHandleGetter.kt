@@ -16,7 +16,7 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.entity
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import net.minecraft.server.level.ServerPlayer

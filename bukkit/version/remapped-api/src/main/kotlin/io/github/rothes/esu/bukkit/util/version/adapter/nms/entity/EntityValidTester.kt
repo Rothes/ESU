@@ -16,22 +16,16 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v21_6
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.entity
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
-import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.level.Level
+import org.bukkit.entity.Entity as BukkitEntity
 
-object EntityLevelGetterImpl: EntityLevelGetter {
+interface EntityValidTester {
 
-    override fun level(player: ServerPlayer): ServerLevel {
-        return player.level()
-    }
+    operator fun get(bukkitEntity: BukkitEntity): Boolean = isValid(bukkitEntity)
 
-    override fun level(entity: Entity): Level {
-        return entity.level()
-    }
+    fun isValid(bukkitEntity: BukkitEntity): Boolean
+    fun isValid(entity: Entity): Boolean
 
 }

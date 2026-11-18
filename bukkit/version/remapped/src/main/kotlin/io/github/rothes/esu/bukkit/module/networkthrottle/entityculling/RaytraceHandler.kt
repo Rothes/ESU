@@ -27,7 +27,7 @@ import io.github.rothes.esu.bukkit.util.extension.unregister
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistries
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.registry.NmsRegistryAccessHandler
 import io.github.rothes.esu.core.command.annotation.ShortPerm

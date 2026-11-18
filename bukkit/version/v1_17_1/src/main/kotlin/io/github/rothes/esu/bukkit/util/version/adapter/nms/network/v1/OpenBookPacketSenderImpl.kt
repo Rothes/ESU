@@ -20,7 +20,7 @@ package io.github.rothes.esu.bukkit.util.version.adapter.nms.network.v1
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ContainerStateIDGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.BundlePacketSender
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.OpenBookPacketSender
 import io.github.rothes.esu.core.util.ComponentUtils

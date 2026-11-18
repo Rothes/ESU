@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.network
 
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.lib.adventure.sound.Sound
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player

@@ -24,7 +24,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.displayName_
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BossBarImplementationImpl
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.BukkitEmitter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.*
 import io.github.rothes.esu.core.configuration.MultiLangConfiguration
 import io.github.rothes.esu.core.storage.StorageManager

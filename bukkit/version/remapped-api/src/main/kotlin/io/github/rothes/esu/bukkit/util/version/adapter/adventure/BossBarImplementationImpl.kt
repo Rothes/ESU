@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.adventure
 
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.AdventureConverter.toMinecraft
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.lib.adventure.bossbar.BossBar
 import io.github.rothes.esu.lib.adventure.bossbar.BossBarImplementation
 import io.github.rothes.esu.lib.adventure.text.Component

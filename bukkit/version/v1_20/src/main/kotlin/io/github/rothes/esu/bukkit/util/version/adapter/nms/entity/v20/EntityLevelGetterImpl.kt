@@ -16,9 +16,9 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v17_1
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.v20
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
@@ -27,11 +27,11 @@ import net.minecraft.world.level.Level
 object EntityLevelGetterImpl: EntityLevelGetter {
 
     override fun level(player: ServerPlayer): ServerLevel {
-        return player.getLevel()
+        return player.serverLevel()
     }
 
     override fun level(entity: Entity): Level {
-        return entity.commandSenderWorld
+        return entity.level()
     }
 
 }

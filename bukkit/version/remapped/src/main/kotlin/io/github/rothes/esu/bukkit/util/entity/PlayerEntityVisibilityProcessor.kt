@@ -27,9 +27,9 @@ import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.onTick
 import io.github.rothes.esu.bukkit.util.scheduler.Scheduler.syncTick
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
 import io.github.rothes.esu.bukkit.util.version.adapter.TickThreadAdapter.Companion.checkTickThread
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityValidTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PlayerEntityVisibilityHandler
 import io.github.rothes.esu.core.util.extension.math.square
 import io.papermc.paper.event.player.PlayerTrackEntityEvent

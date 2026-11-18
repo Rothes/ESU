@@ -20,7 +20,7 @@ package io.github.rothes.esu.bukkit.module.networkthrottle.v17_1
 
 import io.github.rothes.esu.bukkit.module.networkthrottle.EntityUpdateInterval
 import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
 import io.github.rothes.esu.core.util.UnsafeUtils.usIntAccessor
 import io.github.rothes.esu.core.util.UnsafeUtils.usObjAccessor
 import net.minecraft.server.level.ChunkMap

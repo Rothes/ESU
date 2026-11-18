@@ -16,15 +16,16 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v20_2__paper
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.entity
 
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
-import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity
+import net.minecraft.world.level.Level
 
-object EntityHandleGetterImpl: EntityHandleGetter {
+interface EntityLevelGetter {
 
-    override fun getHandle(entity: org.bukkit.entity.Entity): Entity {
-        return (entity as CraftEntity).handleRaw
-    }
+    fun level(player: ServerPlayer): ServerLevel
+    fun level(entity: Entity): Level
+
 }

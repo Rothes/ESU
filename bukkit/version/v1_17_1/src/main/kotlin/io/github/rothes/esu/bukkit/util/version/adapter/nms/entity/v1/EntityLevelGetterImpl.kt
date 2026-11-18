@@ -16,24 +16,22 @@
  * License along with ESU. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.rothes.esu.bukkit.util.version.adapter.nms.v1
+package io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.v1
 
-import io.github.rothes.esu.bukkit.util.version.VersionedInstance.versioned
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityValidTester
-import org.bukkit.entity.Entity
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.level.Level
 
-object EntityValidTesterImpl: EntityValidTester {
+object EntityLevelGetterImpl: EntityLevelGetter {
 
-    private val HANDLE_GETTER = versioned<EntityHandleGetter>()
-
-    override fun isValid(bukkitEntity: Entity): Boolean {
-        val handle = HANDLE_GETTER.getHandle(bukkitEntity)
-        return handle.isAlive && handle.valid
+    override fun level(player: ServerPlayer): ServerLevel {
+        return player.getLevel()
     }
 
-    override fun isValid(entity: net.minecraft.world.entity.Entity): Boolean {
-        return entity.isAlive && entity.valid
+    override fun level(entity: Entity): Level {
+        return entity.commandSenderWorld
     }
 
 }

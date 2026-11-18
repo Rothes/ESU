@@ -53,7 +53,7 @@ import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.
 import io.github.rothes.esu.bukkit.util.version.adapter.PlayerAdapter.Companion.connected
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.BlockOccludeTester
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.ChunkSender
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityLevelGetter
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityLevelGetter
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.PalettedContainerReader
 import io.github.rothes.esu.core.command.annotation.ShortPerm
 import io.github.rothes.esu.core.configuration.LoadedConfiguration

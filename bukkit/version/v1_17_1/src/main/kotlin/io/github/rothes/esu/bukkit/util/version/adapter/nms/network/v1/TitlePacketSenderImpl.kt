@@ -19,7 +19,7 @@
 package io.github.rothes.esu.bukkit.util.version.adapter.nms.network.v1
 
 import io.github.rothes.esu.bukkit.util.version.adapter.adventure.AdventureConverter.toMinecraft
-import io.github.rothes.esu.bukkit.util.version.adapter.nms.EntityHandleGetter.Companion.handle
+import io.github.rothes.esu.bukkit.util.version.adapter.nms.entity.EntityHandleGetter.Companion.handle
 import io.github.rothes.esu.bukkit.util.version.adapter.nms.network.TitlePacketSender
 import io.github.rothes.esu.lib.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundChatPacket
